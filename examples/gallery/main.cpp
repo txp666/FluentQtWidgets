@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
     FluentQt::ThemeManager::instance()->setTheme(FluentQt::FluentConfig::instance()->themeMode());
     FluentQt::ThemeManager::instance()->setAccentColor(FluentQt::FluentConfig::instance()->themeColor());
 
-    auto *window = new GalleryWindow;
+    auto *window = new GalleryWindow(nullptr, true);
     window->setAttribute(Qt::WA_DeleteOnClose);
 
     QMenu trayMenu;

@@ -7,7 +7,7 @@ class GalleryWindow : public FluentQt::FluentWindow
     Q_OBJECT
 
   public:
-    explicit GalleryWindow(QWidget *parent = nullptr);
+    explicit GalleryWindow(QWidget *parent = nullptr, bool deferPageLoad = false);
     ~GalleryWindow() override;
 
   protected:
@@ -16,6 +16,10 @@ class GalleryWindow : public FluentQt::FluentWindow
     void closeEvent(QCloseEvent *event) override;
 
   private:
+    bool addGalleryInterface(int index);
+    void populateInterfaces();
+    void addNextDeferredInterface();
+    void scheduleSplashFinish();
     void reloadForLanguageChange();
     void switchToSample(const QString &routeKey, int index);
 
@@ -35,4 +39,6 @@ class GalleryWindow : public FluentQt::FluentWindow
 
     bool m_reloadingLanguage = false;
     bool m_splashFinishScheduled = false;
+    bool m_interfacesPopulated = false;
+    int m_nextDeferredInterface = 0;
 };

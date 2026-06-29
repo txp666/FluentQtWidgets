@@ -29,7 +29,8 @@
       "preLaunchTask": "Gallery: Build",
       "windows": {
         "program": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
-        "MIMode": "gdb"
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb.exe"
       },
       "linux": {
         "program": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery",

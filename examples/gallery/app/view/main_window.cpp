@@ -14,7 +14,7 @@
 
 using namespace FluentQt;
 
-GalleryWindow::GalleryWindow(QWidget *parent) : FluentWindow(parent)
+GalleryWindow::GalleryWindow(QWidget *parent, bool deferPageLoad) : FluentWindow(parent)
 {
     setWindowTitle(QStringLiteral("FluentQtWidgets Gallery"));
     setWindowIcon(QIcon(QStringLiteral(":/gallery/images/logo.png")));
@@ -32,35 +32,117 @@ GalleryWindow::GalleryWindow(QWidget *parent) : FluentWindow(parent)
     auto *home = new HomeInterface(this);
     connect(home, &HomeInterface::sampleCardClicked, this, &GalleryWindow::switchToSample);
     addSubInterface(home, icon(FluentIcon::Home), mainTx("Home"), QStringLiteral("home"));
-    addSubInterface(createIconPage(), icon(FluentIcon::Star), navTx("Icons"), QStringLiteral("iconInterface"));
-    navigationInterface()->addSeparator();
-    addSubInterface(createBasicInputPage(), icon(FluentIcon::Check), navTx("Basic input"),
-                    QStringLiteral("basicInputInterface"));
-    addSubInterface(createDateTimePage(), icon(FluentIcon::Calendar), navTx("Date & time"),
-                    QStringLiteral("dateTimeInterface"));
-    addSubInterface(createDialogPage(), icon(FluentIcon::Info), navTx("Dialogs & flyouts"),
-                    QStringLiteral("dialogInterface"));
-    addSubInterface(createLayoutPage(), icon(FluentIcon::View), navTx("Layout"), QStringLiteral("layoutInterface"));
-    addSubInterface(createMaterialPage(), icon(FluentIcon::Palette), navTx("Material"),
-                    QStringLiteral("materialInterface"));
-    addSubInterface(createMenuPage(), icon(FluentIcon::More), navTx("Menus & toolbars"), QStringLiteral("menuInterface"));
-    addSubInterface(createNavigationPage(), icon(FluentIcon::More), navTx("Navigation"),
-                    QStringLiteral("navigationViewInterface"));
-    addSubInterface(createScrollPage(), icon(FluentIcon::Scroll), navTx("Scrolling"), QStringLiteral("scrollInterface"));
-    addSubInterface(createStatusInfoPage(), icon(FluentIcon::Feedback), navTx("Status & info"),
-                    QStringLiteral("statusInfoInterface"));
-    addSubInterface(createTextPage(), icon(FluentIcon::Font), navTx("Text"), QStringLiteral("textInterface"));
-    addSubInterface(createViewsPage(), icon(FluentIcon::Folder), navTx("View"), QStringLiteral("viewInterface"));
-    addSubInterface(createSettingsPage(), icon(FluentIcon::Settings), mainTx("Settings"),
-                    QStringLiteral("settings"), NavigationItemPosition::Bottom);
 
-    if (auto *splash = splashScreen()) {
-        m_splashFinishScheduled = true;
-        QTimer::singleShot(0, this, [splash]() { splash->finish(); });
+    if (deferPageLoad) {
+        QTimer::singleShot(100, this, &GalleryWindow::addNextDeferredInterface);
+    } else {
+        populateInterfaces();
+        scheduleSplashFinish();
     }
 }
 
 GalleryWindow::~GalleryWindow() = default;
+
+bool GalleryWindow::addGalleryInterface(int index)
+{
+    switch (index) {
+    case 0:
+        addSubInterface(createIconPage(), icon(FluentIcon::Star), navTx("Icons"), QStringLiteral("iconInterface"));
+        return true;
+    case 1:
+        navigationInterface()->addSeparator();
+        addSubInterface(createBasicInputPage(), icon(FluentIcon::Check), navTx("Basic input"),
+                        QStringLiteral("basicInputInterface"));
+        return true;
+    case 2:
+        addSubInterface(createDateTimePage(), icon(FluentIcon::Calendar), navTx("Date & time"),
+                        QStringLiteral("dateTimeInterface"));
+        return true;
+    case 3:
+        addSubInterface(createDialogPage(), icon(FluentIcon::Info), navTx("Dialogs & flyouts"),
+                        QStringLiteral("dialogInterface"));
+        return true;
+    case 4:
+        addSubInterface(createLayoutPage(), icon(FluentIcon::View), navTx("Layout"), QStringLiteral("layoutInterface"));
+        return true;
+    case 5:
+        addSubInterface(createMaterialPage(), icon(FluentIcon::Palette), navTx("Material"),
+                        QStringLiteral("materialInterface"));
+        return true;
+    case 6:
+        addSubInterface(createMenuPage(), icon(FluentIcon::More), navTx("Menus & toolbars"),
+                        QStringLiteral("menuInterface"));
+        return true;
+    case 7:
+        addSubInterface(createNavigationPage(), icon(FluentIcon::More), navTx("Navigation"),
+                        QStringLiteral("navigationViewInterface"));
+        return true;
+    case 8:
+        addSubInterface(createScrollPage(), icon(FluentIcon::Scroll), navTx("Scrolling"),
+                        QStringLiteral("scrollInterface"));
+        return true;
+    case 9:
+        addSubInterface(createStatusInfoPage(), icon(FluentIcon::Feedback), navTx("Status & info"),
+                        QStringLiteral("statusInfoInterface"));
+        return true;
+    case 10:
+        addSubInterface(createTextPage(), icon(FluentIcon::Font), navTx("Text"), QStringLiteral("textInterface"));
+        return true;
+    case 11:
+        addSubInterface(createViewsPage(), icon(FluentIcon::Folder), navTx("View"), QStringLiteral("viewInterface"));
+        return true;
+    case 12:
+        addSubInterface(createSettingsPage(), icon(FluentIcon::Settings), mainTx("Settings"),
+                        QStringLiteral("settings"), NavigationItemPosition::Bottom);
+        return true;
+    default:
+        return false;
+    }
+}
+
+void GalleryWindow::populateInterfaces()
+{
+    if (m_interfacesPopulated) {
+        return;
+    }
+
+    while (addGalleryInterface(m_nextDeferredInterface)) {
+        ++m_nextDeferredInterface;
+    }
+    m_interfacesPopulated = true;
+}
+
+void GalleryWindow::addNextDeferredInterface()
+{
+    if (m_interfacesPopulated) {
+        return;
+    }
+
+    if (addGalleryInterface(m_nextDeferredInterface)) {
+        ++m_nextDeferredInterface;
+        QTimer::singleShot(1, this, &GalleryWindow::addNextDeferredInterface);
+        return;
+    }
+
+    m_interfacesPopulated = true;
+    scheduleSplashFinish();
+}
+
+void GalleryWindow::scheduleSplashFinish()
+{
+    if (m_splashFinishScheduled) {
+        return;
+    }
+
+    if (splashScreen()) {
+        m_splashFinishScheduled = true;
+        QTimer::singleShot(0, this, [this]() {
+            if (auto *splash = splashScreen()) {
+                splash->finish();
+            }
+        });
+    }
+}
 
 void GalleryWindow::reloadForLanguageChange()
 {

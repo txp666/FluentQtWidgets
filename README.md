@@ -51,8 +51,10 @@ ctest --preset mingw-debug
 
 VS Code tasks inherit the environment that started VS Code. For one-click builds, either launch VS Code
 from a terminal with the variables above set, set equivalent user environment variables, or copy
-`CMakeUserPresets.json.example` to the ignored `CMakeUserPresets.json` and fill in local paths. On Windows,
-close a running Gallery window before rebuilding because the linker cannot overwrite a running `.exe`.
+`CMakeUserPresets.json.example` to the ignored `CMakeUserPresets.json` and fill in local paths. On
+Windows, `Gallery: Debug` uses `gdb.exe`, so the MinGW `bin` directory must be visible to VS Code before
+the debug session starts. Close a running Gallery window before rebuilding because the linker cannot
+overwrite a running `.exe`.
 If you see `ninja: error: loading 'build.ninja': The system cannot find the file specified.`, run `cmake --preset mingw-debug` once to regenerate `build/mingw/build.ninja`, then build again.
 If PowerShell shows duplicate `PATH`/`Path` environment variables, start a clean terminal or normalize
 the user environment first; MinGW tools can otherwise fail with no compiler diagnostics.

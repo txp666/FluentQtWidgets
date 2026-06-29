@@ -173,8 +173,14 @@ def gallery_build_and_run_task() -> dict:
         "dependsOn": "Gallery: Build",
         "problemMatcher": [],
         "windows": {
-            "command": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
-            "args": [],
+            "command": "cmd",
+            "args": [
+                "/d",
+                "/c",
+                "start",
+                "",
+                "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
+            ],
         },
         "linux": {
             "command": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery",
@@ -195,6 +201,10 @@ def executable_command(target: str, rel_dir: Path, platform: str) -> str:
 
 
 def run_config(label: str, target: str, rel_dir: Path) -> dict:
+    windows_command = executable_command(target, rel_dir, "windows")
+    if target == "FluentQtWidgetsGallery":
+        windows_command = f'cmd /d /c start "" {windows_command}'
+
     return {
         "name": f"{label}: Run",
         "type": "node-terminal",
@@ -202,7 +212,7 @@ def run_config(label: str, target: str, rel_dir: Path) -> dict:
         "command": executable_command(target, rel_dir, "mac"),
         "cwd": "${workspaceFolder}",
         "preLaunchTask": f"{label}: Build",
-        "windows": {"command": executable_command(target, rel_dir, "windows")},
+        "windows": {"command": windows_command},
         "linux": {"command": executable_command(target, rel_dir, "linux")},
     }
 
@@ -215,7 +225,9 @@ def gallery_open_config() -> dict:
         "command": 'open "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app"',
         "cwd": "${workspaceFolder}",
         "preLaunchTask": "Gallery: Build",
-        "windows": {"command": '"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe"'},
+        "windows": {
+            "command": 'cmd /d /c start "" "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe"'
+        },
         "linux": {"command": '"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery"'},
     }
 
@@ -236,6 +248,7 @@ def gallery_debug_config() -> dict:
         "windows": {
             "program": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
             "MIMode": "gdb",
+            "miDebuggerPath": "gdb.exe",
         },
         "linux": {
             "program": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery",

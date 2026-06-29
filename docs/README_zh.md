@@ -45,8 +45,9 @@ ctest --preset mingw-debug
 
 VS Code 任务会继承启动 VS Code 时的环境。要使用一键构建，可以从已经设置好上述变量的终端启动
 VS Code，设置等价的用户环境变量，或复制 `CMakeUserPresets.json.example` 为被忽略的
-`CMakeUserPresets.json` 并填入本机路径。在 Windows 上重新构建前请先关闭正在运行的 Gallery
-窗口，否则链接器无法覆盖正在运行的 `.exe`。
+`CMakeUserPresets.json` 并填入本机路径。Windows 下的 `Gallery: Debug` 使用 `gdb.exe`，
+因此启动调试前 VS Code 必须能从 PATH 找到 MinGW 的 `bin` 目录。在 Windows 上重新构建前请先关闭
+正在运行的 Gallery 窗口，否则链接器无法覆盖正在运行的 `.exe`。
 
 如果看到 `ninja: error: loading 'build.ninja': The system cannot find the file specified.`，请先运行
 `cmake --preset mingw-debug` 重新生成 `build/mingw/build.ninja`，再执行构建。如果 PowerShell
