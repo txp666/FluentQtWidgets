@@ -1,0 +1,11 @@
+QMainWindow[fqw="FluentWindow"] {
+    background: transparent;
+}
+
+QWidget[fqw="FluentWidget"] {
+    background: transparent;
+}
+
+QWidget#FluentWindowContent {
+    background: transparent;
+}

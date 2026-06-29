@@ -1,0 +1,9 @@
+QWidget[fqw="TeachingTip"],
+QFrame[fqw="TeachingTipView"] {
+    border: none;
+    background: transparent;
+}
+
+QLabel#TeachingTipContent {
+    color: #c8c8c8;
+}

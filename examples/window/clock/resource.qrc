@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/window/clock">
+        <file>resource/images/alarms.png</file>
+        <file>resource/images/shoko.png</file>
+        <file>resource/images/tips.png</file>
+        <file>resource/images/todo.png</file>
+    </qresource>
+</RCC>

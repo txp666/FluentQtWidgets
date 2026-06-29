@@ -1,0 +1,12 @@
+QProgressBar[fqw="ProgressBar"],
+QProgressBar[fqw="IndeterminateProgressBar"] {
+    border: none;
+    border-radius: 3px;
+    background: #4a4a4a;
+}
+
+QProgressBar[fqw="ProgressBar"]::chunk,
+QProgressBar[fqw="IndeterminateProgressBar"]::chunk {
+    border-radius: 3px;
+    background: @accentColor;
+}

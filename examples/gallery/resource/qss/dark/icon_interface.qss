@@ -1,0 +1,55 @@
+QFrame#iconCard {
+    background-color: rgb(43, 43, 43);
+    border: 1px solid rgb(29, 29, 29);
+    border-radius: 6px;
+}
+
+QFrame#iconCard > QLabel {
+    color: rgb(207, 207, 207);
+    font: 11px --FontFamilies;
+}
+
+QFrame#iconCard[selected=true] {
+    background-color: @accentColor;
+}
+
+QFrame#iconCard[selected=true] > QLabel {
+    color: white;
+}
+
+QWidget#scrollWidget,
+QWidget#iconView {
+    background-color: rgb(32, 32, 32);
+}
+
+QWidget#iconCardView {
+    background-color: transparent;
+}
+
+QWidget#iconView {
+    border: 1px solid rgb(36, 36, 36);
+    border-radius: 10px;
+}
+
+QFrame#iconInfoPanel {
+    background-color: rgb(43, 43, 43);
+    border-left: 1px solid rgb(29, 29, 29);
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+QFrame#iconInfoPanel > QLabel#nameLabel {
+    font: 15px --FontFamilies;
+    font-weight: bold;
+    color: white;
+}
+
+QFrame#iconInfoPanel > QLabel#subTitleLabel {
+    font: 14px --FontFamilies;
+    color: white;
+}
+
+QFrame#iconInfoPanel > QLabel {
+    font: 12px --FontFamilies;
+    color: rgb(207, 207, 207);
+}

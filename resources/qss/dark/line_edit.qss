@@ -1,0 +1,88 @@
+QLineEdit[fqw="LineEdit"],
+QLineEdit[fqw="AcrylicLineEdit"],
+QLineEdit[fqw="SearchLineEdit"],
+QLineEdit[fqw="AcrylicSearchLineEdit"],
+QLineEdit[fqw="PasswordLineEdit"],
+QTextEdit[fqw="TextEdit"],
+QPlainTextEdit[fqw="PlainTextEdit"],
+QTextBrowser[fqw="TextBrowser"] {
+    color: white;
+    font: 14px --FontFamilies;
+    min-height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5442);
+    border-radius: 5px;
+    padding: 0px 10px;
+    background-color: rgba(255, 255, 255, 0.0605);
+    selection-background-color: @accentColor;
+    selection-color: black;
+}
+
+QTextEdit[fqw="TextEdit"],
+QPlainTextEdit[fqw="PlainTextEdit"],
+QTextBrowser[fqw="TextBrowser"] {
+    padding: 2px 3px 2px 8px;
+}
+
+QLineEdit[fqw="LineEdit"]:hover,
+QLineEdit[fqw="AcrylicLineEdit"]:hover,
+QLineEdit[fqw="SearchLineEdit"]:hover,
+QLineEdit[fqw="AcrylicSearchLineEdit"]:hover,
+QLineEdit[fqw="PasswordLineEdit"]:hover,
+QTextEdit[fqw="TextEdit"]:hover,
+QPlainTextEdit[fqw="PlainTextEdit"]:hover,
+QTextBrowser[fqw="TextBrowser"]:hover {
+    background-color: rgba(255, 255, 255, 0.0837);
+}
+
+QLineEdit[fqw="LineEdit"][transparent="true"]:focus,
+QLineEdit[fqw="AcrylicLineEdit"][transparent="true"]:focus,
+QLineEdit[fqw="SearchLineEdit"][transparent="true"]:focus,
+QLineEdit[fqw="AcrylicSearchLineEdit"][transparent="true"]:focus,
+QLineEdit[fqw="PasswordLineEdit"][transparent="true"]:focus {
+    background: rgba(30, 30, 30, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+QLineEdit[fqw="LineEdit"][transparent="false"]:focus,
+QLineEdit[fqw="AcrylicLineEdit"][transparent="false"]:focus,
+QLineEdit[fqw="SearchLineEdit"][transparent="false"]:focus,
+QLineEdit[fqw="AcrylicSearchLineEdit"][transparent="false"]:focus,
+QLineEdit[fqw="PasswordLineEdit"][transparent="false"]:focus {
+    background: rgb(31, 31, 31);
+}
+
+QTextEdit[fqw="TextEdit"]:focus,
+QPlainTextEdit[fqw="PlainTextEdit"]:focus,
+QTextBrowser[fqw="TextBrowser"]:focus {
+    border-bottom: 1px solid @accentColor;
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+QLineEdit[fqw="LineEdit"]:disabled,
+QLineEdit[fqw="AcrylicLineEdit"]:disabled,
+QLineEdit[fqw="SearchLineEdit"]:disabled,
+QLineEdit[fqw="AcrylicSearchLineEdit"]:disabled,
+QLineEdit[fqw="PasswordLineEdit"]:disabled,
+QTextEdit[fqw="TextEdit"]:disabled,
+QPlainTextEdit[fqw="PlainTextEdit"]:disabled,
+QTextBrowser[fqw="TextBrowser"]:disabled {
+    color: rgba(255, 255, 255, 92);
+    background-color: rgba(255, 255, 255, 0.0419);
+    border: 1px solid rgba(255, 255, 255, 0.0698);
+}
+
+#lineEditButton {
+    background-color: transparent;
+    border-radius: 4px;
+    border: none;
+    margin: 0;
+}
+
+#lineEditButton:hover {
+    background-color: rgba(255, 255, 255, 9);
+}
+
+#lineEditButton:pressed {
+    background-color: rgba(255, 255, 255, 6);
+}

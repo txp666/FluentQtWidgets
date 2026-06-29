@@ -1,0 +1,223 @@
+QPushButton[fqw="CalendarPicker"] {
+    color: rgba(0, 0, 0, 0.6063);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.073);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.183);
+    border-radius: 5px;
+    font: 14px --FontFamilies;
+    min-height: 32px;
+    padding: 5px 32px 6px 12px;
+    outline: none;
+    text-align: left;
+}
+
+QPushButton[fqw="CalendarPicker"]:hover {
+    background: rgba(249, 249, 249, 0.5);
+}
+
+QPushButton[fqw="CalendarPicker"]:pressed {
+    background: rgba(249, 249, 249, 0.3);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.073);
+}
+
+QPushButton[fqw="CalendarPicker"]:disabled {
+    color: rgba(0, 0, 0, 0.36);
+    background: rgba(249, 249, 249, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+QPushButton[fqw="CalendarPicker"][hasDate="true"] {
+    color: black;
+}
+
+QFrame[fqw="CalendarView"] {
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarTitle="true"] {
+    color: rgb(32, 32, 32);
+    background: transparent;
+    border: none;
+    font: 600 14px --FontFamilies;
+    padding-left: 4px;
+    text-align: left;
+}
+
+QFrame[fqw="CalendarView"] QToolButton[calendarNavigation="true"] {
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+}
+
+QFrame[fqw="CalendarView"] QToolButton[calendarNavigation="true"]:hover {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+QFrame[fqw="CalendarView"] QToolButton[calendarNavigation="true"]:pressed {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+QFrame[fqw="CalendarView"] QLabel[calendarWeekday="true"] {
+    color: rgba(0, 0, 0, 0.62);
+    font: 12px --FontFamilies;
+    min-width: 36px;
+    min-height: 24px;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarDay="true"] {
+    color: rgb(32, 32, 32);
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+    font: 14px --FontFamilies;
+    padding: 0px;
+    outline: none;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarDay="true"]:hover {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarDay="true"]:pressed {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarDay="true"][outOfMonth="true"] {
+    color: rgba(0, 0, 0, 0.32);
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarDay="true"][today="true"] {
+    color: @accentColor;
+    border: 1px solid @accentColor;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarDay="true"][selected="true"] {
+    color: white;
+    background-color: @accentColor;
+    border: 1px solid @accentColor;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarReset="true"] {
+    min-height: 30px;
+    color: rgb(32, 32, 32);
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.073);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.183);
+    border-radius: 4px;
+    font: 14px --FontFamilies;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarReset="true"]:hover {
+    background-color: rgba(249, 249, 249, 0.5);
+}
+
+QFrame[fqw="FastCalendarView"] {
+    background: transparent;
+    border: none;
+}
+
+QFrame[fqw="FastCalendarPage"] {
+    background: transparent;
+    border: none;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarTitle="true"] {
+    color: black;
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    font: 500 14px --FontFamilies;
+    margin: 0px;
+    padding-left: 8px;
+    text-align: left;
+    outline: none;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarTitle="true"]:hover {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarTitle="true"]:pressed {
+    background-color: rgba(0, 0, 0, 0.024);
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarTitle="true"]:disabled {
+    color: rgba(0, 0, 0, 0.4);
+    background-color: transparent;
+}
+
+QFrame[fqw="FastCalendarPage"] QToolButton[fastCalendarNavigation="true"] {
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    padding: 0px;
+}
+
+QFrame[fqw="FastCalendarPage"] QToolButton[fastCalendarNavigation="true"]:hover {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+QFrame[fqw="FastCalendarPage"] QToolButton[fastCalendarNavigation="true"]:pressed {
+    background-color: rgba(0, 0, 0, 0.024);
+}
+
+QFrame[fqw="FastCalendarPage"] QLabel#weekDayLabel {
+    color: black;
+    background-color: transparent;
+    border: none;
+    font: 500 12px --FontFamilies;
+}
+
+QFrame[fqw="FastCalendarPage"] QWidget#weekDayGroup {
+    background-color: transparent;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"] {
+    color: black;
+    background-color: transparent;
+    border: 1px solid transparent;
+    font: 14px --FontFamilies;
+    padding: 0px;
+    outline: none;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton#dayButton[fastCalendarItem="true"] {
+    border-radius: 22px;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton#monthButton[fastCalendarItem="true"],
+QFrame[fqw="FastCalendarPage"] QPushButton#yearButton[fastCalendarItem="true"] {
+    border-radius: 38px;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"]:hover {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"]:pressed {
+    color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.027);
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][outOfRange="true"] {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][today="true"] {
+    color: white;
+    background-color: @accentColor;
+    border-color: @accentColor;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][selected="true"] {
+    border-color: @accentColor;
+}
+
+QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][selected="true"][today="true"] {
+    color: white;
+    background-color: @accentColor;
+    border-color: @accentColor;
+}

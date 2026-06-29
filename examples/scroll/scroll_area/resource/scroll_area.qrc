@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/scroll_area">
+        <file>demo.qss</file>
+        <file>shoko.jpg</file>
+    </qresource>
+</RCC>

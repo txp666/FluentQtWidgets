@@ -1,0 +1,47 @@
+QFrame[fqw="InfoBar"] {
+    border: 1px solid rgb(229, 229, 229);
+    border-radius: 6px;
+    background-color: rgb(244, 244, 244);
+}
+
+#titleLabel {
+    font: 14px --FontFamilies;
+    font-weight: bold;
+    color: black;
+    background-color: transparent;
+}
+
+#contentLabel {
+    font: 14px --FontFamilies;
+    color: black;
+    background-color: transparent;
+}
+
+QFrame[fqw="InfoBar"][type="Info"] {
+    background-color: rgb(244, 244, 244);
+}
+
+QFrame[fqw="InfoBar"][type="Success"] {
+    background-color: rgb(223, 246, 221);
+}
+
+QFrame[fqw="InfoBar"][type="Warning"] {
+    background-color: rgb(255, 244, 206);
+}
+
+QFrame[fqw="InfoBar"][type="Error"] {
+    background-color: rgb(253, 231, 233);
+}
+
+QToolButton[fqw="InfoBarCloseButton"] {
+    background-color: transparent;
+    border-radius: 5px;
+}
+
+QToolButton[fqw="InfoBarCloseButton"]:hover {
+    background-color: rgba(0, 0, 0, 9);
+}
+
+QToolButton[fqw="InfoBarCloseButton"]:pressed {
+    background-color: rgba(0, 0, 0, 6);
+}

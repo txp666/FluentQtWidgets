@@ -1,0 +1,18 @@
+LinkCardView {
+    background-color: transparent;
+    border: none;
+}
+
+LinkCardView #view {
+    background-color: transparent;
+}
+
+LinkCardView #titleLabel {
+    font: 18px --FontFamilies;
+    color: black;
+}
+
+LinkCardView #contentLabel {
+    font: 12px --FontFamilies;
+    color: rgb(93, 93, 93);
+}

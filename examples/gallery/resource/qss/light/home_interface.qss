@@ -1,0 +1,19 @@
+HomeInterface {
+    background-color: transparent;
+}
+
+HomeInterface #view {
+    background-color: transparent;
+}
+
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+HomeInterface #galleryLabel {
+    font: 600 42px --FontFamilies;
+    padding-left: 28px;
+    color: black;
+    background-color: transparent;
+}

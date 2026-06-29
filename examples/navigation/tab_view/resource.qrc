@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/navigation/tab_view">
+        <file>resource/Heart.png</file>
+        <file>resource/Smiling_with_heart.png</file>
+        <file>resource/shoko.png</file>
+    </qresource>
+</RCC>

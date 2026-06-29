@@ -1,0 +1,19 @@
+QWidget[fqw="StateToolTip"] {
+    border: none;
+    border-radius: 7px;
+    background: @accentColor;
+}
+
+QWidget[fqw="StateToolTip"] QLabel {
+    color: #ffffff;
+    background: transparent;
+    border: none;
+}
+
+QWidget[fqw="StateToolTip"] QLabel#titleLabel {
+    font-size: 14px;
+}
+
+QWidget[fqw="StateToolTip"] QLabel#contentLabel {
+    font-size: 13px;
+}

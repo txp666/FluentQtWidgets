@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/navigation/navigation_user_card">
+        <file>resource/shoko.png</file>
+    </qresource>
+</RCC>

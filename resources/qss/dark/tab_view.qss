@@ -1,0 +1,66 @@
+QWidget[fqw="TabWidget"],
+QWidget[fqw="TabBar"] {
+    background: transparent;
+}
+
+QPushButton[fqw="TabItem"] {
+    min-width: 64px;
+    min-height: 34px;
+    padding: 5px 32px 5px 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #f3f3f3;
+    text-align: left;
+}
+
+QPushButton[fqw="TabItem"]:hover {
+    background: #3b3b3b;
+}
+
+QPushButton[fqw="TabItem"]:checked,
+QPushButton[fqw="TabItem"][selected="true"] {
+    background: #2d2d2d;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 2px solid @accentColor;
+}
+
+QPushButton[fqw="TabItem"]:disabled {
+    color: #777777;
+}
+
+QToolButton[fqw="TabCloseButton"] {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+}
+
+QToolButton[fqw="TabCloseButton"]:hover {
+    background: #454545;
+}
+
+QToolButton[fqw="TabAddButton"] {
+    min-width: 32px;
+    min-height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+}
+
+QToolButton[fqw="TabAddButton"]:hover,
+QToolButton[fqw="TabScrollButton"]:hover {
+    background: #3b3b3b;
+}
+
+QToolButton[fqw="TabScrollButton"] {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+}

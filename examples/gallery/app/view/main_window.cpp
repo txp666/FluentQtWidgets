@@ -1,0 +1,155 @@
+#include "../../GalleryWindow.h"
+
+#include "GalleryViewHelpers.h"
+#include "../../GalleryTranslator.h"
+#include "../../components/GalleryComponents.h"
+
+#include <QtCore/QPointer>
+#include <QtCore/QRect>
+#include <QtCore/QSize>
+#include <QtCore/QTimer>
+#include <QtGui/QScreen>
+#include <QtGui/QShowEvent>
+#include <QtWidgets/QApplication>
+
+using namespace FluentQt;
+
+GalleryWindow::GalleryWindow(QWidget *parent) : FluentWindow(parent)
+{
+    setWindowTitle(QStringLiteral("FluentQtWidgets Gallery"));
+    setWindowIcon(QIcon(QStringLiteral(":/gallery/images/logo.png")));
+    setMinimumWidth(760);
+    resize(960, 780);
+
+    // Create and show splash screen
+    auto *splash = new SplashScreen(windowIcon(), this);
+    splash->setIconSize(QSize(106, 106));
+    setSplashScreen(splash);
+
+    // Match the Python gallery: show the window and paint the splash before constructing heavy pages.
+    const QRect desktop = QApplication::primaryScreen()->availableGeometry();
+    move((desktop.width() - width()) / 2, (desktop.height() - height()) / 2);
+    show();
+    QApplication::processEvents();
+
+    auto *home = new HomeInterface(this);
+    connect(home, &HomeInterface::sampleCardClicked, this, &GalleryWindow::switchToSample);
+    addSubInterface(home, icon(FluentIcon::Home), mainTx("Home"), QStringLiteral("home"));
+    addSubInterface(createIconPage(), icon(FluentIcon::Star), navTx("Icons"), QStringLiteral("iconInterface"));
+    navigationInterface()->addSeparator();
+    addSubInterface(createBasicInputPage(), icon(FluentIcon::Check), navTx("Basic input"),
+                    QStringLiteral("basicInputInterface"));
+    addSubInterface(createDateTimePage(), icon(FluentIcon::Calendar), navTx("Date & time"),
+                    QStringLiteral("dateTimeInterface"));
+    addSubInterface(createDialogPage(), icon(FluentIcon::Info), navTx("Dialogs & flyouts"),
+                    QStringLiteral("dialogInterface"));
+    addSubInterface(createLayoutPage(), icon(FluentIcon::View), navTx("Layout"), QStringLiteral("layoutInterface"));
+    addSubInterface(createMaterialPage(), icon(FluentIcon::Palette), navTx("Material"),
+                    QStringLiteral("materialInterface"));
+    addSubInterface(createMenuPage(), icon(FluentIcon::More), navTx("Menus & toolbars"), QStringLiteral("menuInterface"));
+    addSubInterface(createNavigationPage(), icon(FluentIcon::More), navTx("Navigation"),
+                    QStringLiteral("navigationViewInterface"));
+    addSubInterface(createScrollPage(), icon(FluentIcon::Scroll), navTx("Scrolling"), QStringLiteral("scrollInterface"));
+    addSubInterface(createStatusInfoPage(), icon(FluentIcon::Feedback), navTx("Status & info"),
+                    QStringLiteral("statusInfoInterface"));
+    addSubInterface(createTextPage(), icon(FluentIcon::Font), navTx("Text"), QStringLiteral("textInterface"));
+    addSubInterface(createViewsPage(), icon(FluentIcon::Folder), navTx("View"), QStringLiteral("viewInterface"));
+    addSubInterface(createSettingsPage(), icon(FluentIcon::Settings), mainTx("Settings"),
+                    QStringLiteral("settings"), NavigationItemPosition::Bottom);
+
+    // Match the Python gallery: keep the splash visible while sub interfaces are constructed,
+    // then fade it after navigation has been populated.
+    if (auto *splash = splashScreen()) {
+        m_splashFinishScheduled = true;
+        QTimer::singleShot(0, this, [splash]() { splash->finish(); });
+    }
+}
+
+GalleryWindow::~GalleryWindow() = default;
+
+void GalleryWindow::reloadForLanguageChange()
+{
+    if (m_reloadingLanguage) {
+        return;
+    }
+    m_reloadingLanguage = true;
+
+    const QPointer<GalleryWindow> windowToReload(this);
+    QTimer::singleShot(0, this, [windowToReload]() {
+        if (!windowToReload) {
+            return;
+        }
+
+        for (int i = 0; i < 8; ++i) {
+            QWidget *popup = QApplication::activePopupWidget();
+            if (!popup) {
+                break;
+            }
+            popup->close();
+        }
+        GalleryTranslation::installTranslators(qApp, FluentConfig::instance()->localeName());
+
+        const QString routeKey = windowToReload->currentRouteKey();
+        QRect targetGeometry = windowToReload->normalGeometry();
+        if (!targetGeometry.isValid()) {
+            targetGeometry = windowToReload->geometry();
+        }
+        const Qt::WindowStates previousState = windowToReload->windowState();
+
+        auto *newWindow = new GalleryWindow;
+        newWindow->setAttribute(Qt::WA_DeleteOnClose);
+        if (targetGeometry.isValid()) {
+            newWindow->setGeometry(targetGeometry);
+        }
+        if (!routeKey.isEmpty()) {
+            newWindow->switchTo(routeKey);
+        }
+
+        if (previousState.testFlag(Qt::WindowFullScreen)) {
+            newWindow->showFullScreen();
+        } else if (previousState.testFlag(Qt::WindowMaximized)) {
+            newWindow->showMaximized();
+        } else {
+            newWindow->show();
+        }
+
+        const bool deleteOldWindow = windowToReload->testAttribute(Qt::WA_DeleteOnClose);
+        windowToReload->hide();
+        if (deleteOldWindow) {
+            windowToReload->deleteLater();
+        } else {
+            windowToReload->m_reloadingLanguage = false;
+        }
+    });
+}
+
+void GalleryWindow::switchToSample(const QString &routeKey, int index)
+{
+    if (!switchTo(routeKey)) {
+        return;
+    }
+
+    auto *gallery = qobject_cast<GalleryInterface *>(currentInterface());
+    if (!gallery) {
+        return;
+    }
+    gallery->scrollToCard(index);
+}
+
+void GalleryWindow::showEvent(QShowEvent *event)
+{
+    FluentWindow::showEvent(event);
+}
+
+void GalleryWindow::resizeEvent(QResizeEvent *event)
+{
+    FluentWindow::resizeEvent(event);
+    if (auto *s = splashScreen()) {
+        s->resize(size());
+    }
+}
+
+void GalleryWindow::closeEvent(QCloseEvent *event)
+{
+    FluentWindow::closeEvent(event);
+}

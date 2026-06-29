@@ -1,0 +1,2177 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CMake: Configure Debug",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "ninja-debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "args": [
+          "--preset",
+          "mingw-debug"
+        ]
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Gallery: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "FluentQtWidgetsGallery",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "FluentQtWidgetsGallery",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Gallery: Build and Run",
+      "type": "shell",
+      "command": "open",
+      "args": [
+        "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Gallery: Build",
+      "problemMatcher": [],
+      "windows": {
+        "command": "${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe",
+        "args": []
+      },
+      "linux": {
+        "command": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery",
+        "args": []
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Demo: Basic Input Button: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_button_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_button_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Basic Input Check Box: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_check_box_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_check_box_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Basic Input Combo Box: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_combo_box_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_combo_box_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Basic Input Model Combo Box: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_model_combo_box_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_model_combo_box_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Basic Input Radio Button: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_radio_button_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_radio_button_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Basic Input Slider: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_slider_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_slider_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Basic Input Switch Button: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_basic_input_switch_button_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_basic_input_switch_button_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Date Time Calendar Picker: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_date_time_calendar_picker_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_date_time_calendar_picker_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Date Time Fast Calendar Picker: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_date_time_fast_calendar_picker_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_date_time_fast_calendar_picker_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Date Time Time Picker: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_date_time_time_picker_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_date_time_time_picker_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Color Dialog: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_color_dialog_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_color_dialog_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Custom Message Box: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_custom_message_box_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_custom_message_box_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Dialog: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_dialog_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_dialog_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Flyout: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_flyout_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_flyout_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Folder List Dialog: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_folder_list_dialog_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_folder_list_dialog_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Message Dialog: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_message_dialog_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_message_dialog_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Dialog Flyout Teaching Tip: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_dialog_flyout_teaching_tip_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_dialog_flyout_teaching_tip_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Layout Adaptive Flow Layout: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_layout_adaptive_flow_layout_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_layout_adaptive_flow_layout_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Layout Flow Layout: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_layout_flow_layout_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_layout_flow_layout_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Brush: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_brush_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_brush_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Combo Box: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_combo_box_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_combo_box_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Flyout: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_flyout_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_flyout_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Label: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_label_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_label_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Line Edit: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_line_edit_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_line_edit_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Menu: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_menu_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_menu_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Tool Tip: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_tool_tip_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_tool_tip_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Material Acrylic Widget Menu: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_material_acrylic_widget_menu_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_material_acrylic_widget_menu_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Media Avatar Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_media_avatar_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_media_avatar_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Media Media Player: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_media_media_player_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_media_media_player_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Menu Command Bar: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_menu_command_bar_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_menu_command_bar_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Menu Menu: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_menu_menu_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_menu_menu_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Menu System Tray Menu: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_menu_system_tray_menu_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_menu_system_tray_menu_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Menu Widget Menu: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_menu_widget_menu_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_menu_widget_menu_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Breadcrumb Bar: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_breadcrumb_bar_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_breadcrumb_bar_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Navigation1: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_navigation1_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_navigation1_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Navigation2: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_navigation2_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_navigation2_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Navigation3: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_navigation3_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_navigation3_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Navigation Bar: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_navigation_bar_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_navigation_bar_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Navigation Header: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_navigation_header_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_navigation_header_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Navigation User Card: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_navigation_user_card_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_navigation_user_card_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Pivot: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_pivot_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_pivot_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Segmented Tool Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_segmented_tool_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_segmented_tool_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Segmented Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_segmented_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_segmented_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Stacked Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_stacked_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_stacked_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Tab View: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_tab_view_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_tab_view_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Navigation Tab Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_navigation_tab_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_navigation_tab_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Scroll Pips Pager: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_scroll_pips_pager_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_scroll_pips_pager_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Scroll Scroll Area: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_scroll_scroll_area_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_scroll_scroll_area_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Status Info Info Badge: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_status_info_info_badge_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_status_info_info_badge_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Status Info Info Bar: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_status_info_info_bar_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_status_info_info_bar_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Status Info Progress Bar: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_status_info_progress_bar_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_status_info_progress_bar_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Status Info Progress Ring: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_status_info_progress_ring_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_status_info_progress_ring_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Status Info State Tool Tip: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_status_info_state_tool_tip_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_status_info_state_tool_tip_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Status Info Tool Tip: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_status_info_tool_tip_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_status_info_tool_tip_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Text Font Icon: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_text_font_icon_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_text_font_icon_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Text Image Label: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_text_image_label_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_text_image_label_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Text Label: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_text_label_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_text_label_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Text Line Edit: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_text_line_edit_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_text_line_edit_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Text Spin Box: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_text_spin_box_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_text_spin_box_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Text Text Browser: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_text_text_browser_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_text_text_browser_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: View Card Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_view_card_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_view_card_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: View Flip View: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_view_flip_view_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_view_flip_view_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: View List View: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_view_list_view_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_view_list_view_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: View Table View: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_view_table_view_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_view_table_view_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: View Tree View: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_view_tree_view_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_view_tree_view_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: View Tree Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_view_tree_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_view_tree_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Clock: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_clock_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_clock_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Fluent Widget: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_fluent_widget_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_fluent_widget_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Fluent Window: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_fluent_window_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_fluent_window_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Login: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_login_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_login_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Ms Fluent Window: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_ms_fluent_window_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_ms_fluent_window_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Settings: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_settings_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_settings_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Splash Screen: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_splash_screen_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_splash_screen_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Split Fluent Window: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_split_fluent_window_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_split_fluent_window_demo",
+          "--parallel"
+        ]
+      }
+    },
+    {
+      "label": "Demo: Window Web Engine: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "fqw_window_web_engine_demo",
+        "--parallel"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "CMake: Configure Debug",
+      "problemMatcher": "$gcc",
+      "windows": {
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "fqw_window_web_engine_demo",
+          "--parallel"
+        ]
+      }
+    }
+  ]
+}

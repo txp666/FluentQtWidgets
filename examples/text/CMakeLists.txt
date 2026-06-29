@@ -1,0 +1,6 @@
+add_subdirectory(font_icon)
+add_subdirectory(image_label)
+add_subdirectory(label)
+add_subdirectory(line_edit)
+add_subdirectory(spin_box)
+add_subdirectory(text_browser)

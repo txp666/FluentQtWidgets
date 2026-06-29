@@ -1,0 +1,6 @@
+add_subdirectory(card_widget)
+add_subdirectory(flip_view)
+add_subdirectory(list_view)
+add_subdirectory(table_view)
+add_subdirectory(tree_view)
+add_subdirectory(tree_widget)

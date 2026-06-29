@@ -1,0 +1,39 @@
+QListView[fqw="ListView"],
+QListView[fqw="ListWidget"],
+QListWidget[fqw="ListWidget"] {
+    background: transparent;
+    outline: none;
+    border: none;
+    selection-background-color: transparent;
+    alternate-background-color: transparent;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+QListView[fqw="ListView"][isBorderVisible="true"],
+QListView[fqw="ListWidget"][isBorderVisible="true"],
+QListWidget[fqw="ListWidget"][isBorderVisible="true"] {
+    border: 1px solid rgba(0, 0, 0, 0.057);
+    border-radius: 6px;
+}
+
+QListView[fqw="ListView"]::item,
+QListView[fqw="ListWidget"]::item,
+QListWidget[fqw="ListWidget"]::item {
+    height: 35px;
+    padding-left: 11px;
+    padding-right: 11px;
+    border: none;
+    background: transparent;
+}
+
+QListView[fqw="ListView"]::indicator,
+QListView[fqw="ListWidget"]::indicator,
+QListWidget[fqw="ListWidget"]::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: none;
+    background-color: transparent;
+    margin-right: 4px;
+}

@@ -1,0 +1,72 @@
+QDialog[fqw="DialogPopup"],
+QDialog[fqw="MessageBoxPopup"] {
+    background: transparent;
+}
+
+QFrame[fqw="Dialog"],
+QFrame[fqw="MessageBox"] {
+    background: #202020;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+}
+
+QFrame[fqw="Dialog"] QFrame#buttonGroup,
+QFrame[fqw="MessageBox"] QFrame#buttonGroup {
+    background: rgb(32, 32, 32);
+    border-top: 1px solid rgb(29, 29, 29);
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+QFrame[fqw="Dialog"] QLabel#windowTitleLabel {
+    background: rgb(32, 32, 32);
+    color: white;
+    border: none;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    padding: 6px;
+    font-size: 12px;
+}
+
+QFrame[fqw="Dialog"] QLabel#titleLabel,
+QFrame[fqw="MessageBox"] QLabel#titleLabel {
+    background: transparent;
+    color: white;
+    border: none;
+}
+
+QFrame[fqw="Dialog"] QLabel#contentLabel,
+QFrame[fqw="MessageBox"] QLabel#contentLabel {
+    background: transparent;
+    color: white;
+    border: none;
+    selection-background-color: @accentColor;
+    selection-color: white;
+}
+
+#cancelButton {
+    background: rgb(45, 45, 45);
+    border: 1px solid rgb(48, 48, 48);
+    border-top: 1px solid rgb(53, 53, 53);
+    border-radius: 5px;
+    color: white;
+    font: 14px --FontFamilies;
+    padding: 5px 9px 6px 9px;
+    outline: none;
+}
+
+#cancelButton:hover {
+    background: rgb(50, 50, 50);
+}
+
+#cancelButton:pressed {
+    color: rgba(255, 255, 255, 0.63);
+    background: rgb(39, 39, 39);
+    border: 1px solid rgb(48, 48, 48);
+}
+
+#cancelButton:disabled {
+    color: rgba(255, 255, 255, 0.63);
+    background: rgb(59, 59, 59);
+    border: 1px solid rgb(80, 80, 80);
+}

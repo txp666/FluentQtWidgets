@@ -1,0 +1,42 @@
+QFrame[fqw="SettingCard"],
+QFrame[fqw="PushSettingCard"],
+QFrame[fqw="PrimaryPushSettingCard"],
+QFrame[fqw="HyperlinkCard"],
+QFrame[fqw="SwitchSettingCard"],
+QFrame[fqw="RangeSettingCard"],
+QFrame[fqw="ComboBoxSettingCard"],
+QFrame[fqw="ColorSettingCard"],
+QFrame[fqw="HeaderSettingCard"],
+QFrame[fqw="ExpandSettingCard"],
+QFrame[fqw="ExpandGroupSettingCard"],
+QFrame[fqw="SimpleExpandGroupSettingCard"],
+QFrame[fqw="OptionsSettingCard"],
+QFrame[fqw="FolderListSettingCard"],
+QFrame[fqw="CustomColorSettingCard"] {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.065);
+    border-radius: 8px;
+}
+
+QLabel#SettingCardContent,
+QLabel#SettingCardValue,
+QLabel#SettingCardChoice,
+QLabel#FolderItemPath {
+    color: #c8c8c8;
+}
+
+QWidget[fqw="FolderItem"] {
+    background: transparent;
+}
+
+QToolButton[fqw="ColorPickerButton"] {
+    border: 1px solid #505050;
+    border-radius: 5px;
+    background: transparent;
+}
+
+QFrame[fqw="FolderPickerDialog"] {
+    background: rgb(44, 44, 44);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+}

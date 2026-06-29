@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/widget_menu">
+        <file>shoko.png</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,49 @@
+QLabel[fqw="CaptionLabel"] {
+    color: rgba(0, 0, 0, 0.6063);
+    background: transparent;
+}
+
+QLabel[fqw="BodyLabel"],
+QLabel[fqw="StrongBodyLabel"],
+QLabel[fqw="SubtitleLabel"],
+QLabel[fqw="TitleLabel"],
+QLabel[fqw="LargeTitleLabel"],
+QLabel[fqw="DisplayLabel"] {
+    color: #1f1f1f;
+    background: transparent;
+}
+
+QWidget[fqw="IconWidget"],
+QLabel[fqw="ImageLabel"],
+QLabel[fqw="AvatarWidget"] {
+    background: transparent;
+}
+
+QLabel[fqw="BreadcrumbSeparator"] {
+    color: #616161;
+}
+
+QPushButton[fqw="HyperlinkLabel"] {
+    color: @accentColor;
+    border: none;
+    background-color: transparent;
+    text-align: left;
+    padding: 0;
+    margin: 0;
+}
+
+QPushButton[fqw="HyperlinkLabel"][underline="true"] {
+    text-decoration: underline;
+}
+
+QPushButton[fqw="HyperlinkLabel"][underline="false"] {
+    text-decoration: none;
+}
+
+QPushButton[fqw="HyperlinkLabel"]:hover {
+    color: --ThemeColorDark1;
+}
+
+QPushButton[fqw="HyperlinkLabel"]:pressed {
+    color: --ThemeColorLight1;
+}

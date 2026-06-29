@@ -1,0 +1,12 @@
+{
+  "name": "fluentqtwidgets",
+  "version-string": "0.1.2",
+  "description": "A Fluent Design inspired QWidget library for C++/Qt.",
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": true
+    },
+    "qtsvg"
+  ]
+}

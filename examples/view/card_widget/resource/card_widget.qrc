@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/view_card">
+        <file>Basketball.png</file>
+        <file>Chicken.png</file>
+        <file>Clown face.png</file>
+        <file>Drooling face.png</file>
+        <file>Face savoring food.png</file>
+        <file>Grinning face with sweat.png</file>
+        <file>Hot face.png</file>
+        <file>Joystick.svg</file>
+        <file>Partying face.png</file>
+        <file>Python.svg</file>
+        <file>Rocket.svg</file>
+        <file>Smiling face with hearts.png</file>
+        <file>shoko1.jpg</file>
+        <file>shoko2.jpg</file>
+        <file>shoko3.jpg</file>
+        <file>shoko4.jpg</file>
+    </qresource>
+</RCC>

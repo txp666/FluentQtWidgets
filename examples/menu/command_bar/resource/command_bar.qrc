@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/command_bar">
+        <file>pink_memory.jpg</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Qt@FQW_QT_MAJOR_VERSION@ REQUIRED COMPONENTS Core Gui Widgets Svg Network)
+
+include("${CMAKE_CURRENT_LIST_DIR}/FluentQtWidgetsTargets.cmake")
+if(NOT TARGET FluentQtWidgets::Widgets AND TARGET FluentQtWidgets::FluentQtWidgets)
+    add_library(FluentQtWidgets::Widgets ALIAS FluentQtWidgets::FluentQtWidgets)
+endif()
+check_required_components(FluentQtWidgets)

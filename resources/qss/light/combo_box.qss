@@ -1,0 +1,57 @@
+QPushButton[fqw="ComboBox"],
+QPushButton[fqw="AcrylicComboBox"],
+QPushButton[fqw="ModelComboBox"],
+QLineEdit[fqw="EditableComboBox"],
+QLineEdit[fqw="AcrylicEditableComboBox"],
+QLineEdit[fqw="EditableModelComboBox"] {
+    border: 1px solid rgba(0, 0, 0, 0.073);
+    border-radius: 5px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.183);
+    padding: 5px 31px 6px 11px;
+    font: 14px --FontFamilies;
+    color: black;
+    background-color: rgba(255, 255, 255, 0.7);
+    text-align: left;
+    outline: none;
+}
+
+QPushButton[fqw="ComboBox"]:hover,
+QPushButton[fqw="AcrylicComboBox"]:hover,
+QPushButton[fqw="ModelComboBox"]:hover,
+QLineEdit[fqw="EditableComboBox"]:hover,
+QLineEdit[fqw="AcrylicEditableComboBox"]:hover,
+QLineEdit[fqw="EditableModelComboBox"]:hover {
+    background-color: rgba(249, 249, 249, 0.5);
+}
+
+QPushButton[fqw="ComboBox"]:pressed,
+QPushButton[fqw="AcrylicComboBox"]:pressed,
+QPushButton[fqw="ModelComboBox"]:pressed,
+QLineEdit[fqw="EditableComboBox"]:pressed,
+QLineEdit[fqw="AcrylicEditableComboBox"]:pressed,
+QLineEdit[fqw="EditableModelComboBox"]:pressed {
+    background-color: rgba(249, 249, 249, 0.3);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.073);
+    color: rgba(0, 0, 0, 0.63);
+}
+
+QPushButton[fqw="ComboBox"]:disabled,
+QPushButton[fqw="AcrylicComboBox"]:disabled,
+QPushButton[fqw="ModelComboBox"]:disabled,
+QLineEdit[fqw="EditableComboBox"]:disabled,
+QLineEdit[fqw="AcrylicEditableComboBox"]:disabled,
+QLineEdit[fqw="EditableModelComboBox"]:disabled {
+    color: rgba(0, 0, 0, 0.36);
+    background: rgba(249, 249, 249, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+QPushButton[fqw="ComboBox"][isPlaceholderText="true"],
+QPushButton[fqw="AcrylicComboBox"][isPlaceholderText="true"],
+QPushButton[fqw="ModelComboBox"][isPlaceholderText="true"],
+QLineEdit[fqw="EditableComboBox"][isPlaceholderText="true"],
+QLineEdit[fqw="AcrylicEditableComboBox"][isPlaceholderText="true"],
+QLineEdit[fqw="EditableModelComboBox"][isPlaceholderText="true"] {
+    color: rgba(0, 0, 0, 0.6063);
+}

@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="zh_HK" sourcelanguage="en_US">
+<context>
+    <name>FluentQt::AMPMFormatter</name>
+    <message>
+        <source>AM</source>
+        <translation>上午</translation>
+    </message>
+    <message>
+        <source>PM</source>
+        <translation>下午</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::CalendarPicker</name>
+    <message>
+        <source>Pick a date</source>
+        <translation>選擇日期</translation>
+    </message>
+    <message>
+        <source>Mo</source>
+        <translation>一</translation>
+    </message>
+    <message>
+        <source>Tu</source>
+        <translation>二</translation>
+    </message>
+    <message>
+        <source>We</source>
+        <translation>三</translation>
+    </message>
+    <message>
+        <source>Th</source>
+        <translation>四</translation>
+    </message>
+    <message>
+        <source>Fr</source>
+        <translation>五</translation>
+    </message>
+    <message>
+        <source>Sa</source>
+        <translation>六</translation>
+    </message>
+    <message>
+        <source>Su</source>
+        <translation>日</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::ColorPickerButton</name>
+    <message>
+        <source>Choose %1</source>
+        <translation>選擇 %1</translation>
+    </message>
+    <message>
+        <source>Choose color</source>
+        <translation>選擇色彩</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::ColorDialog</name>
+    <message>
+        <source>OK</source>
+        <translation>確定</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <source>Edit Color</source>
+        <translation>編輯色彩</translation>
+    </message>
+    <message>
+        <source>Red</source>
+        <translation>紅色</translation>
+    </message>
+    <message>
+        <source>Green</source>
+        <translation>綠色</translation>
+    </message>
+    <message>
+        <source>Blue</source>
+        <translation>藍色</translation>
+    </message>
+    <message>
+        <source>Opacity</source>
+        <translation>不透明度</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::CustomColorSettingCard</name>
+    <message>
+        <source>Default color</source>
+        <translation>預設色彩</translation>
+    </message>
+    <message>
+        <source>Custom color</source>
+        <translation>自訂色彩</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::DatePicker</name>
+    <message>
+        <source>year</source>
+        <translation>年</translation>
+    </message>
+    <message>
+        <source>month</source>
+        <translation>月</translation>
+    </message>
+    <message>
+        <source>day</source>
+        <translation>日</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::MonthFormatter</name>
+    <message>
+        <source>January</source>
+        <translation>一月</translation>
+    </message>
+    <message>
+        <source>February</source>
+        <translation>二月</translation>
+    </message>
+    <message>
+        <source>March</source>
+        <translation>三月</translation>
+    </message>
+    <message>
+        <source>April</source>
+        <translation>四月</translation>
+    </message>
+    <message>
+        <source>May</source>
+        <translation>五月</translation>
+    </message>
+    <message>
+        <source>June</source>
+        <translation>六月</translation>
+    </message>
+    <message>
+        <source>July</source>
+        <translation>七月</translation>
+    </message>
+    <message>
+        <source>August</source>
+        <translation>八月</translation>
+    </message>
+    <message>
+        <source>September</source>
+        <translation>九月</translation>
+    </message>
+    <message>
+        <source>October</source>
+        <translation>十月</translation>
+    </message>
+    <message>
+        <source>November</source>
+        <translation>十一月</translation>
+    </message>
+    <message>
+        <source>December</source>
+        <translation>十二月</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::Dialog</name>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>確定</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::ExpandSettingCard</name>
+    <message>
+        <source>Expand</source>
+        <translation>展開</translation>
+    </message>
+    <message>
+        <source>Collapse</source>
+        <translation>摺疊</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::FolderItem</name>
+    <message>
+        <source>Remove</source>
+        <translation>移除</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::FolderListDialog</name>
+    <message>
+        <source>Done</source>
+        <translation>完成</translation>
+    </message>
+    <message>
+        <source>Add folder</source>
+        <translation>加入資料夾</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to delete the folder?</source>
+        <translation>確定要刪除此資料夾嗎？</translation>
+    </message>
+    <message>
+        <source>If you delete the &quot;%1&quot; folder and remove it from the list, the folder will no longer appear in the list, but will not be deleted.</source>
+        <translation>如果刪除「%1」資料夾並將其從清單中移除，該資料夾將不再顯示在清單中，但不會從磁碟刪除。</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::FolderListSettingCard</name>
+    <message>
+        <source>Add folder</source>
+        <translation>加入資料夾</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::FolderPickerDialog</name>
+    <message>
+        <source>Choose folder</source>
+        <translation>選擇資料夾</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <source>Select folder</source>
+        <translation>選擇資料夾</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::GalleryWindow</name>
+    <message>
+        <source>Home</source>
+        <translation>主頁</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>設定</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::LabelContextMenu</name>
+    <message>
+        <source>Copy</source>
+        <translation>複製</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>全選</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::LineEditMenu</name>
+    <message>
+        <source>Cut</source>
+        <translation>剪下</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>複製</translation>
+    </message>
+    <message>
+        <source>Paste</source>
+        <translation>貼上</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>復原</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>全選</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::MoreActionsButton</name>
+    <message>
+        <source>More</source>
+        <translation>更多</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::PipsPager</name>
+    <message>
+        <source>Previous Page</source>
+        <translation>上一頁</translation>
+    </message>
+    <message>
+        <source>Next Page</source>
+        <translation>下一頁</translation>
+    </message>
+    <message>
+        <source>Page %1</source>
+        <translation>第 %1 頁</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::TabBar</name>
+    <message>
+        <source>Scroll tabs left</source>
+        <translation>向左捲動標籤頁</translation>
+    </message>
+    <message>
+        <source>Scroll tabs right</source>
+        <translation>向右捲動標籤頁</translation>
+    </message>
+    <message>
+        <source>New tab</source>
+        <translation>新增標籤頁</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::TabItem</name>
+    <message>
+        <source>Close</source>
+        <translation>關閉</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::TeachingTipView</name>
+    <message>
+        <source>Close</source>
+        <translation>關閉</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::TextEditMenu</name>
+    <message>
+        <source>Cut</source>
+        <translation>剪下</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>複製</translation>
+    </message>
+    <message>
+        <source>Paste</source>
+        <translation>貼上</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>復原</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>全選</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::TimePicker</name>
+    <message>
+        <source>hour</source>
+        <translation>時</translation>
+    </message>
+    <message>
+        <source>minute</source>
+        <translation>分</translation>
+    </message>
+    <message>
+        <source>second</source>
+        <translation>秒</translation>
+    </message>
+    <message>
+        <source>AM</source>
+        <translation>上午</translation>
+    </message>
+</context>
+</TS>

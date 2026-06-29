@@ -1,0 +1,32 @@
+QWidget[fqw="Pivot"],
+QWidget[fqw="SegmentedWidget"],
+QWidget[fqw="BreadcrumbBar"] {
+    background: transparent;
+}
+
+QPushButton[fqw="PivotItem"],
+QPushButton[fqw="SegmentedItem"],
+QPushButton[fqw="BreadcrumbItem"] {
+    min-height: 32px;
+    padding: 5px 12px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: #f3f3f3;
+}
+
+QPushButton[fqw="PivotItem"]:hover,
+QPushButton[fqw="SegmentedItem"]:hover,
+QPushButton[fqw="BreadcrumbItem"]:hover {
+    background: #3b3b3b;
+}
+
+QPushButton[fqw="PivotItem"]:checked,
+QPushButton[fqw="SegmentedItem"]:checked {
+    background: #24384a;
+    border-bottom: 2px solid @accentColor;
+}
+
+QPushButton[fqw="SegmentedItem"] {
+    border: 1px solid #565656;
+}

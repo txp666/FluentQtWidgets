@@ -1,0 +1,18 @@
+QFrame[fqw="Flyout"],
+QFrame[fqw="AcrylicFlyout"] {
+    border: none;
+    background: transparent;
+}
+
+QFrame[fqw="FlyoutView"],
+QFrame[fqw="FlyoutViewBase"] {
+    border: 1px solid #474747;
+    border-radius: 8px;
+    background: #2d2d2d;
+}
+
+QFrame[fqw="AcrylicFlyoutView"],
+QFrame[fqw="AcrylicFlyoutViewBase"] {
+    border: none;
+    background: transparent;
+}

@@ -1,0 +1,40 @@
+QFrame[fqw="ToolTip"] {
+    border-radius: 4px;
+    background: transparent;
+}
+
+QFrame[fqw="ToolTip"] QFrame#container {
+    border: 1px solid rgb(28, 28, 28);
+    border-radius: 4px;
+    background: rgb(43, 43, 43);
+}
+
+QFrame[fqw="ToolTip"] QFrame#container[transparent="true"] {
+    border: 1px solid rgba(0, 0, 0, 50);
+    background: transparent;
+}
+
+QFrame[fqw="ToolTip"] QLabel#contentLabel {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 12px;
+}
+
+QFrame[fqw="AcrylicToolTip"] {
+    border-radius: 4px;
+    background: transparent;
+}
+
+QFrame[fqw="AcrylicToolTip"] QFrame#container {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    background: rgba(32, 32, 32, 0.78);
+}
+
+QFrame[fqw="AcrylicToolTip"] QLabel#contentLabel {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 12px;
+}

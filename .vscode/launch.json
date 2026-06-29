@@ -1,0 +1,1104 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Gallery: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Gallery: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery\""
+      }
+    },
+    {
+      "name": "Gallery: Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "Gallery: Build",
+      "windows": {
+        "program": "${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe",
+        "MIMode": "gdb"
+      },
+      "linux": {
+        "program": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery",
+        "MIMode": "gdb"
+      }
+    },
+    {
+      "name": "Gallery: Open",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "open \"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Gallery: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Button: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/button/fqw_basic_input_button_demo.app/Contents/MacOS/fqw_basic_input_button_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Button: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\button\\fqw_basic_input_button_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/button/fqw_basic_input_button_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Check Box: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/check_box/fqw_basic_input_check_box_demo.app/Contents/MacOS/fqw_basic_input_check_box_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Check Box: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\check_box\\fqw_basic_input_check_box_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/check_box/fqw_basic_input_check_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Combo Box: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/combo_box/fqw_basic_input_combo_box_demo.app/Contents/MacOS/fqw_basic_input_combo_box_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Combo Box: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\combo_box\\fqw_basic_input_combo_box_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/combo_box/fqw_basic_input_combo_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Model Combo Box: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/model_combo_box/fqw_basic_input_model_combo_box_demo.app/Contents/MacOS/fqw_basic_input_model_combo_box_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Model Combo Box: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\model_combo_box\\fqw_basic_input_model_combo_box_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/model_combo_box/fqw_basic_input_model_combo_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Radio Button: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/radio_button/fqw_basic_input_radio_button_demo.app/Contents/MacOS/fqw_basic_input_radio_button_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Radio Button: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\radio_button\\fqw_basic_input_radio_button_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/radio_button/fqw_basic_input_radio_button_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Slider: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/slider/fqw_basic_input_slider_demo.app/Contents/MacOS/fqw_basic_input_slider_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Slider: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\slider\\fqw_basic_input_slider_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/slider/fqw_basic_input_slider_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Switch Button: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/basic_input/switch_button/fqw_basic_input_switch_button_demo.app/Contents/MacOS/fqw_basic_input_switch_button_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Basic Input Switch Button: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\basic_input\\switch_button\\fqw_basic_input_switch_button_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/basic_input/switch_button/fqw_basic_input_switch_button_demo\""
+      }
+    },
+    {
+      "name": "Demo: Date Time Calendar Picker: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/date_time/calendar_picker/fqw_date_time_calendar_picker_demo.app/Contents/MacOS/fqw_date_time_calendar_picker_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Date Time Calendar Picker: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\date_time\\calendar_picker\\fqw_date_time_calendar_picker_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/date_time/calendar_picker/fqw_date_time_calendar_picker_demo\""
+      }
+    },
+    {
+      "name": "Demo: Date Time Fast Calendar Picker: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/date_time/fast_calendar_picker/fqw_date_time_fast_calendar_picker_demo.app/Contents/MacOS/fqw_date_time_fast_calendar_picker_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Date Time Fast Calendar Picker: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\date_time\\fast_calendar_picker\\fqw_date_time_fast_calendar_picker_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/date_time/fast_calendar_picker/fqw_date_time_fast_calendar_picker_demo\""
+      }
+    },
+    {
+      "name": "Demo: Date Time Time Picker: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/date_time/time_picker/fqw_date_time_time_picker_demo.app/Contents/MacOS/fqw_date_time_time_picker_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Date Time Time Picker: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\date_time\\time_picker\\fqw_date_time_time_picker_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/date_time/time_picker/fqw_date_time_time_picker_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Color Dialog: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/color_dialog/fqw_dialog_flyout_color_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_color_dialog_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Color Dialog: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\color_dialog\\fqw_dialog_flyout_color_dialog_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/color_dialog/fqw_dialog_flyout_color_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Custom Message Box: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/custom_message_box/fqw_dialog_flyout_custom_message_box_demo.app/Contents/MacOS/fqw_dialog_flyout_custom_message_box_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Custom Message Box: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\custom_message_box\\fqw_dialog_flyout_custom_message_box_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/custom_message_box/fqw_dialog_flyout_custom_message_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Dialog: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/dialog/fqw_dialog_flyout_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_dialog_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Dialog: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\dialog\\fqw_dialog_flyout_dialog_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/dialog/fqw_dialog_flyout_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Flyout: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/flyout/fqw_dialog_flyout_flyout_demo.app/Contents/MacOS/fqw_dialog_flyout_flyout_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Flyout: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\flyout\\fqw_dialog_flyout_flyout_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/flyout/fqw_dialog_flyout_flyout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Folder List Dialog: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/folder_list_dialog/fqw_dialog_flyout_folder_list_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_folder_list_dialog_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Folder List Dialog: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\folder_list_dialog\\fqw_dialog_flyout_folder_list_dialog_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/folder_list_dialog/fqw_dialog_flyout_folder_list_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Message Dialog: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/message_dialog/fqw_dialog_flyout_message_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_message_dialog_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Message Dialog: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\message_dialog\\fqw_dialog_flyout_message_dialog_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/message_dialog/fqw_dialog_flyout_message_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Teaching Tip: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/teaching_tip/fqw_dialog_flyout_teaching_tip_demo.app/Contents/MacOS/fqw_dialog_flyout_teaching_tip_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Dialog Flyout Teaching Tip: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\teaching_tip\\fqw_dialog_flyout_teaching_tip_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/teaching_tip/fqw_dialog_flyout_teaching_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Layout Adaptive Flow Layout: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/layout/adaptive_flow_layout/fqw_layout_adaptive_flow_layout_demo.app/Contents/MacOS/fqw_layout_adaptive_flow_layout_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Layout Adaptive Flow Layout: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\layout\\adaptive_flow_layout\\fqw_layout_adaptive_flow_layout_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/layout/adaptive_flow_layout/fqw_layout_adaptive_flow_layout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Layout Flow Layout: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/layout/flow_layout/fqw_layout_flow_layout_demo.app/Contents/MacOS/fqw_layout_flow_layout_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Layout Flow Layout: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\layout\\flow_layout\\fqw_layout_flow_layout_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/layout/flow_layout/fqw_layout_flow_layout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Brush: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_brush/fqw_material_acrylic_brush_demo.app/Contents/MacOS/fqw_material_acrylic_brush_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Brush: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_brush\\fqw_material_acrylic_brush_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_brush/fqw_material_acrylic_brush_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Combo Box: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_combo_box/fqw_material_acrylic_combo_box_demo.app/Contents/MacOS/fqw_material_acrylic_combo_box_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Combo Box: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_combo_box\\fqw_material_acrylic_combo_box_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_combo_box/fqw_material_acrylic_combo_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Flyout: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_flyout/fqw_material_acrylic_flyout_demo.app/Contents/MacOS/fqw_material_acrylic_flyout_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Flyout: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_flyout\\fqw_material_acrylic_flyout_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_flyout/fqw_material_acrylic_flyout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Label: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_label/fqw_material_acrylic_label_demo.app/Contents/MacOS/fqw_material_acrylic_label_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Label: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_label\\fqw_material_acrylic_label_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_label/fqw_material_acrylic_label_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Line Edit: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_line_edit/fqw_material_acrylic_line_edit_demo.app/Contents/MacOS/fqw_material_acrylic_line_edit_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Line Edit: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_line_edit\\fqw_material_acrylic_line_edit_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_line_edit/fqw_material_acrylic_line_edit_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Menu: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_menu/fqw_material_acrylic_menu_demo.app/Contents/MacOS/fqw_material_acrylic_menu_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Menu: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_menu\\fqw_material_acrylic_menu_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_menu/fqw_material_acrylic_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Tool Tip: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_tool_tip/fqw_material_acrylic_tool_tip_demo.app/Contents/MacOS/fqw_material_acrylic_tool_tip_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Tool Tip: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_tool_tip\\fqw_material_acrylic_tool_tip_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_tool_tip/fqw_material_acrylic_tool_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Widget Menu: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_widget_menu/fqw_material_acrylic_widget_menu_demo.app/Contents/MacOS/fqw_material_acrylic_widget_menu_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Material Acrylic Widget Menu: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_widget_menu\\fqw_material_acrylic_widget_menu_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/material/acrylic_widget_menu/fqw_material_acrylic_widget_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Media Avatar Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/media/avatar_widget/fqw_media_avatar_widget_demo.app/Contents/MacOS/fqw_media_avatar_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Media Avatar Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\media\\avatar_widget\\fqw_media_avatar_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/media/avatar_widget/fqw_media_avatar_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Media Media Player: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/media/media_player/fqw_media_media_player_demo.app/Contents/MacOS/fqw_media_media_player_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Media Media Player: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\media\\media_player\\fqw_media_media_player_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/media/media_player/fqw_media_media_player_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu Command Bar: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/menu/command_bar/fqw_menu_command_bar_demo.app/Contents/MacOS/fqw_menu_command_bar_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Menu Command Bar: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\menu\\command_bar\\fqw_menu_command_bar_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/menu/command_bar/fqw_menu_command_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu Menu: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/menu/menu/fqw_menu_menu_demo.app/Contents/MacOS/fqw_menu_menu_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Menu Menu: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\menu\\menu\\fqw_menu_menu_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/menu/menu/fqw_menu_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu System Tray Menu: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/menu/system_tray_menu/fqw_menu_system_tray_menu_demo.app/Contents/MacOS/fqw_menu_system_tray_menu_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Menu System Tray Menu: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\menu\\system_tray_menu\\fqw_menu_system_tray_menu_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/menu/system_tray_menu/fqw_menu_system_tray_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu Widget Menu: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/menu/widget_menu/fqw_menu_widget_menu_demo.app/Contents/MacOS/fqw_menu_widget_menu_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Menu Widget Menu: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\menu\\widget_menu\\fqw_menu_widget_menu_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/menu/widget_menu/fqw_menu_widget_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Breadcrumb Bar: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/breadcrumb_bar/fqw_navigation_breadcrumb_bar_demo.app/Contents/MacOS/fqw_navigation_breadcrumb_bar_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Breadcrumb Bar: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\breadcrumb_bar\\fqw_navigation_breadcrumb_bar_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/breadcrumb_bar/fqw_navigation_breadcrumb_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation1: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation1/fqw_navigation_navigation1_demo.app/Contents/MacOS/fqw_navigation_navigation1_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Navigation1: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation1\\fqw_navigation_navigation1_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation1/fqw_navigation_navigation1_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation2: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation2/fqw_navigation_navigation2_demo.app/Contents/MacOS/fqw_navigation_navigation2_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Navigation2: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation2\\fqw_navigation_navigation2_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation2/fqw_navigation_navigation2_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation3: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation3/fqw_navigation_navigation3_demo.app/Contents/MacOS/fqw_navigation_navigation3_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Navigation3: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation3\\fqw_navigation_navigation3_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation3/fqw_navigation_navigation3_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation Bar: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_bar/fqw_navigation_navigation_bar_demo.app/Contents/MacOS/fqw_navigation_navigation_bar_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Navigation Bar: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_bar\\fqw_navigation_navigation_bar_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_bar/fqw_navigation_navigation_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation Header: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_header/fqw_navigation_navigation_header_demo.app/Contents/MacOS/fqw_navigation_navigation_header_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Navigation Header: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_header\\fqw_navigation_navigation_header_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_header/fqw_navigation_navigation_header_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation User Card: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_user_card/fqw_navigation_navigation_user_card_demo.app/Contents/MacOS/fqw_navigation_navigation_user_card_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Navigation User Card: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_user_card\\fqw_navigation_navigation_user_card_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_user_card/fqw_navigation_navigation_user_card_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Pivot: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/pivot/fqw_navigation_pivot_demo.app/Contents/MacOS/fqw_navigation_pivot_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Pivot: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\pivot\\fqw_navigation_pivot_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/pivot/fqw_navigation_pivot_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Segmented Tool Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_tool_widget/fqw_navigation_segmented_tool_widget_demo.app/Contents/MacOS/fqw_navigation_segmented_tool_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Segmented Tool Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\segmented_tool_widget\\fqw_navigation_segmented_tool_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_tool_widget/fqw_navigation_segmented_tool_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Segmented Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_widget/fqw_navigation_segmented_widget_demo.app/Contents/MacOS/fqw_navigation_segmented_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Segmented Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\segmented_widget\\fqw_navigation_segmented_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_widget/fqw_navigation_segmented_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Stacked Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/stacked_widget/fqw_navigation_stacked_widget_demo.app/Contents/MacOS/fqw_navigation_stacked_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Stacked Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\stacked_widget\\fqw_navigation_stacked_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/stacked_widget/fqw_navigation_stacked_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Tab View: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/tab_view/fqw_navigation_tab_view_demo.app/Contents/MacOS/fqw_navigation_tab_view_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Tab View: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\tab_view\\fqw_navigation_tab_view_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/tab_view/fqw_navigation_tab_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Tab Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/navigation/tab_widget/fqw_navigation_tab_widget_demo.app/Contents/MacOS/fqw_navigation_tab_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Navigation Tab Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\navigation\\tab_widget\\fqw_navigation_tab_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/navigation/tab_widget/fqw_navigation_tab_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Scroll Pips Pager: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/scroll/pips_pager/fqw_scroll_pips_pager_demo.app/Contents/MacOS/fqw_scroll_pips_pager_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Scroll Pips Pager: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\scroll\\pips_pager\\fqw_scroll_pips_pager_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/scroll/pips_pager/fqw_scroll_pips_pager_demo\""
+      }
+    },
+    {
+      "name": "Demo: Scroll Scroll Area: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/scroll/scroll_area/fqw_scroll_scroll_area_demo.app/Contents/MacOS/fqw_scroll_scroll_area_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Scroll Scroll Area: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\scroll\\scroll_area\\fqw_scroll_scroll_area_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/scroll/scroll_area/fqw_scroll_scroll_area_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Info Badge: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/status_info/info_badge/fqw_status_info_info_badge_demo.app/Contents/MacOS/fqw_status_info_info_badge_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Status Info Info Badge: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\status_info\\info_badge\\fqw_status_info_info_badge_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/status_info/info_badge/fqw_status_info_info_badge_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Info Bar: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/status_info/info_bar/fqw_status_info_info_bar_demo.app/Contents/MacOS/fqw_status_info_info_bar_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Status Info Info Bar: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\status_info\\info_bar\\fqw_status_info_info_bar_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/status_info/info_bar/fqw_status_info_info_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Progress Bar: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/status_info/progress_bar/fqw_status_info_progress_bar_demo.app/Contents/MacOS/fqw_status_info_progress_bar_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Status Info Progress Bar: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\status_info\\progress_bar\\fqw_status_info_progress_bar_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/status_info/progress_bar/fqw_status_info_progress_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Progress Ring: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/status_info/progress_ring/fqw_status_info_progress_ring_demo.app/Contents/MacOS/fqw_status_info_progress_ring_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Status Info Progress Ring: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\status_info\\progress_ring\\fqw_status_info_progress_ring_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/status_info/progress_ring/fqw_status_info_progress_ring_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info State Tool Tip: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/status_info/state_tool_tip/fqw_status_info_state_tool_tip_demo.app/Contents/MacOS/fqw_status_info_state_tool_tip_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Status Info State Tool Tip: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\status_info\\state_tool_tip\\fqw_status_info_state_tool_tip_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/status_info/state_tool_tip/fqw_status_info_state_tool_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Tool Tip: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/status_info/tool_tip/fqw_status_info_tool_tip_demo.app/Contents/MacOS/fqw_status_info_tool_tip_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Status Info Tool Tip: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\status_info\\tool_tip\\fqw_status_info_tool_tip_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/status_info/tool_tip/fqw_status_info_tool_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Font Icon: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/text/font_icon/fqw_text_font_icon_demo.app/Contents/MacOS/fqw_text_font_icon_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Text Font Icon: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\text\\font_icon\\fqw_text_font_icon_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/text/font_icon/fqw_text_font_icon_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Image Label: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/text/image_label/fqw_text_image_label_demo.app/Contents/MacOS/fqw_text_image_label_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Text Image Label: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\text\\image_label\\fqw_text_image_label_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/text/image_label/fqw_text_image_label_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Label: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/text/label/fqw_text_label_demo.app/Contents/MacOS/fqw_text_label_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Text Label: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\text\\label\\fqw_text_label_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/text/label/fqw_text_label_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Line Edit: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/text/line_edit/fqw_text_line_edit_demo.app/Contents/MacOS/fqw_text_line_edit_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Text Line Edit: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\text\\line_edit\\fqw_text_line_edit_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/text/line_edit/fqw_text_line_edit_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Spin Box: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/text/spin_box/fqw_text_spin_box_demo.app/Contents/MacOS/fqw_text_spin_box_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Text Spin Box: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\text\\spin_box\\fqw_text_spin_box_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/text/spin_box/fqw_text_spin_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Text Browser: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/text/text_browser/fqw_text_text_browser_demo.app/Contents/MacOS/fqw_text_text_browser_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Text Text Browser: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\text\\text_browser\\fqw_text_text_browser_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/text/text_browser/fqw_text_text_browser_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Card Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/view/card_widget/fqw_view_card_widget_demo.app/Contents/MacOS/fqw_view_card_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: View Card Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\view\\card_widget\\fqw_view_card_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/view/card_widget/fqw_view_card_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Flip View: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/view/flip_view/fqw_view_flip_view_demo.app/Contents/MacOS/fqw_view_flip_view_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: View Flip View: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\view\\flip_view\\fqw_view_flip_view_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/view/flip_view/fqw_view_flip_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View List View: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/view/list_view/fqw_view_list_view_demo.app/Contents/MacOS/fqw_view_list_view_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: View List View: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\view\\list_view\\fqw_view_list_view_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/view/list_view/fqw_view_list_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Table View: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/view/table_view/fqw_view_table_view_demo.app/Contents/MacOS/fqw_view_table_view_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: View Table View: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\view\\table_view\\fqw_view_table_view_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/view/table_view/fqw_view_table_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Tree View: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/view/tree_view/fqw_view_tree_view_demo.app/Contents/MacOS/fqw_view_tree_view_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: View Tree View: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\view\\tree_view\\fqw_view_tree_view_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/view/tree_view/fqw_view_tree_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Tree Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/view/tree_widget/fqw_view_tree_widget_demo.app/Contents/MacOS/fqw_view_tree_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: View Tree Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\view\\tree_widget\\fqw_view_tree_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/view/tree_widget/fqw_view_tree_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Clock: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/clock/fqw_window_clock_demo.app/Contents/MacOS/fqw_window_clock_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Clock: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\clock\\fqw_window_clock_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/clock/fqw_window_clock_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Fluent Widget: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/fluent_widget/fqw_window_fluent_widget_demo.app/Contents/MacOS/fqw_window_fluent_widget_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Fluent Widget: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\fluent_widget\\fqw_window_fluent_widget_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/fluent_widget/fqw_window_fluent_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Fluent Window: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/fluent_window/fqw_window_fluent_window_demo.app/Contents/MacOS/fqw_window_fluent_window_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Fluent Window: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\fluent_window\\fqw_window_fluent_window_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/fluent_window/fqw_window_fluent_window_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Login: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/login/fqw_window_login_demo.app/Contents/MacOS/fqw_window_login_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Login: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\login\\fqw_window_login_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/login/fqw_window_login_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Ms Fluent Window: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/ms_fluent_window/fqw_window_ms_fluent_window_demo.app/Contents/MacOS/fqw_window_ms_fluent_window_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Ms Fluent Window: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\ms_fluent_window\\fqw_window_ms_fluent_window_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/ms_fluent_window/fqw_window_ms_fluent_window_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Settings: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/settings/fqw_window_settings_demo.app/Contents/MacOS/fqw_window_settings_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Settings: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\settings\\fqw_window_settings_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/settings/fqw_window_settings_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Splash Screen: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/splash_screen/fqw_window_splash_screen_demo.app/Contents/MacOS/fqw_window_splash_screen_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Splash Screen: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\splash_screen\\fqw_window_splash_screen_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/splash_screen/fqw_window_splash_screen_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Split Fluent Window: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/split_fluent_window/fqw_window_split_fluent_window_demo.app/Contents/MacOS/fqw_window_split_fluent_window_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Split Fluent Window: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\split_fluent_window\\fqw_window_split_fluent_window_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/split_fluent_window/fqw_window_split_fluent_window_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Web Engine: Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/build/debug/examples/window/web_engine/fqw_window_web_engine_demo.app/Contents/MacOS/fqw_window_web_engine_demo\"",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Demo: Window Web Engine: Build",
+      "windows": {
+        "command": "\"${workspaceFolder}\\build\\examples\\window\\web_engine\\fqw_window_web_engine_demo.exe\""
+      },
+      "linux": {
+        "command": "\"${workspaceFolder}/build/debug/examples/window/web_engine/fqw_window_web_engine_demo\""
+      }
+    }
+  ]
+}

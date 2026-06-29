@@ -1,0 +1,106 @@
+QTableView[fqw="TableView"],
+QTableView[fqw="TableWidget"],
+QTableWidget[fqw="TableWidget"] {
+    background: transparent;
+    outline: none;
+    border: none;
+    selection-background-color: transparent;
+    alternate-background-color: transparent;
+    gridline-color: transparent;
+}
+
+QTableView[fqw="TableView"][isBorderVisible="true"],
+QTableView[fqw="TableWidget"][isBorderVisible="true"],
+QTableWidget[fqw="TableWidget"][isBorderVisible="true"] {
+    border: 1px solid rgba(0, 0, 0, 0.059);
+    border-radius: 6px;
+}
+
+QTableView[fqw="TableView"]::item,
+QTableView[fqw="TableWidget"]::item,
+QTableWidget[fqw="TableWidget"]::item {
+    height: 35px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border: none;
+    background: transparent;
+}
+
+QTableView[fqw="TableView"] QHeaderView,
+QTableView[fqw="TableWidget"] QHeaderView,
+QTableWidget[fqw="TableWidget"] QHeaderView,
+QTreeView[fqw="TreeView"] QHeaderView,
+QTreeView[fqw="TreeWidget"] QHeaderView,
+QTreeWidget[fqw="TreeWidget"] QHeaderView {
+    background: transparent;
+}
+
+QTableView[fqw="TableView"] QHeaderView::section,
+QTableView[fqw="TableWidget"] QHeaderView::section,
+QTableWidget[fqw="TableWidget"] QHeaderView::section,
+QTreeView[fqw="TreeView"] QHeaderView::section,
+QTreeView[fqw="TreeWidget"] QHeaderView::section,
+QTreeWidget[fqw="TreeWidget"] QHeaderView::section {
+    min-height: 33px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.059);
+    background: transparent;
+    color: rgb(96, 96, 96);
+    font: 13px --FontFamilies;
+}
+
+QTableView[fqw="TableView"]::indicator,
+QTableView[fqw="TableWidget"]::indicator,
+QTableWidget[fqw="TableWidget"]::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+QHeaderView::section:horizontal {
+    border-left: none;
+}
+
+QTableView[fqw="TableView"][isBorderVisible="true"] QHeaderView::section:horizontal,
+QTableView[fqw="TableWidget"][isBorderVisible="true"] QHeaderView::section:horizontal,
+QTableWidget[fqw="TableWidget"][isBorderVisible="true"] QHeaderView::section:horizontal {
+    border-top: none;
+}
+
+QHeaderView::section:horizontal:last {
+    border-right: none;
+}
+
+QHeaderView::section:vertical {
+    border-top: none;
+}
+
+QHeaderView::section:checked {
+    background-color: transparent;
+}
+
+QHeaderView::down-arrow {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    margin-right: 6px;
+    image: url(:/qfluentwidgets/images/table_view/Down_black.svg);
+}
+
+QHeaderView::up-arrow {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    margin-right: 6px;
+    image: url(:/qfluentwidgets/images/table_view/Up_black.svg);
+}
+
+QTableCornerButton::section {
+    background-color: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.059);
+}
+
+QTableCornerButton::section:pressed {
+    background-color: rgba(0, 0, 0, 12);
+}

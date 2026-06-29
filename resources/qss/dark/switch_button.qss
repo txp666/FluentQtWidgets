@@ -1,0 +1,15 @@
+QWidget[fqw="SwitchButton"] {
+    qproperty-spacing: 12;
+    background-color: transparent;
+}
+
+QWidget[fqw="SwitchButton"] QLabel {
+    font: 14px --FontFamilies;
+    color: white;
+    background-color: transparent;
+    border: none;
+}
+
+QWidget[fqw="SwitchButton"] QLabel:disabled {
+    color: rgba(255, 255, 255, 0.36);
+}

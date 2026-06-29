@@ -1,0 +1,5 @@
+QWidget[fqw="IconWidget"],
+QLabel[fqw="ImageLabel"],
+QLabel[fqw="AvatarWidget"] {
+    background: transparent;
+}

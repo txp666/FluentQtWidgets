@@ -1,0 +1,6 @@
+QWidget[fqw="CardWidget"],
+QWidget[fqw="SimpleCardWidget"],
+QWidget[fqw="HeaderCardWidget"] {
+    background: transparent;
+    border: none;
+}

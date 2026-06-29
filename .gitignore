@@ -1,0 +1,46 @@
+build/
+out/
+.vs/
+.vscode/*
+!.vscode/
+!.vscode/tasks.json
+!.vscode/launch.json
+.agents/
+.codex/
+CMakeUserPresets.json
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+Testing/
+_deps/
+*.log
+*.tmp
+*.bak
+*.swp
+build_output*.txt
+*.user
+*.o
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.lib
+*.so
+*.dylib
+*.a
+*.app/
+
+# Local upstream reference snapshot. Keep it outside commits; document any
+# intentionally copied, license-audited assets in THIRD_PARTY_NOTICES.md.
+PyQt-Fluent-Widgets-master/
+PyQt-Fluent-Widgets/
+
+# Gallery image resources copied from the reference gallery are tracked when
+# they are added to the C++ example resource file.
+
+# Python helper caches
+__pycache__/
+*.py[cod]
+.pytest_cache/

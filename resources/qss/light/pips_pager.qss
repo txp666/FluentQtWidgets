@@ -1,0 +1,37 @@
+QWidget[fqw="PipsPager"] {
+    background: transparent;
+}
+
+QToolButton[fqw="PipsPagerDot"] {
+    min-width: 12px;
+    max-width: 12px;
+    min-height: 12px;
+    max-height: 12px;
+    margin: 4px;
+    border: none;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+QToolButton[fqw="PipsPagerDot"]:hover,
+QToolButton[fqw="PipsPagerDot"]:checked,
+QToolButton[fqw="PipsPagerDot"][current="true"] {
+    margin: 3px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.62);
+}
+
+QToolButton[fqw="PipsPagerScrollButton"] {
+    min-width: 12px;
+    max-width: 12px;
+    min-height: 12px;
+    max-height: 12px;
+    padding: 0px;
+    border: none;
+    border-radius: 0px;
+    background: transparent;
+}
+
+QToolButton[fqw="PipsPagerScrollButton"]:hover {
+    background: transparent;
+}

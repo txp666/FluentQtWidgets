@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/media/avatar_widget">
+        <file>resource/boqi.gif</file>
+        <file>resource/shoko.png</file>
+    </qresource>
+</RCC>

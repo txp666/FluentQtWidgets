@@ -1,0 +1,8 @@
+add_subdirectory(acrylic_brush)
+add_subdirectory(acrylic_label)
+add_subdirectory(acrylic_combo_box)
+add_subdirectory(acrylic_flyout)
+add_subdirectory(acrylic_line_edit)
+add_subdirectory(acrylic_menu)
+add_subdirectory(acrylic_tool_tip)
+add_subdirectory(acrylic_widget_menu)

@@ -1,0 +1,121 @@
+QSpinBox[fqw="SpinBox"],
+QDoubleSpinBox[fqw="DoubleSpinBox"],
+QDateEdit[fqw="DateEdit"],
+QDateTimeEdit[fqw="DateTimeEdit"],
+QTimeEdit[fqw="TimeEdit"],
+QSpinBox[fqw="CompactSpinBox"],
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"],
+QDateEdit[fqw="CompactDateEdit"],
+QDateTimeEdit[fqw="CompactDateTimeEdit"],
+QTimeEdit[fqw="CompactTimeEdit"] {
+    background-color: rgba(255, 255, 255, 0.0605);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5442);
+    border-radius: 5px;
+    padding: 0px 80px 0 10px;
+    color: white;
+    selection-background-color: @accentColor;
+    selection-color: black;
+}
+
+QSpinBox[fqw="CompactSpinBox"],
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"],
+QDateEdit[fqw="CompactDateEdit"],
+QDateTimeEdit[fqw="CompactDateTimeEdit"],
+QTimeEdit[fqw="CompactTimeEdit"] {
+    padding: 0px 26px 0 10px;
+}
+
+QSpinBox[fqw="SpinBox"]:read-only,
+QDoubleSpinBox[fqw="DoubleSpinBox"]:read-only,
+QDateEdit[fqw="DateEdit"]:read-only,
+QDateTimeEdit[fqw="DateTimeEdit"]:read-only,
+QTimeEdit[fqw="TimeEdit"]:read-only,
+QSpinBox[fqw="CompactSpinBox"]:read-only,
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"]:read-only,
+QDateEdit[fqw="CompactDateEdit"]:read-only,
+QDateTimeEdit[fqw="CompactDateTimeEdit"]:read-only,
+QTimeEdit[fqw="CompactTimeEdit"]:read-only,
+QSpinBox[fqw="SpinBox"][symbolVisible="false"],
+QDoubleSpinBox[fqw="DoubleSpinBox"][symbolVisible="false"],
+QDateEdit[fqw="DateEdit"][symbolVisible="false"],
+QDateTimeEdit[fqw="DateTimeEdit"][symbolVisible="false"],
+QTimeEdit[fqw="TimeEdit"][symbolVisible="false"],
+QSpinBox[fqw="CompactSpinBox"][symbolVisible="false"],
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"][symbolVisible="false"],
+QDateEdit[fqw="CompactDateEdit"][symbolVisible="false"],
+QDateTimeEdit[fqw="CompactDateTimeEdit"][symbolVisible="false"],
+QTimeEdit[fqw="CompactTimeEdit"][symbolVisible="false"] {
+    padding: 0px 10px 0 10px;
+}
+
+QSpinBox[fqw="SpinBox"]:hover,
+QDoubleSpinBox[fqw="DoubleSpinBox"]:hover,
+QDateEdit[fqw="DateEdit"]:hover,
+QDateTimeEdit[fqw="DateTimeEdit"]:hover,
+QTimeEdit[fqw="TimeEdit"]:hover,
+QSpinBox[fqw="CompactSpinBox"]:hover,
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"]:hover,
+QDateEdit[fqw="CompactDateEdit"]:hover,
+QDateTimeEdit[fqw="CompactDateTimeEdit"]:hover,
+QTimeEdit[fqw="CompactTimeEdit"]:hover {
+    background-color: rgba(255, 255, 255, 0.0837);
+}
+
+QSpinBox[fqw="SpinBox"][transparent="true"]:focus,
+QDoubleSpinBox[fqw="DoubleSpinBox"][transparent="true"]:focus,
+QDateEdit[fqw="DateEdit"][transparent="true"]:focus,
+QDateTimeEdit[fqw="DateTimeEdit"][transparent="true"]:focus,
+QTimeEdit[fqw="TimeEdit"][transparent="true"]:focus,
+QSpinBox[fqw="CompactSpinBox"][transparent="true"]:focus,
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"][transparent="true"]:focus,
+QDateEdit[fqw="CompactDateEdit"][transparent="true"]:focus,
+QDateTimeEdit[fqw="CompactDateTimeEdit"][transparent="true"]:focus,
+QTimeEdit[fqw="CompactTimeEdit"][transparent="true"]:focus {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+QSpinBox[fqw="SpinBox"]:disabled,
+QDoubleSpinBox[fqw="DoubleSpinBox"]:disabled,
+QDateEdit[fqw="DateEdit"]:disabled,
+QDateTimeEdit[fqw="DateTimeEdit"]:disabled,
+QTimeEdit[fqw="TimeEdit"]:disabled,
+QSpinBox[fqw="CompactSpinBox"]:disabled,
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"]:disabled,
+QDateEdit[fqw="CompactDateEdit"]:disabled,
+QDateTimeEdit[fqw="CompactDateTimeEdit"]:disabled,
+QTimeEdit[fqw="CompactTimeEdit"]:disabled {
+    color: rgba(255, 255, 255, 92);
+    background-color: rgba(255, 255, 255, 0.0837);
+    border: 1px solid rgba(255, 255, 255, 0.0698);
+}
+
+QSpinBox[fqw="SpinBox"][transparent="false"]:focus,
+QDoubleSpinBox[fqw="DoubleSpinBox"][transparent="false"]:focus,
+QDateEdit[fqw="DateEdit"][transparent="false"]:focus,
+QDateTimeEdit[fqw="DateTimeEdit"][transparent="false"]:focus,
+QTimeEdit[fqw="TimeEdit"][transparent="false"]:focus,
+QSpinBox[fqw="CompactSpinBox"][transparent="false"]:focus,
+QDoubleSpinBox[fqw="CompactDoubleSpinBox"][transparent="false"]:focus,
+QDateEdit[fqw="CompactDateEdit"][transparent="false"]:focus,
+QDateTimeEdit[fqw="CompactDateTimeEdit"][transparent="false"]:focus,
+QTimeEdit[fqw="CompactTimeEdit"][transparent="false"]:focus {
+    background: rgb(31, 31, 31);
+}
+
+QToolButton[fqw="SpinButton"],
+QToolButton[fqw="CompactSpinButton"] {
+    background-color: transparent;
+    border-radius: 4px;
+    border: none;
+    margin: 0;
+}
+
+QToolButton[fqw="SpinButton"]:hover {
+    background-color: rgba(255, 255, 255, 9);
+}
+
+QToolButton[fqw="SpinButton"]:pressed {
+    background-color: rgba(255, 255, 255, 6);
+}

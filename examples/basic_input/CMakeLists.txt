@@ -1,0 +1,7 @@
+add_subdirectory(button)
+add_subdirectory(check_box)
+add_subdirectory(combo_box)
+add_subdirectory(model_combo_box)
+add_subdirectory(radio_button)
+add_subdirectory(slider)
+add_subdirectory(switch_button)

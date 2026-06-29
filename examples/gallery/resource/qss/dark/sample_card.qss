@@ -1,0 +1,16 @@
+SampleCardView #viewTitleLabel {
+    font: 600 20px --FontFamilies;
+    padding-left: 4px;
+    color: white;
+}
+
+SampleCardView SampleCard #titleLabel {
+    font: 14px --FontFamilies;
+    font-weight: bold;
+    color: white;
+}
+
+SampleCardView SampleCard #contentLabel {
+    font: 12px --FontFamilies;
+    color: rgb(208, 208, 208);
+}

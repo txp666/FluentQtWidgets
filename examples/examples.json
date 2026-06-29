@@ -1,0 +1,2741 @@
+{
+  "schema_version": 1,
+  "gallery": {
+    "name": "Gallery",
+    "id": "examples/gallery",
+    "target": "FluentQtWidgetsGallery",
+    "relative_path": "examples/gallery",
+    "optional": false,
+    "required_feature": null,
+    "enabled": true,
+    "build": {
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug",
+        "--target",
+        "FluentQtWidgetsGallery",
+        "--parallel"
+      ],
+      "windows": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "mingw-debug",
+          "--target",
+          "FluentQtWidgetsGallery",
+          "--parallel"
+        ]
+      }
+    },
+    "run": {
+      "mac": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery\"",
+      "windows": "\"${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe\"",
+      "linux": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery\""
+    }
+  },
+  "demos": [
+    {
+      "name": "Demo: Basic Input Button",
+      "id": "examples/basic_input/button",
+      "target": "fqw_basic_input_button_demo",
+      "relative_path": "examples/basic_input/button",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_button_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_button_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/button/fqw_basic_input_button_demo.app/Contents/MacOS/fqw_basic_input_button_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\button\\fqw_basic_input_button_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/button/fqw_basic_input_button_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Check Box",
+      "id": "examples/basic_input/check_box",
+      "target": "fqw_basic_input_check_box_demo",
+      "relative_path": "examples/basic_input/check_box",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_check_box_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_check_box_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/check_box/fqw_basic_input_check_box_demo.app/Contents/MacOS/fqw_basic_input_check_box_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\check_box\\fqw_basic_input_check_box_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/check_box/fqw_basic_input_check_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Combo Box",
+      "id": "examples/basic_input/combo_box",
+      "target": "fqw_basic_input_combo_box_demo",
+      "relative_path": "examples/basic_input/combo_box",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_combo_box_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_combo_box_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/combo_box/fqw_basic_input_combo_box_demo.app/Contents/MacOS/fqw_basic_input_combo_box_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\combo_box\\fqw_basic_input_combo_box_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/combo_box/fqw_basic_input_combo_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Model Combo Box",
+      "id": "examples/basic_input/model_combo_box",
+      "target": "fqw_basic_input_model_combo_box_demo",
+      "relative_path": "examples/basic_input/model_combo_box",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_model_combo_box_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_model_combo_box_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/model_combo_box/fqw_basic_input_model_combo_box_demo.app/Contents/MacOS/fqw_basic_input_model_combo_box_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\model_combo_box\\fqw_basic_input_model_combo_box_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/model_combo_box/fqw_basic_input_model_combo_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Radio Button",
+      "id": "examples/basic_input/radio_button",
+      "target": "fqw_basic_input_radio_button_demo",
+      "relative_path": "examples/basic_input/radio_button",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_radio_button_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_radio_button_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/radio_button/fqw_basic_input_radio_button_demo.app/Contents/MacOS/fqw_basic_input_radio_button_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\radio_button\\fqw_basic_input_radio_button_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/radio_button/fqw_basic_input_radio_button_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Slider",
+      "id": "examples/basic_input/slider",
+      "target": "fqw_basic_input_slider_demo",
+      "relative_path": "examples/basic_input/slider",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_slider_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_slider_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/slider/fqw_basic_input_slider_demo.app/Contents/MacOS/fqw_basic_input_slider_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\slider\\fqw_basic_input_slider_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/slider/fqw_basic_input_slider_demo\""
+      }
+    },
+    {
+      "name": "Demo: Basic Input Switch Button",
+      "id": "examples/basic_input/switch_button",
+      "target": "fqw_basic_input_switch_button_demo",
+      "relative_path": "examples/basic_input/switch_button",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_basic_input_switch_button_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_basic_input_switch_button_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/switch_button/fqw_basic_input_switch_button_demo.app/Contents/MacOS/fqw_basic_input_switch_button_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\switch_button\\fqw_basic_input_switch_button_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/switch_button/fqw_basic_input_switch_button_demo\""
+      }
+    },
+    {
+      "name": "Demo: Date Time Calendar Picker",
+      "id": "examples/date_time/calendar_picker",
+      "target": "fqw_date_time_calendar_picker_demo",
+      "relative_path": "examples/date_time/calendar_picker",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_date_time_calendar_picker_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_date_time_calendar_picker_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/date_time/calendar_picker/fqw_date_time_calendar_picker_demo.app/Contents/MacOS/fqw_date_time_calendar_picker_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\date_time\\calendar_picker\\fqw_date_time_calendar_picker_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/date_time/calendar_picker/fqw_date_time_calendar_picker_demo\""
+      }
+    },
+    {
+      "name": "Demo: Date Time Fast Calendar Picker",
+      "id": "examples/date_time/fast_calendar_picker",
+      "target": "fqw_date_time_fast_calendar_picker_demo",
+      "relative_path": "examples/date_time/fast_calendar_picker",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_date_time_fast_calendar_picker_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_date_time_fast_calendar_picker_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/date_time/fast_calendar_picker/fqw_date_time_fast_calendar_picker_demo.app/Contents/MacOS/fqw_date_time_fast_calendar_picker_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\date_time\\fast_calendar_picker\\fqw_date_time_fast_calendar_picker_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/date_time/fast_calendar_picker/fqw_date_time_fast_calendar_picker_demo\""
+      }
+    },
+    {
+      "name": "Demo: Date Time Time Picker",
+      "id": "examples/date_time/time_picker",
+      "target": "fqw_date_time_time_picker_demo",
+      "relative_path": "examples/date_time/time_picker",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_date_time_time_picker_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_date_time_time_picker_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/date_time/time_picker/fqw_date_time_time_picker_demo.app/Contents/MacOS/fqw_date_time_time_picker_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\date_time\\time_picker\\fqw_date_time_time_picker_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/date_time/time_picker/fqw_date_time_time_picker_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Color Dialog",
+      "id": "examples/dialog_flyout/color_dialog",
+      "target": "fqw_dialog_flyout_color_dialog_demo",
+      "relative_path": "examples/dialog_flyout/color_dialog",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_color_dialog_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_color_dialog_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/color_dialog/fqw_dialog_flyout_color_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_color_dialog_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\color_dialog\\fqw_dialog_flyout_color_dialog_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/color_dialog/fqw_dialog_flyout_color_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Custom Message Box",
+      "id": "examples/dialog_flyout/custom_message_box",
+      "target": "fqw_dialog_flyout_custom_message_box_demo",
+      "relative_path": "examples/dialog_flyout/custom_message_box",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_custom_message_box_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_custom_message_box_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/custom_message_box/fqw_dialog_flyout_custom_message_box_demo.app/Contents/MacOS/fqw_dialog_flyout_custom_message_box_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\custom_message_box\\fqw_dialog_flyout_custom_message_box_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/custom_message_box/fqw_dialog_flyout_custom_message_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Dialog",
+      "id": "examples/dialog_flyout/dialog",
+      "target": "fqw_dialog_flyout_dialog_demo",
+      "relative_path": "examples/dialog_flyout/dialog",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_dialog_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_dialog_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/dialog/fqw_dialog_flyout_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_dialog_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\dialog\\fqw_dialog_flyout_dialog_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/dialog/fqw_dialog_flyout_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Flyout",
+      "id": "examples/dialog_flyout/flyout",
+      "target": "fqw_dialog_flyout_flyout_demo",
+      "relative_path": "examples/dialog_flyout/flyout",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_flyout_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_flyout_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/flyout/fqw_dialog_flyout_flyout_demo.app/Contents/MacOS/fqw_dialog_flyout_flyout_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\flyout\\fqw_dialog_flyout_flyout_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/flyout/fqw_dialog_flyout_flyout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Folder List Dialog",
+      "id": "examples/dialog_flyout/folder_list_dialog",
+      "target": "fqw_dialog_flyout_folder_list_dialog_demo",
+      "relative_path": "examples/dialog_flyout/folder_list_dialog",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_folder_list_dialog_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_folder_list_dialog_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/folder_list_dialog/fqw_dialog_flyout_folder_list_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_folder_list_dialog_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\folder_list_dialog\\fqw_dialog_flyout_folder_list_dialog_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/folder_list_dialog/fqw_dialog_flyout_folder_list_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Message Dialog",
+      "id": "examples/dialog_flyout/message_dialog",
+      "target": "fqw_dialog_flyout_message_dialog_demo",
+      "relative_path": "examples/dialog_flyout/message_dialog",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_message_dialog_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_message_dialog_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/message_dialog/fqw_dialog_flyout_message_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_message_dialog_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\message_dialog\\fqw_dialog_flyout_message_dialog_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/message_dialog/fqw_dialog_flyout_message_dialog_demo\""
+      }
+    },
+    {
+      "name": "Demo: Dialog Flyout Teaching Tip",
+      "id": "examples/dialog_flyout/teaching_tip",
+      "target": "fqw_dialog_flyout_teaching_tip_demo",
+      "relative_path": "examples/dialog_flyout/teaching_tip",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_dialog_flyout_teaching_tip_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_dialog_flyout_teaching_tip_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/teaching_tip/fqw_dialog_flyout_teaching_tip_demo.app/Contents/MacOS/fqw_dialog_flyout_teaching_tip_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\teaching_tip\\fqw_dialog_flyout_teaching_tip_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/teaching_tip/fqw_dialog_flyout_teaching_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Layout Adaptive Flow Layout",
+      "id": "examples/layout/adaptive_flow_layout",
+      "target": "fqw_layout_adaptive_flow_layout_demo",
+      "relative_path": "examples/layout/adaptive_flow_layout",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_layout_adaptive_flow_layout_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_layout_adaptive_flow_layout_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/layout/adaptive_flow_layout/fqw_layout_adaptive_flow_layout_demo.app/Contents/MacOS/fqw_layout_adaptive_flow_layout_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\layout\\adaptive_flow_layout\\fqw_layout_adaptive_flow_layout_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/layout/adaptive_flow_layout/fqw_layout_adaptive_flow_layout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Layout Flow Layout",
+      "id": "examples/layout/flow_layout",
+      "target": "fqw_layout_flow_layout_demo",
+      "relative_path": "examples/layout/flow_layout",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_layout_flow_layout_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_layout_flow_layout_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/layout/flow_layout/fqw_layout_flow_layout_demo.app/Contents/MacOS/fqw_layout_flow_layout_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\layout\\flow_layout\\fqw_layout_flow_layout_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/layout/flow_layout/fqw_layout_flow_layout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Brush",
+      "id": "examples/material/acrylic_brush",
+      "target": "fqw_material_acrylic_brush_demo",
+      "relative_path": "examples/material/acrylic_brush",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_brush_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_brush_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_brush/fqw_material_acrylic_brush_demo.app/Contents/MacOS/fqw_material_acrylic_brush_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_brush\\fqw_material_acrylic_brush_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_brush/fqw_material_acrylic_brush_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Combo Box",
+      "id": "examples/material/acrylic_combo_box",
+      "target": "fqw_material_acrylic_combo_box_demo",
+      "relative_path": "examples/material/acrylic_combo_box",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_combo_box_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_combo_box_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_combo_box/fqw_material_acrylic_combo_box_demo.app/Contents/MacOS/fqw_material_acrylic_combo_box_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_combo_box\\fqw_material_acrylic_combo_box_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_combo_box/fqw_material_acrylic_combo_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Flyout",
+      "id": "examples/material/acrylic_flyout",
+      "target": "fqw_material_acrylic_flyout_demo",
+      "relative_path": "examples/material/acrylic_flyout",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_flyout_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_flyout_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_flyout/fqw_material_acrylic_flyout_demo.app/Contents/MacOS/fqw_material_acrylic_flyout_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_flyout\\fqw_material_acrylic_flyout_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_flyout/fqw_material_acrylic_flyout_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Label",
+      "id": "examples/material/acrylic_label",
+      "target": "fqw_material_acrylic_label_demo",
+      "relative_path": "examples/material/acrylic_label",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_label_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_label_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_label/fqw_material_acrylic_label_demo.app/Contents/MacOS/fqw_material_acrylic_label_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_label\\fqw_material_acrylic_label_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_label/fqw_material_acrylic_label_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Line Edit",
+      "id": "examples/material/acrylic_line_edit",
+      "target": "fqw_material_acrylic_line_edit_demo",
+      "relative_path": "examples/material/acrylic_line_edit",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_line_edit_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_line_edit_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_line_edit/fqw_material_acrylic_line_edit_demo.app/Contents/MacOS/fqw_material_acrylic_line_edit_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_line_edit\\fqw_material_acrylic_line_edit_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_line_edit/fqw_material_acrylic_line_edit_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Menu",
+      "id": "examples/material/acrylic_menu",
+      "target": "fqw_material_acrylic_menu_demo",
+      "relative_path": "examples/material/acrylic_menu",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_menu_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_menu_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_menu/fqw_material_acrylic_menu_demo.app/Contents/MacOS/fqw_material_acrylic_menu_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_menu\\fqw_material_acrylic_menu_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_menu/fqw_material_acrylic_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Tool Tip",
+      "id": "examples/material/acrylic_tool_tip",
+      "target": "fqw_material_acrylic_tool_tip_demo",
+      "relative_path": "examples/material/acrylic_tool_tip",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_tool_tip_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_tool_tip_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_tool_tip/fqw_material_acrylic_tool_tip_demo.app/Contents/MacOS/fqw_material_acrylic_tool_tip_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_tool_tip\\fqw_material_acrylic_tool_tip_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_tool_tip/fqw_material_acrylic_tool_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Material Acrylic Widget Menu",
+      "id": "examples/material/acrylic_widget_menu",
+      "target": "fqw_material_acrylic_widget_menu_demo",
+      "relative_path": "examples/material/acrylic_widget_menu",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_material_acrylic_widget_menu_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_material_acrylic_widget_menu_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_widget_menu/fqw_material_acrylic_widget_menu_demo.app/Contents/MacOS/fqw_material_acrylic_widget_menu_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_widget_menu\\fqw_material_acrylic_widget_menu_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_widget_menu/fqw_material_acrylic_widget_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Media Avatar Widget",
+      "id": "examples/media/avatar_widget",
+      "target": "fqw_media_avatar_widget_demo",
+      "relative_path": "examples/media/avatar_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_media_avatar_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_media_avatar_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/media/avatar_widget/fqw_media_avatar_widget_demo.app/Contents/MacOS/fqw_media_avatar_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\media\\avatar_widget\\fqw_media_avatar_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/media/avatar_widget/fqw_media_avatar_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Media Media Player",
+      "id": "examples/media/media_player",
+      "target": "fqw_media_media_player_demo",
+      "relative_path": "examples/media/media_player",
+      "optional": true,
+      "required_feature": "FQW_HAS_MULTIMEDIA",
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_media_media_player_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_media_media_player_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/media/media_player/fqw_media_media_player_demo.app/Contents/MacOS/fqw_media_media_player_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\media\\media_player\\fqw_media_media_player_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/media/media_player/fqw_media_media_player_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu Command Bar",
+      "id": "examples/menu/command_bar",
+      "target": "fqw_menu_command_bar_demo",
+      "relative_path": "examples/menu/command_bar",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_menu_command_bar_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_menu_command_bar_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/menu/command_bar/fqw_menu_command_bar_demo.app/Contents/MacOS/fqw_menu_command_bar_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\command_bar\\fqw_menu_command_bar_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/menu/command_bar/fqw_menu_command_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu Menu",
+      "id": "examples/menu/menu",
+      "target": "fqw_menu_menu_demo",
+      "relative_path": "examples/menu/menu",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_menu_menu_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_menu_menu_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/menu/menu/fqw_menu_menu_demo.app/Contents/MacOS/fqw_menu_menu_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\menu\\fqw_menu_menu_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/menu/menu/fqw_menu_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu System Tray Menu",
+      "id": "examples/menu/system_tray_menu",
+      "target": "fqw_menu_system_tray_menu_demo",
+      "relative_path": "examples/menu/system_tray_menu",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_menu_system_tray_menu_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_menu_system_tray_menu_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/menu/system_tray_menu/fqw_menu_system_tray_menu_demo.app/Contents/MacOS/fqw_menu_system_tray_menu_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\system_tray_menu\\fqw_menu_system_tray_menu_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/menu/system_tray_menu/fqw_menu_system_tray_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Menu Widget Menu",
+      "id": "examples/menu/widget_menu",
+      "target": "fqw_menu_widget_menu_demo",
+      "relative_path": "examples/menu/widget_menu",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_menu_widget_menu_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_menu_widget_menu_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/menu/widget_menu/fqw_menu_widget_menu_demo.app/Contents/MacOS/fqw_menu_widget_menu_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\widget_menu\\fqw_menu_widget_menu_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/menu/widget_menu/fqw_menu_widget_menu_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Breadcrumb Bar",
+      "id": "examples/navigation/breadcrumb_bar",
+      "target": "fqw_navigation_breadcrumb_bar_demo",
+      "relative_path": "examples/navigation/breadcrumb_bar",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_breadcrumb_bar_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_breadcrumb_bar_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/breadcrumb_bar/fqw_navigation_breadcrumb_bar_demo.app/Contents/MacOS/fqw_navigation_breadcrumb_bar_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\breadcrumb_bar\\fqw_navigation_breadcrumb_bar_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/breadcrumb_bar/fqw_navigation_breadcrumb_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation1",
+      "id": "examples/navigation/navigation1",
+      "target": "fqw_navigation_navigation1_demo",
+      "relative_path": "examples/navigation/navigation1",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_navigation1_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_navigation1_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation1/fqw_navigation_navigation1_demo.app/Contents/MacOS/fqw_navigation_navigation1_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation1\\fqw_navigation_navigation1_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation1/fqw_navigation_navigation1_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation2",
+      "id": "examples/navigation/navigation2",
+      "target": "fqw_navigation_navigation2_demo",
+      "relative_path": "examples/navigation/navigation2",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_navigation2_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_navigation2_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation2/fqw_navigation_navigation2_demo.app/Contents/MacOS/fqw_navigation_navigation2_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation2\\fqw_navigation_navigation2_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation2/fqw_navigation_navigation2_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation3",
+      "id": "examples/navigation/navigation3",
+      "target": "fqw_navigation_navigation3_demo",
+      "relative_path": "examples/navigation/navigation3",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_navigation3_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_navigation3_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation3/fqw_navigation_navigation3_demo.app/Contents/MacOS/fqw_navigation_navigation3_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation3\\fqw_navigation_navigation3_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation3/fqw_navigation_navigation3_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation Bar",
+      "id": "examples/navigation/navigation_bar",
+      "target": "fqw_navigation_navigation_bar_demo",
+      "relative_path": "examples/navigation/navigation_bar",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_navigation_bar_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_navigation_bar_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_bar/fqw_navigation_navigation_bar_demo.app/Contents/MacOS/fqw_navigation_navigation_bar_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_bar\\fqw_navigation_navigation_bar_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_bar/fqw_navigation_navigation_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation Header",
+      "id": "examples/navigation/navigation_header",
+      "target": "fqw_navigation_navigation_header_demo",
+      "relative_path": "examples/navigation/navigation_header",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_navigation_header_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_navigation_header_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_header/fqw_navigation_navigation_header_demo.app/Contents/MacOS/fqw_navigation_navigation_header_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_header\\fqw_navigation_navigation_header_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_header/fqw_navigation_navigation_header_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Navigation User Card",
+      "id": "examples/navigation/navigation_user_card",
+      "target": "fqw_navigation_navigation_user_card_demo",
+      "relative_path": "examples/navigation/navigation_user_card",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_navigation_user_card_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_navigation_user_card_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_user_card/fqw_navigation_navigation_user_card_demo.app/Contents/MacOS/fqw_navigation_navigation_user_card_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_user_card\\fqw_navigation_navigation_user_card_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_user_card/fqw_navigation_navigation_user_card_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Pivot",
+      "id": "examples/navigation/pivot",
+      "target": "fqw_navigation_pivot_demo",
+      "relative_path": "examples/navigation/pivot",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_pivot_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_pivot_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/pivot/fqw_navigation_pivot_demo.app/Contents/MacOS/fqw_navigation_pivot_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\pivot\\fqw_navigation_pivot_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/pivot/fqw_navigation_pivot_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Segmented Tool Widget",
+      "id": "examples/navigation/segmented_tool_widget",
+      "target": "fqw_navigation_segmented_tool_widget_demo",
+      "relative_path": "examples/navigation/segmented_tool_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_segmented_tool_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_segmented_tool_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_tool_widget/fqw_navigation_segmented_tool_widget_demo.app/Contents/MacOS/fqw_navigation_segmented_tool_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\segmented_tool_widget\\fqw_navigation_segmented_tool_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_tool_widget/fqw_navigation_segmented_tool_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Segmented Widget",
+      "id": "examples/navigation/segmented_widget",
+      "target": "fqw_navigation_segmented_widget_demo",
+      "relative_path": "examples/navigation/segmented_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_segmented_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_segmented_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_widget/fqw_navigation_segmented_widget_demo.app/Contents/MacOS/fqw_navigation_segmented_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\segmented_widget\\fqw_navigation_segmented_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_widget/fqw_navigation_segmented_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Stacked Widget",
+      "id": "examples/navigation/stacked_widget",
+      "target": "fqw_navigation_stacked_widget_demo",
+      "relative_path": "examples/navigation/stacked_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_stacked_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_stacked_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/stacked_widget/fqw_navigation_stacked_widget_demo.app/Contents/MacOS/fqw_navigation_stacked_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\stacked_widget\\fqw_navigation_stacked_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/stacked_widget/fqw_navigation_stacked_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Tab View",
+      "id": "examples/navigation/tab_view",
+      "target": "fqw_navigation_tab_view_demo",
+      "relative_path": "examples/navigation/tab_view",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_tab_view_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_tab_view_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/tab_view/fqw_navigation_tab_view_demo.app/Contents/MacOS/fqw_navigation_tab_view_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\tab_view\\fqw_navigation_tab_view_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/tab_view/fqw_navigation_tab_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: Navigation Tab Widget",
+      "id": "examples/navigation/tab_widget",
+      "target": "fqw_navigation_tab_widget_demo",
+      "relative_path": "examples/navigation/tab_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_navigation_tab_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_navigation_tab_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/navigation/tab_widget/fqw_navigation_tab_widget_demo.app/Contents/MacOS/fqw_navigation_tab_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\tab_widget\\fqw_navigation_tab_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/navigation/tab_widget/fqw_navigation_tab_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Scroll Pips Pager",
+      "id": "examples/scroll/pips_pager",
+      "target": "fqw_scroll_pips_pager_demo",
+      "relative_path": "examples/scroll/pips_pager",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_scroll_pips_pager_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_scroll_pips_pager_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/scroll/pips_pager/fqw_scroll_pips_pager_demo.app/Contents/MacOS/fqw_scroll_pips_pager_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\scroll\\pips_pager\\fqw_scroll_pips_pager_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/scroll/pips_pager/fqw_scroll_pips_pager_demo\""
+      }
+    },
+    {
+      "name": "Demo: Scroll Scroll Area",
+      "id": "examples/scroll/scroll_area",
+      "target": "fqw_scroll_scroll_area_demo",
+      "relative_path": "examples/scroll/scroll_area",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_scroll_scroll_area_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_scroll_scroll_area_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/scroll/scroll_area/fqw_scroll_scroll_area_demo.app/Contents/MacOS/fqw_scroll_scroll_area_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\scroll\\scroll_area\\fqw_scroll_scroll_area_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/scroll/scroll_area/fqw_scroll_scroll_area_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Info Badge",
+      "id": "examples/status_info/info_badge",
+      "target": "fqw_status_info_info_badge_demo",
+      "relative_path": "examples/status_info/info_badge",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_status_info_info_badge_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_status_info_info_badge_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/status_info/info_badge/fqw_status_info_info_badge_demo.app/Contents/MacOS/fqw_status_info_info_badge_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\info_badge\\fqw_status_info_info_badge_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/status_info/info_badge/fqw_status_info_info_badge_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Info Bar",
+      "id": "examples/status_info/info_bar",
+      "target": "fqw_status_info_info_bar_demo",
+      "relative_path": "examples/status_info/info_bar",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_status_info_info_bar_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_status_info_info_bar_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/status_info/info_bar/fqw_status_info_info_bar_demo.app/Contents/MacOS/fqw_status_info_info_bar_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\info_bar\\fqw_status_info_info_bar_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/status_info/info_bar/fqw_status_info_info_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Progress Bar",
+      "id": "examples/status_info/progress_bar",
+      "target": "fqw_status_info_progress_bar_demo",
+      "relative_path": "examples/status_info/progress_bar",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_status_info_progress_bar_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_status_info_progress_bar_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/status_info/progress_bar/fqw_status_info_progress_bar_demo.app/Contents/MacOS/fqw_status_info_progress_bar_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\progress_bar\\fqw_status_info_progress_bar_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/status_info/progress_bar/fqw_status_info_progress_bar_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Progress Ring",
+      "id": "examples/status_info/progress_ring",
+      "target": "fqw_status_info_progress_ring_demo",
+      "relative_path": "examples/status_info/progress_ring",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_status_info_progress_ring_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_status_info_progress_ring_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/status_info/progress_ring/fqw_status_info_progress_ring_demo.app/Contents/MacOS/fqw_status_info_progress_ring_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\progress_ring\\fqw_status_info_progress_ring_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/status_info/progress_ring/fqw_status_info_progress_ring_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info State Tool Tip",
+      "id": "examples/status_info/state_tool_tip",
+      "target": "fqw_status_info_state_tool_tip_demo",
+      "relative_path": "examples/status_info/state_tool_tip",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_status_info_state_tool_tip_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_status_info_state_tool_tip_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/status_info/state_tool_tip/fqw_status_info_state_tool_tip_demo.app/Contents/MacOS/fqw_status_info_state_tool_tip_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\state_tool_tip\\fqw_status_info_state_tool_tip_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/status_info/state_tool_tip/fqw_status_info_state_tool_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Status Info Tool Tip",
+      "id": "examples/status_info/tool_tip",
+      "target": "fqw_status_info_tool_tip_demo",
+      "relative_path": "examples/status_info/tool_tip",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_status_info_tool_tip_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_status_info_tool_tip_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/status_info/tool_tip/fqw_status_info_tool_tip_demo.app/Contents/MacOS/fqw_status_info_tool_tip_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\tool_tip\\fqw_status_info_tool_tip_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/status_info/tool_tip/fqw_status_info_tool_tip_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Font Icon",
+      "id": "examples/text/font_icon",
+      "target": "fqw_text_font_icon_demo",
+      "relative_path": "examples/text/font_icon",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_text_font_icon_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_text_font_icon_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/text/font_icon/fqw_text_font_icon_demo.app/Contents/MacOS/fqw_text_font_icon_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\text\\font_icon\\fqw_text_font_icon_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/text/font_icon/fqw_text_font_icon_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Image Label",
+      "id": "examples/text/image_label",
+      "target": "fqw_text_image_label_demo",
+      "relative_path": "examples/text/image_label",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_text_image_label_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_text_image_label_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/text/image_label/fqw_text_image_label_demo.app/Contents/MacOS/fqw_text_image_label_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\text\\image_label\\fqw_text_image_label_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/text/image_label/fqw_text_image_label_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Label",
+      "id": "examples/text/label",
+      "target": "fqw_text_label_demo",
+      "relative_path": "examples/text/label",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_text_label_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_text_label_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/text/label/fqw_text_label_demo.app/Contents/MacOS/fqw_text_label_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\text\\label\\fqw_text_label_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/text/label/fqw_text_label_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Line Edit",
+      "id": "examples/text/line_edit",
+      "target": "fqw_text_line_edit_demo",
+      "relative_path": "examples/text/line_edit",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_text_line_edit_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_text_line_edit_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/text/line_edit/fqw_text_line_edit_demo.app/Contents/MacOS/fqw_text_line_edit_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\text\\line_edit\\fqw_text_line_edit_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/text/line_edit/fqw_text_line_edit_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Spin Box",
+      "id": "examples/text/spin_box",
+      "target": "fqw_text_spin_box_demo",
+      "relative_path": "examples/text/spin_box",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_text_spin_box_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_text_spin_box_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/text/spin_box/fqw_text_spin_box_demo.app/Contents/MacOS/fqw_text_spin_box_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\text\\spin_box\\fqw_text_spin_box_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/text/spin_box/fqw_text_spin_box_demo\""
+      }
+    },
+    {
+      "name": "Demo: Text Text Browser",
+      "id": "examples/text/text_browser",
+      "target": "fqw_text_text_browser_demo",
+      "relative_path": "examples/text/text_browser",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_text_text_browser_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_text_text_browser_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/text/text_browser/fqw_text_text_browser_demo.app/Contents/MacOS/fqw_text_text_browser_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\text\\text_browser\\fqw_text_text_browser_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/text/text_browser/fqw_text_text_browser_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Card Widget",
+      "id": "examples/view/card_widget",
+      "target": "fqw_view_card_widget_demo",
+      "relative_path": "examples/view/card_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_view_card_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_view_card_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/view/card_widget/fqw_view_card_widget_demo.app/Contents/MacOS/fqw_view_card_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\view\\card_widget\\fqw_view_card_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/view/card_widget/fqw_view_card_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Flip View",
+      "id": "examples/view/flip_view",
+      "target": "fqw_view_flip_view_demo",
+      "relative_path": "examples/view/flip_view",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_view_flip_view_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_view_flip_view_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/view/flip_view/fqw_view_flip_view_demo.app/Contents/MacOS/fqw_view_flip_view_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\view\\flip_view\\fqw_view_flip_view_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/view/flip_view/fqw_view_flip_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View List View",
+      "id": "examples/view/list_view",
+      "target": "fqw_view_list_view_demo",
+      "relative_path": "examples/view/list_view",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_view_list_view_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_view_list_view_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/view/list_view/fqw_view_list_view_demo.app/Contents/MacOS/fqw_view_list_view_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\view\\list_view\\fqw_view_list_view_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/view/list_view/fqw_view_list_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Table View",
+      "id": "examples/view/table_view",
+      "target": "fqw_view_table_view_demo",
+      "relative_path": "examples/view/table_view",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_view_table_view_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_view_table_view_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/view/table_view/fqw_view_table_view_demo.app/Contents/MacOS/fqw_view_table_view_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\view\\table_view\\fqw_view_table_view_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/view/table_view/fqw_view_table_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Tree View",
+      "id": "examples/view/tree_view",
+      "target": "fqw_view_tree_view_demo",
+      "relative_path": "examples/view/tree_view",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_view_tree_view_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_view_tree_view_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/view/tree_view/fqw_view_tree_view_demo.app/Contents/MacOS/fqw_view_tree_view_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\view\\tree_view\\fqw_view_tree_view_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/view/tree_view/fqw_view_tree_view_demo\""
+      }
+    },
+    {
+      "name": "Demo: View Tree Widget",
+      "id": "examples/view/tree_widget",
+      "target": "fqw_view_tree_widget_demo",
+      "relative_path": "examples/view/tree_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_view_tree_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_view_tree_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/view/tree_widget/fqw_view_tree_widget_demo.app/Contents/MacOS/fqw_view_tree_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\view\\tree_widget\\fqw_view_tree_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/view/tree_widget/fqw_view_tree_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Clock",
+      "id": "examples/window/clock",
+      "target": "fqw_window_clock_demo",
+      "relative_path": "examples/window/clock",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_clock_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_clock_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/clock/fqw_window_clock_demo.app/Contents/MacOS/fqw_window_clock_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\clock\\fqw_window_clock_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/clock/fqw_window_clock_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Fluent Widget",
+      "id": "examples/window/fluent_widget",
+      "target": "fqw_window_fluent_widget_demo",
+      "relative_path": "examples/window/fluent_widget",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_fluent_widget_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_fluent_widget_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/fluent_widget/fqw_window_fluent_widget_demo.app/Contents/MacOS/fqw_window_fluent_widget_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\fluent_widget\\fqw_window_fluent_widget_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/fluent_widget/fqw_window_fluent_widget_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Fluent Window",
+      "id": "examples/window/fluent_window",
+      "target": "fqw_window_fluent_window_demo",
+      "relative_path": "examples/window/fluent_window",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_fluent_window_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_fluent_window_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/fluent_window/fqw_window_fluent_window_demo.app/Contents/MacOS/fqw_window_fluent_window_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\fluent_window\\fqw_window_fluent_window_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/fluent_window/fqw_window_fluent_window_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Login",
+      "id": "examples/window/login",
+      "target": "fqw_window_login_demo",
+      "relative_path": "examples/window/login",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_login_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_login_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/login/fqw_window_login_demo.app/Contents/MacOS/fqw_window_login_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\login\\fqw_window_login_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/login/fqw_window_login_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Ms Fluent Window",
+      "id": "examples/window/ms_fluent_window",
+      "target": "fqw_window_ms_fluent_window_demo",
+      "relative_path": "examples/window/ms_fluent_window",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_ms_fluent_window_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_ms_fluent_window_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/ms_fluent_window/fqw_window_ms_fluent_window_demo.app/Contents/MacOS/fqw_window_ms_fluent_window_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\ms_fluent_window\\fqw_window_ms_fluent_window_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/ms_fluent_window/fqw_window_ms_fluent_window_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Settings",
+      "id": "examples/window/settings",
+      "target": "fqw_window_settings_demo",
+      "relative_path": "examples/window/settings",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_settings_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_settings_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/settings/fqw_window_settings_demo.app/Contents/MacOS/fqw_window_settings_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\settings\\fqw_window_settings_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/settings/fqw_window_settings_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Splash Screen",
+      "id": "examples/window/splash_screen",
+      "target": "fqw_window_splash_screen_demo",
+      "relative_path": "examples/window/splash_screen",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_splash_screen_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_splash_screen_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/splash_screen/fqw_window_splash_screen_demo.app/Contents/MacOS/fqw_window_splash_screen_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\splash_screen\\fqw_window_splash_screen_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/splash_screen/fqw_window_splash_screen_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Split Fluent Window",
+      "id": "examples/window/split_fluent_window",
+      "target": "fqw_window_split_fluent_window_demo",
+      "relative_path": "examples/window/split_fluent_window",
+      "optional": false,
+      "required_feature": null,
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_split_fluent_window_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_split_fluent_window_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/split_fluent_window/fqw_window_split_fluent_window_demo.app/Contents/MacOS/fqw_window_split_fluent_window_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\split_fluent_window\\fqw_window_split_fluent_window_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/split_fluent_window/fqw_window_split_fluent_window_demo\""
+      }
+    },
+    {
+      "name": "Demo: Window Web Engine",
+      "id": "examples/window/web_engine",
+      "target": "fqw_window_web_engine_demo",
+      "relative_path": "examples/window/web_engine",
+      "optional": true,
+      "required_feature": "FQW_HAS_WEBENGINE_WIDGETS",
+      "enabled": true,
+      "build": {
+        "command": "cmake",
+        "args": [
+          "--build",
+          "--preset",
+          "debug",
+          "--target",
+          "fqw_window_web_engine_demo",
+          "--parallel"
+        ],
+        "windows": {
+          "command": "cmake",
+          "args": [
+            "--build",
+            "--preset",
+            "mingw-debug",
+            "--target",
+            "fqw_window_web_engine_demo",
+            "--parallel"
+          ]
+        }
+      },
+      "run": {
+        "mac": "\"${workspaceFolder}/build/debug/examples/window/web_engine/fqw_window_web_engine_demo.app/Contents/MacOS/fqw_window_web_engine_demo\"",
+        "windows": "\"${workspaceFolder}\\build\\examples\\window\\web_engine\\fqw_window_web_engine_demo.exe\"",
+        "linux": "\"${workspaceFolder}/build/debug/examples/window/web_engine/fqw_window_web_engine_demo\""
+      }
+    }
+  ]
+}

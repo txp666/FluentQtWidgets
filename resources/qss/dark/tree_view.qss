@@ -1,0 +1,132 @@
+QTableView[fqw="TableView"] QHeaderView,
+QTableView[fqw="TableWidget"] QHeaderView,
+QTableWidget[fqw="TableWidget"] QHeaderView,
+QTreeView[fqw="TreeView"] QHeaderView,
+QTreeView[fqw="TreeWidget"] QHeaderView,
+QTreeWidget[fqw="TreeWidget"] QHeaderView {
+    background: transparent;
+}
+
+QTableView[fqw="TableView"] QHeaderView::section,
+QTableView[fqw="TableWidget"] QHeaderView::section,
+QTableWidget[fqw="TableWidget"] QHeaderView::section,
+QTreeView[fqw="TreeView"] QHeaderView::section,
+QTreeView[fqw="TreeWidget"] QHeaderView::section,
+QTreeWidget[fqw="TreeWidget"] QHeaderView::section {
+    min-height: 33px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.082);
+    background: transparent;
+    color: rgb(203, 203, 203);
+    font: 13px --FontFamilies;
+}
+
+QTreeView[fqw="TreeView"],
+QTreeView[fqw="TreeWidget"],
+QTreeWidget[fqw="TreeWidget"] {
+    background: transparent;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    selection-background-color: transparent;
+    alternate-background-color: transparent;
+    padding-right: 5px;
+    color: #f3f3f3;
+}
+
+QTreeView[fqw="TreeView"][isBorderVisible="true"],
+QTreeView[fqw="TreeWidget"][isBorderVisible="true"],
+QTreeWidget[fqw="TreeWidget"][isBorderVisible="true"] {
+    border: 1px solid rgba(255, 255, 255, 0.082);
+}
+
+QTreeView[fqw="TreeView"]::item,
+QTreeView[fqw="TreeWidget"]::item,
+QTreeWidget[fqw="TreeWidget"]::item {
+    padding: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding-left: 20px;
+    border-radius: 5px;
+    background: transparent;
+}
+
+QTreeView[fqw="TreeView"]::branch:has-children:!has-siblings:closed,
+QTreeView[fqw="TreeView"]::branch:closed:has-children:has-siblings,
+QTreeView[fqw="TreeWidget"]::branch:has-children:!has-siblings:closed,
+QTreeView[fqw="TreeWidget"]::branch:closed:has-children:has-siblings,
+QTreeWidget[fqw="TreeWidget"]::branch:has-children:!has-siblings:closed,
+QTreeWidget[fqw="TreeWidget"]::branch:closed:has-children:has-siblings {
+    image: url(:/qfluentwidgets/images/tree_view/TreeViewClose_white.svg);
+}
+
+QTreeView[fqw="TreeView"]::branch:open:has-children:!has-siblings,
+QTreeView[fqw="TreeView"]::branch:open:has-children:has-siblings,
+QTreeView[fqw="TreeWidget"]::branch:open:has-children:!has-siblings,
+QTreeView[fqw="TreeWidget"]::branch:open:has-children:has-siblings,
+QTreeWidget[fqw="TreeWidget"]::branch:open:has-children:!has-siblings,
+QTreeWidget[fqw="TreeWidget"]::branch:open:has-children:has-siblings {
+    image: url(:/qfluentwidgets/images/tree_view/TreeViewOpen_white.svg);
+}
+
+QTreeView[fqw="TreeView"]:disabled,
+QTreeView[fqw="TreeWidget"]:disabled,
+QTreeWidget[fqw="TreeWidget"]:disabled {
+    color: rgba(255, 255, 255, 110);
+}
+
+QTreeView[fqw="TreeView"]::indicator,
+QTreeView[fqw="TreeWidget"]::indicator,
+QTreeWidget[fqw="TreeWidget"]::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+QHeaderView::section:horizontal {
+    border-left: none;
+}
+
+QTreeView[fqw="TreeView"][isBorderVisible="true"] QHeaderView::section:horizontal,
+QTreeView[fqw="TreeWidget"][isBorderVisible="true"] QHeaderView::section:horizontal,
+QTreeWidget[fqw="TreeWidget"][isBorderVisible="true"] QHeaderView::section:horizontal {
+    border-top: none;
+}
+
+QHeaderView::section:horizontal:last {
+    border-right: none;
+}
+
+QHeaderView::section:vertical {
+    border-top: none;
+}
+
+QHeaderView::section:checked {
+    background-color: transparent;
+}
+
+QHeaderView::down-arrow {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    margin-right: 6px;
+    image: url(:/qfluentwidgets/images/table_view/Down_white.svg);
+}
+
+QHeaderView::up-arrow {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    margin-right: 6px;
+    image: url(:/qfluentwidgets/images/table_view/Up_white.svg);
+}
+
+QTableCornerButton::section {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.082);
+}
+
+QTableCornerButton::section:pressed {
+    background-color: rgba(255, 255, 255, 16);
+}

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/media/media_player">
+        <file>resource/aiko-shiawase.mp3</file>
+    </qresource>
+</RCC>

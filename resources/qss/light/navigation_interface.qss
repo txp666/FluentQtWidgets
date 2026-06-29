@@ -1,0 +1,36 @@
+QFrame[fqw="NavigationInterface"] QListWidget#NavigationList {
+    border: none;
+    background: #f3f3f3;
+    padding: 8px;
+}
+
+QFrame[fqw="NavigationInterface"] QListWidget#NavigationList::item {
+    min-height: 36px;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+QFrame[fqw="NavigationInterface"] QListWidget#NavigationList::item:selected {
+    background: #e8e8e8;
+    border-left: 3px solid @accentColor;
+}
+
+QFrame[fqw="NavigationPanel"] {
+    background: transparent;
+}
+
+QWidget[fqw="NavigationBar"] {
+    background: transparent;
+}
+
+QWidget[fqw="NavigationScrollWidget"] {
+    background: transparent;
+}
+
+QFrame[fqw="NavigationSeparator"] {
+    border: none;
+    background: transparent;
+    margin: 4px 8px;
+    max-height: 1px;
+    border-top: 1px solid #e5e5e5;
+}

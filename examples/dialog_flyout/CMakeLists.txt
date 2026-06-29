@@ -1,0 +1,7 @@
+add_subdirectory(color_dialog)
+add_subdirectory(custom_message_box)
+add_subdirectory(dialog)
+add_subdirectory(folder_list_dialog)
+add_subdirectory(flyout)
+add_subdirectory(message_dialog)
+add_subdirectory(teaching_tip)

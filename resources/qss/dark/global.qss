@@ -1,0 +1,4 @@
+QWidget {
+    font-family: --FontFamilies;
+    color: #f3f3f3;
+}

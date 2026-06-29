@@ -1,0 +1,108 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.0"
+
+      - name: Configure
+        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Build (Windows / macOS)
+        if: runner.os != 'Linux'
+        run: cmake --build build --config Release --parallel 2 --target FluentQtWidgets FluentQtWidgetsGallery
+
+      - name: Test (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ctest --test-dir build --build-config Release --output-on-failure
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.0"
+
+      - name: Configure
+        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=OFF
+
+      - name: Build Gallery
+        run: cmake --build build --config Release --parallel 2 --target FluentQtWidgets FluentQtWidgetsGallery
+
+      - name: Package Gallery artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          release_name="FluentQtWidgetsGallery-${{ matrix.os }}-${GITHUB_REF_NAME}"
+          package_root="${RUNNER_TEMP}/${release_name}"
+          rm -rf "$package_root"
+          mkdir -p "$package_root"
+
+          app_target="$(find build/examples/gallery -maxdepth 6 -type d -name 'FluentQtWidgetsGallery.app' | head -n 1 || true)"
+          binary_target="$(find build/examples/gallery -maxdepth 6 -type f \( -name 'FluentQtWidgetsGallery.exe' -o -name 'FluentQtWidgetsGallery' \) | head -n 1 || true)"
+
+          if [ -n "$app_target" ] && [ -d "$app_target" ]; then
+            cp -R "$app_target" "$package_root/"
+          elif [ -n "$binary_target" ] && [ -f "$binary_target" ]; then
+            cp -R "$(dirname "$binary_target")/." "$package_root/"
+          else
+            echo "Unable to locate FluentQtWidgetsGallery output."
+            find build/examples/gallery -maxdepth 6 -print
+            exit 1
+          fi
+
+          find build -maxdepth 3 -type f \( \
+            -name 'FluentQtWidgets.dll' -o \
+            -name 'libFluentQtWidgets*.so*' -o \
+            -name 'libFluentQtWidgets*.dylib' \
+          \) -exec cp -P {} "$package_root/" \; || true
+
+          cp README.md CHANGELOG.md LICENSE THIRD_PARTY_NOTICES.md "$package_root/"
+
+          if [ "${{ runner.os }}" = "Windows" ] && command -v 7z >/dev/null 2>&1; then
+            7z a "artifacts/${release_name}.zip" "$package_root/."
+          else
+            tar -czf "artifacts/${release_name}.tar.gz" -C "${RUNNER_TEMP}" "${release_name}"
+          fi
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          overwrite_files: true

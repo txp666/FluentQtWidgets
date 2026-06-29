@@ -1,0 +1,132 @@
+QFrame[fqw="TimePicker"] {
+    font: 14px --FontFamilies;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.073);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.183);
+    border-radius: 5px;
+    min-height: 32px;
+    outline: none;
+}
+
+QFrame[fqw="TimePicker"]:hover {
+    background: rgba(249, 249, 249, 0.5);
+}
+
+QFrame[fqw="TimePicker"]:pressed {
+    background: rgba(249, 249, 249, 0.3);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.073);
+}
+
+QFrame[fqw="TimePicker"]:disabled {
+    color: rgba(0, 0, 0, 0.36);
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton {
+    font: 14px --FontFamilies;
+    color: rgba(0, 0, 0, 0.6);
+    background-color: transparent;
+    border: none;
+    outline: none;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton:disabled {
+    color: rgba(0, 0, 0, 0.36);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasBorder="true"]:enabled {
+    border-right: 1px solid rgba(0, 0, 0, 0.073);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasBorder="true"]:disabled {
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasBorder="false"] {
+    border-right: transparent;
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[enter="true"]:enabled {
+    color: rgb(0, 0, 0);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasValue="true"] {
+    color: rgb(0, 0, 0);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[pressed="true"] {
+    color: rgba(0, 0, 0, 0.63);
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[align="center"] {
+    text-align: center;
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[align="left"] {
+    text-align: left;
+}
+
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[align="right"] {
+    text-align: right;
+}
+
+QFrame[fqw="TimePickerPanel"] {
+    background-color: rgb(249, 249, 249);
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    border-radius: 7px;
+}
+
+QFrame[fqw="TimePickerPanel"] QFrame[pickerSeparator="true"] {
+    color: rgb(234, 234, 234);
+    background-color: rgb(234, 234, 234);
+    max-width: 1px;
+    max-height: 1px;
+}
+
+QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"] {
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    min-height: 30px;
+    padding: 0px;
+    margin: 0px 2px;
+}
+
+QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"]:hover {
+    background-color: rgba(0, 0, 0, 9);
+}
+
+QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"]:pressed {
+    background-color: rgba(0, 0, 0, 6);
+}
+
+QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"] {
+    color: black;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    font: 14px --FontFamilies;
+}
+
+QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item {
+    color: black;
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    margin: 0 4px;
+    padding-left: 11px;
+    padding-right: 11px;
+}
+
+QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:hover,
+QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:selected {
+    background-color: rgba(0, 0, 0, 9);
+}
+
+QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:selected:active {
+    background-color: rgba(0, 0, 0, 6);
+}

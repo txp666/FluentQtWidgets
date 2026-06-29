@@ -1,0 +1,24 @@
+QScrollArea[fqw="ScrollArea"],
+QScrollArea[fqw="SingleDirectionScrollArea"],
+QScrollArea[fqw="SmoothScrollArea"] {
+    border: none;
+    background: transparent;
+}
+
+QScrollArea[fqw="ScrollArea"][transparent="true"],
+QScrollArea[fqw="SingleDirectionScrollArea"][transparent="true"],
+QScrollArea[fqw="SmoothScrollArea"][transparent="true"] {
+    background: transparent;
+}
+
+QWidget[fqw="ScrollBar"],
+QWidget[fqw="SmoothScrollBar"] {
+    border: none;
+    background: transparent;
+}
+
+QWidget[fqw="ScrollBar"][expanded="true"],
+QWidget[fqw="SmoothScrollBar"][expanded="true"] {
+    background: rgba(44, 44, 44, 0.96);
+    border-radius: 6px;
+}

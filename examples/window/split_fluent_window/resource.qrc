@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/window/split_fluent_window">
+        <file>resource/shoko.png</file>
+    </qresource>
+</RCC>

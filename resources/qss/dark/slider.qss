@@ -1,0 +1,101 @@
+QSlider[fqw="Slider"]:horizontal,
+QSlider[fqw="ClickableSlider"]:horizontal {
+    min-height: 24px;
+}
+
+QSlider[fqw="Slider"]::groove:horizontal,
+QSlider[fqw="ClickableSlider"]::groove:horizontal {
+    height: 4px;
+    background-color: rgb(158, 159, 159);
+    border-radius: 2px;
+}
+
+QSlider[fqw="Slider"]::sub-page:horizontal,
+QSlider[fqw="ClickableSlider"]::sub-page:horizontal {
+    background: @accentColor;
+    height: 4px;
+    border-radius: 2px;
+}
+
+QSlider[fqw="Slider"]::handle:horizontal,
+QSlider[fqw="ClickableSlider"]::handle:horizontal {
+    border: 1px solid rgb(58, 58, 58);
+    width: 21px;
+    min-height: 22px;
+    margin: -9px 0;
+    border-radius: 11px;
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 @accentColor,
+        stop:0.5 @accentColor,
+        stop:0.6 rgb(69, 69, 69),
+        stop:1 rgb(69, 69, 69));
+}
+
+QSlider[fqw="Slider"]::handle:horizontal:hover,
+QSlider[fqw="ClickableSlider"]::handle:horizontal:hover {
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 @accentColor,
+        stop:0.6 @accentColor,
+        stop:0.7 rgb(69, 69, 69),
+        stop:1 rgb(69, 69, 69));
+}
+
+QSlider[fqw="Slider"]::handle:horizontal:pressed,
+QSlider[fqw="ClickableSlider"]::handle:horizontal:pressed {
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 @accentColor,
+        stop:0.4 @accentColor,
+        stop:0.5 rgb(69, 69, 69),
+        stop:1 rgb(69, 69, 69));
+}
+
+QSlider[fqw="Slider"]:vertical,
+QSlider[fqw="ClickableSlider"]:vertical {
+    min-width: 24px;
+}
+
+QSlider[fqw="Slider"]::groove:vertical,
+QSlider[fqw="ClickableSlider"]::groove:vertical {
+    width: 4px;
+    background-color: rgb(158, 159, 159);
+    border-radius: 2px;
+}
+
+QSlider[fqw="Slider"]::add-page:vertical,
+QSlider[fqw="ClickableSlider"]::add-page:vertical {
+    background: @accentColor;
+    width: 4px;
+    border-radius: 2px;
+}
+
+QSlider[fqw="Slider"]::handle:vertical,
+QSlider[fqw="ClickableSlider"]::handle:vertical {
+    border: 1px solid rgb(58, 58, 58);
+    height: 20px;
+    min-width: 22px;
+    margin: 0 -9px;
+    border-radius: 11px;
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 @accentColor,
+        stop:0.5 @accentColor,
+        stop:0.6 rgb(69, 69, 69),
+        stop:1 rgb(69, 69, 69));
+}
+
+QSlider[fqw="Slider"]::handle:vertical:hover,
+QSlider[fqw="ClickableSlider"]::handle:vertical:hover {
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 @accentColor,
+        stop:0.6 @accentColor,
+        stop:0.7 rgb(69, 69, 69),
+        stop:1 rgb(69, 69, 69));
+}
+
+QSlider[fqw="Slider"]::handle:vertical:pressed,
+QSlider[fqw="ClickableSlider"]::handle:vertical:pressed {
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 @accentColor,
+        stop:0.4 @accentColor,
+        stop:0.5 rgb(69, 69, 69),
+        stop:1 rgb(69, 69, 69));
+}
