@@ -1,0 +1,52 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "local-mingw-debug",
+      "displayName": "Local MinGW Debug",
+      "inherits": "mingw-debug",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "<path-to-qt-mingw-kit>",
+        "CMAKE_CXX_COMPILER": "<path-to-mingw-g++>"
+      },
+      "environment": {
+        "PATH": "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$penv{PATH}"
+      }
+    },
+    {
+      "name": "local-msvc-debug",
+      "displayName": "Local MSVC Debug",
+      "inherits": "ninja-debug",
+      "binaryDir": "${sourceDir}/out/msvc",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "<path-to-qt-msvc-kit>"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "local-mingw-debug",
+      "configurePreset": "local-mingw-debug"
+    },
+    {
+      "name": "local-msvc-debug",
+      "configurePreset": "local-msvc-debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "local-mingw-debug",
+      "configurePreset": "local-mingw-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "local-msvc-debug",
+      "configurePreset": "local-msvc-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

@@ -239,7 +239,7 @@ class ShellTest : public QObject
         QCOMPARE(widget.darkBackgroundColor(), QColor(Qt::blue));
 
         widget.setMicaEffectEnabled(true);
-        QVERIFY(!widget.isMicaEffectEnabled());
+        QCOMPARE(widget.isMicaEffectEnabled(), FluentQt::isMicaEffectAvailable());
         widget.setSystemTitleBarButtonVisible(true);
         QVERIFY(widget.isSystemTitleBarButtonVisible());
         QVERIFY(!widget.titleBar()->isHidden());
@@ -258,7 +258,7 @@ class ShellTest : public QObject
         FluentQt::FluentWindow window;
         QCOMPARE(window.isMicaEffectEnabled(), false);
         window.setMicaEffectEnabled(true);
-        QVERIFY(!window.isMicaEffectEnabled());
+        QCOMPARE(window.isMicaEffectEnabled(), FluentQt::isMicaEffectAvailable());
         QVERIFY(window.metaObject()->indexOfProperty("micaEffectEnabled") >= 0);
     }
 

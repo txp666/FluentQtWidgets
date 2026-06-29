@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3
+
+### Windows build presets and documentation
+
+- Added open source friendly Windows Qt kit guidance without committing machine-specific Qt paths.
+- Moved the Windows MinGW preset output to `build/mingw` and kept macOS/Linux on `build/debug`.
+- Fixed Windows post-build deployment command quoting for CMake paths containing spaces.
+- Linked `dwmapi` on Windows and adjusted the Mica test expectation to match platform availability.
+
 ## 0.1.2
 
 ### Release stabilization

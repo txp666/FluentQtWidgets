@@ -8,18 +8,6 @@ FluentQtWidgets is a C++/Qt Widgets library that implements a Fluent Design comp
 
 This repository is a **Codex C++ migration of the Python project** [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). The Python project is the behavioral and visual reference for this port: widget state, spacing, QSS constants, demo content, resource paths, Gallery structure, and translations are aligned to the upstream Python implementation unless Qt/C++ platform behavior makes an exact match impossible.
 
-## Release
-
-- **Current release**: `0.1.2`
-- **Release page**: <https://github.com/txp666/FluentQtWidgets/releases>
-- **Repository**: <https://github.com/txp666/FluentQtWidgets>
-- **Default update channel in Gallery**: `https://github.com/txp666/FluentQtWidgets/releases/latest`
-
-Gallery includes release-based update checks:
-
-- Manual check: Settings -> Software update -> Check update.
-- Startup check: Settings -> Software update -> Check for updates when the application starts.
-- Release assets: CI uploads Gallery archives for Linux, Windows, and macOS tags. These archives are the OTA payloads used by Gallery update detection.
 
 ## Requirements
 
@@ -38,25 +26,85 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
+### Windows Qt kit selection
+
+CMake must use a compiler/generator that matches the installed Qt kit. A MinGW Qt kit must be built with
+MinGW, and an MSVC Qt kit must be built with MSVC. If CMake reports that it cannot find `Qt6Config.cmake`,
+pass the Qt kit prefix through `CMAKE_PREFIX_PATH` or set `Qt6_DIR` to the directory that contains
+`Qt6Config.cmake`.
+
+The shared `CMakePresets.json` intentionally does not hard-code local Qt, compiler, or debugger paths.
+Keep machine-specific paths in your environment, your IDE kit selection, or an ignored
+`CMakeUserPresets.json`. A template is provided in `CMakeUserPresets.json.example`.
+
+For a local Qt MinGW kit, make the Qt kit, MinGW compiler, and Ninja visible, then use the checked-in
+`mingw-debug` preset:
+
+```powershell
+$env:CMAKE_PREFIX_PATH = "<path-to-qt-mingw-kit>"
+$env:Path = "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$env:Path"
+
+cmake --preset mingw-debug
+cmake --build --preset mingw-debug --parallel
+ctest --preset mingw-debug
+```
+
+For reference, one verified Windows MinGW layout from the Qt online installer is:
+
+```text
+Qt kit prefix: C:\Qt\6.11.1\mingw_64
+Qt bin:        C:\Qt\6.11.1\mingw_64\bin
+MinGW bin:     C:\Qt\Tools\mingw1310_64\bin
+Ninja dir:     C:\Qt\Tools\Ninja
+C++ compiler:  C:\Qt\Tools\mingw1310_64\bin\g++.exe
+```
+
+With that layout, the local PowerShell setup is:
+
+```powershell
+$env:CMAKE_PREFIX_PATH = "C:\Qt\6.11.1\mingw_64"
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;C:\Qt\Tools\Ninja;C:\Qt\6.11.1\mingw_64\bin;$env:Path"
+```
+
+VS Code tasks inherit the environment that started VS Code. For one-click builds, either launch VS Code
+from a terminal with the variables above set, set equivalent user environment variables, or copy
+`CMakeUserPresets.json.example` to the ignored `CMakeUserPresets.json` and fill in local paths. On Windows,
+close a running Gallery window before rebuilding because the linker cannot overwrite a running `.exe`.
+
+If using Visual Studio/MSVC, install the matching Qt MSVC kit and point `CMAKE_PREFIX_PATH` or `Qt6_DIR`
+to that kit instead. Do not commit your local `CMakeUserPresets.json`.
+
 ### Run Gallery
 
+Use the preset that matches your platform. Presets use separate build trees because CMake caches the
+generator, compiler, and Qt kit in each build directory.
+
 ```bash
-cmake --build build --target FluentQtWidgetsGallery
-./build/examples/gallery/FluentQtWidgetsGallery
+# macOS/Linux
+cmake --build --preset debug --target FluentQtWidgetsGallery --parallel
+./build/debug/examples/gallery/FluentQtWidgetsGallery
 # macOS:
-# ./build/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery
+# open ./build/debug/examples/gallery/FluentQtWidgetsGallery.app
+```
+
+```powershell
+# Windows MinGW
+cmake --build --preset mingw-debug --target FluentQtWidgetsGallery --parallel
+.\build\mingw\examples\gallery\FluentQtWidgetsGallery.exe
 ```
 
 ## Standalone Examples
 
+Use `--preset debug` on macOS/Linux, or `--preset mingw-debug` on Windows MinGW:
+
 ```bash
-cmake --build build --target fqw_basic_input_button_demo
-cmake --build build --target fqw_basic_input_check_box_demo
-cmake --build build --target fqw_basic_input_combo_box_demo
-cmake --build build --target fqw_basic_input_model_combo_box_demo
-cmake --build build --target fqw_basic_input_radio_button_demo
-cmake --build build --target fqw_basic_input_slider_demo
-cmake --build build --target fqw_basic_input_switch_button_demo
+cmake --build --preset debug --target fqw_basic_input_button_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_check_box_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_combo_box_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_model_combo_box_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_radio_button_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_slider_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_switch_button_demo --parallel
 ```
 
 (See `CMakeLists.txt` under each `examples/` subfolder for the full list.)

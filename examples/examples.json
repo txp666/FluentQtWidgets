@@ -32,7 +32,7 @@
     },
     "run": {
       "mac": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery\"",
-      "windows": "\"${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe\"",
+      "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe\"",
       "linux": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery\""
     }
   },
@@ -69,7 +69,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/button/fqw_basic_input_button_demo.app/Contents/MacOS/fqw_basic_input_button_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\button\\fqw_basic_input_button_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\button\\fqw_basic_input_button_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/button/fqw_basic_input_button_demo\""
       }
     },
@@ -105,7 +105,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/check_box/fqw_basic_input_check_box_demo.app/Contents/MacOS/fqw_basic_input_check_box_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\check_box\\fqw_basic_input_check_box_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\check_box\\fqw_basic_input_check_box_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/check_box/fqw_basic_input_check_box_demo\""
       }
     },
@@ -141,7 +141,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/combo_box/fqw_basic_input_combo_box_demo.app/Contents/MacOS/fqw_basic_input_combo_box_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\combo_box\\fqw_basic_input_combo_box_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\combo_box\\fqw_basic_input_combo_box_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/combo_box/fqw_basic_input_combo_box_demo\""
       }
     },
@@ -177,7 +177,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/model_combo_box/fqw_basic_input_model_combo_box_demo.app/Contents/MacOS/fqw_basic_input_model_combo_box_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\model_combo_box\\fqw_basic_input_model_combo_box_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\model_combo_box\\fqw_basic_input_model_combo_box_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/model_combo_box/fqw_basic_input_model_combo_box_demo\""
       }
     },
@@ -213,7 +213,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/radio_button/fqw_basic_input_radio_button_demo.app/Contents/MacOS/fqw_basic_input_radio_button_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\radio_button\\fqw_basic_input_radio_button_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\radio_button\\fqw_basic_input_radio_button_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/radio_button/fqw_basic_input_radio_button_demo\""
       }
     },
@@ -249,7 +249,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/slider/fqw_basic_input_slider_demo.app/Contents/MacOS/fqw_basic_input_slider_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\slider\\fqw_basic_input_slider_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\slider\\fqw_basic_input_slider_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/slider/fqw_basic_input_slider_demo\""
       }
     },
@@ -285,7 +285,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/basic_input/switch_button/fqw_basic_input_switch_button_demo.app/Contents/MacOS/fqw_basic_input_switch_button_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\basic_input\\switch_button\\fqw_basic_input_switch_button_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\basic_input\\switch_button\\fqw_basic_input_switch_button_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/basic_input/switch_button/fqw_basic_input_switch_button_demo\""
       }
     },
@@ -321,7 +321,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/date_time/calendar_picker/fqw_date_time_calendar_picker_demo.app/Contents/MacOS/fqw_date_time_calendar_picker_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\date_time\\calendar_picker\\fqw_date_time_calendar_picker_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\date_time\\calendar_picker\\fqw_date_time_calendar_picker_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/date_time/calendar_picker/fqw_date_time_calendar_picker_demo\""
       }
     },
@@ -357,7 +357,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/date_time/fast_calendar_picker/fqw_date_time_fast_calendar_picker_demo.app/Contents/MacOS/fqw_date_time_fast_calendar_picker_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\date_time\\fast_calendar_picker\\fqw_date_time_fast_calendar_picker_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\date_time\\fast_calendar_picker\\fqw_date_time_fast_calendar_picker_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/date_time/fast_calendar_picker/fqw_date_time_fast_calendar_picker_demo\""
       }
     },
@@ -393,7 +393,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/date_time/time_picker/fqw_date_time_time_picker_demo.app/Contents/MacOS/fqw_date_time_time_picker_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\date_time\\time_picker\\fqw_date_time_time_picker_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\date_time\\time_picker\\fqw_date_time_time_picker_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/date_time/time_picker/fqw_date_time_time_picker_demo\""
       }
     },
@@ -429,7 +429,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/color_dialog/fqw_dialog_flyout_color_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_color_dialog_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\color_dialog\\fqw_dialog_flyout_color_dialog_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\color_dialog\\fqw_dialog_flyout_color_dialog_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/color_dialog/fqw_dialog_flyout_color_dialog_demo\""
       }
     },
@@ -465,7 +465,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/custom_message_box/fqw_dialog_flyout_custom_message_box_demo.app/Contents/MacOS/fqw_dialog_flyout_custom_message_box_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\custom_message_box\\fqw_dialog_flyout_custom_message_box_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\custom_message_box\\fqw_dialog_flyout_custom_message_box_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/custom_message_box/fqw_dialog_flyout_custom_message_box_demo\""
       }
     },
@@ -501,7 +501,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/dialog/fqw_dialog_flyout_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_dialog_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\dialog\\fqw_dialog_flyout_dialog_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\dialog\\fqw_dialog_flyout_dialog_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/dialog/fqw_dialog_flyout_dialog_demo\""
       }
     },
@@ -537,7 +537,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/flyout/fqw_dialog_flyout_flyout_demo.app/Contents/MacOS/fqw_dialog_flyout_flyout_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\flyout\\fqw_dialog_flyout_flyout_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\flyout\\fqw_dialog_flyout_flyout_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/flyout/fqw_dialog_flyout_flyout_demo\""
       }
     },
@@ -573,7 +573,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/folder_list_dialog/fqw_dialog_flyout_folder_list_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_folder_list_dialog_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\folder_list_dialog\\fqw_dialog_flyout_folder_list_dialog_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\folder_list_dialog\\fqw_dialog_flyout_folder_list_dialog_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/folder_list_dialog/fqw_dialog_flyout_folder_list_dialog_demo\""
       }
     },
@@ -609,7 +609,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/message_dialog/fqw_dialog_flyout_message_dialog_demo.app/Contents/MacOS/fqw_dialog_flyout_message_dialog_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\message_dialog\\fqw_dialog_flyout_message_dialog_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\message_dialog\\fqw_dialog_flyout_message_dialog_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/message_dialog/fqw_dialog_flyout_message_dialog_demo\""
       }
     },
@@ -645,7 +645,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/teaching_tip/fqw_dialog_flyout_teaching_tip_demo.app/Contents/MacOS/fqw_dialog_flyout_teaching_tip_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\dialog_flyout\\teaching_tip\\fqw_dialog_flyout_teaching_tip_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\dialog_flyout\\teaching_tip\\fqw_dialog_flyout_teaching_tip_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/dialog_flyout/teaching_tip/fqw_dialog_flyout_teaching_tip_demo\""
       }
     },
@@ -681,7 +681,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/layout/adaptive_flow_layout/fqw_layout_adaptive_flow_layout_demo.app/Contents/MacOS/fqw_layout_adaptive_flow_layout_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\layout\\adaptive_flow_layout\\fqw_layout_adaptive_flow_layout_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\layout\\adaptive_flow_layout\\fqw_layout_adaptive_flow_layout_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/layout/adaptive_flow_layout/fqw_layout_adaptive_flow_layout_demo\""
       }
     },
@@ -717,7 +717,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/layout/flow_layout/fqw_layout_flow_layout_demo.app/Contents/MacOS/fqw_layout_flow_layout_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\layout\\flow_layout\\fqw_layout_flow_layout_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\layout\\flow_layout\\fqw_layout_flow_layout_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/layout/flow_layout/fqw_layout_flow_layout_demo\""
       }
     },
@@ -753,7 +753,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_brush/fqw_material_acrylic_brush_demo.app/Contents/MacOS/fqw_material_acrylic_brush_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_brush\\fqw_material_acrylic_brush_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_brush\\fqw_material_acrylic_brush_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_brush/fqw_material_acrylic_brush_demo\""
       }
     },
@@ -789,7 +789,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_combo_box/fqw_material_acrylic_combo_box_demo.app/Contents/MacOS/fqw_material_acrylic_combo_box_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_combo_box\\fqw_material_acrylic_combo_box_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_combo_box\\fqw_material_acrylic_combo_box_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_combo_box/fqw_material_acrylic_combo_box_demo\""
       }
     },
@@ -825,7 +825,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_flyout/fqw_material_acrylic_flyout_demo.app/Contents/MacOS/fqw_material_acrylic_flyout_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_flyout\\fqw_material_acrylic_flyout_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_flyout\\fqw_material_acrylic_flyout_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_flyout/fqw_material_acrylic_flyout_demo\""
       }
     },
@@ -861,7 +861,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_label/fqw_material_acrylic_label_demo.app/Contents/MacOS/fqw_material_acrylic_label_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_label\\fqw_material_acrylic_label_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_label\\fqw_material_acrylic_label_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_label/fqw_material_acrylic_label_demo\""
       }
     },
@@ -897,7 +897,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_line_edit/fqw_material_acrylic_line_edit_demo.app/Contents/MacOS/fqw_material_acrylic_line_edit_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_line_edit\\fqw_material_acrylic_line_edit_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_line_edit\\fqw_material_acrylic_line_edit_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_line_edit/fqw_material_acrylic_line_edit_demo\""
       }
     },
@@ -933,7 +933,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_menu/fqw_material_acrylic_menu_demo.app/Contents/MacOS/fqw_material_acrylic_menu_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_menu\\fqw_material_acrylic_menu_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_menu\\fqw_material_acrylic_menu_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_menu/fqw_material_acrylic_menu_demo\""
       }
     },
@@ -969,7 +969,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_tool_tip/fqw_material_acrylic_tool_tip_demo.app/Contents/MacOS/fqw_material_acrylic_tool_tip_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_tool_tip\\fqw_material_acrylic_tool_tip_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_tool_tip\\fqw_material_acrylic_tool_tip_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_tool_tip/fqw_material_acrylic_tool_tip_demo\""
       }
     },
@@ -1005,7 +1005,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/material/acrylic_widget_menu/fqw_material_acrylic_widget_menu_demo.app/Contents/MacOS/fqw_material_acrylic_widget_menu_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\material\\acrylic_widget_menu\\fqw_material_acrylic_widget_menu_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\material\\acrylic_widget_menu\\fqw_material_acrylic_widget_menu_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/material/acrylic_widget_menu/fqw_material_acrylic_widget_menu_demo\""
       }
     },
@@ -1041,7 +1041,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/media/avatar_widget/fqw_media_avatar_widget_demo.app/Contents/MacOS/fqw_media_avatar_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\media\\avatar_widget\\fqw_media_avatar_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\media\\avatar_widget\\fqw_media_avatar_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/media/avatar_widget/fqw_media_avatar_widget_demo\""
       }
     },
@@ -1077,7 +1077,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/media/media_player/fqw_media_media_player_demo.app/Contents/MacOS/fqw_media_media_player_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\media\\media_player\\fqw_media_media_player_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\media\\media_player\\fqw_media_media_player_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/media/media_player/fqw_media_media_player_demo\""
       }
     },
@@ -1113,7 +1113,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/menu/command_bar/fqw_menu_command_bar_demo.app/Contents/MacOS/fqw_menu_command_bar_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\command_bar\\fqw_menu_command_bar_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\menu\\command_bar\\fqw_menu_command_bar_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/menu/command_bar/fqw_menu_command_bar_demo\""
       }
     },
@@ -1149,7 +1149,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/menu/menu/fqw_menu_menu_demo.app/Contents/MacOS/fqw_menu_menu_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\menu\\fqw_menu_menu_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\menu\\menu\\fqw_menu_menu_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/menu/menu/fqw_menu_menu_demo\""
       }
     },
@@ -1185,7 +1185,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/menu/system_tray_menu/fqw_menu_system_tray_menu_demo.app/Contents/MacOS/fqw_menu_system_tray_menu_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\system_tray_menu\\fqw_menu_system_tray_menu_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\menu\\system_tray_menu\\fqw_menu_system_tray_menu_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/menu/system_tray_menu/fqw_menu_system_tray_menu_demo\""
       }
     },
@@ -1221,7 +1221,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/menu/widget_menu/fqw_menu_widget_menu_demo.app/Contents/MacOS/fqw_menu_widget_menu_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\menu\\widget_menu\\fqw_menu_widget_menu_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\menu\\widget_menu\\fqw_menu_widget_menu_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/menu/widget_menu/fqw_menu_widget_menu_demo\""
       }
     },
@@ -1257,7 +1257,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/breadcrumb_bar/fqw_navigation_breadcrumb_bar_demo.app/Contents/MacOS/fqw_navigation_breadcrumb_bar_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\breadcrumb_bar\\fqw_navigation_breadcrumb_bar_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\breadcrumb_bar\\fqw_navigation_breadcrumb_bar_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/breadcrumb_bar/fqw_navigation_breadcrumb_bar_demo\""
       }
     },
@@ -1293,7 +1293,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation1/fqw_navigation_navigation1_demo.app/Contents/MacOS/fqw_navigation_navigation1_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation1\\fqw_navigation_navigation1_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\navigation1\\fqw_navigation_navigation1_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation1/fqw_navigation_navigation1_demo\""
       }
     },
@@ -1329,7 +1329,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation2/fqw_navigation_navigation2_demo.app/Contents/MacOS/fqw_navigation_navigation2_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation2\\fqw_navigation_navigation2_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\navigation2\\fqw_navigation_navigation2_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation2/fqw_navigation_navigation2_demo\""
       }
     },
@@ -1365,7 +1365,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation3/fqw_navigation_navigation3_demo.app/Contents/MacOS/fqw_navigation_navigation3_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation3\\fqw_navigation_navigation3_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\navigation3\\fqw_navigation_navigation3_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation3/fqw_navigation_navigation3_demo\""
       }
     },
@@ -1401,7 +1401,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_bar/fqw_navigation_navigation_bar_demo.app/Contents/MacOS/fqw_navigation_navigation_bar_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_bar\\fqw_navigation_navigation_bar_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\navigation_bar\\fqw_navigation_navigation_bar_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_bar/fqw_navigation_navigation_bar_demo\""
       }
     },
@@ -1437,7 +1437,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_header/fqw_navigation_navigation_header_demo.app/Contents/MacOS/fqw_navigation_navigation_header_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_header\\fqw_navigation_navigation_header_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\navigation_header\\fqw_navigation_navigation_header_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_header/fqw_navigation_navigation_header_demo\""
       }
     },
@@ -1473,7 +1473,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_user_card/fqw_navigation_navigation_user_card_demo.app/Contents/MacOS/fqw_navigation_navigation_user_card_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\navigation_user_card\\fqw_navigation_navigation_user_card_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\navigation_user_card\\fqw_navigation_navigation_user_card_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/navigation_user_card/fqw_navigation_navigation_user_card_demo\""
       }
     },
@@ -1509,7 +1509,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/pivot/fqw_navigation_pivot_demo.app/Contents/MacOS/fqw_navigation_pivot_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\pivot\\fqw_navigation_pivot_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\pivot\\fqw_navigation_pivot_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/pivot/fqw_navigation_pivot_demo\""
       }
     },
@@ -1545,7 +1545,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_tool_widget/fqw_navigation_segmented_tool_widget_demo.app/Contents/MacOS/fqw_navigation_segmented_tool_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\segmented_tool_widget\\fqw_navigation_segmented_tool_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\segmented_tool_widget\\fqw_navigation_segmented_tool_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_tool_widget/fqw_navigation_segmented_tool_widget_demo\""
       }
     },
@@ -1581,7 +1581,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_widget/fqw_navigation_segmented_widget_demo.app/Contents/MacOS/fqw_navigation_segmented_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\segmented_widget\\fqw_navigation_segmented_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\segmented_widget\\fqw_navigation_segmented_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/segmented_widget/fqw_navigation_segmented_widget_demo\""
       }
     },
@@ -1617,7 +1617,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/stacked_widget/fqw_navigation_stacked_widget_demo.app/Contents/MacOS/fqw_navigation_stacked_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\stacked_widget\\fqw_navigation_stacked_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\stacked_widget\\fqw_navigation_stacked_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/stacked_widget/fqw_navigation_stacked_widget_demo\""
       }
     },
@@ -1653,7 +1653,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/tab_view/fqw_navigation_tab_view_demo.app/Contents/MacOS/fqw_navigation_tab_view_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\tab_view\\fqw_navigation_tab_view_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\tab_view\\fqw_navigation_tab_view_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/tab_view/fqw_navigation_tab_view_demo\""
       }
     },
@@ -1689,7 +1689,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/navigation/tab_widget/fqw_navigation_tab_widget_demo.app/Contents/MacOS/fqw_navigation_tab_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\navigation\\tab_widget\\fqw_navigation_tab_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\navigation\\tab_widget\\fqw_navigation_tab_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/navigation/tab_widget/fqw_navigation_tab_widget_demo\""
       }
     },
@@ -1725,7 +1725,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/scroll/pips_pager/fqw_scroll_pips_pager_demo.app/Contents/MacOS/fqw_scroll_pips_pager_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\scroll\\pips_pager\\fqw_scroll_pips_pager_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\scroll\\pips_pager\\fqw_scroll_pips_pager_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/scroll/pips_pager/fqw_scroll_pips_pager_demo\""
       }
     },
@@ -1761,7 +1761,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/scroll/scroll_area/fqw_scroll_scroll_area_demo.app/Contents/MacOS/fqw_scroll_scroll_area_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\scroll\\scroll_area\\fqw_scroll_scroll_area_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\scroll\\scroll_area\\fqw_scroll_scroll_area_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/scroll/scroll_area/fqw_scroll_scroll_area_demo\""
       }
     },
@@ -1797,7 +1797,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/status_info/info_badge/fqw_status_info_info_badge_demo.app/Contents/MacOS/fqw_status_info_info_badge_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\info_badge\\fqw_status_info_info_badge_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\status_info\\info_badge\\fqw_status_info_info_badge_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/status_info/info_badge/fqw_status_info_info_badge_demo\""
       }
     },
@@ -1833,7 +1833,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/status_info/info_bar/fqw_status_info_info_bar_demo.app/Contents/MacOS/fqw_status_info_info_bar_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\info_bar\\fqw_status_info_info_bar_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\status_info\\info_bar\\fqw_status_info_info_bar_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/status_info/info_bar/fqw_status_info_info_bar_demo\""
       }
     },
@@ -1869,7 +1869,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/status_info/progress_bar/fqw_status_info_progress_bar_demo.app/Contents/MacOS/fqw_status_info_progress_bar_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\progress_bar\\fqw_status_info_progress_bar_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\status_info\\progress_bar\\fqw_status_info_progress_bar_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/status_info/progress_bar/fqw_status_info_progress_bar_demo\""
       }
     },
@@ -1905,7 +1905,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/status_info/progress_ring/fqw_status_info_progress_ring_demo.app/Contents/MacOS/fqw_status_info_progress_ring_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\progress_ring\\fqw_status_info_progress_ring_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\status_info\\progress_ring\\fqw_status_info_progress_ring_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/status_info/progress_ring/fqw_status_info_progress_ring_demo\""
       }
     },
@@ -1941,7 +1941,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/status_info/state_tool_tip/fqw_status_info_state_tool_tip_demo.app/Contents/MacOS/fqw_status_info_state_tool_tip_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\state_tool_tip\\fqw_status_info_state_tool_tip_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\status_info\\state_tool_tip\\fqw_status_info_state_tool_tip_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/status_info/state_tool_tip/fqw_status_info_state_tool_tip_demo\""
       }
     },
@@ -1977,7 +1977,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/status_info/tool_tip/fqw_status_info_tool_tip_demo.app/Contents/MacOS/fqw_status_info_tool_tip_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\status_info\\tool_tip\\fqw_status_info_tool_tip_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\status_info\\tool_tip\\fqw_status_info_tool_tip_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/status_info/tool_tip/fqw_status_info_tool_tip_demo\""
       }
     },
@@ -2013,7 +2013,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/text/font_icon/fqw_text_font_icon_demo.app/Contents/MacOS/fqw_text_font_icon_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\text\\font_icon\\fqw_text_font_icon_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\text\\font_icon\\fqw_text_font_icon_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/text/font_icon/fqw_text_font_icon_demo\""
       }
     },
@@ -2049,7 +2049,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/text/image_label/fqw_text_image_label_demo.app/Contents/MacOS/fqw_text_image_label_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\text\\image_label\\fqw_text_image_label_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\text\\image_label\\fqw_text_image_label_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/text/image_label/fqw_text_image_label_demo\""
       }
     },
@@ -2085,7 +2085,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/text/label/fqw_text_label_demo.app/Contents/MacOS/fqw_text_label_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\text\\label\\fqw_text_label_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\text\\label\\fqw_text_label_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/text/label/fqw_text_label_demo\""
       }
     },
@@ -2121,7 +2121,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/text/line_edit/fqw_text_line_edit_demo.app/Contents/MacOS/fqw_text_line_edit_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\text\\line_edit\\fqw_text_line_edit_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\text\\line_edit\\fqw_text_line_edit_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/text/line_edit/fqw_text_line_edit_demo\""
       }
     },
@@ -2157,7 +2157,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/text/spin_box/fqw_text_spin_box_demo.app/Contents/MacOS/fqw_text_spin_box_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\text\\spin_box\\fqw_text_spin_box_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\text\\spin_box\\fqw_text_spin_box_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/text/spin_box/fqw_text_spin_box_demo\""
       }
     },
@@ -2193,7 +2193,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/text/text_browser/fqw_text_text_browser_demo.app/Contents/MacOS/fqw_text_text_browser_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\text\\text_browser\\fqw_text_text_browser_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\text\\text_browser\\fqw_text_text_browser_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/text/text_browser/fqw_text_text_browser_demo\""
       }
     },
@@ -2229,7 +2229,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/view/card_widget/fqw_view_card_widget_demo.app/Contents/MacOS/fqw_view_card_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\view\\card_widget\\fqw_view_card_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\view\\card_widget\\fqw_view_card_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/view/card_widget/fqw_view_card_widget_demo\""
       }
     },
@@ -2265,7 +2265,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/view/flip_view/fqw_view_flip_view_demo.app/Contents/MacOS/fqw_view_flip_view_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\view\\flip_view\\fqw_view_flip_view_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\view\\flip_view\\fqw_view_flip_view_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/view/flip_view/fqw_view_flip_view_demo\""
       }
     },
@@ -2301,7 +2301,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/view/list_view/fqw_view_list_view_demo.app/Contents/MacOS/fqw_view_list_view_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\view\\list_view\\fqw_view_list_view_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\view\\list_view\\fqw_view_list_view_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/view/list_view/fqw_view_list_view_demo\""
       }
     },
@@ -2337,7 +2337,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/view/table_view/fqw_view_table_view_demo.app/Contents/MacOS/fqw_view_table_view_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\view\\table_view\\fqw_view_table_view_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\view\\table_view\\fqw_view_table_view_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/view/table_view/fqw_view_table_view_demo\""
       }
     },
@@ -2373,7 +2373,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/view/tree_view/fqw_view_tree_view_demo.app/Contents/MacOS/fqw_view_tree_view_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\view\\tree_view\\fqw_view_tree_view_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\view\\tree_view\\fqw_view_tree_view_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/view/tree_view/fqw_view_tree_view_demo\""
       }
     },
@@ -2409,7 +2409,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/view/tree_widget/fqw_view_tree_widget_demo.app/Contents/MacOS/fqw_view_tree_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\view\\tree_widget\\fqw_view_tree_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\view\\tree_widget\\fqw_view_tree_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/view/tree_widget/fqw_view_tree_widget_demo\""
       }
     },
@@ -2445,7 +2445,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/clock/fqw_window_clock_demo.app/Contents/MacOS/fqw_window_clock_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\clock\\fqw_window_clock_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\clock\\fqw_window_clock_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/clock/fqw_window_clock_demo\""
       }
     },
@@ -2481,7 +2481,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/fluent_widget/fqw_window_fluent_widget_demo.app/Contents/MacOS/fqw_window_fluent_widget_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\fluent_widget\\fqw_window_fluent_widget_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\fluent_widget\\fqw_window_fluent_widget_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/fluent_widget/fqw_window_fluent_widget_demo\""
       }
     },
@@ -2517,7 +2517,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/fluent_window/fqw_window_fluent_window_demo.app/Contents/MacOS/fqw_window_fluent_window_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\fluent_window\\fqw_window_fluent_window_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\fluent_window\\fqw_window_fluent_window_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/fluent_window/fqw_window_fluent_window_demo\""
       }
     },
@@ -2553,7 +2553,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/login/fqw_window_login_demo.app/Contents/MacOS/fqw_window_login_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\login\\fqw_window_login_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\login\\fqw_window_login_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/login/fqw_window_login_demo\""
       }
     },
@@ -2589,7 +2589,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/ms_fluent_window/fqw_window_ms_fluent_window_demo.app/Contents/MacOS/fqw_window_ms_fluent_window_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\ms_fluent_window\\fqw_window_ms_fluent_window_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\ms_fluent_window\\fqw_window_ms_fluent_window_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/ms_fluent_window/fqw_window_ms_fluent_window_demo\""
       }
     },
@@ -2625,7 +2625,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/settings/fqw_window_settings_demo.app/Contents/MacOS/fqw_window_settings_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\settings\\fqw_window_settings_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\settings\\fqw_window_settings_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/settings/fqw_window_settings_demo\""
       }
     },
@@ -2661,7 +2661,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/splash_screen/fqw_window_splash_screen_demo.app/Contents/MacOS/fqw_window_splash_screen_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\splash_screen\\fqw_window_splash_screen_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\splash_screen\\fqw_window_splash_screen_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/splash_screen/fqw_window_splash_screen_demo\""
       }
     },
@@ -2697,7 +2697,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/split_fluent_window/fqw_window_split_fluent_window_demo.app/Contents/MacOS/fqw_window_split_fluent_window_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\split_fluent_window\\fqw_window_split_fluent_window_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\split_fluent_window\\fqw_window_split_fluent_window_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/split_fluent_window/fqw_window_split_fluent_window_demo\""
       }
     },
@@ -2708,7 +2708,7 @@
       "relative_path": "examples/window/web_engine",
       "optional": true,
       "required_feature": "FQW_HAS_WEBENGINE_WIDGETS",
-      "enabled": true,
+      "enabled": false,
       "build": {
         "command": "cmake",
         "args": [
@@ -2733,7 +2733,7 @@
       },
       "run": {
         "mac": "\"${workspaceFolder}/build/debug/examples/window/web_engine/fqw_window_web_engine_demo.app/Contents/MacOS/fqw_window_web_engine_demo\"",
-        "windows": "\"${workspaceFolder}\\build\\examples\\window\\web_engine\\fqw_window_web_engine_demo.exe\"",
+        "windows": "\"${workspaceFolder}\\build\\mingw\\examples\\window\\web_engine\\fqw_window_web_engine_demo.exe\"",
         "linux": "\"${workspaceFolder}/build/debug/examples/window/web_engine/fqw_window_web_engine_demo\""
       }
     }

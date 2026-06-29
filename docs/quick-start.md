@@ -220,8 +220,8 @@ ctest --test-dir build --output-on-failure
 Tag builds publish Gallery archives through GitHub Actions. The archives are uploaded to the matching GitHub Release and are used by Gallery update detection.
 
 ```bash
-git tag v0.1.2
-git push origin main v0.1.2
+git tag v0.1.3
+git push origin main v0.1.3
 ```
 
 Release rules, asset names, and OTA behavior are documented in [Release and OTA](release.md).

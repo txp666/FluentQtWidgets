@@ -4,18 +4,6 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 
 本项目为 **Codex 从 Python 版 [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets) 移植而来的 C++/Qt Widgets 版本**。Python 原版是本仓库的行为与视觉基准：控件状态、间距、QSS 常量、示例内容、资源路径、Gallery 页面结构和翻译均按 Python 原版对齐；只有 Qt/C++ 平台差异不可避免时才保留差异说明。
 
-## 发行版本
-
-- **当前版本**：`0.1.2`
-- **发布页**：<https://github.com/txp666/FluentQtWidgets/releases>
-- **仓库**：<https://github.com/txp666/FluentQtWidgets>
-- **OTA 源**：<https://github.com/txp666/FluentQtWidgets/releases/latest>
-
-Gallery 已内置更新检查能力：
-
-- 手动检查：设置页 → 软件更新 → 检查更新。
-- 启动检查：设置页 → 软件更新 → 开机自动检查（可关闭）。
-- OTA 产物：CI 在 tag 构建后上传 Linux、Windows、macOS 的 Gallery 压缩包到同一个 GitHub Release。
 
 ## 环境要求
 
@@ -32,25 +20,84 @@ cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON
 cmake --build build --parallel
 ```
 
+### Windows Qt kit 选择
+
+CMake 使用的生成器和编译器必须与已安装的 Qt kit 匹配。MinGW Qt kit 应使用 MinGW 构建，
+MSVC Qt kit 应使用 MSVC 构建。如果 CMake 提示找不到 `Qt6Config.cmake`，请通过
+`CMAKE_PREFIX_PATH` 指向 Qt kit 根目录，或把 `Qt6_DIR` 设置到包含 `Qt6Config.cmake` 的目录。
+
+仓库内的 `CMakePresets.json` 不写死本机 Qt、编译器或调试器路径。机器相关路径应放在环境变量、
+IDE kit 选择，或被忽略的 `CMakeUserPresets.json` 中。仓库提供了 `CMakeUserPresets.json.example`
+作为本地配置模板。
+
+使用本机 Qt MinGW kit 时，先让 Qt kit、MinGW 编译器和 Ninja 对当前终端可见，再使用仓库内的
+`mingw-debug` preset：
+
+```powershell
+$env:CMAKE_PREFIX_PATH = "<path-to-qt-mingw-kit>"
+$env:Path = "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$env:Path"
+
+cmake --preset mingw-debug
+cmake --build --preset mingw-debug --parallel
+ctest --preset mingw-debug
+```
+
+下面是一组已经验证过的 Windows MinGW 参考路径，来自 Qt 在线安装器的常见布局：
+
+```text
+Qt kit prefix: C:\Qt\6.11.1\mingw_64
+Qt bin:        C:\Qt\6.11.1\mingw_64\bin
+MinGW bin:     C:\Qt\Tools\mingw1310_64\bin
+Ninja dir:     C:\Qt\Tools\Ninja
+C++ compiler:  C:\Qt\Tools\mingw1310_64\bin\g++.exe
+```
+
+如果本机路径与上面一致，可以这样设置当前 PowerShell：
+
+```powershell
+$env:CMAKE_PREFIX_PATH = "C:\Qt\6.11.1\mingw_64"
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;C:\Qt\Tools\Ninja;C:\Qt\6.11.1\mingw_64\bin;$env:Path"
+```
+
+VS Code 任务会继承启动 VS Code 时的环境。要使用一键构建，可以从已经设置好上述变量的终端启动
+VS Code，设置等价的用户环境变量，或复制 `CMakeUserPresets.json.example` 为被忽略的
+`CMakeUserPresets.json` 并填入本机路径。在 Windows 上重新构建前请先关闭正在运行的 Gallery
+窗口，否则链接器无法覆盖正在运行的 `.exe`。
+
+如果要使用 Visual Studio/MSVC，请安装匹配的 Qt MSVC kit，并将 `CMAKE_PREFIX_PATH` 或 `Qt6_DIR`
+指向该 kit。不要提交本机的 `CMakeUserPresets.json`。
+
 ### 启动 Gallery
 
+使用仓库 preset 时，请选择当前平台对应的 preset。不同平台使用不同构建目录，是因为 CMake 会把
+生成器、编译器和 Qt kit 缓存在构建目录里，不建议让 MinGW、MSVC、macOS 共用同一个 cache。
+
 ```bash
-cmake --build build --target FluentQtWidgetsGallery
-./build/examples/gallery/FluentQtWidgetsGallery
+# macOS/Linux
+cmake --build --preset debug --target FluentQtWidgetsGallery --parallel
+./build/debug/examples/gallery/FluentQtWidgetsGallery
 # macOS:
-# ./build/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery
+# open ./build/debug/examples/gallery/FluentQtWidgetsGallery.app
+```
+
+```powershell
+# Windows MinGW
+cmake --build --preset mingw-debug --target FluentQtWidgetsGallery --parallel
+.\build\mingw\examples\gallery\FluentQtWidgetsGallery.exe
 ```
 
 ## 示例程序
 
+macOS/Linux 使用 `--preset debug`；Windows MinGW 使用 `--preset mingw-debug`：
+
 ```bash
-cmake --build build --target fqw_basic_input_button_demo
-cmake --build build --target fqw_basic_input_check_box_demo
-cmake --build build --target fqw_basic_input_combo_box_demo
-cmake --build build --target fqw_basic_input_model_combo_box_demo
-cmake --build build --target fqw_basic_input_radio_button_demo
-cmake --build build --target fqw_basic_input_slider_demo
-cmake --build build --target fqw_basic_input_switch_button_demo
+cmake --build --preset debug --target fqw_basic_input_button_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_check_box_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_combo_box_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_model_combo_box_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_radio_button_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_slider_demo --parallel
+cmake --build --preset debug --target fqw_basic_input_switch_button_demo --parallel
 ```
 
 （全部示例目标可从各子目录 `CMakeLists.txt` 查看）

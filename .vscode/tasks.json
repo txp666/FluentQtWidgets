@@ -61,7 +61,7 @@
       "dependsOn": "Gallery: Build",
       "problemMatcher": [],
       "windows": {
-        "command": "${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe",
+        "command": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
         "args": []
       },
       "linux": {

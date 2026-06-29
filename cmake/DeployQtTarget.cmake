@@ -12,6 +12,7 @@ function(fqw_deploy_qt_executable target)
                     $<TARGET_FILE:FluentQtWidgets>
                     $<TARGET_FILE_DIR:${target}>
             COMMENT "Copy FluentQtWidgets runtime next to ${target}"
+            VERBATIM
         )
     endif()
 
@@ -24,6 +25,7 @@ function(fqw_deploy_qt_executable target)
                 POST_BUILD
                 COMMAND "${WINDEPLOYQT_EXECUTABLE}" --no-translations "$<TARGET_FILE:${target}>"
                 COMMENT "Deploy Qt runtime for ${target}"
+                VERBATIM
             )
         endif()
         return()
@@ -50,6 +52,7 @@ function(fqw_deploy_qt_executable target)
                         "$<TARGET_FILE:FluentQtWidgets>"
                         "$<TARGET_BUNDLE_DIR:${target}>/Contents/Frameworks/$<TARGET_SONAME_FILE_NAME:FluentQtWidgets>"
                 COMMENT "Copy FluentQtWidgets runtime into ${target}.app"
+                VERBATIM
             )
         endif()
 
@@ -60,6 +63,7 @@ function(fqw_deploy_qt_executable target)
                 POST_BUILD
                 COMMAND "${MACDEPLOYQT_EXECUTABLE}" "$<TARGET_BUNDLE_DIR:${target}>"
                 COMMENT "Deploy Qt frameworks for ${target}.app"
+                VERBATIM
             )
         endif()
     endif()

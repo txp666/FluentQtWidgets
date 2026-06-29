@@ -16,6 +16,7 @@ MANIFEST_PATH = EXAMPLES_DIR / "examples.json"
 BUILD_CACHE_CANDIDATES = [
     ROOT / "build" / "debug" / "CMakeCache.txt",
     ROOT / "build" / "release" / "CMakeCache.txt",
+    ROOT / "build" / "mingw" / "CMakeCache.txt",
     ROOT / "build" / "CMakeCache.txt",
 ]
 PROJECT_VERSION_RE = re.compile(r"VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)")
@@ -172,7 +173,7 @@ def gallery_build_and_run_task() -> dict:
         "dependsOn": "Gallery: Build",
         "problemMatcher": [],
         "windows": {
-            "command": "${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe",
+            "command": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
             "args": [],
         },
         "linux": {
@@ -187,7 +188,7 @@ def executable_command(target: str, rel_dir: Path, platform: str) -> str:
     win_dir = str(rel_dir).replace("/", "\\")
 
     if platform == "windows":
-        return f'"${{workspaceFolder}}\\build\\{win_dir}\\{target}.exe"'
+        return f'"${{workspaceFolder}}\\build\\mingw\\{win_dir}\\{target}.exe"'
     if platform == "linux":
         return f'"${{workspaceFolder}}/build/debug/{slash_dir}/{target}"'
     return f'"${{workspaceFolder}}/build/debug/{slash_dir}/{target}.app/Contents/MacOS/{target}"'
@@ -214,7 +215,7 @@ def gallery_open_config() -> dict:
         "command": 'open "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app"',
         "cwd": "${workspaceFolder}",
         "preLaunchTask": "Gallery: Build",
-        "windows": {"command": '"${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe"'},
+        "windows": {"command": '"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe"'},
         "linux": {"command": '"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery"'},
     }
 
@@ -233,7 +234,7 @@ def gallery_debug_config() -> dict:
         "MIMode": "lldb",
         "preLaunchTask": "Gallery: Build",
         "windows": {
-            "program": "${workspaceFolder}\\build\\examples\\gallery\\FluentQtWidgetsGallery.exe",
+            "program": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
             "MIMode": "gdb",
         },
         "linux": {
@@ -250,8 +251,6 @@ def main() -> None:
         json.dumps(manifest_payload(targets), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-
-    vscode_version = detect_project_version()
 
     tasks = [
         {
@@ -284,11 +283,11 @@ def main() -> None:
             configs.append(run_config(label, target, rel_dir))
 
     (VSCODE_DIR / "tasks.json").write_text(
-        json.dumps({"version": vscode_version, "tasks": tasks}, indent=2) + "\n",
+        json.dumps({"version": "2.0.0", "tasks": tasks}, indent=2) + "\n",
         encoding="utf-8",
     )
     (VSCODE_DIR / "launch.json").write_text(
-        json.dumps({"version": vscode_version, "configurations": configs}, indent=2) + "\n",
+        json.dumps({"version": "0.2.0", "configurations": configs}, indent=2) + "\n",
         encoding="utf-8",
     )
 

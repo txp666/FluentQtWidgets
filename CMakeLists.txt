@@ -31,7 +31,7 @@ endif()
 
 project(
     FluentQtWidgets
-    VERSION 0.1.2
+    VERSION 0.1.3
     DESCRIPTION "A Fluent Design inspired QWidget library for C++/Qt"
     HOMEPAGE_URL "${FQW_REPOSITORY_URL}"
     LANGUAGES CXX
@@ -253,6 +253,9 @@ target_link_libraries(
         ${FQW_QT_PACKAGE}::Svg
         ${FQW_QT_PACKAGE}::Network
 )
+if(WIN32)
+    target_link_libraries(FluentQtWidgets PUBLIC dwmapi)
+endif()
 if(FQW_HAS_MULTIMEDIA)
     target_link_libraries(
         FluentQtWidgets
