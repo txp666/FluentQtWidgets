@@ -61,8 +61,14 @@
       "dependsOn": "Gallery: Build",
       "problemMatcher": [],
       "windows": {
-        "command": "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe",
-        "args": []
+        "command": "cmd",
+        "args": [
+          "/d",
+          "/c",
+          "start",
+          "",
+          "${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe"
+        ]
       },
       "linux": {
         "command": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery",

@@ -106,16 +106,16 @@ QWidget *GalleryWindow::createViewsPage()
         auto *treeWidget = new TreeWidget;
         treeWidget->setHeaderHidden(true);
 
-        auto *item1 = new QTreeWidgetItem({QStringLiteral("JoJo 1 - Phantom Blood")});
+        auto *item1 = new QTreeWidgetItem({tx("TreeFrame", "JoJo 1 - Phantom Blood")});
         item1->addChildren({
-            new QTreeWidgetItem({QStringLiteral("Jonathan Joestar")}),
-            new QTreeWidgetItem({QStringLiteral("Dio Brando")}),
-            new QTreeWidgetItem({QStringLiteral("Will A. Zeppeli")}),
+            new QTreeWidgetItem({tx("TreeFrame", "Jonathan Joestar")}),
+            new QTreeWidgetItem({tx("TreeFrame", "Dio Brando")}),
+            new QTreeWidgetItem({tx("TreeFrame", "Will A. Zeppeli")}),
         });
         treeWidget->addTopLevelItem(item1);
 
-        auto *item2 = new QTreeWidgetItem({QStringLiteral("JoJo 3 - Stardust Crusaders")});
-        auto *item21 = new QTreeWidgetItem({QStringLiteral("Jotaro Kujo")});
+        auto *item2 = new QTreeWidgetItem({tx("TreeFrame", "JoJo 3 - Stardust Crusaders")});
+        auto *item21 = new QTreeWidgetItem({tx("TreeFrame", "Jotaro Kujo")});
         item21->addChildren({
             new QTreeWidgetItem({QStringLiteral("空条承太郎")}),
             new QTreeWidgetItem({QStringLiteral("空条蕉太狼")}),
@@ -139,16 +139,16 @@ QWidget *GalleryWindow::createViewsPage()
         auto *treeWidget = new TreeWidget;
         treeWidget->setHeaderHidden(true);
 
-        auto *item1 = new QTreeWidgetItem({QStringLiteral("JoJo 1 - Phantom Blood")});
+        auto *item1 = new QTreeWidgetItem({tx("TreeFrame", "JoJo 1 - Phantom Blood")});
         item1->addChildren({
-            new QTreeWidgetItem({QStringLiteral("Jonathan Joestar")}),
-            new QTreeWidgetItem({QStringLiteral("Dio Brando")}),
-            new QTreeWidgetItem({QStringLiteral("Will A. Zeppeli")}),
+            new QTreeWidgetItem({tx("TreeFrame", "Jonathan Joestar")}),
+            new QTreeWidgetItem({tx("TreeFrame", "Dio Brando")}),
+            new QTreeWidgetItem({tx("TreeFrame", "Will A. Zeppeli")}),
         });
         treeWidget->addTopLevelItem(item1);
 
-        auto *item2 = new QTreeWidgetItem({QStringLiteral("JoJo 3 - Stardust Crusaders")});
-        auto *item21 = new QTreeWidgetItem({QStringLiteral("Jotaro Kujo")});
+        auto *item2 = new QTreeWidgetItem({tx("TreeFrame", "JoJo 3 - Stardust Crusaders")});
+        auto *item21 = new QTreeWidgetItem({tx("TreeFrame", "Jotaro Kujo")});
         item21->addChildren({
             new QTreeWidgetItem({QStringLiteral("空条承太郎")}),
             new QTreeWidgetItem({QStringLiteral("空条蕉太狼")}),

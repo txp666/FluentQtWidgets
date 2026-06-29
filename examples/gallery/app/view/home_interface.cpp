@@ -249,7 +249,7 @@ class BannerWidget : public QWidget
         m_linkCardView->addCard(icon(FluentIcon::Feedback),
                                 QCoreApplication::translate("HomeInterface", "Send feedback"),
                                 QCoreApplication::translate("HomeInterface",
-                                                            "Help us improve PyQt-Fluent-Widgets by providing "
+                                                            "Help us improve FluentQtWidgets by providing "
                                                             "feedback."),
                                 QUrl(QStringLiteral(FQW_REPOSITORY_URL "/issues")));
     }

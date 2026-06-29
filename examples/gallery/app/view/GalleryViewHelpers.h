@@ -77,7 +77,7 @@ class ProfileCard : public QWidget
         emailLabel->move(64, 32);
 
         auto *logoutButton = new FluentQt::HyperlinkButton(QStringLiteral(FQW_REPOSITORY_URL),
-                                                           QStringLiteral("Logout"), this);
+                                                           tx("GalleryProfile", "Logout"), this);
         logoutButton->move(52, 48);
     }
 };

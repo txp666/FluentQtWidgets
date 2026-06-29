@@ -17,7 +17,7 @@ void addCardToolTip(QWidget *exampleCard, const QString &text)
 
 QWidget *GalleryWindow::createScrollPage()
 {
-    auto *page = new GalleryInterface(QStringLiteral("Scroll"), QStringLiteral("FluentQtWidgets::Widgets"),
+    auto *page = new GalleryInterface(navTx("Scrolling"), QStringLiteral("FluentQtWidgets::Widgets"),
                                       this);
     const QString scrollSource = exampleSourceUrl("scroll/scroll_area");
     const QString pipsSource = exampleSourceUrl("scroll/pips_pager");
@@ -31,8 +31,8 @@ QWidget *GalleryWindow::createScrollPage()
     scrollArea->setWidget(scrollLabel);
     scrollArea->setFixedSize(775, 430);
     scrollArea->horizontalScrollBar()->setValue(0);
-    auto *card1 = page->addExampleCard(QStringLiteral("Smooth scroll area"), scrollArea, scrollSource);
-    addCardToolTip(card1, QStringLiteral("Chitanda Eru is too hot 🥵"));
+    auto *card1 = page->addExampleCard(tx("ScrollInterface", "Smooth scroll area"), scrollArea, scrollSource);
+    addCardToolTip(card1, tx("ScrollInterface", "Chitanda Eru is too hot 🥵"));
 
     auto *smoothScrollArea = new SmoothScrollArea;
     auto *smoothLabel = new ImageLabel;
@@ -41,9 +41,9 @@ QWidget *GalleryWindow::createScrollPage()
     smoothScrollArea->setWidgetResizable(false);
     smoothScrollArea->setWidget(smoothLabel);
     smoothScrollArea->setFixedSize(660, 540);
-    auto *card2 = page->addExampleCard(QStringLiteral("Smooth scroll area implemented by animation"), smoothScrollArea,
+    auto *card2 = page->addExampleCard(tx("ScrollInterface", "Smooth scroll area implemented by animation"), smoothScrollArea,
                          scrollSource);
-    addCardToolTip(card2, QStringLiteral("Chitanda Eru is so hot 🥵🥵"));
+    addCardToolTip(card2, tx("ScrollInterface", "Chitanda Eru is so hot 🥵🥵"));
 
     auto *singleDirectionArea = new SingleDirectionScrollArea(Qt::Horizontal);
     auto *singleDirectionLabel = new ImageLabel;
@@ -52,14 +52,14 @@ QWidget *GalleryWindow::createScrollPage()
     singleDirectionArea->setWidgetResizable(false);
     singleDirectionArea->setWidget(singleDirectionLabel);
     singleDirectionArea->setFixedSize(660, 498);
-    auto *card3 = page->addExampleCard(QStringLiteral("Single direction scroll scroll area"), singleDirectionArea, scrollSource);
-    addCardToolTip(card3, QStringLiteral("Chitanda Eru is so hot 🥵🥵🥵"));
+    auto *card3 = page->addExampleCard(tx("ScrollInterface", "Single direction scroll scroll area"), singleDirectionArea, scrollSource);
+    addCardToolTip(card3, tx("ScrollInterface", "Chitanda Eru is so hot 🥵🥵🥵"));
 
     auto *horizontalPips = new HorizontalPipsPager;
     horizontalPips->setPageNumber(15);
     horizontalPips->setPreviousButtonDisplayMode(PipsScrollButtonDisplayMode::Always);
     horizontalPips->setNextButtonDisplayMode(PipsScrollButtonDisplayMode::Always);
-    page->addExampleCard(QStringLiteral("Pips pager"), horizontalPips, pipsSource);
+    page->addExampleCard(tx("ScrollInterface", "Pips pager"), horizontalPips, pipsSource);
 
     return page;
 }

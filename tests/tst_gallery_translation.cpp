@@ -73,6 +73,32 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("DialogInterface", "Teaching tips with different tail positions"),
                  QStringLiteral("不同尾巴位置的气泡弹窗"));
         QCOMPARE(QCoreApplication::translate("DialogInterface", "Action"), QStringLiteral("操作"));
+        QCOMPARE(QCoreApplication::translate("HomeInterface", "Basic input samples"), QStringLiteral("基本输入示例"));
+        QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
+                 QStringLiteral("通过提供反馈帮助我们改进 FluentQtWidgets。"));
+        QCOMPARE(QCoreApplication::translate("IconInterface", "Icon name"), QStringLiteral("图标名字"));
+        QCOMPARE(QCoreApplication::translate("IconInterface", "Browse all icons in the FluentIcon enum"),
+                 QStringLiteral("浏览 FluentIcon 枚举中的所有图标"));
+        QCOMPARE(QCoreApplication::translate("IconCardView", "Fluent Icons Library"), QStringLiteral("流畅图标库"));
+        QCOMPARE(QCoreApplication::translate("LineEdit", "Search icons"), QStringLiteral("搜索图标"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple CalendarPicker"),
+                 QStringLiteral("日历选择器"));
+        QCOMPARE(QCoreApplication::translate("LayoutInterface", "Flow layout without animation"),
+                 QStringLiteral("不带动画效果的流式布局"));
+        QCOMPARE(QCoreApplication::translate("NavigationViewInterface", "%1 Interface").arg(QStringLiteral("歌曲")),
+                 QStringLiteral("歌曲 界面"));
+        QCOMPARE(QCoreApplication::translate("TabInterface", "Shoko is super kawaii x%1").arg(1),
+                 QStringLiteral("硝子酱一级棒卡哇伊×1"));
+        QCOMPARE(QCoreApplication::translate("TextInterface", "LineEdit, SpinBox, TimeEdit and TextEdit"),
+                 QStringLiteral("LineEdit、SpinBox、TimeEdit 和 TextEdit"));
+        QCOMPARE(QCoreApplication::translate("ScrollInterface", "Pips pager"), QStringLiteral("圆点分页组件"));
+        QCOMPARE(QCoreApplication::translate("ExampleCard", "Source code"), QStringLiteral("源代码"));
+        QCOMPARE(QCoreApplication::translate("TreeFrame", "JoJo 1 - Phantom Blood"),
+                 QStringLiteral("JoJo 1 - 幻影之血"));
+        QCOMPARE(QCoreApplication::translate("SettingInterface", "Check latest version from GitHub releases"),
+                 QStringLiteral("从 GitHub Releases 检查最新版本"));
+        QCOMPARE(QCoreApplication::translate("Translator", "A simple ListView"), QStringLiteral("简单的列表组件"));
+        QCOMPARE(QCoreApplication::translate("GalleryProfile", "Logout"), QStringLiteral("注销"));
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Show Gallery"), QStringLiteral("显示 Gallery"));
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Quit"), QStringLiteral("退出"));
 
@@ -86,6 +112,32 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("DialogInterface", "Teaching tips with different tail positions"),
                  QStringLiteral("不同尾巴位置的氣泡彈窗"));
         QCOMPARE(QCoreApplication::translate("DialogInterface", "Action"), QStringLiteral("操作"));
+        QCOMPARE(QCoreApplication::translate("HomeInterface", "Basic input samples"), QStringLiteral("基本輸入示例"));
+        QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
+                 QStringLiteral("通過提供反饋幫助我們改進 FluentQtWidgets。"));
+        QCOMPARE(QCoreApplication::translate("IconInterface", "Icon name"), QStringLiteral("圖標名字"));
+        QCOMPARE(QCoreApplication::translate("IconInterface", "Browse all icons in the FluentIcon enum"),
+                 QStringLiteral("瀏覽 FluentIcon 枚舉中的所有圖標"));
+        QCOMPARE(QCoreApplication::translate("IconCardView", "Fluent Icons Library"), QStringLiteral("流暢圖標庫"));
+        QCOMPARE(QCoreApplication::translate("LineEdit", "Search icons"), QStringLiteral("蒐索圖標"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple CalendarPicker"),
+                 QStringLiteral("日曆選擇器"));
+        QCOMPARE(QCoreApplication::translate("LayoutInterface", "Flow layout without animation"),
+                 QStringLiteral("不帶動畫效果的流式佈局"));
+        QCOMPARE(QCoreApplication::translate("NavigationViewInterface", "%1 Interface").arg(QStringLiteral("歌曲")),
+                 QStringLiteral("歌曲 介面"));
+        QCOMPARE(QCoreApplication::translate("TabInterface", "Shoko is super kawaii x%1").arg(1),
+                 QStringLiteral("硝子醬一級棒可愛×1"));
+        QCOMPARE(QCoreApplication::translate("TextInterface", "LineEdit, SpinBox, TimeEdit and TextEdit"),
+                 QStringLiteral("LineEdit、SpinBox、TimeEdit 和 TextEdit"));
+        QCOMPARE(QCoreApplication::translate("ScrollInterface", "Pips pager"), QStringLiteral("圓點分頁組件"));
+        QCOMPARE(QCoreApplication::translate("ExampleCard", "Source code"), QStringLiteral("源代碼"));
+        QCOMPARE(QCoreApplication::translate("TreeFrame", "JoJo 1 - Phantom Blood"),
+                 QStringLiteral("JoJo 1 - 幻影之血"));
+        QCOMPARE(QCoreApplication::translate("SettingInterface", "Check latest version from GitHub releases"),
+                 QStringLiteral("從 GitHub Releases 檢查最新版本"));
+        QCOMPARE(QCoreApplication::translate("Translator", "A simple ListView"), QStringLiteral("簡單的列表組件"));
+        QCOMPARE(QCoreApplication::translate("GalleryProfile", "Logout"), QStringLiteral("註銷"));
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Show Gallery"), QStringLiteral("顯示 Gallery"));
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Quit"), QStringLiteral("退出"));
 

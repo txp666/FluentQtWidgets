@@ -8,8 +8,8 @@ using namespace FluentQt;
 
 QWidget *GalleryWindow::createTextPage()
 {
-    auto *page = new GalleryInterface(QStringLiteral("Text"),
-                                      QStringLiteral("LineEdit, SpinBox, TimeEdit and TextEdit"), this);
+    auto *page = new GalleryInterface(navTx("Text"),
+                                      tx("TextInterface", "LineEdit, SpinBox, TimeEdit and TextEdit"), this);
     const QString lineEditSource =
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/text/line_edit/main.cpp");
     const QString spinBoxSource =
@@ -18,10 +18,10 @@ QWidget *GalleryWindow::createTextPage()
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/text/text_browser/main.cpp");
 
     auto *lineEdit = new LineEdit(page);
-    lineEdit->setText(QStringLiteral("ko no dio da！"));
+    lineEdit->setText(tx("TextInterface", "ko no dio da！"));
     lineEdit->setClearButtonEnabled(true);
     lineEdit->setFixedWidth(260);
-    page->addExampleCard(QStringLiteral("A LineEdit with a clear button"), lineEdit, lineEditSource);
+    page->addExampleCard(tx("TextInterface", "A LineEdit with a clear button"), lineEdit, lineEditSource);
 
     auto *searchEdit = new SearchLineEdit(page);
     const QStringList stands = {
@@ -47,35 +47,35 @@ QWidget *GalleryWindow::createTextPage()
     completer->setCaseSensitivity(Qt::CaseInsensitive);
     completer->setMaxVisibleItems(10);
     searchEdit->setCompleter(completer);
-    searchEdit->setPlaceholderText(QStringLiteral("Type a stand name"));
+    searchEdit->setPlaceholderText(tx("TextInterface", "Type a stand name"));
     searchEdit->setClearButtonEnabled(true);
     searchEdit->setFixedWidth(230);
-    page->addExampleCard(QStringLiteral("A autosuggest line edit"), searchEdit, lineEditSource);
+    page->addExampleCard(tx("TextInterface", "A autosuggest line edit"), searchEdit, lineEditSource);
 
     auto *passwordEdit = new PasswordLineEdit(page);
-    passwordEdit->setPlaceholderText(QStringLiteral("Enter your password"));
+    passwordEdit->setPlaceholderText(tx("TextInterface", "Enter your password"));
     passwordEdit->setFixedWidth(230);
-    page->addExampleCard(QStringLiteral("A password line edit"), passwordEdit, lineEditSource);
+    page->addExampleCard(tx("TextInterface", "A password line edit"), passwordEdit, lineEditSource);
 
     auto *spinBox = new SpinBox(page);
-    page->addExampleCard(QStringLiteral("A SpinBox with a spin button"), spinBox, spinBoxSource);
+    page->addExampleCard(tx("TextInterface", "A SpinBox with a spin button"), spinBox, spinBoxSource);
 
     auto *doubleSpin = new DoubleSpinBox(page);
-    page->addExampleCard(QStringLiteral("A DoubleSpinBox with a spin button"), doubleSpin, spinBoxSource);
+    page->addExampleCard(tx("TextInterface", "A DoubleSpinBox with a spin button"), doubleSpin, spinBoxSource);
 
     auto *dateEdit = new DateEdit(page);
-    page->addExampleCard(QStringLiteral("A DateEdit with spin button"), dateEdit, spinBoxSource);
+    page->addExampleCard(tx("TextInterface", "A DateEdit with a spin button"), dateEdit, spinBoxSource);
 
     auto *timeEdit = new TimeEdit(page);
-    page->addExampleCard(QStringLiteral("A TimeEdit with spin button"), timeEdit, spinBoxSource);
+    page->addExampleCard(tx("TextInterface", "A TimeEdit with a spin button"), timeEdit, spinBoxSource);
 
     auto *dateTimeEdit = new DateTimeEdit(page);
-    page->addExampleCard(QStringLiteral("A DateTimeEdit with spin button"), dateTimeEdit, spinBoxSource);
+    page->addExampleCard(tx("TextInterface", "A DateTimeEdit with a spin button"), dateTimeEdit, spinBoxSource);
 
     auto *textEdit = new TextEdit(page);
     textEdit->setMarkdown(QStringLiteral("## Steel Ball Run \n * Johnny Joestar 🦄 \n * Gyro Zeppeli 🐴 "));
     textEdit->setFixedHeight(150);
-    page->addExampleCard(QStringLiteral("A simple TextEdit"), textEdit, textBrowserSource, 1);
+    page->addExampleCard(tx("TextInterface", "A simple TextEdit"), textEdit, textBrowserSource, 1);
 
     return page;
 }

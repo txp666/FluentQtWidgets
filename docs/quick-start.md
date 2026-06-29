@@ -2,27 +2,29 @@
 
 ## Configure
 
+Use the preset that matches your local Qt kit. On macOS/Linux the default debug
+preset uses `build/debug`; on Windows MinGW the checked-in preset uses
+`build/mingw`.
+
 ```powershell
-cmake -S . -B build -G Ninja -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
+cmake --preset ninja-debug
 ```
 
-On Windows with Qt MinGW, prefer the bundled compiler and preset:
+On Windows with Qt MinGW, make the matching Qt kit, MinGW compiler, and Ninja
+visible before configuring:
 
 ```powershell
-$env:PATH = "C:\Qt\Tools\mingw1310_64\bin;C:\Qt\6.8.0\mingw_64\bin;" + $env:PATH
+$env:CMAKE_PREFIX_PATH = "<path-to-qt-mingw-kit>"
+$env:Path = "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$env:Path"
 cmake --preset mingw-debug
-```
-
-Use `CMAKE_PREFIX_PATH` when Qt is not in the default CMake search path.
-
-```powershell
-cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=C:\Qt\6.8.0\mingw_64
 ```
 
 ## Build
 
 ```powershell
-cmake --build build
+cmake --build --preset debug --parallel
+# Windows MinGW:
+cmake --build --preset mingw-debug --parallel
 ```
 
 ## One-Click Demo Entries
@@ -48,85 +50,21 @@ python3 scripts/run_example.py --build examples/basic_input/button
 Gallery builds run `windeployqt` automatically on Windows, so the executable directory already contains the required Qt DLLs.
 
 ```powershell
-.\build\examples\gallery\FluentQtWidgetsGallery.exe
+cmake --build --preset mingw-debug --target FluentQtWidgetsGallery --parallel
+.\build\mingw\examples\gallery\FluentQtWidgetsGallery.exe
 ```
 
 The Gallery language selector applies immediately in the current process by rebuilding the Gallery window with the selected locale while preserving the current route and window state.
 
 ## Standalone Examples
 
-Standalone examples follow the Python reference categories and can be built by target name:
+Standalone examples follow the Python reference categories. Prefer the generated
+manifest when browsing or launching demos:
 
 ```powershell
-cmake --build build --target fqw_basic_input_button_demo
-cmake --build build --target fqw_basic_input_check_box_demo
-cmake --build build --target fqw_basic_input_combo_box_demo
-cmake --build build --target fqw_basic_input_model_combo_box_demo
-cmake --build build --target fqw_basic_input_radio_button_demo
-cmake --build build --target fqw_basic_input_slider_demo
-cmake --build build --target fqw_basic_input_switch_button_demo
-cmake --build build --target fqw_date_time_calendar_picker_demo
-cmake --build build --target fqw_date_time_fast_calendar_picker_demo
-cmake --build build --target fqw_date_time_time_picker_demo
-cmake --build build --target fqw_dialog_flyout_color_dialog_demo
-cmake --build build --target fqw_dialog_flyout_custom_message_box_demo
-cmake --build build --target fqw_dialog_flyout_dialog_demo
-cmake --build build --target fqw_dialog_flyout_folder_list_dialog_demo
-cmake --build build --target fqw_dialog_flyout_flyout_demo
-cmake --build build --target fqw_dialog_flyout_message_dialog_demo
-cmake --build build --target fqw_dialog_flyout_teaching_tip_demo
-cmake --build build --target fqw_layout_adaptive_flow_layout_demo
-cmake --build build --target fqw_layout_flow_layout_demo
-cmake --build build --target fqw_material_acrylic_brush_demo
-cmake --build build --target fqw_material_acrylic_combo_box_demo
-cmake --build build --target fqw_material_acrylic_flyout_demo
-cmake --build build --target fqw_material_acrylic_label_demo
-cmake --build build --target fqw_material_acrylic_line_edit_demo
-cmake --build build --target fqw_material_acrylic_menu_demo
-cmake --build build --target fqw_material_acrylic_tool_tip_demo
-cmake --build build --target fqw_material_acrylic_widget_menu_demo
-cmake --build build --target fqw_media_avatar_widget_demo
-cmake --build build --target fqw_media_media_player_demo
-cmake --build build --target fqw_menu_command_bar_demo
-cmake --build build --target fqw_menu_menu_demo
-cmake --build build --target fqw_menu_system_tray_menu_demo
-cmake --build build --target fqw_menu_widget_menu_demo
-cmake --build build --target fqw_navigation_breadcrumb_bar_demo
-cmake --build build --target fqw_navigation_pivot_demo
-cmake --build build --target fqw_navigation_segmented_tool_widget_demo
-cmake --build build --target fqw_navigation_segmented_widget_demo
-cmake --build build --target fqw_navigation_stacked_widget_demo
-cmake --build build --target fqw_navigation_tab_view_demo
-cmake --build build --target fqw_navigation_tab_widget_demo
-cmake --build build --target fqw_scroll_pips_pager_demo
-cmake --build build --target fqw_scroll_scroll_area_demo
-cmake --build build --target fqw_status_info_info_badge_demo
-cmake --build build --target fqw_status_info_info_bar_demo
-cmake --build build --target fqw_status_info_progress_bar_demo
-cmake --build build --target fqw_status_info_progress_ring_demo
-cmake --build build --target fqw_status_info_state_tool_tip_demo
-cmake --build build --target fqw_status_info_tool_tip_demo
-cmake --build build --target fqw_text_font_icon_demo
-cmake --build build --target fqw_text_image_label_demo
-cmake --build build --target fqw_text_label_demo
-cmake --build build --target fqw_text_line_edit_demo
-cmake --build build --target fqw_text_spin_box_demo
-cmake --build build --target fqw_text_text_browser_demo
-cmake --build build --target fqw_view_card_widget_demo
-cmake --build build --target fqw_view_flip_view_demo
-cmake --build build --target fqw_view_list_view_demo
-cmake --build build --target fqw_view_table_view_demo
-cmake --build build --target fqw_view_tree_view_demo
-cmake --build build --target fqw_view_tree_widget_demo
-cmake --build build --target fqw_window_clock_demo
-cmake --build build --target fqw_window_fluent_widget_demo
-cmake --build build --target fqw_window_fluent_window_demo
-cmake --build build --target fqw_window_login_demo
-cmake --build build --target fqw_window_ms_fluent_window_demo
-cmake --build build --target fqw_window_settings_demo
-cmake --build build --target fqw_window_split_fluent_window_demo
-cmake --build build --target fqw_window_splash_screen_demo
-cmake --build build --target fqw_window_web_engine_demo
+python3 scripts/run_example.py --list
+python3 scripts/run_example.py --build examples/basic_input/button
+cmake --build --preset mingw-debug --target fqw_basic_input_button_demo --parallel
 ```
 
 `fqw_media_media_player_demo` is generated when Qt Multimedia and Qt MultimediaWidgets are available. `fqw_window_web_engine_demo` is generated when Qt WebEngineWidgets is available.
@@ -212,7 +150,9 @@ Current standalone demos:
 ## Test
 
 ```powershell
-ctest --test-dir build --output-on-failure
+ctest --preset debug --output-on-failure
+# Windows MinGW:
+ctest --preset mingw-debug --output-on-failure
 ```
 
 ## Release Artifacts

@@ -6,7 +6,7 @@ using namespace FluentQt;
 
 QWidget *GalleryWindow::createLayoutPage()
 {
-    auto *page = new GalleryInterface(QStringLiteral("Layout"), QStringLiteral("FluentQtWidgets::Layout"),
+    auto *page = new GalleryInterface(navTx("Layout"), QStringLiteral("FluentQtWidgets::Layout"),
                                       this);
     const QString flowLayoutSource = exampleSourceUrl("layout/flow_layout");
     const QString adaptiveFlowLayoutSource = exampleSourceUrl("layout/adaptive_flow_layout");
@@ -29,8 +29,8 @@ QWidget *GalleryWindow::createLayoutPage()
         return widget;
     };
 
-    page->addExampleCard(QStringLiteral("Flow layout without animation"), createFlowWidget(false), flowLayoutSource, 1);
-    page->addExampleCard(QStringLiteral("Flow layout with animation"), createFlowWidget(true), adaptiveFlowLayoutSource,
+    page->addExampleCard(tx("LayoutInterface", "Flow layout without animation"), createFlowWidget(false), flowLayoutSource, 1);
+    page->addExampleCard(tx("LayoutInterface", "Flow layout with animation"), createFlowWidget(true), adaptiveFlowLayoutSource,
                          1);
 
     return page;

@@ -20,6 +20,7 @@ SplashScreen::SplashScreen(const QIcon &icon, QWidget *parent, bool enableShadow
     }
 
     m_titleBar = new FluentTitleBar(this);
+    m_titleBar->hide();
     m_iconWidget = new IconWidget(icon, this);
     m_iconWidget->setFixedSize(m_iconSize);
     m_iconWidget->setIconSize(m_iconSize);
@@ -31,12 +32,6 @@ SplashScreen::SplashScreen(const QIcon &icon, QWidget *parent, bool enableShadow
         shadow->setOffset(0, 4);
         m_iconWidget->setGraphicsEffect(shadow);
     }
-
-#ifdef Q_OS_MACOS
-    if (m_titleBar) {
-        m_titleBar->hide();
-    }
-#endif
 
     raise();
     repositionIcon();
@@ -76,9 +71,7 @@ void SplashScreen::setTitleBar(FluentTitleBar *titleBar)
         titleBar->setParent(this);
         titleBar->raise();
         titleBar->resize(width(), titleBar->height());
-#ifdef Q_OS_MACOS
         titleBar->hide();
-#endif
     }
 }
 

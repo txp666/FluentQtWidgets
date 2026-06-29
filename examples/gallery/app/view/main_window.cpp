@@ -26,11 +26,8 @@ GalleryWindow::GalleryWindow(QWidget *parent) : FluentWindow(parent)
     splash->setIconSize(QSize(106, 106));
     setSplashScreen(splash);
 
-    // Match the Python gallery: show the window and paint the splash before constructing heavy pages.
     const QRect desktop = QApplication::primaryScreen()->availableGeometry();
     move((desktop.width() - width()) / 2, (desktop.height() - height()) / 2);
-    show();
-    QApplication::processEvents();
 
     auto *home = new HomeInterface(this);
     connect(home, &HomeInterface::sampleCardClicked, this, &GalleryWindow::switchToSample);
@@ -57,8 +54,6 @@ GalleryWindow::GalleryWindow(QWidget *parent) : FluentWindow(parent)
     addSubInterface(createSettingsPage(), icon(FluentIcon::Settings), mainTx("Settings"),
                     QStringLiteral("settings"), NavigationItemPosition::Bottom);
 
-    // Match the Python gallery: keep the splash visible while sub interfaces are constructed,
-    // then fade it after navigation has been populated.
     if (auto *splash = splashScreen()) {
         m_splashFinishScheduled = true;
         QTimer::singleShot(0, this, [splash]() { splash->finish(); });

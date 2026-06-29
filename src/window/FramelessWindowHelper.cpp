@@ -175,6 +175,11 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
         }
     }
 
+    if (m_host->rect().contains(localPos)) {
+        *result = HTCLIENT;
+        return true;
+    }
+
     return false;
 }
 #else

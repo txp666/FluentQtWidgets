@@ -163,7 +163,7 @@ class ExampleCard : public QWidget
 
         auto *sourceLayout = new QHBoxLayout(m_sourceWidget);
         sourceLayout->setContentsMargins(18, 18, 18, 18);
-        auto *sourceLabel = new BodyLabel(QStringLiteral("Source code"), m_sourceWidget);
+        auto *sourceLabel = new BodyLabel(tx("ExampleCard", "Source code"), m_sourceWidget);
         sourceLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
         sourceLayout->addWidget(sourceLabel, 0, Qt::AlignLeft);
         sourceLayout->addStretch(1);

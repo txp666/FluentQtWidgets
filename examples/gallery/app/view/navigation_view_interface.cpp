@@ -6,7 +6,7 @@ using namespace FluentQt;
 
 QWidget *GalleryWindow::createNavigationPage()
 {
-    auto *page = new GalleryInterface(QStringLiteral("Navigation"),
+    auto *page = new GalleryInterface(navTx("Navigation"),
                                       QStringLiteral("FluentQtWidgets::Navigation"), this);
     const QString breadcrumbSource = exampleSourceUrl("navigation/breadcrumb_bar");
     const QString pivotSource = exampleSourceUrl("navigation/pivot");
@@ -23,7 +23,7 @@ QWidget *GalleryWindow::createNavigationPage()
     for (const QString &item : items) {
         breadcrumb->addItem(item, item);
     }
-    page->addExampleCard(QStringLiteral("Breadcrumb bar"), breadcrumb, breadcrumbSource, 1);
+    page->addExampleCard(tx("NavigationViewInterface", "Breadcrumb bar"), breadcrumb, breadcrumbSource, 1);
 
     const auto createNavInterface = [](Pivot *nav) {
         auto *widget = new QWidget;
@@ -34,11 +34,12 @@ QWidget *GalleryWindow::createNavigationPage()
         layout->addWidget(nav, 0, Qt::AlignLeft);
         layout->addWidget(stack);
 
-        const QList<QPair<QString, QString>> tabs = {{QStringLiteral("songInterface"), QStringLiteral("Song")},
-                                                     {QStringLiteral("albumInterface"), QStringLiteral("Album")},
-                                                     {QStringLiteral("artistInterface"), QStringLiteral("Artist")}};
+        const QList<QPair<QString, QString>> tabs = {
+            {QStringLiteral("songInterface"), tx("PivotInterface", "Song")},
+            {QStringLiteral("albumInterface"), tx("PivotInterface", "Album")},
+            {QStringLiteral("artistInterface"), tx("PivotInterface", "Artist")}};
         for (const auto &tab : tabs) {
-            auto *label = new QLabel(tab.second + QStringLiteral(" Interface"), widget);
+            auto *label = new QLabel(tx("NavigationViewInterface", "%1 Interface").arg(tab.second), widget);
             label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
             stack->addWidget(label);
             nav->addItem(tab.first, tab.second);
@@ -56,8 +57,8 @@ QWidget *GalleryWindow::createNavigationPage()
         return widget;
     };
 
-    page->addExampleCard(QStringLiteral("A basic pivot"), createNavInterface(new Pivot), pivotSource);
-    page->addExampleCard(QStringLiteral("A segmented control"), createNavInterface(new SegmentedWidget),
+    page->addExampleCard(tx("NavigationViewInterface", "A basic pivot"), createNavInterface(new Pivot), pivotSource);
+    page->addExampleCard(tx("NavigationViewInterface", "A segmented control"), createNavInterface(new SegmentedWidget),
                          segmentedWidgetSource);
 
     auto *segmentedTools = new SegmentedToggleToolWidget;
@@ -65,7 +66,7 @@ QWidget *GalleryWindow::createNavigationPage()
     segmentedTools->addItem(QStringLiteral("k2"), icon(FluentIcon::Check));
     segmentedTools->addItem(QStringLiteral("k3"), icon(FluentIcon::Settings));
     segmentedTools->setCurrentItem(QStringLiteral("k1"));
-    page->addExampleCard(QStringLiteral("Another segmented control"), segmentedTools, segmentedToolWidgetSource);
+    page->addExampleCard(tx("NavigationViewInterface", "Another segmented control"), segmentedTools, segmentedToolWidgetSource);
 
     auto *tabInterface = new QWidget;
     tabInterface->setFixedHeight(280);
@@ -89,17 +90,17 @@ QWidget *GalleryWindow::createNavigationPage()
     panelLayout->setContentsMargins(14, 16, 14, 14);
     panelLayout->setAlignment(Qt::AlignTop);
 
-    auto *movableCheckBox = new CheckBox(QStringLiteral("IsTabMovable"), controlPanel);
-    auto *scrollableCheckBox = new CheckBox(QStringLiteral("IsTabScrollable"), controlPanel);
-    auto *shadowEnabledCheckBox = new CheckBox(QStringLiteral("IsTabShadowEnabled"), controlPanel);
+    auto *movableCheckBox = new CheckBox(tx("TabInterface", "IsTabMovable"), controlPanel);
+    auto *scrollableCheckBox = new CheckBox(tx("TabInterface", "IsTabScrollable"), controlPanel);
+    auto *shadowEnabledCheckBox = new CheckBox(tx("TabInterface", "IsTabShadowEnabled"), controlPanel);
     shadowEnabledCheckBox->setChecked(true);
-    auto *tabMaxWidthLabel = new BodyLabel(QStringLiteral("TabMaximumWidth"), controlPanel);
+    auto *tabMaxWidthLabel = new BodyLabel(tx("TabInterface", "TabMaximumWidth"), controlPanel);
     auto *tabMaxWidthSpinBox = new SpinBox(controlPanel);
     tabMaxWidthSpinBox->setRange(60, 400);
     tabMaxWidthSpinBox->setValue(tabBar->tabMaximumWidth());
-    auto *closeDisplayModeLabel = new BodyLabel(QStringLiteral("TabCloseButtonDisplayMode"), controlPanel);
+    auto *closeDisplayModeLabel = new BodyLabel(tx("TabInterface", "TabCloseButtonDisplayMode"), controlPanel);
     auto *closeDisplayModeComboBox = new ComboBox(controlPanel);
-    closeDisplayModeComboBox->addItems({QStringLiteral("Always"), QStringLiteral("OnHover"), QStringLiteral("Never")});
+    closeDisplayModeComboBox->addItems({tx("TabInterface", "Always"), tx("TabInterface", "OnHover"), tx("TabInterface", "Never")});
 
     panelLayout->addWidget(movableCheckBox);
     panelLayout->addWidget(scrollableCheckBox);
@@ -115,14 +116,14 @@ QWidget *GalleryWindow::createNavigationPage()
     tabMainLayout->addWidget(controlPanel, 0, Qt::AlignRight);
 
     const auto addTabPage = [tabBar, tabStack](const QString &routeKey, const QString &text, const QString &tabIconPath) {
-        auto *label = new QLabel(text + QStringLiteral(" Interface"), tabStack);
+        auto *label = new QLabel(tx("NavigationViewInterface", "%1 Interface").arg(text), tabStack);
         label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
         tabStack->addWidget(label);
         return tabBar->addTab(routeKey, text, QIcon(tabIconPath));
     };
-    addTabPage(QStringLiteral("tabSongInterface"), QStringLiteral("Song"), QStringLiteral(":/gallery/images/MusicNote.png"));
-    addTabPage(QStringLiteral("tabAlbumInterface"), QStringLiteral("Album"), QStringLiteral(":/gallery/images/Dvd.png"));
-    addTabPage(QStringLiteral("tabArtistInterface"), QStringLiteral("Artist"), QStringLiteral(":/gallery/images/Singer.png"));
+    addTabPage(QStringLiteral("tabSongInterface"), tx("TabInterface", "Song"), QStringLiteral(":/gallery/images/MusicNote.png"));
+    addTabPage(QStringLiteral("tabAlbumInterface"), tx("TabInterface", "Album"), QStringLiteral(":/gallery/images/Dvd.png"));
+    addTabPage(QStringLiteral("tabArtistInterface"), tx("TabInterface", "Artist"), QStringLiteral(":/gallery/images/Singer.png"));
     tabBar->setCurrentTab(QStringLiteral("tabSongInterface"));
 
     connect(movableCheckBox, &QAbstractButton::toggled, tabBar, &TabBar::setMovable);
@@ -141,7 +142,7 @@ QWidget *GalleryWindow::createNavigationPage()
         }
     });
     connect(tabBar, &TabBar::tabAddRequested, tabInterface, [tabBar, tabStack, addTabPage, tabCount = 1]() mutable {
-        const QString text = QStringLiteral("硝子酱一级棒卡哇伊×%1").arg(tabCount++);
+        const QString text = tx("TabInterface", "Shoko is super kawaii x%1").arg(tabCount++);
         const int index = addTabPage(text, text, QStringLiteral(":/gallery/images/Smiling_with_heart.png"));
         tabBar->setCurrentIndex(index);
         tabStack->setCurrentIndex(index);
@@ -156,7 +157,7 @@ QWidget *GalleryWindow::createNavigationPage()
         widget->deleteLater();
     });
 
-    page->addExampleCard(QStringLiteral("A tab bar"), tabInterface, tabViewSource, 1);
+    page->addExampleCard(tx("NavigationViewInterface", "A tab bar"), tabInterface, tabViewSource, 1);
 
     return page;
 }

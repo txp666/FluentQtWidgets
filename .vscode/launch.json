@@ -9,7 +9,7 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Gallery: Build",
       "windows": {
-        "command": "\"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe\""
+        "command": "cmd /d /c start \"\" \"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe\""
       },
       "linux": {
         "command": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery\""
@@ -44,7 +44,7 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Gallery: Build",
       "windows": {
-        "command": "\"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe\""
+        "command": "cmd /d /c start \"\" \"${workspaceFolder}\\build\\mingw\\examples\\gallery\\FluentQtWidgetsGallery.exe\""
       },
       "linux": {
         "command": "\"${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery\""

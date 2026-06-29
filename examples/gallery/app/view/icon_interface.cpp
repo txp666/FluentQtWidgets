@@ -203,8 +203,8 @@ class IconInfoPanel : public QFrame
 
 QWidget *GalleryWindow::createIconPage()
 {
-    auto *page = new GalleryInterface(QStringLiteral("Icons"),
-                                      QStringLiteral("Browse all icons in the FluentIcon enum"), this);
+    auto *page = new GalleryInterface(navTx("Icons"),
+                                      tx("IconInterface", "Browse all icons in the FluentIcon enum"), this);
     const QString sourceUrl = exampleSourceUrl("text/font_icon");
 
     // All FluentIcon enum values
@@ -237,11 +237,11 @@ QWidget *GalleryWindow::createIconPage()
     containerLayout->setContentsMargins(0, 0, 0, 0);
     containerLayout->setSpacing(12);
 
-    auto *titleLabel = new SubtitleLabel(QStringLiteral("Fluent Icons Library"));
+    auto *titleLabel = new SubtitleLabel(tx("IconCardView", "Fluent Icons Library"));
     containerLayout->addWidget(titleLabel);
 
     auto *searchEdit = new SearchLineEdit(page);
-    searchEdit->setPlaceholderText(QStringLiteral("Search icons"));
+    searchEdit->setPlaceholderText(tx("LineEdit", "Search icons"));
     searchEdit->setFixedWidth(304);
     containerLayout->addWidget(searchEdit);
 
@@ -343,7 +343,7 @@ QWidget *GalleryWindow::createIconPage()
                          }
                      });
 
-    page->addExampleCard(QStringLiteral("Fluent Icons Library"), container, sourceUrl, 1);
+    page->addExampleCard(tx("IconCardView", "Fluent Icons Library"), container, sourceUrl, 1);
 
     return page;
 }

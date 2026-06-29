@@ -8,6 +8,11 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
+#if defined(Q_OS_WIN)
+#include <windows.h>
+#include <windowsx.h>
+#endif
+
 class ShellTest : public QObject
 {
     Q_OBJECT
@@ -259,7 +264,41 @@ class ShellTest : public QObject
         QCOMPARE(window.isMicaEffectEnabled(), false);
         window.setMicaEffectEnabled(true);
         QCOMPARE(window.isMicaEffectEnabled(), FluentQt::isMicaEffectAvailable());
+        window.setMicaEffectEnabled(false);
+        QCOMPARE(window.isMicaEffectEnabled(), false);
         QVERIFY(window.metaObject()->indexOfProperty("micaEffectEnabled") >= 0);
+    }
+
+    void framelessWindowInteriorHitTestStaysClientArea()
+    {
+#if defined(Q_OS_WIN)
+        QWidget host;
+        host.resize(320, 240);
+        FluentQt::FramelessWindowHelper helper(&host);
+
+        const QPoint globalPos = host.mapToGlobal(QPoint(120, 80));
+        MSG message = {};
+        message.message = WM_NCHITTEST;
+        message.lParam = MAKELPARAM(globalPos.x(), globalPos.y());
+        qintptr result = 0;
+
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
+        QCOMPARE(result, qintptr(HTCLIENT));
+#else
+        QSKIP("Windows hit-test behavior only applies on Windows");
+#endif
+    }
+
+    void splashScreenKeepsOwnTitleBarHidden()
+    {
+        FluentQt::SplashScreen splash{QIcon()};
+        QVERIFY(splash.titleBar() != nullptr);
+        QVERIFY(splash.titleBar()->isHidden());
+
+        auto *replacementTitleBar = new FluentQt::FluentTitleBar;
+        splash.setTitleBar(replacementTitleBar);
+        QCOMPARE(splash.titleBar(), replacementTitleBar);
+        QVERIFY(splash.titleBar()->isHidden());
     }
 
     void fluentTitleBarButtonsUseConsistentResourceIcons()

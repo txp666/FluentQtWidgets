@@ -9,7 +9,7 @@ using namespace FluentQt;
 
 QWidget *GalleryWindow::createMaterialPage()
 {
-    auto *page = new GalleryInterface(QStringLiteral("Material"), QStringLiteral("FluentQtWidgets::Widgets"),
+    auto *page = new GalleryInterface(navTx("Material"), QStringLiteral("FluentQtWidgets::Widgets"),
                                       this);
     const QString acrylicLabelSource = exampleSourceUrl("material/acrylic_label");
 

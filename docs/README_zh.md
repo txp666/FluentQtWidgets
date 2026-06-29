@@ -43,26 +43,6 @@ cmake --build --preset mingw-debug --parallel
 ctest --preset mingw-debug
 ```
 
-下面是一组已经验证过的 Windows MinGW 参考路径，来自 Qt 在线安装器的常见布局。请把它当作模板，并替换为你自己的安装路径：
-
-```text
-Qt kit prefix: C:\Qt\6.11.1\mingw_64
-Qt bin:        C:\Qt\6.11.1\mingw_64\bin
-MinGW bin:     C:\Qt\Tools\mingw1310_64\bin
-Ninja dir:     C:\Qt\Tools\Ninja
-C++ compiler:  C:\Qt\Tools\mingw1310_64\bin\g++.exe
-```
-
-不要把这些路径写死到共享工程配置中；请把它们保存在本机环境变量、IDE kit，或被忽略的
-`CMakeUserPresets.json` 中。
-
-如果本机路径与上面一致，可以这样设置当前 PowerShell：
-
-```powershell
-$env:CMAKE_PREFIX_PATH = "C:\Qt\6.11.1\mingw_64"
-$env:Path = "C:\Qt\Tools\mingw1310_64\bin;C:\Qt\Tools\Ninja;C:\Qt\6.11.1\mingw_64\bin;$env:Path"
-```
-
 VS Code 任务会继承启动 VS Code 时的环境。要使用一键构建，可以从已经设置好上述变量的终端启动
 VS Code，设置等价的用户环境变量，或复制 `CMakeUserPresets.json.example` 为被忽略的
 `CMakeUserPresets.json` 并填入本机路径。在 Windows 上重新构建前请先关闭正在运行的 Gallery

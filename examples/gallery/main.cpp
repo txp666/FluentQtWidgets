@@ -180,5 +180,8 @@ int main(int argc, char *argv[])
         });
     }
 
+    window->show();
+    window->raise();
+    window->activateWindow();
     return app.exec();
 }

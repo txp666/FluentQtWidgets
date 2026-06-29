@@ -1102,6 +1102,11 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <translation>麵包屑導航欄</translation>
     </message>
     <message>
+        <location filename="../../app/view/navigation_view_interface.cpp"/>
+        <source>%1 Interface</source>
+        <translation>%1 介面</translation>
+    </message>
+    <message>
         <location filename="../../view/navigation_view_interface.py" line="54"/>
         <source>Another segmented control</source>
         <translation>另一種分段導航欄</translation>
@@ -1352,6 +1357,11 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <location filename="../../view/setting_interface.py" line="50"/>
         <source>Apply semi transparent to windows and surfaces</source>
         <translation>窗口和表麵顯示半透明</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/setting_interface.cpp"/>
+        <source>Check latest version from GitHub releases</source>
+        <translation>從 GitHub Releases 檢查最新版本</translation>
     </message>
 </context>
 <context>
@@ -1643,6 +1653,11 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <source>TabMaximumWidth</source>
         <translation>標籤最大寬度</translation>
     </message>
+    <message>
+        <location filename="../../app/view/navigation_view_interface.cpp"/>
+        <source>Shoko is super kawaii x%1</source>
+        <translation>硝子醬一級棒可愛×%1</translation>
+    </message>
 </context>
 <context>
     <name>TableFrame</name>
@@ -1677,7 +1692,7 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     <message>
         <location filename="../../view/text_interface.py" line="25"/>
         <source>ko no dio da！</source>
-        <translation>这是我迪奥哒！</translation>
+        <translation>這是我迪奧噠！</translation>
     </message>
     <message>
         <location filename="../../view/text_interface.py" line="27"/>
@@ -1733,6 +1748,11 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <location filename="../../view/text_interface.py" line="73"/>
         <source>A password line edit</source>
         <translation>密碼輸入框</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/text_interface.cpp"/>
+        <source>LineEdit, SpinBox, TimeEdit and TextEdit</source>
+        <translation>LineEdit、SpinBox、TimeEdit 和 TextEdit</translation>
     </message>
 </context>
 <context>
@@ -1825,6 +1845,31 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <source>Menus &amp; toolbars</source>
         <translation>菜單和工具欄</translation>
     </message>
+    <message>
+        <location filename="../../app/view/view_interface.cpp"/>
+        <source>A simple ListView</source>
+        <translation>簡單的列表組件</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/view_interface.cpp"/>
+        <source>A simple TableView</source>
+        <translation>簡單的表格組件</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/view_interface.cpp"/>
+        <source>A simple TreeView</source>
+        <translation>簡單的樹狀組件</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/view_interface.cpp"/>
+        <source>A TreeView with Multi-selection enabled</source>
+        <translation>啟用復選框的樹狀組件</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/view_interface.cpp"/>
+        <source>Flip view</source>
+        <translation>翻轉視圖</translation>
+    </message>
 </context>
 <context>
     <name>TreeFrame</name>
@@ -1898,6 +1943,540 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <location filename="../../view/view_interface.py" line="61"/>
         <source>Flip view</source>
         <translation>翻轉視圖</translation>
+    </message>
+</context>
+<context>
+    <name>HomeInterface</name>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Fluent Gallery</source>
+        <translation>Fluent Gallery</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Getting started</source>
+        <translation>入門指南</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>An overview of app development options and samples.</source>
+        <translation>應用開發選項和示例概覽。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>GitHub repo</source>
+        <translation>GitHub 倉庫</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>The latest fluent design controls and styles for your applications.</source>
+        <translation>為你的應用提供最新的 Fluent Design 控件和樣式。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Code samples</source>
+        <translation>代碼示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Find samples that demonstrate specific tasks, features and APIs.</source>
+        <translation>查找演示特定任務、功能和 API 的示例。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Send feedback</source>
+        <translation>發送反饋</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Help us improve FluentQtWidgets by providing feedback.</source>
+        <translation>通過提供反饋幫助我們改進 FluentQtWidgets。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Basic input samples</source>
+        <translation>基本輸入示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Button</source>
+        <translation>Button</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that responds to user input and emit clicked signal.</source>
+        <translation>響應用戶輸入並發出 clicked 信號的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>CheckBox</source>
+        <translation>CheckBox</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that a user can select or clear.</source>
+        <translation>用戶可以選中或清除的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ComboBox</source>
+        <translation>ComboBox</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A drop-down list of items a user can select from.</source>
+        <translation>用戶可以從中選擇項目的下拉列表。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>DropDownButton</source>
+        <translation>DropDownButton</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A button that displays a flyout of choices when clicked.</source>
+        <translation>點擊後顯示選項彈出層的按鈕。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>HyperlinkButton</source>
+        <translation>HyperlinkButton</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A button that appears as hyperlink text, and can navigate to a URI or handle a Click event.</source>
+        <translation>顯示為超鏈接文本的按鈕，可導航到 URI 或處理 Click 事件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>RadioButton</source>
+        <translation>RadioButton</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that allows a user to select a single option from a group of options.</source>
+        <translation>允許用戶從一組選項中選擇單個選項的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Slider</source>
+        <translation>Slider</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that lets the user select from a range of values by moving a Thumb control along a track.</source>
+        <translation>讓用戶通過沿軌道移動滑塊從範圍中選擇值的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>SplitButton</source>
+        <translation>SplitButton</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A two-part button that displays a flyout when its secondary part is clicked.</source>
+        <translation>由兩部分組成的按鈕，點擊輔助部分時顯示彈出層。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>SwitchButton</source>
+        <translation>SwitchButton</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A switch that can be toggled between 2 states.</source>
+        <translation>可在兩種狀態之間切換的開關。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ToggleButton</source>
+        <translation>ToggleButton</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A button that can be switched between two states like a CheckBox.</source>
+        <translation>可像 CheckBox 一樣在兩種狀態之間切換的按鈕。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Date &amp; time samples</source>
+        <translation>日期和時間示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>CalendarPicker</source>
+        <translation>CalendarPicker</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that lets a user pick a date value using a calendar.</source>
+        <translation>讓用戶通過日曆選擇日期值的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>DatePicker</source>
+        <translation>DatePicker</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that lets a user pick a date value.</source>
+        <translation>讓用戶選擇日期值的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>TimePicker</source>
+        <translation>TimePicker</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A configurable control that lets a user pick a time value.</source>
+        <translation>可配置的時間選擇控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Dialog samples</source>
+        <translation>對話框示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Dialog</source>
+        <translation>Dialog</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A frameless message dialog.</source>
+        <translation>無邊框消息對話框。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>MessageBox</source>
+        <translation>MessageBox</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A message dialog with mask.</source>
+        <translation>帶遮罩的消息對話框。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ColorDialog</source>
+        <translation>ColorDialog</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A dialog that allows user to select color.</source>
+        <translation>允許用戶選擇顏色的對話框。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Flyout</source>
+        <translation>Flyout</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Shows contextual information and enables user interaction.</source>
+        <translation>顯示上下文信息並支持用戶交互。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>TeachingTip</source>
+        <translation>TeachingTip</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A content-rich flyout for guiding users and enabling teaching moments.</source>
+        <translation>用於引導用戶並提供教學提示的內容豐富彈出層。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Layout samples</source>
+        <translation>佈局示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>FlowLayout</source>
+        <translation>FlowLayout</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A layout arranges components in a left-to-right flow, wrapping to the next row when the current row is full.</source>
+        <translation>一種從左到右排列組件的佈局，當前行填滿時換到下一行。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Material samples</source>
+        <translation>材料示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>AcrylicLabel</source>
+        <translation>AcrylicLabel</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A translucent material recommended for panel background.</source>
+        <translation>推薦用作面板背景的半透明材料。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Menu &amp; toolbars samples</source>
+        <translation>菜單和工具欄示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>RoundMenu</source>
+        <translation>RoundMenu</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Shows a contextual list of simple commands or options.</source>
+        <translation>顯示簡單命令或選項的上下文列表。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>CommandBar</source>
+        <translation>CommandBar</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>CommandBarFlyout</source>
+        <translation>CommandBarFlyout</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A mini-toolbar displaying proactive commands, and an optional menu of commands.</source>
+        <translation>顯示主動命令以及可選命令菜單的迷你工具欄。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Navigation</source>
+        <translation>導航</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>BreadcrumbBar</source>
+        <translation>BreadcrumbBar</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Shows the trail of navigation taken to the current location.</source>
+        <translation>顯示到當前位置的導航路徑。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Pivot</source>
+        <translation>Pivot</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Presents information from different sources in a tabbed view.</source>
+        <translation>以選項卡視圖呈現來自不同來源的信息。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>TabView</source>
+        <translation>TabView</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Scrolling samples</source>
+        <translation>滾動示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ScrollArea</source>
+        <translation>ScrollArea</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A container control that lets the user pan and zoom its content smoothly.</source>
+        <translation>讓用戶平滑平移和縮放內容的容器控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>PipsPager</source>
+        <translation>PipsPager</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control to let the user navigate through a paginated collection when the page numbers do not need to be visually known.</source>
+        <translation>當無需顯示具體頁碼時，讓用戶在分頁集合中導航的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Status &amp; info samples</source>
+        <translation>狀態和信息示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>StateToolTip</source>
+        <translation>StateToolTip</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Shows the apps progress on a task, or that the app is performing ongoing work that does block user interaction.</source>
+        <translation>顯示應用任務進度，或表示應用正在執行會阻塞用戶交互的持續工作。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>InfoBadge</source>
+        <translation>InfoBadge</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>An non-intrusive Ul to display notifications or bring focus to an area.</source>
+        <translation>用於顯示通知或突出區域的非侵入式 UI。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>InfoBar</source>
+        <translation>InfoBar</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>An inline message to display app-wide status change information.</source>
+        <translation>用於顯示應用範圍狀態變化信息的內聯消息。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ProgressBar</source>
+        <translation>ProgressBar</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Shows the apps progress on a task, or that the app is performing ongoing work that doesn't block user interaction.</source>
+        <translation>顯示應用任務進度，或表示應用正在執行不會阻塞用戶交互的持續工作。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ProgressRing</source>
+        <translation>ProgressRing</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ToolTip</source>
+        <translation>ToolTip</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Displays information for an element in a pop-up window.</source>
+        <translation>在彈出窗口中顯示元素信息。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Text samples</source>
+        <translation>文本示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>LineEdit</source>
+        <translation>LineEdit</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A single-line plain text field.</source>
+        <translation>單行純文本輸入框。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>PasswordLineEdit</source>
+        <translation>PasswordLineEdit</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control for entering passwords.</source>
+        <translation>用於輸入密碼的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>SpinBox</source>
+        <translation>SpinBox</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A text control used for numeric input and evaluation of algebraic equations.</source>
+        <translation>用於數字輸入和代數表達式求值的文本控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>TextEdit</source>
+        <translation>TextEdit</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A rich text editing control that supports formatted text, hyperlinks, and other rich content.</source>
+        <translation>支持格式化文本、超鏈接和其他富文本內容的富文本編輯控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>View samples</source>
+        <translation>視圖示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ListView</source>
+        <translation>ListView</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A control that presents a collection of items in a vertical list.</source>
+        <translation>以垂直列表顯示項目集合的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>TableView</source>
+        <translation>TableView</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>The DataGrid control provides a flexible way to display a collection of data in rows and columns.</source>
+        <translation>DataGrid 控件提供了一種以行和列顯示數據集合的靈活方式。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>TreeView</source>
+        <translation>TreeView</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>The TreeView control is a hierarchical list pattern with expanding and collapsing nodes that contain nested items.</source>
+        <translation>TreeView 控件是一種層級列表模式，包含可展開和折疊且可嵌套項目的節點。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>FlipView</source>
+        <translation>FlipView</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>Presents a collection of items that the user can flip through,one item at a time.</source>
+        <translation>呈現用戶可以逐個翻看的項目集合。</translation>
+    </message>
+</context>
+<context>
+    <name>IconInterface</name>
+    <message>
+        <location filename="../../app/view/icon_interface.cpp"/>
+        <source>Icon name</source>
+        <translation>圖標名字</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/icon_interface.cpp"/>
+        <source>Enum member</source>
+        <translation>枚舉成員</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/icon_interface.cpp"/>
+        <source>Browse all icons in the FluentIcon enum</source>
+        <translation>瀏覽 FluentIcon 枚舉中的所有圖標</translation>
+    </message>
+</context>
+<context>
+    <name>GalleryProfile</name>
+    <message>
+        <location filename="../../app/view/GalleryViewHelpers.h"/>
+        <source>Logout</source>
+        <translation>註銷</translation>
     </message>
 </context>
 </TS>
