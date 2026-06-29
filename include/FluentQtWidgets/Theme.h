@@ -48,6 +48,7 @@ class FQW_API ThemeManager : public QObject
   signals:
     void themeChanged(FluentQt::Theme theme);
     void effectiveThemeChanged(FluentQt::Theme theme);
+    void themeChangedFinished();
     void accentColorChanged(const QColor &color);
 
   private:

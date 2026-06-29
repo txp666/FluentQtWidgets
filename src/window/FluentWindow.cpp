@@ -11,6 +11,7 @@
 #include <FluentQtWidgets/Window/SplashScreen.h>
 
 #include <QtCore/QEvent>
+#include <QtCore/QTimer>
 #include <QtCore/QUuid>
 #include <QtCore/QOperatingSystemVersion>
 #include <QtGui/QPainter>
@@ -71,6 +72,26 @@ constexpr UINT kDwmMicaEffectAttribute = []() constexpr
 #endif
 }();
 
+constexpr UINT kDwmUseImmersiveDarkModeAttribute = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
+
+constexpr UINT kDwmWindowCornerPreferenceAttribute = []() constexpr
+{
+#ifdef DWMWA_WINDOW_CORNER_PREFERENCE
+    return DWMWA_WINDOW_CORNER_PREFERENCE;
+#else
+    return 33; // DWMWA_WINDOW_CORNER_PREFERENCE
+#endif
+}();
+
+constexpr int kDwmBackdropNone = []() constexpr
+{
+#ifdef DWMSBT_NONE
+    return DWMSBT_NONE;
+#else
+    return 1; // DWMSBT_NONE
+#endif
+}();
+
 constexpr int kDwmBackdropMainWindow = []() constexpr
 {
 #ifdef DWMSBT_MAINWINDOW
@@ -80,18 +101,57 @@ constexpr int kDwmBackdropMainWindow = []() constexpr
 #endif
 }();
 
-void applyMicaBackdrop(HWND hwnd)
+constexpr int kDwmWindowCornerRound = []() constexpr
 {
-    const int backdrop = kDwmBackdropMainWindow;
+#ifdef DWMWCP_ROUND
+    return DWMWCP_ROUND;
+#else
+    return 2; // DWMWCP_ROUND
+#endif
+}();
+
+void syncDwmWindowAttributes(QWidget *widget, bool micaEnabled, bool refreshMicaBackdrop = false)
+{
+    if (!widget) {
+        return;
+    }
+
+    HWND hwnd = reinterpret_cast<HWND>(widget->winId());
+
+    if (refreshMicaBackdrop && micaEnabled) {
+        const int noBackdrop = kDwmBackdropNone;
+        const BOOL noMica = FALSE;
+        DwmSetWindowAttribute(hwnd, kDwmSystemBackdropTypeAttribute, &noBackdrop, sizeof(noBackdrop));
+        DwmSetWindowAttribute(hwnd, kDwmMicaEffectAttribute, &noMica, sizeof(noMica));
+    }
+
+    const BOOL darkMode = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? TRUE : FALSE;
+    DwmSetWindowAttribute(hwnd, kDwmUseImmersiveDarkModeAttribute, &darkMode, sizeof(darkMode));
+
+    const int cornerPreference = kDwmWindowCornerRound;
+    DwmSetWindowAttribute(hwnd, kDwmWindowCornerPreferenceAttribute, &cornerPreference, sizeof(cornerPreference));
+
+    const int backdrop = micaEnabled ? kDwmBackdropMainWindow : kDwmBackdropNone;
     DwmSetWindowAttribute(hwnd, kDwmSystemBackdropTypeAttribute, &backdrop, sizeof(backdrop));
-    const BOOL mica = TRUE;
+    const BOOL mica = micaEnabled ? TRUE : FALSE;
     DwmSetWindowAttribute(hwnd, kDwmMicaEffectAttribute, &mica, sizeof(mica));
 }
+#else
+void syncDwmWindowAttributes(QWidget *, bool, bool = false) {}
 #endif
 
 QColor windowBackgroundColor()
 {
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(32, 32, 32) : QColor(249, 249, 249);
+}
+
+QColor micaHitTestBackgroundColor()
+{
+    // Fully transparent layered windows can become mouse-transparent on Windows.
+    // Keep one alpha step so Mica remains visually transparent but the window stays hit-testable.
+    QColor background = windowBackgroundColor();
+    background.setAlpha(1);
+    return background;
 }
 
 } // namespace
@@ -122,13 +182,19 @@ FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
     m_titleBar = new FluentTitleBar(this);
     m_frameless->setTitleBar(m_titleBar);
 
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this]() {
+    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this, [this]() {
+        syncDwmWindowAttributes(this, m_isMicaEnabled);
         update();
+        QTimer::singleShot(100, this, [this]() {
+            syncDwmWindowAttributes(this, m_isMicaEnabled, true);
+            update();
+        });
     });
 
     setMicaEffectEnabled(true);
     updateTitleBarGeometry();
     updateWindowMask();
+    syncDwmWindowAttributes(this, m_isMicaEnabled);
 }
 
 FluentTitleBar *FluentWidget::titleBar() const { return m_titleBar; }
@@ -144,7 +210,7 @@ QColor FluentWidget::darkBackgroundColor() const { return m_darkBackgroundColor;
 QColor FluentWidget::backgroundColor() const
 {
     if (m_isMicaEnabled) {
-        return QColor(0, 0, 0, 0);
+        return micaHitTestBackgroundColor();
     }
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? m_darkBackgroundColor
                                                                      : m_lightBackgroundColor;
@@ -163,17 +229,13 @@ void FluentWidget::setMicaEffectEnabled(bool enabled)
 {
     const bool nextEnabled = enabled && isMicaEffectAvailable();
     if (m_isMicaEnabled == nextEnabled) {
+        syncDwmWindowAttributes(this, m_isMicaEnabled);
+        update();
         return;
     }
     m_isMicaEnabled = nextEnabled;
 
-#if defined(Q_OS_WIN)
-    if (m_isMicaEnabled && windowHandle()) {
-        HWND hwnd = (HWND)winId();
-        // Windows 11 Mica backdrop
-        applyMicaBackdrop(hwnd);
-    }
-#endif
+    syncDwmWindowAttributes(this, m_isMicaEnabled);
     update();
 }
 
@@ -341,13 +403,19 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
             button->setDisabled(isEmpty);
         }
     });
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this]() {
+    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this, [this]() {
+        syncDwmWindowAttributes(this, m_isMicaEnabled);
         update();
+        QTimer::singleShot(100, this, [this]() {
+            syncDwmWindowAttributes(this, m_isMicaEnabled, true);
+            update();
+        });
     });
 
     m_titleBar->raise();
     updateTitleBarGeometry();
     updateWindowMask();
+    syncDwmWindowAttributes(this, m_isMicaEnabled);
 }
 
 NavigationInterface *FluentWindow::navigationInterface() const { return m_navigation; }
@@ -460,16 +528,13 @@ void FluentWindow::setMicaEffectEnabled(bool enabled)
 {
     const bool nextEnabled = enabled && isMicaEffectAvailable();
     if (m_isMicaEnabled == nextEnabled) {
+        syncDwmWindowAttributes(this, m_isMicaEnabled);
+        update();
         return;
     }
     m_isMicaEnabled = nextEnabled;
 
-#if defined(Q_OS_WIN)
-    if (m_isMicaEnabled && windowHandle()) {
-        HWND hwnd = (HWND)winId();
-        applyMicaBackdrop(hwnd);
-    }
-#endif
+    syncDwmWindowAttributes(this, m_isMicaEnabled);
     update();
 }
 
@@ -553,7 +618,7 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    const QColor background = m_isMicaEnabled ? QColor(0, 0, 0, 0) : windowBackgroundColor();
+    const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
     const QRectF backgroundRect = isMaximized() || isFullScreen() ? QRectF(rect()) : QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
@@ -707,13 +772,19 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
         }
         updateStackedBackground();
     });
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this]() {
+    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this, [this]() {
+        syncDwmWindowAttributes(this, m_isMicaEnabled);
         update();
+        QTimer::singleShot(100, this, [this]() {
+            syncDwmWindowAttributes(this, m_isMicaEnabled, true);
+            update();
+        });
     });
 
     m_titleBar->raise();
     updateTitleBarGeometry();
     updateWindowMask();
+    syncDwmWindowAttributes(this, m_isMicaEnabled);
 }
 
 NavigationBar *MSFluentWindow::navigationInterface() const { return m_navigationBar; }
@@ -736,16 +807,13 @@ void MSFluentWindow::setMicaEffectEnabled(bool enabled)
 {
     const bool nextEnabled = enabled && isMicaEffectAvailable();
     if (m_isMicaEnabled == nextEnabled) {
+        syncDwmWindowAttributes(this, m_isMicaEnabled);
+        update();
         return;
     }
     m_isMicaEnabled = nextEnabled;
 
-#if defined(Q_OS_WIN)
-    if (m_isMicaEnabled && windowHandle()) {
-        HWND hwnd = (HWND)winId();
-        applyMicaBackdrop(hwnd);
-    }
-#endif
+    syncDwmWindowAttributes(this, m_isMicaEnabled);
     update();
 }
 
@@ -901,7 +969,7 @@ void MSFluentWindow::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    const QColor background = m_isMicaEnabled ? QColor(0, 0, 0, 0) : windowBackgroundColor();
+    const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
     const QRectF backgroundRect =

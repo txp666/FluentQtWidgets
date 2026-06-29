@@ -16,8 +16,9 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 ## 构建
 
 ```bash
-cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON
+cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
 cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 ```
 
 ### Windows Qt kit 选择
@@ -42,7 +43,7 @@ cmake --build --preset mingw-debug --parallel
 ctest --preset mingw-debug
 ```
 
-下面是一组已经验证过的 Windows MinGW 参考路径，来自 Qt 在线安装器的常见布局：
+下面是一组已经验证过的 Windows MinGW 参考路径，来自 Qt 在线安装器的常见布局。请把它当作模板，并替换为你自己的安装路径：
 
 ```text
 Qt kit prefix: C:\Qt\6.11.1\mingw_64
@@ -51,6 +52,9 @@ MinGW bin:     C:\Qt\Tools\mingw1310_64\bin
 Ninja dir:     C:\Qt\Tools\Ninja
 C++ compiler:  C:\Qt\Tools\mingw1310_64\bin\g++.exe
 ```
+
+不要把这些路径写死到共享工程配置中；请把它们保存在本机环境变量、IDE kit，或被忽略的
+`CMakeUserPresets.json` 中。
 
 如果本机路径与上面一致，可以这样设置当前 PowerShell：
 
@@ -63,6 +67,10 @@ VS Code 任务会继承启动 VS Code 时的环境。要使用一键构建，可
 VS Code，设置等价的用户环境变量，或复制 `CMakeUserPresets.json.example` 为被忽略的
 `CMakeUserPresets.json` 并填入本机路径。在 Windows 上重新构建前请先关闭正在运行的 Gallery
 窗口，否则链接器无法覆盖正在运行的 `.exe`。
+
+如果看到 `ninja: error: loading 'build.ninja': The system cannot find the file specified.`，请先运行
+`cmake --preset mingw-debug` 重新生成 `build/mingw/build.ninja`，再执行构建。如果 PowerShell
+显示重复的 `PATH`/`Path` 环境变量，请先启动干净终端或修正用户环境；否则 MinGW 工具可能没有编译器诊断就失败。
 
 如果要使用 Visual Studio/MSVC，请安装匹配的 Qt MSVC kit，并将 `CMAKE_PREFIX_PATH` 或 `Qt6_DIR`
 指向该 kit。不要提交本机的 `CMakeUserPresets.json`。

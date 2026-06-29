@@ -13,11 +13,11 @@ That version is used by:
 
 ## Release Tags
 
-Release tags use the `vX.Y.Z` format. The current release line is `v0.1.3`.
+Release tags use the `vX.Y.Z` format. The current release line is `v0.1.4`.
 
 ```bash
-git tag v0.1.3
-git push origin main v0.1.3
+git tag v0.1.4
+git push origin main v0.1.4
 ```
 
 Pushing a `v*` tag runs the GitHub Actions release job after the CI build matrix passes.

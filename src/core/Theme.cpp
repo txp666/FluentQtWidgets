@@ -48,6 +48,7 @@ ThemeManager::ThemeManager(QObject *parent) : QObject(parent)
                 FluentStyleSheet::updateAll(effectiveTheme(), true);
             }
             emit effectiveThemeChanged(effectiveTheme());
+            emit themeChangedFinished();
         }
     });
     m_systemThemeListener->start();
@@ -86,6 +87,7 @@ void ThemeManager::setTheme(Theme theme)
         } else {
             FluentStyleSheet::updateAll(effectiveTheme(), true);
         }
+        emit themeChangedFinished();
         return;
     }
 
@@ -102,6 +104,7 @@ void ThemeManager::setTheme(Theme theme)
     if (previousEffectiveTheme != effectiveTheme()) {
         emit effectiveThemeChanged(effectiveTheme());
     }
+    emit themeChangedFinished();
 }
 
 void ThemeManager::setAccentColor(const QColor &color)

@@ -23,6 +23,50 @@ constexpr const char *kDarkCustomQssProperty = "fqw-dark-qss";
 constexpr const char *kDirtyQssProperty = "fqw-dirty-qss";
 constexpr const char *kStyleSourceProperty = "fqw-style-source";
 
+bool containsWidget(const QList<QPointer<QWidget>> &widgets, QWidget *widget)
+{
+    for (const QPointer<QWidget> &current : widgets) {
+        if (current == widget) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QList<QPointer<QWidget>> suspendVisibleTopLevelUpdates(const QList<QPointer<QWidget>> &widgets)
+{
+    QList<QPointer<QWidget>> suspended;
+    for (const QPointer<QWidget> &widgetPointer : widgets) {
+        QWidget *widget = widgetPointer.data();
+        if (!widget || !widget->isVisible()) {
+            continue;
+        }
+
+        QWidget *topLevel = widget->window();
+        if (!topLevel || !topLevel->isVisible() || !topLevel->updatesEnabled()
+            || containsWidget(suspended, topLevel)) {
+            continue;
+        }
+
+        topLevel->setUpdatesEnabled(false);
+        suspended.append(topLevel);
+    }
+    return suspended;
+}
+
+void resumeTopLevelUpdates(const QList<QPointer<QWidget>> &widgets)
+{
+    for (const QPointer<QWidget> &widgetPointer : widgets) {
+        QWidget *widget = widgetPointer.data();
+        if (!widget) {
+            continue;
+        }
+
+        widget->setUpdatesEnabled(true);
+        widget->update();
+    }
+}
+
 FluentStyleSheetSource sourceFromProperty(const QWidget *widget)
 {
     if (!widget) {
@@ -434,6 +478,7 @@ void StyleSheetManager::updateAll(Theme theme, bool lazy)
 {
     compact();
 
+    const QList<QPointer<QWidget>> suspendedTopLevels = suspendVisibleTopLevelUpdates(m_widgets);
     for (const QPointer<QWidget> &widgetPointer : std::as_const(m_widgets)) {
         QWidget *widget = widgetPointer.data();
         if (!widget) {
@@ -447,6 +492,7 @@ void StyleSheetManager::updateAll(Theme theme, bool lazy)
 
         updateWidget(widget, theme);
     }
+    resumeTopLevelUpdates(suspendedTopLevels);
 }
 
 bool StyleSheetManager::eventFilter(QObject *watched, QEvent *event)

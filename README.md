@@ -49,7 +49,7 @@ cmake --build --preset mingw-debug --parallel
 ctest --preset mingw-debug
 ```
 
-For reference, one verified Windows MinGW layout from the Qt online installer is:
+For reference, one verified Windows MinGW layout from the Qt online installer is (use it as a template and replace paths with your own installation):
 
 ```text
 Qt kit prefix: C:\Qt\6.11.1\mingw_64
@@ -58,6 +58,9 @@ MinGW bin:     C:\Qt\Tools\mingw1310_64\bin
 Ninja dir:     C:\Qt\Tools\Ninja
 C++ compiler:  C:\Qt\Tools\mingw1310_64\bin\g++.exe
 ```
+
+Do not hard-code these paths in shared project configuration. Keep them in local environment variables,
+your IDE kit, or an ignored `CMakeUserPresets.json`.
 
 With that layout, the local PowerShell setup is:
 
@@ -70,6 +73,9 @@ VS Code tasks inherit the environment that started VS Code. For one-click builds
 from a terminal with the variables above set, set equivalent user environment variables, or copy
 `CMakeUserPresets.json.example` to the ignored `CMakeUserPresets.json` and fill in local paths. On Windows,
 close a running Gallery window before rebuilding because the linker cannot overwrite a running `.exe`.
+If you see `ninja: error: loading 'build.ninja': The system cannot find the file specified.`, run `cmake --preset mingw-debug` once to regenerate `build/mingw/build.ninja`, then build again.
+If PowerShell shows duplicate `PATH`/`Path` environment variables, start a clean terminal or normalize
+the user environment first; MinGW tools can otherwise fail with no compiler diagnostics.
 
 If using Visual Studio/MSVC, install the matching Qt MSVC kit and point `CMAKE_PREFIX_PATH` or `Qt6_DIR`
 to that kit instead. Do not commit your local `CMakeUserPresets.json`.

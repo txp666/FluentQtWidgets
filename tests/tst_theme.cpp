@@ -61,7 +61,9 @@ class ThemeTest : public QObject
         wrongPalette.setColor(QPalette::WindowText, QColor(Qt::white));
         app->setPalette(wrongPalette);
 
+        QSignalSpy finishedSpy(manager, &FluentQt::ThemeManager::themeChangedFinished);
         manager->setTheme(FluentQt::Theme::Light);
+        QCOMPARE(finishedSpy.count(), 1);
         QCOMPARE(app->palette().color(QPalette::ButtonText), QColor(32, 32, 32));
         QCOMPARE(app->palette().color(QPalette::WindowText), QColor(32, 32, 32));
 
