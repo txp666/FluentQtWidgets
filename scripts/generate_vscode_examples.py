@@ -238,7 +238,7 @@ def gallery_debug_config() -> dict:
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/debug/examples/gallery/FluentQtWidgetsGallery.app/Contents/MacOS/FluentQtWidgetsGallery",
-        "args": [],
+        "args": ["--defer-page-load"],
         "stopAtEntry": False,
         "cwd": "${workspaceFolder}",
         "environment": [],

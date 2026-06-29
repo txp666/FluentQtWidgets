@@ -150,7 +150,8 @@ int main(int argc, char *argv[])
     FluentQt::ThemeManager::instance()->setTheme(FluentQt::FluentConfig::instance()->themeMode());
     FluentQt::ThemeManager::instance()->setAccentColor(FluentQt::FluentConfig::instance()->themeColor());
 
-    auto *window = new GalleryWindow(nullptr, true);
+    const bool deferPageLoad = QCoreApplication::arguments().contains(QStringLiteral("--defer-page-load"));
+    auto *window = new GalleryWindow(nullptr, deferPageLoad);
     window->setAttribute(Qt::WA_DeleteOnClose);
 
     QMenu trayMenu;
