@@ -10,7 +10,7 @@ QWidget *GalleryWindow::createBasicInputPage()
 {
 #define B_TR(s) QCoreApplication::translate("BasicInputInterface", s)
 
-    auto *page = new GalleryInterface(B_TR("Basic input"),
+    auto *page = new GalleryInterface(navTx("Basic input"),
                                       QStringLiteral("qfluentwidgets.components.widgets"), this);
     const QString buttonSource =
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/basic_input/button/main.cpp");

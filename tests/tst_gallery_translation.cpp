@@ -6,6 +6,7 @@
 #include <QtCore/QPointer>
 #include <QtTest/QtTest>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QLabel>
 
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
@@ -252,6 +253,58 @@ class GalleryTranslationTest : public QObject
                           primarySplitPush->dropDownMenu()->view()->visualItemRect(primaryItem).center());
         QTRY_VERIFY(!primarySplitPush->dropDownMenu()->isVisible());
         QCOMPARE(primarySplitPush->text(), QStringLiteral("Gold Experience"));
+    }
+
+    void basicInputPageTitleUsesNavigationTranslator()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("zh_CN"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("basicInputInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+
+        bool foundTranslatedTitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("基本输入")) {
+                foundTranslatedTitle = true;
+                break;
+            }
+        }
+        QVERIFY(foundTranslatedTitle);
+    }
+
+    void basicInputTrailingTransparentTogglesStayCheckable()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("basicInputInterface")));
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+
+        auto *transparentTogglePush = page->findChild<FluentQt::TransparentTogglePushButton *>();
+        QVERIFY(transparentTogglePush != nullptr);
+        QCOMPARE(transparentTogglePush->text(), QStringLiteral("Start practicing"));
+        QVERIFY(transparentTogglePush->isCheckable());
+        QVERIFY(!transparentTogglePush->isChecked());
+        transparentTogglePush->click();
+        QVERIFY(transparentTogglePush->isChecked());
+
+        auto *transparentToggleTool = page->findChild<FluentQt::TransparentToggleToolButton *>();
+        QVERIFY(transparentToggleTool != nullptr);
+        QVERIFY(transparentToggleTool->isCheckable());
+        QVERIFY(!transparentToggleTool->isChecked());
+        transparentToggleTool->click();
+        QVERIFY(transparentToggleTool->isChecked());
     }
 
     void settingsThemeCardsFollowGlobalThemeChanges()

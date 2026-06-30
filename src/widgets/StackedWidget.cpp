@@ -163,8 +163,19 @@ void PopUpAniStackedWidget::removeWidget(QWidget *widget)
 {
     const int index = indexOf(widget);
     if (index >= 0 && index < m_animationInfos.size()) {
-        delete m_animationInfos.at(index).animation;
+        QPropertyAnimation *animation = m_animationInfos.at(index).animation;
+        if (m_currentAnimation == animation) {
+            m_currentAnimation->stop();
+            m_currentAnimation = nullptr;
+            m_nextIndex = -1;
+        }
+        delete animation;
         m_animationInfos.removeAt(index);
+        if (m_nextIndex == index) {
+            m_nextIndex = -1;
+        } else if (m_nextIndex > index) {
+            --m_nextIndex;
+        }
     }
     QStackedWidget::removeWidget(widget);
 }
@@ -237,7 +248,11 @@ void PopUpAniStackedWidget::onAnimationFinished()
     if (m_currentAnimation) {
         disconnect(m_currentAnimation, nullptr, this, nullptr);
     }
-    QStackedWidget::setCurrentIndex(m_nextIndex);
+    if (m_nextIndex >= 0 && m_nextIndex < count()) {
+        QStackedWidget::setCurrentIndex(m_nextIndex);
+    }
+    m_currentAnimation = nullptr;
+    m_nextIndex = -1;
     emit aniFinished();
 }
 

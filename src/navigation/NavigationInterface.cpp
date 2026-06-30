@@ -2,32 +2,60 @@
 
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/StyleSheet.h>
+#include <FluentQtWidgets/Widgets/StackedWidget.h>
 
+#include <QtCore/QEvent>
 #include <QtCore/QSignalBlocker>
 #include <QtCore/QUuid>
+#include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 
 namespace FluentQt {
 
 NavigationInterface::NavigationInterface(QWidget *parent, bool showReturnButton)
     : QFrame(parent)
 {
+    setAttribute(Qt::WA_TranslucentBackground, true);
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationInterface"));
 
     auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
+    m_navigationSpacer = new QWidget(this);
+    m_navigationSpacer->setAttribute(Qt::WA_StyledBackground, true);
+    FluentStyleSheet::setRole(m_navigationSpacer, QStringLiteral("NavigationSpacer"));
+    m_navigationSpacer->setFixedWidth(NavigationPanel::kCompactWidth);
+    layout->addWidget(m_navigationSpacer);
+
+    m_contentWidget = new QWidget(this);
+    m_contentWidget->setAttribute(Qt::WA_TranslucentBackground, true);
+    m_contentLayout = new QVBoxLayout(m_contentWidget);
+    m_contentLayout->setContentsMargins(0, 0, 0, 0);
+    m_contentLayout->setSpacing(0);
+
+    m_stackedWidget = new PopUpAniStackedWidget(m_contentWidget);
+    m_stackedWidget->setObjectName(QStringLiteral("NavigationStack"));
+    m_stackedWidget->setAttribute(Qt::WA_StyledBackground, true);
+    FluentStyleSheet::setRole(m_stackedWidget, QStringLiteral("NavigationStack"));
+    m_contentLayout->addWidget(m_stackedWidget);
+    layout->addWidget(m_contentWidget, 1);
+
     m_panel = new NavigationPanel(this);
     m_panel->setReturnButtonVisible(showReturnButton);
-    layout->addWidget(m_panel);
-
-    m_stackedWidget = new QStackedWidget(this);
-    m_stackedWidget->setObjectName(QStringLiteral("NavigationStack"));
-    layout->addWidget(m_stackedWidget, 1);
+    m_panel->installEventFilter(this);
+    updatePanelGeometry();
+    m_panel->raise();
 
     connect(m_panel, &NavigationPanel::itemClicked, this, &NavigationInterface::onPanelItemClicked);
+    connect(m_panel, &NavigationPanel::displayModeChanged, this, [this](NavigationDisplayMode) {
+        updateNavigationSpacerWidth();
+        m_panel->raise();
+    });
 }
 
 int NavigationInterface::addPage(QWidget *page, const QString &title, const QIcon &icon)
@@ -197,6 +225,10 @@ QStackedWidget *NavigationInterface::stackedWidget() const { return m_stackedWid
 
 NavigationPanel *NavigationInterface::navigationPanel() const { return m_panel; }
 
+int NavigationInterface::contentTopMargin() const { return m_contentTopMargin; }
+
+bool NavigationInterface::isAcrylicEnabled() const { return m_panel && m_panel->isAcrylicEnabled(); }
+
 void NavigationInterface::setCurrentIndex(int index)
 {
     if (index < 0 || index >= m_stackedWidget->count()) {
@@ -205,7 +237,10 @@ void NavigationInterface::setCurrentIndex(int index)
 
     const bool changed = index != m_stackedWidget->currentIndex();
     if (changed) {
-        m_stackedWidget->setCurrentIndex(index);
+        if (auto *scrollArea = qobject_cast<QAbstractScrollArea *>(m_stackedWidget->widget(index))) {
+            scrollArea->verticalScrollBar()->setValue(0);
+        }
+        m_stackedWidget->setCurrentIndex(index, false, true, 300, QEasingCurve::OutQuad);
     }
 
     const QString key = routeKey(index);
@@ -220,6 +255,43 @@ void NavigationInterface::setCurrentIndex(int index)
 }
 
 void NavigationInterface::setCurrentRouteKey(const QString &routeKey) { setCurrentIndex(indexOf(routeKey)); }
+
+void NavigationInterface::setContentTopMargin(int margin)
+{
+    m_contentTopMargin = qMax(0, margin);
+    if (m_contentLayout) {
+        m_contentLayout->setContentsMargins(0, m_contentTopMargin, 0, 0);
+    }
+}
+
+void NavigationInterface::setAcrylicEnabled(bool enabled)
+{
+    if (m_panel) {
+        m_panel->setAcrylicEnabled(enabled);
+    }
+}
+
+void NavigationInterface::setMinimumExpandWidth(int width)
+{
+    if (m_panel) {
+        m_panel->setMinimumExpandWidth(width);
+    }
+}
+
+bool NavigationInterface::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_panel && event->type() == QEvent::Resize) {
+        updateNavigationSpacerWidth();
+    }
+    return QFrame::eventFilter(watched, event);
+}
+
+void NavigationInterface::resizeEvent(QResizeEvent *event)
+{
+    QFrame::resizeEvent(event);
+    updatePanelGeometry();
+    updateNavigationSpacerWidth();
+}
 
 QString NavigationInterface::ensureRouteKey(QWidget *page, const QString &routeKey) const
 {
@@ -244,6 +316,37 @@ void NavigationInterface::onPanelItemClicked(const QString &routeKey)
 
     setCurrentIndex(index);
     emit navigationItemClicked(index, routeKey);
+}
+
+void NavigationInterface::updatePanelGeometry()
+{
+    if (!m_panel) {
+        return;
+    }
+
+    m_panel->setFixedHeight(height());
+    m_panel->move(0, 0);
+    if (m_panel->width() <= 0) {
+        m_panel->resize(NavigationPanel::kCompactWidth, height());
+    }
+}
+
+void NavigationInterface::updateNavigationSpacerWidth()
+{
+    if (!m_panel || !m_navigationSpacer) {
+        return;
+    }
+
+    const int width = m_panel->displayMode() == NavigationDisplayMode::Expand
+                          ? qMax(m_panel->width(), NavigationPanel::kCompactWidth)
+                          : NavigationPanel::kCompactWidth;
+    if (m_navigationSpacer->width() != width) {
+        m_navigationSpacer->setFixedWidth(width);
+        m_navigationSpacer->updateGeometry();
+        if (layout()) {
+            layout()->activate();
+        }
+    }
 }
 
 } // namespace FluentQt

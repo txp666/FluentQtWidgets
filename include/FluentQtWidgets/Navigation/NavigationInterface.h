@@ -9,10 +9,15 @@
 #include <QtWidgets/QFrame>
 
 class QStackedWidget;
+class QVBoxLayout;
+class QWidget;
+class QEvent;
+class QResizeEvent;
 
 namespace FluentQt {
 
 class NavigationTreeWidget;
+class PopUpAniStackedWidget;
 
 class FQW_API NavigationInterface : public QFrame
 {
@@ -59,24 +64,39 @@ class FQW_API NavigationInterface : public QFrame
     bool contains(const QString &routeKey) const;
     QStackedWidget *stackedWidget() const;
     NavigationPanel *navigationPanel() const;
+    int contentTopMargin() const;
+    bool isAcrylicEnabled() const;
 
   public slots:
     void setCurrentIndex(int index);
     void setCurrentRouteKey(const QString &routeKey);
+    void setContentTopMargin(int margin);
+    void setAcrylicEnabled(bool enabled);
+    void setMinimumExpandWidth(int width);
 
   signals:
     void currentIndexChanged(int index);
     void currentRouteKeyChanged(const QString &routeKey);
     void navigationItemClicked(int index, const QString &routeKey);
 
+  protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+
   private:
     QString ensureRouteKey(QWidget *page, const QString &routeKey) const;
     void onPanelItemClicked(const QString &routeKey);
     void onCustomNavigationItemClicked(const QString &routeKey);
+    void updatePanelGeometry();
+    void updateNavigationSpacerWidth();
 
     NavigationPanel *m_panel = nullptr;
-    QStackedWidget *m_stackedWidget = nullptr;
+    QWidget *m_navigationSpacer = nullptr;
+    QWidget *m_contentWidget = nullptr;
+    QVBoxLayout *m_contentLayout = nullptr;
+    PopUpAniStackedWidget *m_stackedWidget = nullptr;
     QList<QString> m_routeOrder;
+    int m_contentTopMargin = 0;
 };
 
 } // namespace FluentQt

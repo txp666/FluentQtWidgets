@@ -1,13 +1,16 @@
 #include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 
+#include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/Theme.h>
 
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
 #include <QtGui/QFont>
+#include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPixmap>
 #include <QtWidgets/QVBoxLayout>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -15,6 +18,44 @@
 #endif
 
 namespace FluentQt {
+
+namespace {
+
+QColor navigationIconColor()
+{
+    return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(255, 255, 255) : QColor(0, 0, 0);
+}
+
+void paintNavigationIcon(QPainter *painter, const QIcon &icon, const QRectF &target, QIcon::Mode mode = QIcon::Normal)
+{
+    if (!painter || icon.isNull() || target.isEmpty()) {
+        return;
+    }
+
+    QPaintDevice *device = painter->device();
+    const qreal dpr = device ? device->devicePixelRatioF() : qreal(1);
+    const QSize pixmapSize(qMax(1, qRound(target.width() * dpr)), qMax(1, qRound(target.height() * dpr)));
+
+    QPixmap pixmap = icon.pixmap(pixmapSize, mode);
+    if (pixmap.isNull()) {
+        return;
+    }
+
+    QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32_Premultiplied);
+    QPainter tintPainter(&image);
+    tintPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    tintPainter.fillRect(image.rect(), navigationIconColor());
+    tintPainter.end();
+
+    QPixmap tinted = QPixmap::fromImage(image);
+    tinted.setDevicePixelRatio(dpr);
+    painter->drawPixmap(target, tinted,
+                        QRectF(QPointF(0, 0),
+                               QSizeF(tinted.width() / tinted.devicePixelRatioF(),
+                                      tinted.height() / tinted.devicePixelRatioF())));
+}
+
+} // namespace
 
 NavigationWidget::NavigationWidget(bool selectable, QWidget *parent) : QWidget(parent), m_selectable(selectable)
 {
@@ -30,6 +71,10 @@ bool NavigationWidget::isSelectable() const { return m_selectable; }
 bool NavigationWidget::isCompacted() const { return m_compacted; }
 
 bool NavigationWidget::isSelected() const { return m_selected; }
+
+bool NavigationWidget::isAboutSelected() const { return m_aboutSelected; }
+
+QRectF NavigationWidget::indicatorRect() const { return QRectF(0, 10, 3, 16); }
 
 QSize NavigationWidget::sizeHint() const { return QSize(m_compacted ? kCompactWidth : kExpandWidth, kItemHeight); }
 
@@ -50,13 +95,30 @@ void NavigationWidget::setCompacted(bool compacted)
 
 void NavigationWidget::setSelected(bool selected)
 {
-    if (!m_selectable || m_selected == selected) {
+    if (!m_selectable) {
         return;
     }
 
+    const bool changed = m_selected != selected;
+    if (!changed && !m_aboutSelected) {
+        return;
+    }
     m_selected = selected;
+    m_aboutSelected = false;
     update();
-    emit selectedChanged(selected);
+    if (changed) {
+        emit selectedChanged(selected);
+    }
+}
+
+void NavigationWidget::setAboutSelected(bool selected)
+{
+    if (m_aboutSelected == selected) {
+        return;
+    }
+
+    m_aboutSelected = selected;
+    update();
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -116,12 +178,18 @@ QColor NavigationWidget::hoverBackgroundColor() const
 
 void NavigationWidget::drawHoverBackground(QPainter *painter)
 {
-    if (!m_hovered) {
+    if (!m_hovered && !m_aboutSelected) {
         return;
     }
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(hoverBackgroundColor());
+    if (m_aboutSelected) {
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        const int base = dark ? 255 : 0;
+        painter->setBrush(QColor(base, base, base, 6));
+    } else {
+        painter->setBrush(hoverBackgroundColor());
+    }
     painter->drawRoundedRect(rect(), 5, 5);
 }
 
@@ -399,6 +467,72 @@ void NavigationItemHeader::paintEvent(QPaintEvent *event)
     painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter, m_text);
 }
 
+NavigationToolButton::NavigationToolButton(const QIcon &icon, QWidget *parent)
+    : NavigationWidget(false, parent), m_icon(icon)
+{
+    setCursor(Qt::PointingHandCursor);
+    setFixedSize(kCompactWidth, kItemHeight);
+}
+
+QIcon NavigationToolButton::icon() const { return m_icon; }
+
+void NavigationToolButton::setIcon(const QIcon &icon)
+{
+    m_icon = icon;
+    update();
+}
+
+void NavigationToolButton::setCompacted(bool compacted)
+{
+    Q_UNUSED(compacted)
+    setFixedSize(kCompactWidth, kItemHeight);
+    update();
+}
+
+void NavigationToolButton::mousePressEvent(QMouseEvent *event)
+{
+    QWidget::mousePressEvent(event);
+    if (event->button() == Qt::LeftButton) {
+        m_pressed = true;
+        update();
+    }
+}
+
+void NavigationToolButton::mouseReleaseEvent(QMouseEvent *event)
+{
+    QWidget::mouseReleaseEvent(event);
+    if (event->button() != Qt::LeftButton) {
+        return;
+    }
+
+    m_pressed = false;
+    emit clicked(true);
+    update();
+}
+
+void NavigationToolButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+    painter.setPen(Qt::NoPen);
+
+    if (m_pressed) {
+        painter.setOpacity(0.7);
+    }
+    if (!isEnabled()) {
+        painter.setOpacity(0.4);
+    }
+
+    drawHoverBackground(&painter);
+
+    if (!m_icon.isNull()) {
+        paintNavigationIcon(&painter, m_icon, QRectF(11.5, 10, 16, 16),
+                            isEnabled() ? QIcon::Normal : QIcon::Disabled);
+    }
+}
+
 NavigationTreeWidget::NavigationTreeWidget(const QIcon &icon, const QString &text, bool selectable, QWidget *parent)
     : NavigationWidget(selectable, parent), m_icon(icon), m_text(text)
 {
@@ -410,6 +544,10 @@ NavigationTreeWidget::NavigationTreeWidget(const QIcon &icon, const QString &tex
             [this](const QVariant &value) { setFixedSize(value.toRect().size()); });
     connect(m_expandAnimation, &QPropertyAnimation::finished, this, &NavigationTreeWidget::onExpandAnimationFinished);
 
+    m_arrowAnimation = new QPropertyAnimation(this, "arrowAngle", this);
+    m_arrowAnimation->setDuration(150);
+    m_arrowAnimation->setEasingCurve(QEasingCurve::OutQuad);
+
     updateFixedSize();
 }
 
@@ -418,6 +556,8 @@ QString NavigationTreeWidget::text() const { return m_text; }
 QIcon NavigationTreeWidget::icon() const { return m_icon; }
 
 bool NavigationTreeWidget::isExpanded() const { return m_expanded; }
+
+qreal NavigationTreeWidget::arrowAngle() const { return m_arrowAngle; }
 
 QList<NavigationTreeWidget *> NavigationTreeWidget::childItems() const { return m_children; }
 
@@ -482,6 +622,11 @@ void NavigationTreeWidget::setExpanded(bool expanded)
 
     m_expanded = expanded;
 
+    m_arrowAnimation->stop();
+    m_arrowAnimation->setStartValue(m_arrowAngle);
+    m_arrowAnimation->setEndValue(expanded ? 180.0 : 0.0);
+    m_arrowAnimation->start();
+
     m_expandAnimation->stop();
     m_expandAnimation->setStartValue(geometry());
     m_expandAnimation->setEndValue(QRect(geometry().topLeft(), sizeHint()));
@@ -492,6 +637,16 @@ void NavigationTreeWidget::setExpanded(bool expanded)
             child->setVisible(false);
         }
     }
+}
+
+void NavigationTreeWidget::setArrowAngle(qreal angle)
+{
+    if (qFuzzyCompare(m_arrowAngle, angle)) {
+        return;
+    }
+
+    m_arrowAngle = angle;
+    update();
 }
 
 void NavigationTreeWidget::onExpandAnimationFinished()
@@ -535,28 +690,41 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         painter.setOpacity(0.7);
     }
 
-    if (m_selected) {
+    const bool drawIndicator = canDrawIndicator();
+    if (drawIndicator) {
         painter.setPen(Qt::NoPen);
         painter.setBrush(QColor(base, base, base, m_hovered ? 10 : 6));
         painter.drawRoundedRect(rect(), 5, 5);
 
         painter.setBrush(ThemeManager::instance()->accentColor());
-        painter.drawRoundedRect(QRectF(0, 10, 3, 16), 1.5, 1.5);
-    } else if (m_hovered) {
+        painter.drawRoundedRect(indicatorRect(), 1.5, 1.5);
+    } else if (m_hovered || m_aboutSelected) {
         painter.setPen(Qt::NoPen);
-        painter.setBrush(QColor(base, base, base, 10));
+        painter.setBrush(QColor(base, base, base, m_aboutSelected ? 6 : 10));
         painter.drawRoundedRect(rect(), 5, 5);
     }
 
     const int iconLeft = m_compacted ? 11 : 11;
     if (!m_icon.isNull()) {
-        m_icon.paint(&painter, QRect(iconLeft, 10, 16, 16));
+        paintNavigationIcon(&painter, m_icon, QRectF(iconLeft, 10, 16, 16),
+                            isEnabled() ? QIcon::Normal : QIcon::Disabled);
     }
 
     if (!m_compacted && !m_text.isEmpty()) {
         painter.setPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
         const int textLeft = m_icon.isNull() ? 16 : 44;
         painter.drawText(QRect(textLeft, 0, width() - textLeft - 8, height()), Qt::AlignVCenter, m_text);
+    }
+
+    if (!m_compacted && !m_children.isEmpty()) {
+        painter.save();
+        painter.translate(width() - 20, 18);
+        painter.rotate(m_arrowAngle);
+        const QIcon arrowIcon =
+            dark ? FluentQt::icon(FluentIcon::ArrowDown, Theme::Dark)
+                 : FluentQt::icon(FluentIcon::ArrowDown, Theme::Light, QColor(QStringLiteral("#646464")));
+        arrowIcon.paint(&painter, QRect(-5, -5, 10, 10));
+        painter.restore();
     }
 }
 
@@ -584,6 +752,21 @@ void NavigationTreeWidget::relayoutChildren()
         y += child->height() + 4;
     }
     updateFixedSize();
+}
+
+bool NavigationTreeWidget::canDrawIndicator() const
+{
+    if (m_selected) {
+        return true;
+    }
+
+    for (NavigationTreeWidget *child : m_children) {
+        if (child && !child->isVisible() && child->canDrawIndicator()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 } // namespace FluentQt

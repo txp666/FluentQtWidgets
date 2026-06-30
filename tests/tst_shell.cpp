@@ -130,6 +130,194 @@ class ShellTest : public QObject
         QCOMPARE(userCard->size(), QSize(40, 36));
     }
 
+    void navigationToolButtonIconAlignsWithItems()
+    {
+        const QIcon menuIcon = FluentQt::icon(FluentQt::FluentIcon::Menu);
+        FluentQt::NavigationToolButton menuButton(menuIcon);
+        FluentQt::NavigationTreeWidget item(menuIcon, QStringLiteral("Menu"));
+        menuButton.resize(40, 36);
+        item.resize(40, 36);
+
+        auto iconCenterX = [](QWidget *widget) {
+            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            widget->render(&image);
+
+            int left = image.width();
+            int right = -1;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    if (qAlpha(image.pixel(x, y)) > 0) {
+                        left = qMin(left, x);
+                        right = qMax(right, x);
+                    }
+                }
+            }
+
+            return left <= right ? (left + right) / 2.0 : -1.0;
+        };
+
+        QCOMPARE(iconCenterX(&menuButton), iconCenterX(&item));
+    }
+
+    void navigationIconsUseCurrentThemeTint()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Light);
+
+        const QIcon darkResourceIcon = FluentQt::icon(FluentQt::FluentIcon::Menu, FluentQt::Theme::Dark);
+        FluentQt::NavigationTreeWidget item(darkResourceIcon, QStringLiteral("Menu"));
+        item.setAttribute(Qt::WA_TranslucentBackground, true);
+        item.setAutoFillBackground(false);
+        item.resize(40, 36);
+
+        QImage image(item.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        item.render(&image);
+
+        int paintedPixels = 0;
+        int maxChannel = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QColor pixel = image.pixelColor(x, y);
+                if (pixel.alpha() <= 32) {
+                    continue;
+                }
+                const QColor background = image.pixelColor(0, 0);
+                if (background.alpha() > 32 && qAbs(pixel.red() - background.red()) < 8
+                    && qAbs(pixel.green() - background.green()) < 8
+                    && qAbs(pixel.blue() - background.blue()) < 8) {
+                    continue;
+                }
+                ++paintedPixels;
+                maxChannel = qMax(maxChannel, qMax(pixel.red(), qMax(pixel.green(), pixel.blue())));
+            }
+        }
+
+        theme->setTheme(previousTheme);
+
+        QVERIFY(paintedPixels > 0);
+        QVERIFY(maxChannel < 96);
+    }
+
+    void navigationToolButtonClicksWhenNotSelectable()
+    {
+        FluentQt::NavigationToolButton button(FluentQt::icon(FluentQt::FluentIcon::Menu));
+        button.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&button));
+
+        QSignalSpy clickedSpy(&button, &FluentQt::NavigationToolButton::clicked);
+        QTest::mouseClick(&button, Qt::LeftButton, Qt::NoModifier, button.rect().center());
+        QCOMPARE(clickedSpy.count(), 1);
+    }
+
+    void navigationPanelMenuButtonTogglesExpansion()
+    {
+        FluentQt::NavigationPanel panel;
+        panel.resize(48, 320);
+        panel.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&panel));
+
+        auto buttons = panel.findChildren<FluentQt::NavigationToolButton *>();
+        FluentQt::NavigationToolButton *menuButton = nullptr;
+        for (auto *button : buttons) {
+            if (button->isVisible() && button->isEnabled()) {
+                menuButton = button;
+                break;
+            }
+        }
+
+        QVERIFY(menuButton != nullptr);
+        QCOMPARE(panel.displayMode(), FluentQt::NavigationDisplayMode::Compact);
+        QTest::mouseClick(menuButton, Qt::LeftButton, Qt::NoModifier, menuButton->rect().center());
+        QTRY_VERIFY(panel.displayMode() != FluentQt::NavigationDisplayMode::Compact);
+    }
+
+    void navigationInterfaceCompactBackgroundStaysOpaqueWithAcrylicEnabled()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Dark);
+
+        FluentQt::NavigationInterface navigation(nullptr, true);
+        navigation.resize(240, 160);
+        navigation.setAcrylicEnabled(true);
+        navigation.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&navigation));
+
+        QVERIFY(!navigation.navigationPanel()->property("transparent").toBool());
+
+        QImage image(navigation.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        navigation.render(&image);
+        const QColor background = image.pixelColor(8, 100);
+        QCOMPARE(background.alpha(), 255);
+        QCOMPARE(background.red(), 32);
+        QCOMPARE(background.green(), 32);
+        QCOMPARE(background.blue(), 32);
+
+        theme->setTheme(previousTheme);
+    }
+
+    void navigationInterfaceUsesPopUpStackAnimation()
+    {
+        FluentQt::NavigationInterface navigation;
+        auto *home = new QWidget;
+        auto *settings = new QWidget;
+
+        QCOMPARE(navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home")), 0);
+        QCOMPARE(navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings")), 1);
+
+        auto *stack = qobject_cast<FluentQt::PopUpAniStackedWidget *>(navigation.stackedWidget());
+        QVERIFY(stack != nullptr);
+        QSignalSpy startSpy(stack, &FluentQt::PopUpAniStackedWidget::aniStart);
+        QSignalSpy finishedSpy(stack, &FluentQt::PopUpAniStackedWidget::aniFinished);
+
+        navigation.setCurrentRouteKey(QStringLiteral("settings"));
+        QCOMPARE(startSpy.count(), 1);
+        QCOMPARE(navigation.currentIndex(), 1);
+        QCOMPARE(navigation.currentWidget(), settings);
+        QTRY_COMPARE(finishedSpy.count(), 1);
+    }
+
+    void navigationPanelAnimatesSelectedIndicator()
+    {
+        FluentQt::NavigationPanel panel;
+        panel.resize(48, 220);
+        auto *home = panel.addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        auto *settings = panel.addItem(QStringLiteral("settings"), QIcon(), QStringLiteral("Settings"));
+        QVERIFY(home != nullptr);
+        QVERIFY(settings != nullptr);
+
+        panel.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&panel));
+
+        panel.setCurrentItem(QStringLiteral("home"));
+        QVERIFY(home->isSelected());
+
+        panel.setCurrentItem(QStringLiteral("settings"));
+        QVERIFY(!home->isSelected());
+        QVERIFY(!settings->isSelected());
+        QVERIFY(settings->isAboutSelected());
+        QTRY_VERIFY(settings->isSelected());
+        QVERIFY(!settings->isAboutSelected());
+    }
+
+    void navigationTreeWidgetArrowRotatesWhenExpanded()
+    {
+        FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Root"));
+        auto *child = new FluentQt::NavigationTreeWidget(QIcon(), QStringLiteral("Child"));
+        root.insertChild(-1, child);
+        root.setCompacted(false);
+        QCOMPARE(root.arrowAngle(), 0.0);
+
+        root.setExpanded(true);
+        QTRY_VERIFY(root.arrowAngle() > 170.0);
+        root.setExpanded(false);
+        QTRY_VERIFY(root.arrowAngle() < 10.0);
+    }
+
     void navigationBarTracksItemsAndCommands()
     {
         FluentQt::NavigationBar bar;
@@ -359,6 +547,142 @@ class ShellTest : public QObject
         QVERIFY(!window.canGoBack());
     }
 
+    void fluentWindowNavigationPanelOverlaysContent()
+    {
+        FluentQt::FluentWindow window;
+        window.resize(960, 640);
+
+        auto *home = new QWidget;
+        auto *settings = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+        window.addSubInterface(settings, QIcon(), QStringLiteral("Settings"), QStringLiteral("settings"));
+
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        auto *navigation = window.navigationInterface();
+        auto *panel = navigation->navigationPanel();
+        const int stackX = navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x();
+
+        QCOMPARE(panel->mapTo(&window, QPoint(0, 0)).y(), 0);
+        QCOMPARE(navigation->contentTopMargin(), 48);
+        QCOMPARE(stackX, FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
+
+        panel->expand(false);
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
+        QVERIFY(panel->isMenu());
+        QVERIFY(panel->width() > FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x(), stackX);
+        QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
+    }
+
+    void fluentWindowTitleBarUsesNavigationBackground()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Light);
+
+        FluentQt::FluentWindow window;
+        window.resize(480, 360);
+        auto *home = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        window.render(&image);
+
+        const QColor titleBarBackground = image.pixelColor(window.titleBar()->x() + 320, 12);
+        theme->setTheme(previousTheme);
+
+        QCOMPARE(titleBarBackground.alpha(), 255);
+        QCOMPARE(titleBarBackground.red(), 243);
+        QCOMPARE(titleBarBackground.green(), 243);
+        QCOMPARE(titleBarBackground.blue(), 243);
+    }
+
+    void fluentWindowNavigationStackUsesRoundedTopLeftCorner()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Dark);
+
+        FluentQt::FluentWindow window;
+        window.resize(480, 360);
+        auto *home = new QWidget;
+        home->setAttribute(Qt::WA_TranslucentBackground, true);
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        window.render(&image);
+
+        const QPoint stackTopLeft = window.stackedWidget()->mapTo(&window, QPoint(0, 0));
+        const QColor roundedCorner = image.pixelColor(stackTopLeft + QPoint(1, 1));
+        const QColor stackBody = image.pixelColor(stackTopLeft + QPoint(16, 16));
+        theme->setTheme(previousTheme);
+
+        QCOMPARE(roundedCorner.alpha(), 255);
+        QCOMPARE(roundedCorner.red(), 32);
+        QCOMPARE(roundedCorner.green(), 32);
+        QCOMPARE(roundedCorner.blue(), 32);
+        QVERIFY(stackBody.red() > roundedCorner.red());
+        QVERIFY(stackBody.green() > roundedCorner.green());
+        QVERIFY(stackBody.blue() > roundedCorner.blue());
+    }
+
+    void fluentWindowClipsChildBackgroundToWindowRadius()
+    {
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+        QSKIP("Windows and macOS use native or painted rounded corners without a QWidget mask");
+#else
+        FluentQt::FluentWindow window;
+        window.resize(480, 360);
+        auto *home = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        const QRegion mask = window.mask();
+        QVERIFY(!mask.isEmpty());
+        QVERIFY(!mask.contains(QPoint(0, 0)));
+        QVERIFY(!mask.contains(QPoint(window.width() - 1, 0)));
+        QVERIFY(mask.contains(QPoint(16, 16)));
+        QVERIFY(mask.contains(window.rect().center()));
+#endif
+    }
+
+    void fluentWindowNavigationPanelExpandsAtPythonThreshold()
+    {
+        FluentQt::FluentWindow window;
+        window.resize(1200, 640);
+
+        auto *home = new QWidget;
+        auto *settings = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+        window.addSubInterface(settings, QIcon(), QStringLiteral("Settings"), QStringLiteral("settings"));
+
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        auto *navigation = window.navigationInterface();
+        auto *panel = navigation->navigationPanel();
+        panel->expand(false);
+
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+        QVERIFY(!panel->isMenu());
+        QCOMPARE(panel->width(), FluentQt::NavigationPanel::kExpandWidth);
+        QCOMPARE(navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x(),
+                 FluentQt::NavigationPanel::kExpandWidth);
+    }
+
     void splitFluentWindowUsesFullWidthTitleBarAndContentArea()
     {
         FluentQt::FluentWindow normalWindow;
@@ -366,6 +690,7 @@ class ShellTest : public QObject
         normalWindow.show();
         QVERIFY(QTest::qWaitForWindowExposed(&normalWindow));
         QVERIFY(normalWindow.titleBar()->x() >= FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(normalWindow.titleBar()->property("navigationBackground").toBool(), true);
 
         FluentQt::SplitFluentWindow splitWindow;
         splitWindow.resize(480, 360);
@@ -373,6 +698,7 @@ class ShellTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&splitWindow));
         QCOMPARE(splitWindow.titleBar()->x(), 0);
         QCOMPARE(splitWindow.titleBar()->width(), splitWindow.width());
+        QCOMPARE(splitWindow.titleBar()->property("navigationBackground").toBool(), false);
     }
 
     void stackedWidgetsExposePythonTransitionApi()

@@ -15,12 +15,34 @@ QFrame[fqw="NavigationInterface"] QListWidget#NavigationList::item:selected {
     border-left: 3px solid @accentColor;
 }
 
-QFrame[fqw="NavigationPanel"] {
-    background: transparent;
+QFrame[fqw="NavigationPanel"][menu=true] {
+    background-color: rgb(32, 32, 32);
+    border: 1px solid rgb(57, 57, 57);
+    border-left: none;
+    border-top-right-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+QFrame[fqw="NavigationPanel"][menu=false] {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-left: none;
+    border-top-right-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+QFrame[fqw="NavigationPanel"][transparent=true] {
+    background-color: transparent;
 }
 
 QWidget[fqw="NavigationBar"] {
     background: transparent;
+}
+
+QWidget[fqw="NavigationSpacer"] {
+    background-color: rgb(32, 32, 32);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
 }
 
 QWidget[fqw="NavigationScrollWidget"] {

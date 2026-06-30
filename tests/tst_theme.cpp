@@ -516,6 +516,10 @@ class ThemeTest : public QObject
                      qPrintable(path));
             QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"TransparentDropDownToolButton\"]")),
                      qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QPushButton[fqw=\"TransparentTogglePushButton\"]:checked")),
+                     qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"TransparentToggleToolButton\"]:checked")),
+                     qPrintable(path));
             QVERIFY2(qss.contains(QStringLiteral("QPushButton[fqw=\"HyperlinkButton\"]:disabled")),
                      qPrintable(path));
             QVERIFY2(qss.contains(QStringLiteral("QPushButton[fqw=\"PillPushButton\"]:disabled:checked")),

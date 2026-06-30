@@ -149,7 +149,9 @@ QToolButton[fqw="PrimaryToolButton"],
 QToolButton[fqw="PrimaryDropDownToolButton"],
 QToolButton[fqw="PrimarySplitDropButton"],
 QPushButton[fqw="TogglePushButton"]:checked,
-QToolButton[fqw="ToggleToolButton"]:checked {
+QPushButton[fqw="TransparentTogglePushButton"]:checked,
+QToolButton[fqw="ToggleToolButton"]:checked,
+QToolButton[fqw="TransparentToggleToolButton"]:checked {
     color: black;
     background-color: @accentColor;
     border: 1px solid --ThemeColorLight1;
@@ -165,7 +167,9 @@ QToolButton[fqw="PrimaryToolButton"]:hover,
 QToolButton[fqw="PrimaryDropDownToolButton"]:hover,
 QToolButton[fqw="PrimarySplitDropButton"]:hover,
 QPushButton[fqw="TogglePushButton"]:checked:hover,
-QToolButton[fqw="ToggleToolButton"]:checked:hover {
+QPushButton[fqw="TransparentTogglePushButton"]:checked:hover,
+QToolButton[fqw="ToggleToolButton"]:checked:hover,
+QToolButton[fqw="TransparentToggleToolButton"]:checked:hover {
     background-color: --ThemeColorDark1;
     border: 1px solid --ThemeColorLight1;
     border-bottom: 1px solid --ThemeColorLight2;
@@ -177,7 +181,9 @@ QToolButton[fqw="PrimaryToolButton"]:pressed,
 QToolButton[fqw="PrimaryDropDownToolButton"]:pressed,
 QToolButton[fqw="PrimarySplitDropButton"]:pressed,
 QPushButton[fqw="TogglePushButton"]:checked:pressed,
-QToolButton[fqw="ToggleToolButton"]:checked:pressed {
+QPushButton[fqw="TransparentTogglePushButton"]:checked:pressed,
+QToolButton[fqw="ToggleToolButton"]:checked:pressed,
+QToolButton[fqw="TransparentToggleToolButton"]:checked:pressed {
     color: rgba(0, 0, 0, 0.63);
     background-color: --ThemeColorDark2;
     border: 1px solid --ThemeColorDark2;
@@ -189,7 +195,9 @@ QToolButton[fqw="PrimaryToolButton"]:disabled,
 QToolButton[fqw="PrimaryDropDownToolButton"]:disabled,
 QToolButton[fqw="PrimarySplitDropButton"]:disabled,
 QPushButton[fqw="TogglePushButton"]:checked:disabled,
-QToolButton[fqw="ToggleToolButton"]:checked:disabled {
+QPushButton[fqw="TransparentTogglePushButton"]:checked:disabled,
+QToolButton[fqw="ToggleToolButton"]:checked:disabled,
+QToolButton[fqw="TransparentToggleToolButton"]:checked:disabled {
     color: rgba(255, 255, 255, 0.43);
     background-color: rgb(52, 52, 52);
     border: 1px solid rgb(52, 52, 52);
@@ -198,7 +206,11 @@ QToolButton[fqw="ToggleToolButton"]:checked:disabled {
 QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked,
 QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:hover,
 QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:pressed,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:disabled {
+QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:disabled,
+QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked,
+QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:hover,
+QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:pressed,
+QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:disabled {
     padding: 5px 12px 6px 36px;
 }
 

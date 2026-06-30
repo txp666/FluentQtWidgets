@@ -6,7 +6,6 @@
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
-#include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
 
@@ -20,6 +19,7 @@
 #include <QtGui/QResizeEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QCursor>
+#include <QtGui/QRegion>
 #include <QtGui/QWindow>
 #include <QtGui/QGuiApplication>
 #include <QtWidgets/QHBoxLayout>
@@ -52,6 +52,36 @@ static QPoint eventGlobalPos(const QMouseEvent *event)
 namespace {
 
 constexpr int kWindowCornerRadius = 8;
+
+void updateRoundedWindowMask(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    widget->clearMask();
+#else
+    if (widget->isMaximized() || widget->isFullScreen() || widget->width() <= 0 || widget->height() <= 0) {
+        widget->clearMask();
+        return;
+    }
+
+    QPainterPath path;
+    path.addRoundedRect(QRectF(widget->rect()), kWindowCornerRadius, kWindowCornerRadius);
+    widget->setMask(QRegion(path.toFillPolygon().toPolygon()));
+#endif
+}
+
+void setTitleBarNavigationBackground(FluentTitleBar *titleBar, bool visible)
+{
+    if (!titleBar) {
+        return;
+    }
+
+    titleBar->setProperty("navigationBackground", visible);
+    FluentStyleSheet::polish(titleBar);
+}
 
 #if defined(Q_OS_WIN)
 constexpr UINT kDwmSystemBackdropTypeAttribute = []() constexpr
@@ -361,7 +391,7 @@ void FluentWidget::updateTitleBarGeometry()
 
 void FluentWidget::updateWindowMask()
 {
-    clearMask();
+    updateRoundedWindowMask(this);
     update();
 }
 
@@ -380,16 +410,18 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     m_frameless = new FramelessWindowHelper(this);
     m_history = new NavigationHistory(this);
     m_titleBar = new FluentTitleBar(this);
+    setTitleBarNavigationBackground(m_titleBar, true);
     m_frameless->setTitleBar(m_titleBar);
 
     m_container = new QWidget(this);
     m_container->setObjectName(QStringLiteral("FluentWindowContent"));
     m_container->setAttribute(Qt::WA_StyledBackground, true);
     auto *layout = new QVBoxLayout(m_container);
-    layout->setContentsMargins(0, m_contentTopMargin, 0, 0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
     m_navigation = new NavigationInterface(m_container, true);
+    m_navigation->setContentTopMargin(m_contentTopMargin);
     layout->addWidget(m_navigation);
     setCentralWidget(m_container);
 
@@ -397,9 +429,9 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
             &FluentWindow::onCurrentRouteKeyChanged);
     connect(m_navigation->navigationPanel(), &NavigationPanel::returnRequested, this, &FluentWindow::onReturnRequested);
     connect(m_navigation->navigationPanel(), &NavigationPanel::displayModeChanged, this,
-            [this](NavigationDisplayMode) { updateTitleBarGeometry(); });
+            [this](NavigationDisplayMode) { m_titleBar->raise(); });
     connect(m_history, &NavigationHistory::emptyChanged, this, [this](bool isEmpty) {
-        if (TransparentToolButton *button = m_navigation->navigationPanel()->returnButton()) {
+        if (NavigationToolButton *button = m_navigation->navigationPanel()->returnButton()) {
             button->setDisabled(isEmpty);
         }
     });
@@ -650,10 +682,8 @@ void FluentWindow::setTitleBarLeftMargin(int margin)
 void FluentWindow::setContentTopMargin(int margin)
 {
     m_contentTopMargin = qMax(0, margin);
-    if (m_container && m_container->layout()) {
-        QMargins margins = m_container->layout()->contentsMargins();
-        margins.setTop(m_contentTopMargin);
-        m_container->layout()->setContentsMargins(margins);
+    if (m_navigation) {
+        m_navigation->setContentTopMargin(m_contentTopMargin);
     }
 }
 
@@ -687,8 +717,7 @@ void FluentWindow::onReturnRequested() { goBack(); }
 
 void FluentWindow::updateTitleBarGeometry()
 {
-    const int navWidth = m_navigation->navigationPanel()->width();
-    const int left = m_titleBarLeftMargin >= 0 ? m_titleBarLeftMargin : navWidth;
+    const int left = m_titleBarLeftMargin >= 0 ? m_titleBarLeftMargin : NavigationPanel::kCompactWidth;
     m_titleBar->move(left, 0);
     m_titleBar->resize(qMax(0, width() - left), m_titleBar->height());
     m_titleBar->raise();
@@ -716,7 +745,7 @@ void FluentWindow::updateStackedBackground()
 
 void FluentWindow::updateWindowMask()
 {
-    clearMask();
+    updateRoundedWindowMask(this);
     update();
 }
 
@@ -726,6 +755,7 @@ void FluentWindow::updateWindowMask()
 
 SplitFluentWindow::SplitFluentWindow(QWidget *parent) : FluentWindow(parent)
 {
+    setTitleBarNavigationBackground(titleBar(), false);
     setTitleBarLeftMargin(0);
     setContentTopMargin(0);
     titleBar()->raise();
@@ -1030,7 +1060,7 @@ void MSFluentWindow::updateStackedBackground()
 
 void MSFluentWindow::updateWindowMask()
 {
-    clearMask();
+    updateRoundedWindowMask(this);
     update();
 }
 

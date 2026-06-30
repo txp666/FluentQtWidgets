@@ -30,6 +30,7 @@ GalleryWindow::GalleryWindow(QWidget *parent, bool deferPageLoad) : FluentWindow
     setWindowIcon(QIcon(QStringLiteral(":/gallery/images/logo.png")));
     setMinimumWidth(760);
     resize(960, 780);
+    navigationInterface()->setAcrylicEnabled(true);
 
     // Create and show splash screen
     auto *splash = new SplashScreen(windowIcon(), this);

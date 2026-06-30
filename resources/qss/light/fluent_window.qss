@@ -9,3 +9,26 @@ QWidget[fqw="FluentWidget"] {
 QWidget#FluentWindowContent {
     background: transparent;
 }
+
+QStackedWidget[fqw="NavigationStack"] {
+    border: 1px solid rgba(0, 0, 0, 17);
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 8px;
+    background-color: rgba(255, 255, 255, 128);
+}
+
+QStackedWidget[fqw="NavigationStack"][isTransparent=true] {
+    background-color: transparent;
+    border: none;
+}
+
+QFrame[fqw="FluentTitleBar"] {
+    background: transparent;
+}
+
+QFrame[fqw="FluentTitleBar"][navigationBackground=true] {
+    background-color: rgb(243, 243, 243);
+    border-top-right-radius: 8px;
+}

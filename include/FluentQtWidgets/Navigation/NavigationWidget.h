@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/Global.h>
 #include <FluentQtWidgets/Widgets/Label.h>
 
+#include <QtCore/QRectF>
 #include <QtCore/QString>
 #include <QtGui/QColor>
 #include <QtGui/QIcon>
@@ -25,6 +26,7 @@ class FQW_API NavigationWidget : public QWidget
     Q_PROPERTY(QString routeKey READ routeKey WRITE setRouteKey)
     Q_PROPERTY(bool compacted READ isCompacted WRITE setCompacted)
     Q_PROPERTY(bool selected READ isSelected WRITE setSelected)
+    Q_PROPERTY(bool aboutSelected READ isAboutSelected WRITE setAboutSelected)
 
   public:
     static constexpr int kCompactWidth = 40;
@@ -37,12 +39,15 @@ class FQW_API NavigationWidget : public QWidget
     bool isSelectable() const;
     bool isCompacted() const;
     bool isSelected() const;
+    bool isAboutSelected() const;
+    QRectF indicatorRect() const;
     QSize sizeHint() const override;
 
   public slots:
     void setRouteKey(const QString &routeKey);
     virtual void setCompacted(bool compacted);
     virtual void setSelected(bool selected);
+    virtual void setAboutSelected(bool selected);
 
   signals:
     void clicked(bool triggeredByUser = true);
@@ -66,6 +71,7 @@ class FQW_API NavigationWidget : public QWidget
     bool m_selectable = true;
     bool m_compacted = true;
     bool m_selected = false;
+    bool m_aboutSelected = false;
     bool m_pressed = false;
     bool m_hovered = false;
 };
