@@ -58,7 +58,7 @@ class DemoWindow : public SplitFluentWindow
             box.exec();
         });
 
-        addSubInterface(new DemoPage(QStringLiteral("Setting Interface"), this), icon(FluentIcon::Settings),
+        addSubInterface(new DemoPage(QStringLiteral("Setting Interface"), this), icon(FluentIcon::Setting),
                         QStringLiteral("Settings"), QStringLiteral("Setting-Interface"),
                         NavigationItemPosition::Bottom);
         switchTo(QStringLiteral("Music-Interface"));

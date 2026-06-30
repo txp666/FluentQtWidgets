@@ -63,8 +63,8 @@ QWidget *GalleryWindow::createNavigationPage()
 
     auto *segmentedTools = new SegmentedToggleToolWidget;
     segmentedTools->addItem(QStringLiteral("k1"), icon(FluentIcon::Search));
-    segmentedTools->addItem(QStringLiteral("k2"), icon(FluentIcon::Check));
-    segmentedTools->addItem(QStringLiteral("k3"), icon(FluentIcon::Settings));
+    segmentedTools->addItem(QStringLiteral("k2"), icon(FluentIcon::Accept));
+    segmentedTools->addItem(QStringLiteral("k3"), icon(FluentIcon::Setting));
     segmentedTools->setCurrentItem(QStringLiteral("k1"));
     page->addExampleCard(tx("NavigationViewInterface", "Another segmented control"), segmentedTools, segmentedToolWidgetSource);
 

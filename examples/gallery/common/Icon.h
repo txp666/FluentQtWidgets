@@ -30,9 +30,9 @@ inline QString galleryIconName(GalleryIcon icon)
 
 inline QString galleryIconPath(GalleryIcon icon, FluentQt::Theme theme = FluentQt::Theme::Auto)
 {
+    const FluentQt::Theme resolvedTheme =
+        theme == FluentQt::Theme::Auto ? FluentQt::ThemeManager::instance()->effectiveTheme() : theme;
     const QString colorSuffix =
-        (theme == FluentQt::Theme::Dark)
-            ? QStringLiteral("_white")
-            : QStringLiteral("_black");
+        resolvedTheme == FluentQt::Theme::Dark ? QStringLiteral("_white") : QStringLiteral("_black");
     return QStringLiteral(":/gallery/images/icons/%1%2.svg").arg(galleryIconName(icon), colorSuffix);
 }

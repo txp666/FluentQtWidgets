@@ -77,7 +77,7 @@ class DemoWindow : public FluentWindow
             box.exec();
         });
 
-        addSubInterface(settings, icon(FluentIcon::Settings), QStringLiteral("Settings"),
+        addSubInterface(settings, icon(FluentIcon::Setting), QStringLiteral("Settings"),
                         QStringLiteral("Setting-Interface"), NavigationItemPosition::Bottom);
         switchTo(QStringLiteral("Music-Interface"));
         resize(900, 700);

@@ -364,11 +364,11 @@ class FeedbackTest : public QObject
         bar.setMenuDropDown(true);
 
         auto *addAction = bar.addAction(FluentQt::FluentIcon::Add, QStringLiteral("Add"));
-        auto *editAction = new QAction(FluentQt::icon(FluentQt::FluentIcon::Settings), QStringLiteral("Edit"), &bar);
+        auto *editAction = new QAction(FluentQt::icon(FluentQt::FluentIcon::Setting), QStringLiteral("Edit"), &bar);
         editAction->setCheckable(true);
         bar.addAction(editAction);
         bar.addSeparator();
-        auto *hiddenAction = bar.addHiddenAction(FluentQt::FluentIcon::Settings, QStringLiteral("Settings"));
+        auto *hiddenAction = bar.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
 
         QCOMPARE(bar.commandActions().size(), 3);
         QCOMPARE(bar.hiddenActions().size(), 1);
@@ -405,7 +405,7 @@ class FeedbackTest : public QObject
 
         FluentQt::CommandBarView view;
         view.addAction(FluentQt::FluentIcon::Heart, QStringLiteral("Favorite"));
-        view.addHiddenAction(FluentQt::FluentIcon::Settings, QStringLiteral("Settings"));
+        view.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
         view.resizeToSuitableWidth();
         QVERIFY(view.commandBar() != nullptr);
         QVERIFY(qobject_cast<FluentQt::CommandViewBar *>(view.commandBar()) != nullptr);
@@ -425,7 +425,7 @@ class FeedbackTest : public QObject
         FluentQt::CommandBar bar;
         bar.setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         bar.addAction(FluentQt::FluentIcon::Add, QStringLiteral("Add"));
-        auto *hiddenAction = bar.addHiddenAction(FluentQt::FluentIcon::Settings, QStringLiteral("Settings"));
+        auto *hiddenAction = bar.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
         hiddenAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+I")));
         bar.resizeToSuitableWidth();
         bar.show();
@@ -456,7 +456,7 @@ class FeedbackTest : public QObject
 
         FluentQt::CommandBarView view;
         view.addAction(FluentQt::FluentIcon::Heart, QStringLiteral("Favorite"));
-        view.addHiddenAction(FluentQt::FluentIcon::Settings, QStringLiteral("Settings"));
+        view.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
         view.resizeToSuitableWidth();
         view.show();
         QVERIFY(QTest::qWaitForWindowExposed(&view));

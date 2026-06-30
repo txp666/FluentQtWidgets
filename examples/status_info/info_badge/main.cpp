@@ -48,9 +48,9 @@ class Demo : public QWidget
         row3->setSpacing(20);
         row3->setSizeConstraint(QLayout::SetMinimumSize);
         row3->addStretch(1);
-        row3->addWidget(IconInfoBadge::info(FluentIcon::Check));
-        row3->addWidget(IconInfoBadge::success(FluentIcon::Check));
-        row3->addWidget(IconInfoBadge::attension(FluentIcon::Check));
+        row3->addWidget(IconInfoBadge::info(FluentIcon::Accept));
+        row3->addWidget(IconInfoBadge::success(FluentIcon::Accept));
+        row3->addWidget(IconInfoBadge::attension(FluentIcon::Accept));
         row3->addWidget(IconInfoBadge::warning(FluentIcon::Close));
         row3->addWidget(IconInfoBadge::error(FluentIcon::Close));
         auto *badge = IconInfoBadge::custom(FluentIcon::Ringer, QColor(QStringLiteral("#005fb8")),

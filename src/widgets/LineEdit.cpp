@@ -757,7 +757,7 @@ void LineEditMenu::createActions()
                       [this]() { m_editor->undo(); });
     };
     auto addSelectAll = [this]() {
-        addMenuAction(this, FluentIcon::Check, tr("Select all"), QKeySequence::SelectAll, this,
+        addMenuAction(this, FluentIcon::Accept, tr("Select all"), QKeySequence::SelectAll, this,
                       [this]() { m_editor->selectAll(); });
     };
 
@@ -921,7 +921,7 @@ void TextEditMenu::createActions()
         addMenuAction(this, FluentIcon::Cancel, tr("Cancel"), QKeySequence::Undo, this, [this]() { undo(); });
     };
     auto addSelectAll = [this]() {
-        addMenuAction(this, FluentIcon::Check, tr("Select all"), QKeySequence::SelectAll, this,
+        addMenuAction(this, FluentIcon::Accept, tr("Select all"), QKeySequence::SelectAll, this,
                       [this]() { selectAll(); });
     };
 

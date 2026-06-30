@@ -49,7 +49,7 @@ class Demo : public QWidget
         selectAll->setShortcut(QKeySequence(QStringLiteral("Ctrl+A")));
         menu.addAction(selectAll);
 
-        auto *settings = new QAction(icon(FluentIcon::Settings), QStringLiteral("Settings"), &menu);
+        auto *settings = new QAction(icon(FluentIcon::Setting), QStringLiteral("Settings"), &menu);
         settings->setShortcut(QKeySequence(QStringLiteral("Ctrl+S")));
         menu.insertAction(selectAll, settings);
 

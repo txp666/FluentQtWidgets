@@ -82,7 +82,7 @@ class Demo : public QWidget
         menu->addAction(FluentIcon::ShoppingCart, QStringLiteral("Payment method"));
         menu->addAction(FluentIcon::Code, QStringLiteral("Redeem code or gift card"));
         menu->addSeparator();
-        menu->addAction(FluentIcon::Settings, QStringLiteral("Settings"));
+        menu->addAction(FluentIcon::Setting, QStringLiteral("Settings"));
         menu->exec(event->globalPos(), true, MenuAnimationType::DropDown);
     }
 };

@@ -260,7 +260,7 @@ PickerPanel::PickerPanel(QWidget *parent)
 
     m_itemMaskWidget = new ItemMaskWidget(m_listWidgets, this);
     m_hSeparatorWidget = new SeparatorWidget(Qt::Horizontal, m_view);
-    m_yesButton = new TransparentToolButton(icon(FluentIcon::Check), m_view);
+    m_yesButton = new TransparentToolButton(icon(FluentIcon::Accept), m_view);
     m_resetButton = new TransparentToolButton(icon(FluentIcon::Remove), m_view);
     m_cancelButton = new TransparentToolButton(icon(FluentIcon::Close), m_view);
 

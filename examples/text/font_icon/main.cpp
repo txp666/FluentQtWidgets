@@ -14,7 +14,7 @@ class Demo : public QWidget
     {
         auto *button1 = new PushButton(icon(FluentIcon::GitHub), QStringLiteral("Default"), this);
         auto *button2 = new PushButton(icon(FluentIcon::Link), QStringLiteral("Custom"), this);
-        auto *button3 = new TogglePushButton(icon(FluentIcon::Star), QStringLiteral("Toggle"), this);
+        auto *button3 = new TogglePushButton(icon(FluentIcon::Heart), QStringLiteral("Toggle"), this);
         auto *button4 = new HyperlinkButton(icon(FluentIcon::Play),
                                             QStringLiteral(FQW_REPOSITORY_URL),
                                             QStringLiteral("Hyperlink"), this);

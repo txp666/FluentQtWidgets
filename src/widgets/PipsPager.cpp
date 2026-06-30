@@ -252,7 +252,7 @@ void PipsPager::init()
     m_layout->setContentsMargins(0, 0, 0, 0);
     m_layout->setSpacing(0);
 
-    m_previousButton = new PipsScrollButton(FluentIcon::Back, this);
+    m_previousButton = new PipsScrollButton(FluentIcon::LeftArrow, this);
     m_previousButton->setToolTip(tr("Previous Page"));
     m_previousButton->setProperty("displayMode", displayModeName(m_previousButtonDisplayMode));
     QSizePolicy previousButtonSizePolicy = m_previousButton->sizePolicy();
@@ -260,7 +260,7 @@ void PipsPager::init()
     m_previousButton->setSizePolicy(previousButtonSizePolicy);
     connect(m_previousButton, &QToolButton::clicked, this, &PipsPager::scrollPrevious);
 
-    m_nextButton = new PipsScrollButton(FluentIcon::Forward, this);
+    m_nextButton = new PipsScrollButton(FluentIcon::RightArrow, this);
     m_nextButton->setToolTip(tr("Next Page"));
     m_nextButton->setProperty("displayMode", displayModeName(m_nextButtonDisplayMode));
     QSizePolicy nextButtonSizePolicy = m_nextButton->sizePolicy();
@@ -394,10 +394,10 @@ void PipsPager::updateLayoutDirection()
     }
 
     if (auto *button = dynamic_cast<PipsScrollButton *>(m_previousButton)) {
-        button->setFluentIcon(isHorizontal() ? FluentIcon::Back : FluentIcon::Upload);
+        button->setFluentIcon(isHorizontal() ? FluentIcon::LeftArrow : FluentIcon::Up);
     }
     if (auto *button = dynamic_cast<PipsScrollButton *>(m_nextButton)) {
-        button->setFluentIcon(isHorizontal() ? FluentIcon::Forward : FluentIcon::Download);
+        button->setFluentIcon(isHorizontal() ? FluentIcon::RightArrow : FluentIcon::Download);
     }
     m_layout->setDirection(isHorizontal() ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom);
 

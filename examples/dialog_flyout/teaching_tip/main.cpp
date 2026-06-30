@@ -85,7 +85,7 @@ class Demo : public QWidget
         connect(button2, &QPushButton::clicked, this, [this, button2]() {
             TeachingTip::create(QStringLiteral("Lesson 4"),
                                 QStringLiteral("表达敬意吧，表达出敬意，然后迈向回旋的另一个全新阶段！"),
-                                icon(FluentIcon::Success), QPixmap(), true, button2,
+                                icon(FluentIcon::Accept), QPixmap(), true, button2,
                                 TeachingTipTailPosition::Top, 2000, this);
         });
 

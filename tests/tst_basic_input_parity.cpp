@@ -19,11 +19,11 @@ class BasicInputParityTest : public QObject
 private slots:
     void toolButtonsKeepIconsInFluentPaintPath()
     {
-        ToolButton tool(icon(FluentIcon::Settings));
+        ToolButton tool(icon(FluentIcon::Setting));
         QVERIFY(!tool.icon().isNull());
         QVERIFY(static_cast<QToolButton *>(&tool)->icon().isNull());
 
-        PrimaryToolButton primary(icon(FluentIcon::Settings));
+        PrimaryToolButton primary(icon(FluentIcon::Setting));
         QVERIFY(!primary.icon().isNull());
         QVERIFY(static_cast<QToolButton *>(&primary)->icon().isNull());
 
@@ -167,7 +167,7 @@ private slots:
         QWidget page;
         auto *layout = new QGridLayout(&page);
 
-        auto *toolButton = new ToolButton(icon(FluentIcon::Settings), &page);
+        auto *toolButton = new ToolButton(icon(FluentIcon::Setting), &page);
         auto *pushButton = new PushButton(icon(FluentIcon::Folder),
                                           QStringLiteral("Standard push button with icon"), &page);
         auto *comboBox = new ComboBox(&page);

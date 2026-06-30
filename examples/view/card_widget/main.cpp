@@ -106,7 +106,7 @@ class GalleryCard : public HeaderCardWidget
   public:
     explicit GalleryCard(QWidget *parent = nullptr) : HeaderCardWidget(QStringLiteral("Screenshots"), parent)
     {
-        auto *expandButton = new TransparentToolButton(icon(FluentIcon::Forward), this);
+        auto *expandButton = new TransparentToolButton(icon(FluentIcon::RightArrow), this);
         expandButton->setFixedSize(32, 32);
         expandButton->setIconSize(QSize(12, 12));
         headerLayout()->addWidget(expandButton, 0, Qt::AlignRight);

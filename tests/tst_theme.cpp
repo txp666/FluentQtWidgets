@@ -105,20 +105,24 @@ class ThemeTest : public QObject
 
     void iconPathUsesFluentResourceNames()
     {
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Settings), QStringLiteral("Setting"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Back), QStringLiteral("LeftArrow"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Check), QStringLiteral("Accept"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Setting), QStringLiteral("Setting"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Return), QStringLiteral("Return"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::LeftArrow), QStringLiteral("LeftArrow"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Accept), QStringLiteral("Accept"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Checkbox), QStringLiteral("CheckBox"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::DateTime), QStringLiteral("DateTime"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Message), QStringLiteral("Message"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Layout), QStringLiteral("Layout"));
+        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Chat), QStringLiteral("Chat"));
         QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Copy), QStringLiteral("Copy"));
         QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Paste), QStringLiteral("Paste"));
         QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Video), QStringLiteral("Video"));
         QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Music), QStringLiteral("Music"));
         QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::FolderAdd), QStringLiteral("FolderAdd"));
         QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Cancel), QStringLiteral("Cancel"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Success), QStringLiteral("Accept"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Error), QStringLiteral("Cancel"));
-        QCOMPARE(FluentQt::iconPath(FluentQt::FluentIcon::Settings, FluentQt::Theme::Light),
+        QCOMPARE(FluentQt::iconPath(FluentQt::FluentIcon::Setting, FluentQt::Theme::Light),
                  QStringLiteral(":/qfluentwidgets/images/icons/Setting_black.svg"));
-        QCOMPARE(FluentQt::iconPath(FluentQt::FluentIcon::Settings, FluentQt::Theme::Dark),
+        QCOMPARE(FluentQt::iconPath(FluentQt::FluentIcon::Setting, FluentQt::Theme::Dark),
                  QStringLiteral(":/qfluentwidgets/images/icons/Setting_white.svg"));
     }
 
@@ -135,24 +139,65 @@ class ThemeTest : public QObject
     void fluentIconsUseBundledSvgResources()
     {
         const QList<FluentQt::FluentIcon> icons = {
-            FluentQt::FluentIcon::Add,       FluentQt::FluentIcon::Remove,    FluentQt::FluentIcon::Cut,
-            FluentQt::FluentIcon::Copy,      FluentQt::FluentIcon::Paste,     FluentQt::FluentIcon::Search,
-            FluentQt::FluentIcon::Settings,  FluentQt::FluentIcon::Home,      FluentQt::FluentIcon::Back,
-            FluentQt::FluentIcon::Forward,   FluentQt::FluentIcon::Check,     FluentQt::FluentIcon::Close,
-            FluentQt::FluentIcon::Cancel,    FluentQt::FluentIcon::Constract, FluentQt::FluentIcon::Info,
-            FluentQt::FluentIcon::Warning,
-            FluentQt::FluentIcon::Error,
-            FluentQt::FluentIcon::Success,   FluentQt::FluentIcon::Play,      FluentQt::FluentIcon::Pause,
-            FluentQt::FluentIcon::Video,     FluentQt::FluentIcon::Album,     FluentQt::FluentIcon::Volume,
-            FluentQt::FluentIcon::Music,
-            FluentQt::FluentIcon::Folder,    FluentQt::FluentIcon::FolderAdd, FluentQt::FluentIcon::Calendar,
-            FluentQt::FluentIcon::Download,
-            FluentQt::FluentIcon::Upload,    FluentQt::FluentIcon::Heart,     FluentQt::FluentIcon::People,
-            FluentQt::FluentIcon::ShoppingCart, FluentQt::FluentIcon::Star,
-            FluentQt::FluentIcon::ArrowDown, FluentQt::FluentIcon::View,      FluentQt::FluentIcon::Sync,
-            FluentQt::FluentIcon::Completed, FluentQt::FluentIcon::Minimize,  FluentQt::FluentIcon::Maximize,
-            FluentQt::FluentIcon::Restore,   FluentQt::FluentIcon::Link,      FluentQt::FluentIcon::Code,
-            FluentQt::FluentIcon::Feedback,  FluentQt::FluentIcon::GitHub,    FluentQt::FluentIcon::Scroll,
+            FluentQt::FluentIcon::Up, FluentQt::FluentIcon::Add, FluentQt::FluentIcon::Bus,
+            FluentQt::FluentIcon::Car, FluentQt::FluentIcon::Cut, FluentQt::FluentIcon::IOT,
+            FluentQt::FluentIcon::Pin, FluentQt::FluentIcon::Tag, FluentQt::FluentIcon::VPN,
+            FluentQt::FluentIcon::Cafe, FluentQt::FluentIcon::Chat, FluentQt::FluentIcon::Copy,
+            FluentQt::FluentIcon::Code, FluentQt::FluentIcon::Down, FluentQt::FluentIcon::Edit,
+            FluentQt::FluentIcon::Flag, FluentQt::FluentIcon::Font, FluentQt::FluentIcon::Game,
+            FluentQt::FluentIcon::Help, FluentQt::FluentIcon::Hide, FluentQt::FluentIcon::Home,
+            FluentQt::FluentIcon::Info, FluentQt::FluentIcon::Leaf, FluentQt::FluentIcon::Link,
+            FluentQt::FluentIcon::Mail, FluentQt::FluentIcon::Menu, FluentQt::FluentIcon::Mute,
+            FluentQt::FluentIcon::More, FluentQt::FluentIcon::Move, FluentQt::FluentIcon::Play,
+            FluentQt::FluentIcon::Save, FluentQt::FluentIcon::Send, FluentQt::FluentIcon::Sync,
+            FluentQt::FluentIcon::Unit, FluentQt::FluentIcon::View, FluentQt::FluentIcon::Wifi,
+            FluentQt::FluentIcon::Zoom, FluentQt::FluentIcon::Album, FluentQt::FluentIcon::Brush,
+            FluentQt::FluentIcon::Broom, FluentQt::FluentIcon::Close, FluentQt::FluentIcon::Cloud,
+            FluentQt::FluentIcon::Embed, FluentQt::FluentIcon::Globe, FluentQt::FluentIcon::Heart,
+            FluentQt::FluentIcon::Label, FluentQt::FluentIcon::Media, FluentQt::FluentIcon::Movie,
+            FluentQt::FluentIcon::Music, FluentQt::FluentIcon::Robot, FluentQt::FluentIcon::Pause,
+            FluentQt::FluentIcon::Paste, FluentQt::FluentIcon::Photo, FluentQt::FluentIcon::Phone,
+            FluentQt::FluentIcon::Print, FluentQt::FluentIcon::Share, FluentQt::FluentIcon::Tiles,
+            FluentQt::FluentIcon::Unpin, FluentQt::FluentIcon::Video, FluentQt::FluentIcon::Train,
+            FluentQt::FluentIcon::AddTo, FluentQt::FluentIcon::Accept, FluentQt::FluentIcon::Camera,
+            FluentQt::FluentIcon::Cancel, FluentQt::FluentIcon::Delete, FluentQt::FluentIcon::Folder,
+            FluentQt::FluentIcon::Filter, FluentQt::FluentIcon::Market, FluentQt::FluentIcon::Scroll,
+            FluentQt::FluentIcon::Layout, FluentQt::FluentIcon::GitHub, FluentQt::FluentIcon::Update,
+            FluentQt::FluentIcon::Remove, FluentQt::FluentIcon::Return, FluentQt::FluentIcon::People,
+            FluentQt::FluentIcon::QRCode, FluentQt::FluentIcon::Ringer, FluentQt::FluentIcon::Rotate,
+            FluentQt::FluentIcon::Search, FluentQt::FluentIcon::Volume, FluentQt::FluentIcon::Frigid,
+            FluentQt::FluentIcon::SaveAs, FluentQt::FluentIcon::ZoomIn, FluentQt::FluentIcon::Connect,
+            FluentQt::FluentIcon::History, FluentQt::FluentIcon::Setting, FluentQt::FluentIcon::Palette,
+            FluentQt::FluentIcon::Message, FluentQt::FluentIcon::FitPage, FluentQt::FluentIcon::ZoomOut,
+            FluentQt::FluentIcon::Airplane, FluentQt::FluentIcon::Asterisk, FluentQt::FluentIcon::Calories,
+            FluentQt::FluentIcon::Calendar, FluentQt::FluentIcon::Feedback, FluentQt::FluentIcon::Library,
+            FluentQt::FluentIcon::Minimize, FluentQt::FluentIcon::Checkbox, FluentQt::FluentIcon::Document,
+            FluentQt::FluentIcon::Language, FluentQt::FluentIcon::Download, FluentQt::FluentIcon::Question,
+            FluentQt::FluentIcon::Speakers, FluentQt::FluentIcon::DateTime, FluentQt::FluentIcon::FontSize,
+            FluentQt::FluentIcon::HomeFill, FluentQt::FluentIcon::PageLeft, FluentQt::FluentIcon::SaveCopy,
+            FluentQt::FluentIcon::SendFill, FluentQt::FluentIcon::SkipBack, FluentQt::FluentIcon::SpeedOff,
+            FluentQt::FluentIcon::Alignment, FluentQt::FluentIcon::Bluetooth, FluentQt::FluentIcon::Completed,
+            FluentQt::FluentIcon::Constract, FluentQt::FluentIcon::Headphone, FluentQt::FluentIcon::Megaphone,
+            FluentQt::FluentIcon::Projector, FluentQt::FluentIcon::Education, FluentQt::FluentIcon::LeftArrow,
+            FluentQt::FluentIcon::EraseTool, FluentQt::FluentIcon::PageRight, FluentQt::FluentIcon::PlaySolid,
+            FluentQt::FluentIcon::BookShelf, FluentQt::FluentIcon::Hightlight, FluentQt::FluentIcon::FolderAdd,
+            FluentQt::FluentIcon::PauseBold, FluentQt::FluentIcon::PencilInk, FluentQt::FluentIcon::PieSingle,
+            FluentQt::FluentIcon::QuickNote, FluentQt::FluentIcon::SpeedHigh, FluentQt::FluentIcon::StopWatch,
+            FluentQt::FluentIcon::ZipFolder, FluentQt::FluentIcon::Basketball, FluentQt::FluentIcon::Brightness,
+            FluentQt::FluentIcon::Dictionary, FluentQt::FluentIcon::Microphone, FluentQt::FluentIcon::ArrowDown,
+            FluentQt::FluentIcon::FullScreen, FluentQt::FluentIcon::MixVolumes, FluentQt::FluentIcon::RemoveFrom,
+            FluentQt::FluentIcon::RightArrow, FluentQt::FluentIcon::QuietHours, FluentQt::FluentIcon::Fingerprint,
+            FluentQt::FluentIcon::Application, FluentQt::FluentIcon::Certificate, FluentQt::FluentIcon::Transparent,
+            FluentQt::FluentIcon::ImageExport, FluentQt::FluentIcon::SpeedMedium, FluentQt::FluentIcon::LibraryFill,
+            FluentQt::FluentIcon::MusicFolder, FluentQt::FluentIcon::PowerButton, FluentQt::FluentIcon::SkipForward,
+            FluentQt::FluentIcon::CareUpSolid, FluentQt::FluentIcon::AcceptMedium, FluentQt::FluentIcon::CancelMedium,
+            FluentQt::FluentIcon::ChevronRight, FluentQt::FluentIcon::ClippingTool, FluentQt::FluentIcon::SearchMirror,
+            FluentQt::FluentIcon::ShoppingCart, FluentQt::FluentIcon::FontIncrease, FluentQt::FluentIcon::BackToWindow,
+            FluentQt::FluentIcon::CommandPrompt, FluentQt::FluentIcon::CloudDownload, FluentQt::FluentIcon::DictionaryAdd,
+            FluentQt::FluentIcon::CareDownSolid, FluentQt::FluentIcon::CareLeftSolid, FluentQt::FluentIcon::ClearSelection,
+            FluentQt::FluentIcon::DeveloperTools, FluentQt::FluentIcon::BackgroundFill, FluentQt::FluentIcon::CareRightSolid,
+            FluentQt::FluentIcon::ChevronDownMed, FluentQt::FluentIcon::ChevronRightMed, FluentQt::FluentIcon::EmojiTabSymbols,
+            FluentQt::FluentIcon::ExpressiveInputEntry,
         };
 
         for (const FluentQt::FluentIcon iconType : icons) {
@@ -557,18 +602,18 @@ class ThemeTest : public QObject
         FluentQt::SettingCardGroup group(QStringLiteral("General"));
 
         auto *switchCard =
-            new FluentQt::SwitchSettingCard(FluentQt::FluentIcon::Settings, QStringLiteral("Dark theme"));
+            new FluentQt::SwitchSettingCard(FluentQt::FluentIcon::Setting, QStringLiteral("Dark theme"));
         auto *rangeCard =
             new FluentQt::RangeSettingCard(0, 10, 4, FluentQt::FluentIcon::Volume, QStringLiteral("Scale"));
         auto *comboCard =
             new FluentQt::ComboBoxSettingCard(QStringList{QStringLiteral("Light"), QStringLiteral("Dark")},
-                                              FluentQt::FluentIcon::Settings, QStringLiteral("Theme"));
+                                              FluentQt::FluentIcon::Setting, QStringLiteral("Theme"));
         auto *colorCard = new FluentQt::ColorSettingCard(QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
                                                          QStringLiteral("Accent"));
         auto *optionsCard = new FluentQt::OptionsSettingCard(
             QStringList{QStringLiteral("Compact"), QStringLiteral("Comfortable")},
             QVariantList{QVariant(QStringLiteral("compact")), QVariant(QStringLiteral("comfortable"))},
-            FluentQt::FluentIcon::Settings, QStringLiteral("Density"));
+            FluentQt::FluentIcon::Setting, QStringLiteral("Density"));
         auto *folderCard = new FluentQt::FolderListSettingCard(
             QStringList{QStringLiteral("C:/Projects")}, FluentQt::FluentIcon::Folder, QStringLiteral("Folders"));
         auto *customColorCard =
@@ -648,7 +693,7 @@ class ThemeTest : public QObject
         QVERIFY(expandButton.isHover());
         QVERIFY(expandButton.isPressed());
 
-        FluentQt::HeaderSettingCard headerCard(FluentQt::FluentIcon::Settings, QStringLiteral("Advanced"),
+        FluentQt::HeaderSettingCard headerCard(FluentQt::FluentIcon::Setting, QStringLiteral("Advanced"),
                                                QStringLiteral("Header content"));
         QVERIFY(headerCard.expandButton() != nullptr);
         auto *headerAction = new FluentQt::PushButton(QStringLiteral("Action"));
@@ -656,7 +701,7 @@ class ThemeTest : public QObject
         QVERIFY(headerCard.actionLayout()->indexOf(headerAction) >= 0);
 
         auto *groupAction = new FluentQt::PushButton(QStringLiteral("Configure"));
-        FluentQt::GroupWidget groupWidget(FluentQt::FluentIcon::Settings, QStringLiteral("Group"),
+        FluentQt::GroupWidget groupWidget(FluentQt::FluentIcon::Setting, QStringLiteral("Group"),
                                           QStringLiteral("Group content"), groupAction);
         QCOMPARE(groupWidget.title(), QStringLiteral("Group"));
         QCOMPARE(groupWidget.content(), QStringLiteral("Group content"));
@@ -666,7 +711,7 @@ class ThemeTest : public QObject
         groupWidget.setContent(QString());
         QVERIFY(!groupWidget.contentLabel()->isVisible());
 
-        FluentQt::ExpandGroupSettingCard expandGroup(FluentQt::FluentIcon::Settings, QStringLiteral("Grouped"),
+        FluentQt::ExpandGroupSettingCard expandGroup(FluentQt::FluentIcon::Setting, QStringLiteral("Grouped"),
                                                      QStringLiteral("Grouped content"));
         auto *firstGroup = expandGroup.addGroup(FluentQt::FluentIcon::Info, QStringLiteral("One"),
                                                 QStringLiteral("First"), new FluentQt::SwitchButton);
@@ -681,7 +726,7 @@ class ThemeTest : public QObject
         QCOMPARE(expandGroup.groupCount(), 1);
         QCOMPARE(expandGroup.viewLayout()->count(), 1);
 
-        FluentQt::SimpleExpandGroupSettingCard simpleGroup(FluentQt::FluentIcon::Settings,
+        FluentQt::SimpleExpandGroupSettingCard simpleGroup(FluentQt::FluentIcon::Setting,
                                                            QStringLiteral("Simple grouped"));
         QCOMPARE(simpleGroup.property("fqw").toString(), QStringLiteral("SimpleExpandGroupSettingCard"));
     }
@@ -1199,7 +1244,7 @@ class ThemeTest : public QObject
         QCOMPARE(bar.upButton()->property("fqw").toString(), QStringLiteral("ArrowButton"));
         QCOMPARE(bar.groove()->orientation(), Qt::Vertical);
         QCOMPARE(bar.handle()->orientation(), Qt::Vertical);
-        QCOMPARE(bar.upButton()->iconType(), FluentQt::FluentIcon::Upload);
+        QCOMPARE(bar.upButton()->iconType(), FluentQt::FluentIcon::Up);
         QCOMPARE(bar.downButton()->iconType(), FluentQt::FluentIcon::ArrowDown);
         QCOMPARE(bar.groove()->opacity(), 0.0);
         QCOMPARE(bar.handle()->opacity(), 1.0);
@@ -1290,7 +1335,7 @@ class ThemeTest : public QObject
     void roundMenuAcceptsExternalActions()
     {
         FluentQt::RoundMenu menu;
-        QAction external(FluentQt::icon(FluentQt::FluentIcon::Settings), QStringLiteral("Settings"), &menu);
+        QAction external(FluentQt::icon(FluentQt::FluentIcon::Setting), QStringLiteral("Settings"), &menu);
         external.setShortcut(QKeySequence(QStringLiteral("Ctrl+,")));
         external.setEnabled(false);
 

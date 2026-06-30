@@ -60,7 +60,7 @@ class DemoWindow : public FluentWindow
                         NavigationItemPosition::Scroll, QStringLiteral("albums"));
         addSubInterface(folderInterface, icon(FluentIcon::Folder), QStringLiteral("Folder library"),
                         QStringLiteral("folder"), NavigationItemPosition::Scroll);
-        addSubInterface(settingInterface, icon(FluentIcon::Settings), QStringLiteral("Settings"),
+        addSubInterface(settingInterface, icon(FluentIcon::Setting), QStringLiteral("Settings"),
                         QStringLiteral("settings"), NavigationItemPosition::Bottom);
 
         if (auto *videoItem = navigationInterface()->navigationPanel()->widget(QStringLiteral("video"))) {

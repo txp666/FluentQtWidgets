@@ -1,6 +1,5 @@
 #include <FluentQtWidgets/Widgets/InfoBar.h>
 
-#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -56,20 +55,28 @@ InfoBarSeverity severityFromIcon(InfoBarIcon icon)
     return InfoBarSeverity::Info;
 }
 
-FluentIcon fluentIconFromInfoBarIcon(InfoBarIcon icon)
+QString infoBarIconResourceName(InfoBarIcon icon)
 {
     switch (icon) {
     case InfoBarIcon::Information:
-        return FluentIcon::Info;
+        return QStringLiteral("Info");
     case InfoBarIcon::Success:
-        return FluentIcon::Success;
+        return QStringLiteral("Success");
     case InfoBarIcon::Warning:
-        return FluentIcon::Warning;
+        return QStringLiteral("Warning");
     case InfoBarIcon::Error:
-        return FluentIcon::Error;
+        return QStringLiteral("Error");
     }
 
-    return FluentIcon::Info;
+    return QStringLiteral("Info");
+}
+
+QIcon infoBarIcon(InfoBarIcon icon)
+{
+    const QString themeToken = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QStringLiteral("dark")
+                                                                                        : QStringLiteral("light");
+    return QIcon(QStringLiteral(":/qfluentwidgets/images/info_bar/%1_%2.svg")
+                     .arg(infoBarIconResourceName(icon), themeToken));
 }
 
 QString typeNameFromInfoBarIcon(InfoBarIcon icon)
@@ -178,9 +185,7 @@ void InfoBarIconWidget::paintEvent(QPaintEvent * /*event*/)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     const QRect rect(10, 10, 15, 15);
-    const QIcon qicon = !m_customIcon.isNull() ? m_customIcon : (m_icon == InfoBarIcon::Information
-        ? FluentQt::icon(fluentIconFromInfoBarIcon(m_icon), themeColor())
-        : FluentQt::icon(fluentIconFromInfoBarIcon(m_icon), Theme::Auto));
+    const QIcon qicon = !m_customIcon.isNull() ? m_customIcon : infoBarIcon(m_icon);
     qicon.paint(&painter, rect);
 }
 

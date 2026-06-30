@@ -339,12 +339,10 @@ void NavigationPanel::initLayout()
     m_bottomLayout->setContentsMargins(4, 0, 4, 0);
     m_bottomLayout->setSpacing(4);
 
-    m_returnButton = new TransparentToolButton(icon(FluentIcon::Back), this);
+    m_returnButton = new TransparentToolButton(icon(FluentIcon::Return), this);
     m_returnButton->setFixedSize(40, 36);
-    m_menuButton = new TransparentToolButton(this);
+    m_menuButton = new TransparentToolButton(icon(FluentIcon::Menu), this);
     m_menuButton->setFixedSize(40, 36);
-    m_menuButton->setText(QStringLiteral("\u2630"));
-    m_menuButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
 
     m_topLayout->addWidget(m_returnButton, 0, Qt::AlignTop);
     m_topLayout->addWidget(m_menuButton, 0, Qt::AlignTop);

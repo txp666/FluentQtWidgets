@@ -57,8 +57,8 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
     connect(m_titleButton, &QPushButton::clicked, this, &CalendarView::titleClicked);
 
     m_resetButton = createNavigationButton(FluentQt::icon(FluentIcon::Close), QStringLiteral("resetButton"));
-    m_upButton = createNavigationButton(FluentQt::icon(FluentIcon::Back), QStringLiteral("upButton"));
-    m_downButton = createNavigationButton(FluentQt::icon(FluentIcon::Forward), QStringLiteral("downButton"));
+    m_upButton = createNavigationButton(FluentQt::icon(FluentIcon::LeftArrow), QStringLiteral("upButton"));
+    m_downButton = createNavigationButton(FluentQt::icon(FluentIcon::RightArrow), QStringLiteral("downButton"));
     connect(m_resetButton, &QToolButton::clicked, this, &CalendarView::reset);
     connect(m_upButton, &QToolButton::clicked, this, &CalendarView::scrollUp);
     connect(m_downButton, &QToolButton::clicked, this, &CalendarView::scrollDown);
@@ -409,8 +409,8 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
     };
 
     *resetButton = createNavButton(icon(FluentIcon::Close), QStringLiteral("resetButton"));
-    *upButton = createNavButton(icon(FluentIcon::Back), QStringLiteral("upButton"));
-    *downButton = createNavButton(icon(FluentIcon::Forward), QStringLiteral("downButton"));
+    *upButton = createNavButton(icon(FluentIcon::LeftArrow), QStringLiteral("upButton"));
+    *downButton = createNavButton(icon(FluentIcon::RightArrow), QStringLiteral("downButton"));
 
     headerLayout->addWidget(*titleButton, 1, Qt::AlignVCenter);
     headerLayout->addWidget(*resetButton, 0, Qt::AlignVCenter);

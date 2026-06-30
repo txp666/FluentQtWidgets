@@ -9,12 +9,12 @@ QFrame#iconCard > QLabel {
     font: 11px --FontFamilies;
 }
 
-QFrame#iconCard[selected=true] {
+QFrame#iconCard[isSelected=true] {
     background-color: @accentColor;
 }
 
-QFrame#iconCard[selected=true] > QLabel {
-    color: white;
+QFrame#iconCard[isSelected=true] > QLabel {
+    color: black;
 }
 
 QWidget#scrollWidget,

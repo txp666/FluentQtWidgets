@@ -85,7 +85,7 @@ CycleListWidget::CycleListWidget(const QStringList &items, const QSize &itemSize
                                  QWidget *parent)
     : QListWidget(parent), m_itemSize(itemSize), m_alignment(alignment)
 {
-    m_upButton = new ScrollButton(FluentIcon::Upload, this);
+    m_upButton = new ScrollButton(FluentIcon::Up, this);
     m_downButton = new ScrollButton(FluentIcon::ArrowDown, this);
     m_verticalSmoothScrollBar = new SmoothScrollBar(Qt::Vertical, this);
     m_lastScrollTime.start();

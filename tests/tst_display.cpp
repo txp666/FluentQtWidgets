@@ -56,7 +56,7 @@ class DisplayTest : public QObject
         QCOMPARE(widget.iconSize(), QSize(20, 20));
 
         QSignalSpy iconSpy(&widget, &FluentQt::IconWidget::iconChanged);
-        widget.setIcon(FluentQt::FluentIcon::Settings);
+        widget.setIcon(FluentQt::FluentIcon::Setting);
         QCOMPARE(iconSpy.count(), 1);
 
         widget.setIconSize(QSize(32, 24));
@@ -133,7 +133,7 @@ class DisplayTest : public QObject
         QCOMPARE(dot.maximumSize(), QSize(4, 4));
         QCOMPARE(dot.level(), FluentQt::InfoLevel::Attention);
 
-        FluentQt::IconInfoBadge iconBadge(FluentQt::FluentIcon::Check);
+        FluentQt::IconInfoBadge iconBadge(FluentQt::FluentIcon::Accept);
         QCOMPARE(iconBadge.property("fqw").toString(), QStringLiteral("IconInfoBadge"));
         QCOMPARE(iconBadge.level(), FluentQt::InfoLevel::Attention);
         QCOMPARE(iconBadge.size(), QSize(16, 16));
@@ -172,7 +172,7 @@ class DisplayTest : public QObject
         QCOMPARE(attachedDot->lightBackgroundColor(), QColor(QStringLiteral("#010203")));
         QCOMPARE(attachedDot->darkBackgroundColor(), QColor(QStringLiteral("#040506")));
 
-        auto *attachedIcon = FluentQt::IconInfoBadge::success(FluentQt::FluentIcon::Check, nullptr, &target,
+        auto *attachedIcon = FluentQt::IconInfoBadge::success(FluentQt::FluentIcon::Accept, nullptr, &target,
                                                               FluentQt::InfoBadgePosition::Right);
         QVERIFY(attachedIcon->manager());
         QCOMPARE(attachedIcon->level(), FluentQt::InfoLevel::Success);
@@ -318,7 +318,7 @@ class DisplayTest : public QObject
         QCOMPARE(headerCard.title(), QStringLiteral("General"));
         QVERIFY(headerCard.metaObject()->indexOfProperty("title") >= 0);
 
-        auto icon = FluentQt::icon(FluentQt::FluentIcon::Settings);
+        auto icon = FluentQt::icon(FluentQt::FluentIcon::Setting);
         FluentQt::CardGroupWidget group(icon, QStringLiteral("Title"), QStringLiteral("Content"));
         QCOMPARE(group.title(), QStringLiteral("Title"));
         QCOMPARE(group.content(), QStringLiteral("Content"));
@@ -473,7 +473,7 @@ class DisplayTest : public QObject
         QVERIFY(shortList.downButton() != nullptr);
         QVERIFY(shortList.verticalSmoothScrollBar() != nullptr);
         QCOMPARE(shortList.verticalSmoothScrollBar()->isForceHidden(), true);
-        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::Upload);
+        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::Up);
         QCOMPARE(shortList.downButton()->fluentIcon(), FluentQt::FluentIcon::ArrowDown);
         QCOMPARE(shortList.upButton()->property("pickerOperation").toBool(), true);
         QCOMPARE(shortList.downButton()->property("pickerOperation").toBool(), true);
@@ -1161,11 +1161,11 @@ class DisplayTest : public QObject
         primaryButton.setMenu(&menu);
         QCOMPARE(primaryButton.menu(), &menu);
 
-        FluentQt::DropDownToolButton toolButton(FluentQt::icon(FluentQt::FluentIcon::Star));
+        FluentQt::DropDownToolButton toolButton(FluentQt::icon(FluentQt::FluentIcon::Heart));
         toolButton.setMenu(&menu);
         QCOMPARE(toolButton.menu(), &menu);
 
-        FluentQt::PrimaryDropDownToolButton primaryToolButton(FluentQt::icon(FluentQt::FluentIcon::Star));
+        FluentQt::PrimaryDropDownToolButton primaryToolButton(FluentQt::icon(FluentQt::FluentIcon::Heart));
         primaryToolButton.setMenu(&menu);
         QCOMPARE(primaryToolButton.menu(), &menu);
     }
@@ -1335,7 +1335,7 @@ class DisplayTest : public QObject
         QCOMPARE(primaryPush.dropButton()->iconSize(), QSize(12, 12));
         QVERIFY(countPixelsNear(primaryPush.dropButton(), QColor(30, 144, 255)) > 25);
 
-        FluentQt::PrimarySplitToolButton primaryTool(FluentQt::icon(FluentQt::FluentIcon::Star));
+        FluentQt::PrimarySplitToolButton primaryTool(FluentQt::icon(FluentQt::FluentIcon::Heart));
         QVERIFY(primaryTool.metaObject()->indexOfProperty("icon") >= 0);
         QVERIFY(primaryTool.metaObject()->indexOfProperty("iconSize") >= 0);
         QVERIFY(primaryTool.button() != nullptr);
@@ -1429,7 +1429,7 @@ class DisplayTest : public QObject
         splitAlias.setFlyout(&flyout);
         QCOMPARE(splitAlias.flyout(), &flyout);
 
-        FluentQt::SplitToolButton splitToolAlias(FluentQt::icon(FluentQt::FluentIcon::Star));
+        FluentQt::SplitToolButton splitToolAlias(FluentQt::icon(FluentQt::FluentIcon::Heart));
         QVERIFY(splitToolAlias.metaObject()->indexOfProperty("icon") >= 0);
         QVERIFY(splitToolAlias.metaObject()->indexOfProperty("iconSize") >= 0);
         QCOMPARE(splitToolAlias.button()->objectName(), QStringLiteral("splitToolButton"));
@@ -1448,7 +1448,7 @@ class DisplayTest : public QObject
         splitToolAlias.setFlyout(&flyout);
         QCOMPARE(splitToolAlias.flyout(), &flyout);
 
-        FluentQt::PrimarySplitToolButton primaryToolAlias(FluentQt::icon(FluentQt::FluentIcon::Star));
+        FluentQt::PrimarySplitToolButton primaryToolAlias(FluentQt::icon(FluentQt::FluentIcon::Heart));
         primaryToolAlias.setFlyout(&flyout);
         QCOMPARE(primaryToolAlias.flyout(), &flyout);
 
@@ -1682,7 +1682,7 @@ class DisplayTest : public QObject
         QCOMPARE(editor.darkFocusedBorderColor(), QColor(Qt::blue));
 
         QAction first(FluentQt::icon(FluentQt::FluentIcon::Add), QStringLiteral("First"), &editor);
-        QAction second(FluentQt::icon(FluentQt::FluentIcon::Check), QStringLiteral("Second"), &editor);
+        QAction second(FluentQt::icon(FluentQt::FluentIcon::Accept), QStringLiteral("Second"), &editor);
         editor.addActions({&first, &second}, QLineEdit::LeadingPosition);
         QCOMPARE(editor.textMargins().left(), 60);
         QCOMPARE(editor.leftButtons().size(), 2);
@@ -1990,7 +1990,7 @@ class DisplayTest : public QObject
         targetFlyout->close();
 
         FluentQt::AcrylicFlyoutView acrylicView(QStringLiteral("Acrylic"), QStringLiteral("Material"),
-                                                FluentQt::icon(FluentQt::FluentIcon::Success), image, true);
+                                                FluentQt::icon(FluentQt::FluentIcon::Accept), image, true);
         QCOMPARE(acrylicView.property("fqw").toString(), QStringLiteral("AcrylicFlyoutView"));
         QVERIFY(acrylicView.acrylicBrush() != nullptr);
         QCOMPARE(acrylicView.title(), QStringLiteral("Acrylic"));
@@ -2042,7 +2042,7 @@ class DisplayTest : public QObject
 
     void buttonIconTextConstructorsKeepFluentRoles()
     {
-        const QIcon starIcon = FluentQt::icon(FluentQt::FluentIcon::Star);
+        const QIcon starIcon = FluentQt::icon(FluentQt::FluentIcon::Heart);
         const QIcon heartIcon = FluentQt::icon(FluentQt::FluentIcon::Heart);
         QVERIFY(!starIcon.isNull());
         QVERIFY(!heartIcon.isNull());
@@ -2749,7 +2749,7 @@ class DisplayTest : public QObject
         auto *model = new QStandardItemModel(&combo);
         auto *alpha = new QStandardItem(QStringLiteral("Alpha"));
         alpha->setData(QStringLiteral("a"), Qt::UserRole);
-        alpha->setIcon(FluentQt::icon(FluentQt::FluentIcon::Star));
+        alpha->setIcon(FluentQt::icon(FluentQt::FluentIcon::Heart));
         auto *beta = new QStandardItem(QStringLiteral("Beta"));
         beta->setData(QStringLiteral("b"), Qt::UserRole);
         model->appendRow(alpha);

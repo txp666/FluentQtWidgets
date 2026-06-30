@@ -361,7 +361,7 @@ void SubMenuItemWidget::paintEvent(QPaintEvent *)
     QColor arrowColor = isDarkTheme() ? QColor(255, 255, 255, 150) : QColor(0, 0, 0, 130);
     painter.setOpacity(arrowColor.alphaF());
 
-    FluentQt::icon(FluentIcon::Forward, theme, arrowColor)
+    FluentQt::icon(FluentIcon::RightArrow, theme, arrowColor)
         .paint(&painter, QRect(static_cast<int>(x), static_cast<int>(y), arrowSize, arrowSize));
 }
 
@@ -657,7 +657,7 @@ void CheckIndicatorMenuItemDelegate::drawIndicator(QPainter *painter, const QSty
         painter->setOpacity(0.75);
     }
 
-    FluentQt::icon(FluentIcon::Check, Theme::Auto)
+    FluentQt::icon(FluentIcon::Accept, Theme::Auto)
         .paint(painter, QRect(x, y, s, s));
 }
 

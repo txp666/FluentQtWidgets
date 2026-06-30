@@ -50,7 +50,7 @@ class DemoWindow : public FluentWindow
 
         addSubInterface(new DemoPage(QStringLiteral("Video Interface"), this), icon(FluentIcon::Video),
                         QStringLiteral("Video library"), QStringLiteral("video-interface"));
-        addSubInterface(new DemoPage(QStringLiteral("Setting Interface"), this), icon(FluentIcon::Settings),
+        addSubInterface(new DemoPage(QStringLiteral("Setting Interface"), this), icon(FluentIcon::Setting),
                         QStringLiteral("Settings"), QStringLiteral("setting-interface"),
                         NavigationItemPosition::Bottom);
 

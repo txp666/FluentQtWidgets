@@ -248,7 +248,7 @@ class ClockWindow : public SplitFluentWindow
             box.exec();
         });
 
-        navigationInterface()->addItem(QStringLiteral("settingInterface"), icon(FluentIcon::Settings), tr("Settings"),
+        navigationInterface()->addItem(QStringLiteral("settingInterface"), icon(FluentIcon::Setting), tr("Settings"),
                                        NavigationItemPosition::Bottom);
         navigationInterface()->navigationPanel()->setExpandWidth(280);
         resize(900, 700);

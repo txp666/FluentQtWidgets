@@ -130,7 +130,7 @@ auto *toggle = new FluentQt::SwitchButton;
 
 ```cpp
 auto *title = new FluentQt::TitleLabel("Settings");
-auto *icon = new FluentQt::IconWidget(FluentQt::FluentIcon::Settings);
+auto *icon = new FluentQt::IconWidget(FluentQt::FluentIcon::Setting);
 auto *image = new FluentQt::ImageLabel(QPixmap("avatar.png"));
 auto *avatar = new FluentQt::AvatarWidget(":/images/profile.png");
 auto *textAvatar = new FluentQt::AvatarWidget;
@@ -187,7 +187,7 @@ Supported classes:
 ```cpp
 auto *group = new FluentQt::SettingCardGroup("Personalization");
 group->addSettingCard(new FluentQt::SwitchSettingCard(
-    FluentQt::FluentIcon::Settings, "Dark theme", "Use the dark Fluent palette."));
+    FluentQt::FluentIcon::Setting, "Dark theme", "Use the dark Fluent palette."));
 group->addSettingCard(new FluentQt::RangeSettingCard(
     80, 140, 100, FluentQt::FluentIcon::Volume, "Interface scale"));
 group->addSettingCard(new FluentQt::FolderListSettingCard(

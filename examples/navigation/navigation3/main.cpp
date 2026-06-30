@@ -141,7 +141,7 @@ class DemoWindow : public FluentWidget
         m_navigation->addSeparator();
         addPage(QStringLiteral("Folder-Interface"), icon(FluentIcon::Folder), QStringLiteral("Folder library"),
                 new DemoPage(QStringLiteral("Folder Interface"), this), NavigationItemPosition::Scroll);
-        addPage(QStringLiteral("Setting-Interface"), icon(FluentIcon::Settings), QStringLiteral("Settings"),
+        addPage(QStringLiteral("Setting-Interface"), icon(FluentIcon::Setting), QStringLiteral("Settings"),
                 new DemoPage(QStringLiteral("Setting Interface"), this), NavigationItemPosition::Bottom);
 
         connect(m_navigation, &CompactNavigationBar::itemClicked, this, [this](const QString &routeKey) {

@@ -52,7 +52,7 @@ class DemoWindow : public QWidget
 
         m_navigation->addItemHeader(QStringLiteral("Basic Input"));
         m_navigation->addPage(createPage(QStringLiteral("Button"), this), QStringLiteral("Button"),
-                              icon(FluentIcon::Check), QStringLiteral("button"));
+                              icon(FluentIcon::Accept), QStringLiteral("button"));
         m_navigation->addPage(createPage(QStringLiteral("Input"), this), QStringLiteral("Input"),
                               icon(FluentIcon::Edit), QStringLiteral("input"));
 
@@ -63,7 +63,7 @@ class DemoWindow : public QWidget
                               icon(FluentIcon::Folder), QStringLiteral("list"));
 
         m_navigation->addPage(createPage(QStringLiteral("Settings"), this), QStringLiteral("Settings"),
-                              icon(FluentIcon::Settings), QStringLiteral("settings"),
+                              icon(FluentIcon::Setting), QStringLiteral("settings"),
                               NavigationItemPosition::Bottom);
     }
 

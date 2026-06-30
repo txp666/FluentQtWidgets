@@ -26,7 +26,7 @@ QWidget *GalleryWindow::createMenuPage()
         menu->addAction(FluentIcon::Paste, tx("MenuInterface", "Paste"));
         menu->addAction(FluentIcon::Cancel, tx("MenuInterface", "Undo"));
         menu->addSeparator();
-        menu->addAction(FluentIcon::Settings, tx("MenuInterface", "Settings"));
+        menu->addAction(FluentIcon::Setting, tx("MenuInterface", "Settings"));
         menu->addAction(FluentIcon::Help, tx("MenuInterface", "Help"));
         menu->addAction(FluentIcon::Feedback, tx("MenuInterface", "Feedback"));
         menu->addAction(tx("MenuInterface", "Select all"));
@@ -44,7 +44,7 @@ QWidget *GalleryWindow::createMenuPage()
         menu->addAction(FluentIcon::ShoppingCart, tx("MenuInterface", "Payment method"));
         menu->addAction(FluentIcon::Code, tx("MenuInterface", "Redemption code and gift card"));
         menu->addSeparator();
-        menu->addAction(FluentIcon::Settings, tx("MenuInterface", "Settings"));
+        menu->addAction(FluentIcon::Setting, tx("MenuInterface", "Settings"));
         menu->exec(profileMenuBtn->mapToGlobal(QPoint(profileMenuBtn->width() + 5, -100)), true,
                   MenuAnimationType::DropDown);
     });
@@ -68,7 +68,7 @@ QWidget *GalleryWindow::createMenuPage()
         menu->addActions({createTime, shootTime, modifiedTime, name});
         menu->addSeparator();
         auto *group2 = new QActionGroup(menu);
-        auto *ascending = new QAction(icon(FluentIcon::Upload), tx("MenuInterface", "Ascending"), group2);
+        auto *ascending = new QAction(icon(FluentIcon::Up), tx("MenuInterface", "Ascending"), group2);
         auto *descending = new QAction(icon(FluentIcon::Download), tx("MenuInterface", "Descending"), group2);
         ascending->setCheckable(true);
         descending->setCheckable(true);
@@ -101,7 +101,7 @@ QWidget *GalleryWindow::createMenuPage()
     dropBtn->setDropDownMenu(sortMenu);
     dropBtn->setFixedHeight(34);
     commandBar->addWidget(dropBtn);
-    auto *settingsAction = commandBar->addHiddenAction(FluentIcon::Settings, tx("MenuInterface", "Settings"));
+    auto *settingsAction = commandBar->addHiddenAction(FluentIcon::Setting, tx("MenuInterface", "Settings"));
     settingsAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+I")));
     page->addExampleCard(tx("MenuInterface", "Command bar"), commandBar, commandBarSource, 1);
 
@@ -158,7 +158,7 @@ QWidget *GalleryWindow::createMenuPage()
         view->addAction(FluentIcon::Delete, tx("MenuInterface", "Delete"));
         auto *printAction = view->addHiddenAction(FluentIcon::Print, tx("MenuInterface", "Print"));
         printAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+P")));
-        auto *settings = view->addHiddenAction(FluentIcon::Settings, tx("MenuInterface", "Settings"));
+        auto *settings = view->addHiddenAction(FluentIcon::Setting, tx("MenuInterface", "Settings"));
         settings->setShortcut(QKeySequence(QStringLiteral("Ctrl+S")));
         view->resizeToSuitableWidth();
         Flyout::create(view, imageLabel->mapToGlobal(QPoint(imageLabel->width(), 0)), FlyoutAnimationType::FadeIn);

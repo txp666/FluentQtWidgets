@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         menu->addAction(icon(FluentIcon::Paste), QStringLiteral("Paste"));
         menu->addAction(icon(FluentIcon::Cancel), QStringLiteral("Undo"));
         menu->addSeparator();
-        menu->addAction(icon(FluentIcon::Settings), QStringLiteral("Settings"));
+        menu->addAction(icon(FluentIcon::Setting), QStringLiteral("Settings"));
 
         menu->exec(button->mapToGlobal(QPoint(0, button->height())),
                    true, MenuAnimationType::DropDown);

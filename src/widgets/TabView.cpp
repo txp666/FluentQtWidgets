@@ -603,13 +603,13 @@ void TabBar::init()
     m_layout->setSpacing(2);
     m_layout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    m_previousButton = new TransparentToolButton(FluentQt::icon(FluentIcon::Back), this);
+    m_previousButton = new TransparentToolButton(FluentQt::icon(FluentIcon::LeftArrow), this);
     m_previousButton->setFixedSize(24, 28);
     m_previousButton->setIconSize(QSize(10, 10));
     m_previousButton->setToolTip(tr("Scroll tabs left"));
     connect(m_previousButton, &QToolButton::clicked, this, &TabBar::scrollPrevious);
 
-    m_nextButton = new TransparentToolButton(FluentQt::icon(FluentIcon::Forward), this);
+    m_nextButton = new TransparentToolButton(FluentQt::icon(FluentIcon::RightArrow), this);
     m_nextButton->setFixedSize(24, 28);
     m_nextButton->setIconSize(QSize(10, 10));
     m_nextButton->setToolTip(tr("Scroll tabs right"));

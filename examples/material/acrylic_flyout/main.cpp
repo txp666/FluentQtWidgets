@@ -66,7 +66,7 @@ public:
         connect(button1, &QPushButton::clicked, this, [this, button1]() {
             AcrylicFlyout::create(QStringLiteral("Lesson 4"),
                                   QStringLiteral("表达敬意吧，表达出敬意，然后迈向回旋的另一个全新阶段！"),
-                                  icon(FluentIcon::Success), QPixmap(), true, button1, this);
+                                  icon(FluentIcon::Accept), QPixmap(), true, button1, this);
         });
 
         connect(button2, &QPushButton::clicked, this, [this, button2]() {

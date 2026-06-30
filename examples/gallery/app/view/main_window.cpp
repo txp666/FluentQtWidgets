@@ -2,6 +2,7 @@
 
 #include "GalleryViewHelpers.h"
 #include "../../GalleryTranslator.h"
+#include "../../common/Icon.h"
 #include "../../components/GalleryComponents.h"
 
 #include <QtCore/QPointer>
@@ -13,6 +14,15 @@
 #include <QtWidgets/QApplication>
 
 using namespace FluentQt;
+
+namespace {
+
+QIcon galleryNavIcon(GalleryIcon icon)
+{
+    return QIcon(galleryIconPath(icon));
+}
+
+} // namespace
 
 GalleryWindow::GalleryWindow(QWidget *parent, bool deferPageLoad) : FluentWindow(parent)
 {
@@ -47,34 +57,35 @@ bool GalleryWindow::addGalleryInterface(int index)
 {
     switch (index) {
     case 0:
-        addSubInterface(createIconPage(), icon(FluentIcon::Star), navTx("Icons"), QStringLiteral("iconInterface"));
+        addSubInterface(createIconPage(), galleryNavIcon(GalleryIcon::EmojiTabSymbols), navTx("Icons"),
+                        QStringLiteral("iconInterface"));
         return true;
     case 1:
         navigationInterface()->addSeparator();
-        addSubInterface(createBasicInputPage(), icon(FluentIcon::Check), navTx("Basic input"),
+        addSubInterface(createBasicInputPage(), icon(FluentIcon::Checkbox), navTx("Basic input"),
                         QStringLiteral("basicInputInterface"));
         return true;
     case 2:
-        addSubInterface(createDateTimePage(), icon(FluentIcon::Calendar), navTx("Date & time"),
+        addSubInterface(createDateTimePage(), icon(FluentIcon::DateTime), navTx("Date & time"),
                         QStringLiteral("dateTimeInterface"));
         return true;
     case 3:
-        addSubInterface(createDialogPage(), icon(FluentIcon::Info), navTx("Dialogs & flyouts"),
+        addSubInterface(createDialogPage(), icon(FluentIcon::Message), navTx("Dialogs & flyouts"),
                         QStringLiteral("dialogInterface"));
         return true;
     case 4:
-        addSubInterface(createLayoutPage(), icon(FluentIcon::View), navTx("Layout"), QStringLiteral("layoutInterface"));
+        addSubInterface(createLayoutPage(), icon(FluentIcon::Layout), navTx("Layout"), QStringLiteral("layoutInterface"));
         return true;
     case 5:
         addSubInterface(createMaterialPage(), icon(FluentIcon::Palette), navTx("Material"),
                         QStringLiteral("materialInterface"));
         return true;
     case 6:
-        addSubInterface(createMenuPage(), icon(FluentIcon::More), navTx("Menus & toolbars"),
+        addSubInterface(createMenuPage(), galleryNavIcon(GalleryIcon::Menu), navTx("Menus & toolbars"),
                         QStringLiteral("menuInterface"));
         return true;
     case 7:
-        addSubInterface(createNavigationPage(), icon(FluentIcon::More), navTx("Navigation"),
+        addSubInterface(createNavigationPage(), icon(FluentIcon::Menu), navTx("Navigation"),
                         QStringLiteral("navigationViewInterface"));
         return true;
     case 8:
@@ -82,17 +93,19 @@ bool GalleryWindow::addGalleryInterface(int index)
                         QStringLiteral("scrollInterface"));
         return true;
     case 9:
-        addSubInterface(createStatusInfoPage(), icon(FluentIcon::Feedback), navTx("Status & info"),
+        addSubInterface(createStatusInfoPage(), icon(FluentIcon::Chat), navTx("Status & info"),
                         QStringLiteral("statusInfoInterface"));
         return true;
     case 10:
-        addSubInterface(createTextPage(), icon(FluentIcon::Font), navTx("Text"), QStringLiteral("textInterface"));
+        addSubInterface(createTextPage(), galleryNavIcon(GalleryIcon::Text), navTx("Text"),
+                        QStringLiteral("textInterface"));
         return true;
     case 11:
-        addSubInterface(createViewsPage(), icon(FluentIcon::Folder), navTx("View"), QStringLiteral("viewInterface"));
+        addSubInterface(createViewsPage(), galleryNavIcon(GalleryIcon::Grid), navTx("View"),
+                        QStringLiteral("viewInterface"));
         return true;
     case 12:
-        addSubInterface(createSettingsPage(), icon(FluentIcon::Settings), mainTx("Settings"),
+        addSubInterface(createSettingsPage(), icon(FluentIcon::Setting), mainTx("Settings"),
                         QStringLiteral("settings"), NavigationItemPosition::Bottom);
         return true;
     default:

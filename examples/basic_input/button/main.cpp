@@ -46,14 +46,14 @@ class ToolButtonDemo : public ButtonView
     {
         auto *menu = createMailMenu(this);
 
-        auto *toolButton = new ToolButton(icon(FluentIcon::Settings), this);
+        auto *toolButton = new ToolButton(icon(FluentIcon::Setting), this);
         auto *dropDownToolButton = new DropDownToolButton(icon(FluentIcon::Mail), this);
         dropDownToolButton->setMenu(menu);
 
         auto *splitToolButton = new SplitToolButton(icon(FluentIcon::GitHub), this);
         splitToolButton->setFlyout(menu);
 
-        auto *primaryToolButton = new PrimaryToolButton(icon(FluentIcon::Settings), this);
+        auto *primaryToolButton = new PrimaryToolButton(icon(FluentIcon::Setting), this);
 
         auto *primaryDropDownToolButton = new PrimaryDropDownToolButton(icon(FluentIcon::Mail), this);
         primaryDropDownToolButton->setMenu(menu);
@@ -61,7 +61,7 @@ class ToolButtonDemo : public ButtonView
         auto *primarySplitToolButton = new PrimarySplitToolButton(icon(FluentIcon::GitHub), this);
         primarySplitToolButton->setFlyout(menu);
 
-        auto *toggleToolButton = new ToggleToolButton(icon(FluentIcon::Settings), this);
+        auto *toggleToolButton = new ToggleToolButton(icon(FluentIcon::Setting), this);
         connect(toggleToolButton, &QToolButton::toggled, [](bool) { qDebug() << "Toggled"; });
         toggleToolButton->toggle();
 

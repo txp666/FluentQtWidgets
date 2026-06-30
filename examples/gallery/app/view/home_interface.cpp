@@ -6,10 +6,12 @@
 #include <QtGui/QBrush>
 #include <QtGui/QDesktopServices>
 #include <QtGui/QLinearGradient>
+#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPixmap>
 #include <QtGui/QResizeEvent>
+#include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QVBoxLayout>
@@ -55,17 +57,17 @@ struct HomeSample
     int index;
 };
 
-class LinkCard : public CardWidget
+class LinkCard : public QFrame
 {
+    Q_OBJECT
+
   public:
     LinkCard(const QIcon &cardIcon, const QString &title, const QString &content, const QUrl &url, QWidget *parent)
-        : CardWidget(parent)
+        : QFrame(parent), m_url(url)
     {
         setFixedSize(198, 220);
+        setAttribute(Qt::WA_StyledBackground, true);
         setCursor(Qt::PointingHandCursor);
-        setClickEnabled(true);
-        setBorderRadius(8);
-        setObjectName(QStringLiteral("linkCard"));
 
         auto *layout = new QVBoxLayout(this);
         layout->setContentsMargins(24, 24, 0, 13);
@@ -90,11 +92,19 @@ class LinkCard : public CardWidget
         auto *urlWidget = new IconWidget(FluentIcon::Link, this);
         urlWidget->setFixedSize(16, 16);
         urlWidget->move(170, 192);
-
-        connect(this, &CardWidget::clicked, this, [url]() {
-            QDesktopServices::openUrl(url);
-        });
     }
+
+  protected:
+    void mouseReleaseEvent(QMouseEvent *event) override
+    {
+        QFrame::mouseReleaseEvent(event);
+        if (event->button() == Qt::LeftButton) {
+            QDesktopServices::openUrl(m_url);
+        }
+    }
+
+  private:
+    QUrl m_url;
 };
 
 class LinkCardView : public SingleDirectionScrollArea

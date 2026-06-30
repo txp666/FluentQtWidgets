@@ -122,7 +122,7 @@ class SettingInterface : public ScrollArea
                                                    tr("Foreground color"), QString(), group));
         group->addSettingCard(new ColorSettingCard(Qt::black, icon(FluentIcon::PencilInk), tr("Stroke color"),
                                                    QString(), group));
-        group->addSettingCard(new RangeSettingCard(0, 20, 5, icon(FluentIcon::Highlight), tr("Stroke size"),
+        group->addSettingCard(new RangeSettingCard(0, 20, 5, icon(FluentIcon::Hightlight), tr("Stroke size"),
                                                    QString(), group));
         group->addSettingCard(new OptionsSettingCard({tr("Center aligned"), tr("Left aligned"), tr("Right aligned")},
                                                      {QStringLiteral("Center"), QStringLiteral("Left"),
@@ -179,7 +179,7 @@ class SettingsWindow : public FluentWidget
     explicit SettingsWindow(QWidget *parent = nullptr) : FluentWidget(parent)
     {
         setWindowTitle(QStringLiteral("FluentQtWidgets"));
-        setWindowIcon(icon(FluentIcon::Settings));
+        setWindowIcon(icon(FluentIcon::Setting));
 
         auto *layout = new QHBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);

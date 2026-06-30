@@ -102,9 +102,9 @@ class TitleBarToolButton : public TransparentToolButton
         case TitleBarSymbol::Minimize:
             return FluentIcon::Minimize;
         case TitleBarSymbol::Maximize:
-            return FluentIcon::Maximize;
+            return FluentIcon::FullScreen;
         case TitleBarSymbol::Restore:
-            return FluentIcon::Restore;
+            return FluentIcon::BackToWindow;
         case TitleBarSymbol::Close:
             return FluentIcon::Close;
         }

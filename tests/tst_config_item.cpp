@@ -33,7 +33,7 @@ class ConfigItemTest : public QObject
     void bindSwitchSettingCardUpdatesBothWays()
     {
         ConfigItem item(QStringLiteral("Test"), QStringLiteral("Enabled"), false);
-        SwitchSettingCard card(FluentIcon::Settings, QStringLiteral("Switch"), QString());
+        SwitchSettingCard card(FluentIcon::Setting, QStringLiteral("Switch"), QString());
         bindSwitchSettingCard(&card, &item);
 
         card.setChecked(true);

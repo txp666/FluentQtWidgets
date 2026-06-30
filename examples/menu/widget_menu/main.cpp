@@ -61,7 +61,7 @@ class Demo : public QWidget
         menu.addAction(FluentIcon::ShoppingCart, QStringLiteral("支付方式"));
         menu.addAction(FluentIcon::Code, QStringLiteral("兑换代码和礼品卡"));
         menu.addSeparator();
-        menu.addAction(FluentIcon::Settings, QStringLiteral("设置"));
+        menu.addAction(FluentIcon::Setting, QStringLiteral("设置"));
         menu.exec(event->globalPos(), true);
     }
 };

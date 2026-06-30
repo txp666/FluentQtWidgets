@@ -29,7 +29,7 @@ class Demo : public QWidget
         commandBar->addWidget(dropDownButton);
 
         commandBar->addHiddenAction(FluentIcon::Scroll, QStringLiteral("Sort"));
-        auto *settings = commandBar->addHiddenAction(FluentIcon::Settings, QStringLiteral("Settings"));
+        auto *settings = commandBar->addHiddenAction(FluentIcon::Setting, QStringLiteral("Settings"));
         settings->setShortcut(QKeySequence(QStringLiteral("Ctrl+S")));
 
         auto *layout = new QHBoxLayout(this);

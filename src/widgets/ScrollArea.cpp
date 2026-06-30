@@ -85,15 +85,15 @@ void paintScrollArrow(QPainter *painter, FluentIcon iconType, const QRectF &rect
     const QPointF center = rect.center();
     const qreal s = qMin(rect.width(), rect.height()) / 2.8;
     switch (iconType) {
-    case FluentIcon::Upload:
+    case FluentIcon::Up:
         painter->drawLine(QPointF(center.x() - s, center.y() + s / 2), QPointF(center.x(), center.y() - s));
         painter->drawLine(QPointF(center.x() + s, center.y() + s / 2), QPointF(center.x(), center.y() - s));
         break;
-    case FluentIcon::Back:
+    case FluentIcon::LeftArrow:
         painter->drawLine(QPointF(center.x() + s / 2, center.y() - s), QPointF(center.x() - s, center.y()));
         painter->drawLine(QPointF(center.x() + s / 2, center.y() + s), QPointF(center.x() - s, center.y()));
         break;
-    case FluentIcon::Forward:
+    case FluentIcon::RightArrow:
         painter->drawLine(QPointF(center.x() - s / 2, center.y() - s), QPointF(center.x() + s, center.y()));
         painter->drawLine(QPointF(center.x() - s / 2, center.y() + s), QPointF(center.x() + s, center.y()));
         break;
@@ -171,7 +171,7 @@ ScrollBarGroove::ScrollBarGroove(Qt::Orientation orientation, QWidget *parent)
 
     if (m_orientation == Qt::Vertical) {
         setFixedWidth(12);
-        m_upButton = new ArrowButton(FluentIcon::Upload, this);
+        m_upButton = new ArrowButton(FluentIcon::Up, this);
         m_downButton = new ArrowButton(FluentIcon::ArrowDown, this);
         auto *layout = new QVBoxLayout(this);
         layout->setContentsMargins(0, 3, 0, 3);
@@ -181,8 +181,8 @@ ScrollBarGroove::ScrollBarGroove(Qt::Orientation orientation, QWidget *parent)
         layout->addWidget(m_downButton, 0, Qt::AlignHCenter);
     } else {
         setFixedHeight(12);
-        m_upButton = new ArrowButton(FluentIcon::Back, this);
-        m_downButton = new ArrowButton(FluentIcon::Forward, this);
+        m_upButton = new ArrowButton(FluentIcon::LeftArrow, this);
+        m_downButton = new ArrowButton(FluentIcon::RightArrow, this);
         auto *layout = new QHBoxLayout(this);
         layout->setContentsMargins(3, 0, 3, 0);
         layout->setSpacing(0);

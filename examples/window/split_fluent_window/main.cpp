@@ -72,7 +72,7 @@ class DemoWindow : public SplitFluentWindow
                                                   QStringLiteral(":/window/split_fluent_window/resource/shoko.png"), this);
         navigationInterface()->addWidget(QStringLiteral("avatar"), avatar, NavigationItemPosition::Bottom);
 
-        addSubInterface(settingInterface, icon(FluentIcon::Settings), QStringLiteral("Settings"),
+        addSubInterface(settingInterface, icon(FluentIcon::Setting), QStringLiteral("Settings"),
                         QStringLiteral("setting-interface"), NavigationItemPosition::Bottom);
 
         resize(900, 700);

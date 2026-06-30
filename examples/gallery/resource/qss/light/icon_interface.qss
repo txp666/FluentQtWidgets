@@ -9,11 +9,11 @@ QFrame#iconCard > QLabel {
     font: 11px --FontFamilies;
 }
 
-QFrame#iconCard[selected=true] {
+QFrame#iconCard[isSelected=true] {
     background-color: @accentColor;
 }
 
-QFrame#iconCard[selected=true] > QLabel {
+QFrame#iconCard[isSelected=true] > QLabel {
     color: white;
 }
 
