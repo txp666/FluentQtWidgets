@@ -19,6 +19,7 @@ class QPaintEvent;
 class QShowEvent;
 class QStackedWidget;
 class QToolButton;
+class QWheelEvent;
 class QWidget;
 class QVBoxLayout;
 
@@ -45,6 +46,12 @@ class FQW_API CalendarView : public QFrame
     QToolButton *upButton() const;
     QToolButton *downButton() const;
     QList<QPushButton *> dayButtons() const;
+    QList<QPushButton *> monthButtons() const;
+    QList<QPushButton *> yearButtons() const;
+    QStackedWidget *stackedWidget() const;
+    QWidget *dayView() const;
+    QWidget *monthView() const;
+    QWidget *yearView() const;
 
     void exec(const QPoint &pos, bool animated = true);
 
@@ -63,25 +70,56 @@ class FQW_API CalendarView : public QFrame
     void dateChanged(const QDate &date);
 
   protected:
+    void wheelEvent(QWheelEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     void showEvent(QShowEvent *event) override;
 
   private:
+    enum class ViewMode { Day, Month, Year };
+
     QToolButton *createNavigationButton(const QIcon &icon, const QString &objectName);
+    QPushButton *createGridButton(QWidget *parent, const QString &objectName);
+    void createDayPage();
+    void createMonthPage();
+    void createYearPage();
     void setTitle(const QString &title);
     void refreshCalendar();
+    void refreshMonthView();
+    void refreshYearView();
+    void switchToDayView();
+    void switchToMonthView();
+    void switchToYearView();
+    void selectDay(const QDate &date);
+    void selectMonth(const QDate &date);
+    void selectYear(const QDate &date);
+    QWidget *currentAnimatedContent() const;
+    void animateCurrentContent(int direction);
     QPoint clampedPosition(const QPoint &preferred) const;
 
     QLocale m_locale;
     QDate m_displayMonth;
+    QDate m_monthPageDate;
+    int m_yearPageStart = 0;
     QDate m_date;
+    ViewMode m_viewMode = ViewMode::Day;
+    bool m_popupMode = true;
     QDate m_dayDates[42];
+    QStackedWidget *m_stackedWidget = nullptr;
+    QWidget *m_dayPage = nullptr;
+    QWidget *m_monthPage = nullptr;
+    QWidget *m_yearPage = nullptr;
+    QWidget *m_dayGridWidget = nullptr;
+    QWidget *m_monthGridWidget = nullptr;
+    QWidget *m_yearGridWidget = nullptr;
     QLabel *m_weekdayLabels[7] = {};
     QPushButton *m_dayButtons[42] = {};
+    QList<QPushButton *> m_monthButtons;
+    QList<QPushButton *> m_yearButtons;
     QPushButton *m_titleButton = nullptr;
     QToolButton *m_resetButton = nullptr;
     QToolButton *m_upButton = nullptr;
     QToolButton *m_downButton = nullptr;
+    bool m_scrollAnimating = false;
 };
 
 class FQW_API FastCalendarView : public FlyoutViewBase
@@ -201,7 +239,6 @@ class FQW_API CalendarPicker : public QPushButton
     QDate m_date;
     QString m_dateFormat;
     bool m_resetEnabled = false;
-    CalendarView *m_popup = nullptr;
 };
 
 class FQW_API FastCalendarPicker : public CalendarPicker

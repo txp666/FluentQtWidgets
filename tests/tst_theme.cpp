@@ -415,7 +415,11 @@ class ThemeTest : public QObject
 
             QVERIFY2(qss.contains(QStringLiteral("QFrame[fqw=\"CalendarView\"]")), qPrintable(path));
             QVERIFY2(qss.contains(QStringLiteral("QPushButton[calendarTitle=\"true\"]")), qPrintable(path));
-            QVERIFY2(qss.contains(QStringLiteral("QPushButton[calendarDay=\"true\"][selected=\"true\"]")),
+            QVERIFY2(qss.contains(QStringLiteral("QPushButton[calendarItem=\"true\"][selected=\"true\"]")),
+                     qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QPushButton#monthButton[calendarItem=\"true\"]")),
+                     qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QPushButton#yearButton[calendarItem=\"true\"]")),
                      qPrintable(path));
         }
     }

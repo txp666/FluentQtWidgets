@@ -2,6 +2,7 @@
 
 #include <QtCore/QPointer>
 #include <QtCore/QTranslator>
+#include <QtGui/QWheelEvent>
 #include <QtTest/QtTest>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
@@ -45,6 +46,20 @@ class AmPmTranslator : public QTranslator
         return {};
     }
 };
+
+static void sendWheel(QWidget *target, int deltaY)
+{
+    QVERIFY(target != nullptr);
+    const QPoint localPos(10, 10);
+    QWheelEvent event(QPointF(localPos), QPointF(target->mapToGlobal(localPos)), QPoint(), QPoint(0, deltaY),
+                      Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+    QApplication::sendEvent(target, &event);
+}
+
+static void waitCalendarScrollAnimation()
+{
+    QTest::qWait(330);
+}
 
 class DateTimeTest : public QObject
 {
@@ -91,20 +106,32 @@ class DateTimeTest : public QObject
 
     void calendarViewExposesPythonStyleLowLevelControls()
     {
-        FluentQt::CalendarView view;
+        FluentQt::CalendarView popupProbe;
+        QVERIFY(popupProbe.testAttribute(Qt::WA_DeleteOnClose));
+        QVERIFY(popupProbe.windowFlags() & Qt::FramelessWindowHint);
+        QVERIFY(popupProbe.windowFlags() & Qt::NoDropShadowWindowHint);
+
+        FluentQt::CalendarView view(nullptr, false);
         QCOMPARE(view.property("fqw").toString(), QStringLiteral("CalendarView"));
         QVERIFY(view.testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(view.testAttribute(Qt::WA_StyledBackground));
-        QVERIFY(view.windowFlags() & Qt::FramelessWindowHint);
-        QVERIFY(view.windowFlags() & Qt::NoDropShadowWindowHint);
+        QVERIFY(!view.testAttribute(Qt::WA_DeleteOnClose));
         QVERIFY(view.titleButton() != nullptr);
         QVERIFY(view.resetButton() != nullptr);
         QVERIFY(view.upButton() != nullptr);
         QVERIFY(view.downButton() != nullptr);
+        QVERIFY(view.stackedWidget() != nullptr);
+        QCOMPARE(view.stackedWidget()->count(), 3);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.dayView());
+        QVERIFY(view.dayView() != nullptr);
+        QVERIFY(view.monthView() != nullptr);
+        QVERIFY(view.yearView() != nullptr);
         const auto dayButtons = view.dayButtons();
         QCOMPARE(dayButtons.size(), 42);
+        QCOMPARE(view.monthButtons().size(), 16);
+        QCOMPARE(view.yearButtons().size(), 16);
         QVERIFY(std::all_of(dayButtons.cbegin(), dayButtons.cend(), [](QPushButton *button) {
-            return button && button->property("calendarDay").toBool();
+            return button && button->property("calendarItem").toBool() && button->property("calendarDay").toBool();
         }));
 
         const QDate selected(2024, 6, 23);
@@ -116,8 +143,63 @@ class DateTimeTest : public QObject
 
         view.scrollDown();
         QCOMPARE(view.currentPageDate(), QDate(2024, 7, 1));
+        waitCalendarScrollAnimation();
         view.scrollUp();
         QCOMPARE(view.currentPageDate(), QDate(2024, 6, 1));
+        waitCalendarScrollAnimation();
+        QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
+        QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2024, 1, 1));
+        QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+        QPushButton *year2025Button = nullptr;
+        for (auto *button : view.yearButtons()) {
+            if (button->property("date").toDate() == QDate(2025, 1, 1)) {
+                year2025Button = button;
+                break;
+            }
+        }
+        QVERIFY(year2025Button != nullptr);
+        QTest::mouseClick(year2025Button, Qt::LeftButton);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
+        QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2025, 1, 1));
+        QTest::mouseClick(view.monthButtons().at(5), Qt::LeftButton);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.dayView());
+        QCOMPARE(view.currentPageDate(), QDate(2025, 6, 1));
+        sendWheel(&view, -120);
+        QCOMPARE(view.currentPageDate(), QDate(2025, 7, 1));
+        waitCalendarScrollAnimation();
+        sendWheel(&view, 120);
+        QCOMPARE(view.currentPageDate(), QDate(2025, 6, 1));
+        waitCalendarScrollAnimation();
+        QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
+        sendWheel(&view, -120);
+        QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2026, 1, 1));
+        waitCalendarScrollAnimation();
+        sendWheel(&view, 120);
+        QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2025, 1, 1));
+        waitCalendarScrollAnimation();
+        QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+        sendWheel(&view, -120);
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(2028, 1, 1));
+        waitCalendarScrollAnimation();
+        sendWheel(&view, 120);
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(2020, 1, 1));
+        waitCalendarScrollAnimation();
+
+        FluentQt::CalendarView animatedView;
+        const QPoint popupPos(240, 240);
+        animatedView.exec(popupPos);
+        const QPoint popupTargetPos = popupPos - QPoint(0, 4);
+        QCOMPARE(animatedView.pos(), popupTargetPos - QPoint(0, 8));
+        if (auto *opacityEffect = qobject_cast<QGraphicsOpacityEffect *>(animatedView.graphicsEffect())) {
+            QVERIFY(opacityEffect->opacity() < 1.0);
+            QTRY_VERIFY(opacityEffect->opacity() > 0.9);
+        }
+        QTRY_COMPARE(animatedView.pos(), popupTargetPos);
+        animatedView.hide();
 
         view.setResetEnabled(true);
         QVERIFY(view.isResetEnabled());
@@ -140,12 +222,12 @@ class DateTimeTest : public QObject
         view.setLocale(QLocale(QLocale::English, QLocale::UnitedStates));
         const QStringList englishWeekdays = weekdayTexts();
         QCOMPARE(englishWeekdays.size(), 7);
-        QCOMPARE(englishWeekdays.first(), QStringLiteral("Sun"));
+        QCOMPARE(englishWeekdays.first(), QStringLiteral("Mo"));
         view.setLocale(QLocale(QLocale::Chinese, QLocale::China));
         const QStringList chineseWeekdays = weekdayTexts();
         QCOMPARE(chineseWeekdays.size(), 7);
         QVERIFY(!chineseWeekdays.first().isEmpty());
-        QVERIFY(chineseWeekdays != englishWeekdays);
+        QCOMPARE(chineseWeekdays, englishWeekdays);
 
         FluentQt::FastCalendarView fastView;
         QCOMPARE(fastView.property("fqw").toString(), QStringLiteral("FastCalendarView"));
@@ -160,12 +242,40 @@ class DateTimeTest : public QObject
         QCOMPARE(fastView.dayButtons().size(), 42);
         QCOMPARE(fastView.monthButtons().size(), 16);
         QCOMPARE(fastView.yearButtons().size(), 16);
+        const auto fastUpButtons = fastView.findChildren<QToolButton *>(QStringLiteral("upButton"));
+        const auto fastDownButtons = fastView.findChildren<QToolButton *>(QStringLiteral("downButton"));
+        QCOMPARE(fastUpButtons.size(), 3);
+        QCOMPARE(fastDownButtons.size(), 3);
+        for (QToolButton *button : fastUpButtons) {
+            QCOMPARE(button->property("navigationIcon").toString(), QStringLiteral("CareUpSolid"));
+        }
+        for (QToolButton *button : fastDownButtons) {
+            QCOMPARE(button->property("navigationIcon").toString(), QStringLiteral("CareDownSolid"));
+        }
         QVERIFY(std::all_of(fastView.dayButtons().cbegin(), fastView.dayButtons().cend(), [](QPushButton *button) {
             return button && button->property("fastCalendarItem").toBool() &&
                    button->property("date").toDate().isValid();
         }));
         fastView.setDate(QDate(2024, 6, 23));
         QCOMPARE(fastView.date(), QDate(2024, 6, 23));
+        auto *fastDayTitle = fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"));
+        QVERIFY(fastDayTitle != nullptr);
+        sendWheel(&fastView, -120);
+        QCOMPARE(fastView.dayButtons().first()->property("date").toDate(), QDate(2024, 5, 27));
+        QTest::mouseClick(fastDayTitle, Qt::LeftButton);
+        QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.monthView());
+        sendWheel(&fastView, -120);
+        QCOMPARE(fastView.monthButtons().first()->property("date").toDate(), QDate(2024, 1, 1));
+        auto *fastMonthTitle = fastView.monthView()->findChild<QPushButton *>(QStringLiteral("titleButton"));
+        QVERIFY(fastMonthTitle != nullptr);
+        QTest::mouseClick(fastMonthTitle, Qt::LeftButton);
+        QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.yearView());
+        sendWheel(&fastView, -120);
+        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(), QDate(2020, 1, 1));
+        QTest::mouseClick(fastView.yearButtons().at(4), Qt::LeftButton);
+        QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.monthView());
+        QTest::mouseClick(fastView.monthButtons().at(5), Qt::LeftButton);
+        QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.dayView());
         QPushButton *selectedFastDay = nullptr;
         for (auto *button : fastView.dayButtons()) {
             if (button->property("date").toDate() == QDate(2024, 6, 23)) {
@@ -422,6 +532,7 @@ class DateTimeTest : public QObject
         QTRY_VERIFY((calendarPanel = findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
         QVERIFY(calendarPanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(calendarPanel->testAttribute(Qt::WA_StyledBackground));
+        QVERIFY(calendarPanel->testAttribute(Qt::WA_DeleteOnClose));
         QVERIFY(calendarPanel->windowFlags() & Qt::NoDropShadowWindowHint);
         QVERIFY(!calendarPanel->findChildren<QPushButton *>().isEmpty());
         QVERIFY(!calendarPanel->findChildren<QToolButton *>().isEmpty());

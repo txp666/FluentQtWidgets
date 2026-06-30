@@ -48,6 +48,68 @@
     </message>
 </context>
 <context>
+    <name>FluentQt::CalendarView</name>
+    <message>
+        <source>Mo</source>
+        <translation>一</translation>
+    </message>
+    <message>
+        <source>Tu</source>
+        <translation>二</translation>
+    </message>
+    <message>
+        <source>We</source>
+        <translation>三</translation>
+    </message>
+    <message>
+        <source>Th</source>
+        <translation>四</translation>
+    </message>
+    <message>
+        <source>Fr</source>
+        <translation>五</translation>
+    </message>
+    <message>
+        <source>Sa</source>
+        <translation>六</translation>
+    </message>
+    <message>
+        <source>Su</source>
+        <translation>日</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::FastCalendarView</name>
+    <message>
+        <source>Mo</source>
+        <translation>一</translation>
+    </message>
+    <message>
+        <source>Tu</source>
+        <translation>二</translation>
+    </message>
+    <message>
+        <source>We</source>
+        <translation>三</translation>
+    </message>
+    <message>
+        <source>Th</source>
+        <translation>四</translation>
+    </message>
+    <message>
+        <source>Fr</source>
+        <translation>五</translation>
+    </message>
+    <message>
+        <source>Sa</source>
+        <translation>六</translation>
+    </message>
+    <message>
+        <source>Su</source>
+        <translation>日</translation>
+    </message>
+</context>
+<context>
     <name>FluentQt::ColorPickerButton</name>
     <message>
         <source>Choose %1</source>

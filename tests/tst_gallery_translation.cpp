@@ -9,6 +9,7 @@
 #include <QtWidgets/QLabel>
 
 #include <FluentQtWidgets/Config.h>
+#include <FluentQtWidgets/DateTime/CalendarPicker.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
@@ -67,6 +68,8 @@ class GalleryTranslationTest : public QObject
         QVERIFY(GalleryTranslation::installTranslators(app, QStringLiteral("zh_CN")));
         QCOMPARE(QCoreApplication::translate("FluentQt::CalendarPicker", "Pick a date"),
                  QStringLiteral("选择日期"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::CalendarView", "Mo"), QStringLiteral("一"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::FastCalendarView", "Su"), QStringLiteral("日"));
         QCOMPARE(QCoreApplication::translate("SettingInterface", "Language"), QStringLiteral("语言"));
         QCOMPARE(QCoreApplication::translate("SettingInterface", "Help us improve FluentQtWidgets by providing feedback"),
                  QStringLiteral("通过提供反馈帮助我们改进 FluentQtWidgets"));
@@ -84,6 +87,20 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("LineEdit", "Search icons"), QStringLiteral("搜索图标"));
         QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple CalendarPicker"),
                  QStringLiteral("日历选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A fast CalendarPicker"),
+                 QStringLiteral("快速日历选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A CalendarPicker in another format"),
+                 QStringLiteral("自定义格式的日历选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple DatePicker"),
+                 QStringLiteral("日期选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A DatePicker in another format"),
+                 QStringLiteral("另一种格式的日期选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple TimePicker"),
+                 QStringLiteral("时间选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A TimePicker using a 24-hour clock"),
+                 QStringLiteral("24 小时制的时间选择器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A TimePicker with seconds column"),
+                 QStringLiteral("显示秒的时间选择器"));
         QCOMPARE(QCoreApplication::translate("LayoutInterface", "Flow layout without animation"),
                  QStringLiteral("不带动画效果的流式布局"));
         QCOMPARE(QCoreApplication::translate("NavigationViewInterface", "%1 Interface").arg(QStringLiteral("歌曲")),
@@ -106,6 +123,8 @@ class GalleryTranslationTest : public QObject
         QVERIFY(GalleryTranslation::installTranslators(app, QStringLiteral("zh_HK")));
         QCOMPARE(QCoreApplication::translate("FluentQt::CalendarPicker", "Pick a date"),
                  QStringLiteral("選擇日期"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::CalendarView", "Mo"), QStringLiteral("一"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::FastCalendarView", "Su"), QStringLiteral("日"));
         QCOMPARE(QCoreApplication::translate("SettingInterface", "Language"), QStringLiteral("語言"));
         QCOMPARE(QCoreApplication::translate("SettingInterface", "Help us improve FluentQtWidgets by providing feedback"),
                  QStringLiteral("通過提供反饋幫助我們改進 FluentQtWidgets"));
@@ -123,6 +142,20 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("LineEdit", "Search icons"), QStringLiteral("蒐索圖標"));
         QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple CalendarPicker"),
                  QStringLiteral("日曆選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A fast CalendarPicker"),
+                 QStringLiteral("快速日曆選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A CalendarPicker in another format"),
+                 QStringLiteral("自定義格式的日曆選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple DatePicker"),
+                 QStringLiteral("日期選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A DatePicker in another format"),
+                 QStringLiteral("另一種格式的日期選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A simple TimePicker"),
+                 QStringLiteral("時間選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A TimePicker using a 24-hour clock"),
+                 QStringLiteral("24 小時製的時間選擇器"));
+        QCOMPARE(QCoreApplication::translate("DateTimeInterface", "A TimePicker with seconds column"),
+                 QStringLiteral("顯示秒的時間選擇器"));
         QCOMPARE(QCoreApplication::translate("LayoutInterface", "Flow layout without animation"),
                  QStringLiteral("不帶動畫效果的流式佈局"));
         QCOMPARE(QCoreApplication::translate("NavigationViewInterface", "%1 Interface").arg(QStringLiteral("歌曲")),
@@ -145,6 +178,8 @@ class GalleryTranslationTest : public QObject
         GalleryTranslation::installTranslators(app, QStringLiteral("en"));
         QCOMPARE(QCoreApplication::translate("FluentQt::CalendarPicker", "Pick a date"),
                  QStringLiteral("Pick a date"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::CalendarView", "Mo"), QStringLiteral("Mo"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::FastCalendarView", "Su"), QStringLiteral("Su"));
         QCOMPARE(QCoreApplication::translate("SettingInterface", "Language"), QStringLiteral("Language"));
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Show Gallery"), QStringLiteral("Show Gallery"));
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Quit"), QStringLiteral("Quit"));
@@ -305,6 +340,36 @@ class GalleryTranslationTest : public QObject
         QVERIFY(!transparentToggleTool->isChecked());
         transparentToggleTool->click();
         QVERIFY(transparentToggleTool->isChecked());
+    }
+
+    void dateTimePageMatchesPythonGalleryDefaults()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("dateTimeInterface")));
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+
+        bool foundPythonSubtitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.time_picker")) {
+                foundPythonSubtitle = true;
+                break;
+            }
+        }
+        QVERIFY(foundPythonSubtitle);
+
+        const auto calendarPickers = page->findChildren<FluentQt::CalendarPicker *>();
+        QCOMPARE(calendarPickers.size(), 3);
+        for (FluentQt::CalendarPicker *picker : calendarPickers) {
+            QVERIFY(!picker->date().isValid());
+            QCOMPARE(picker->text(), QStringLiteral("Pick a date"));
+        }
     }
 
     void settingsThemeCardsFollowGlobalThemeChanges()

@@ -7,22 +7,19 @@ using namespace FluentQt;
 QWidget *GalleryWindow::createDateTimePage()
 {
     auto *page = new GalleryInterface(navTx("Date & time"),
-                                      QStringLiteral("FluentQtWidgets::DateTime"), this);
+                                      QStringLiteral("qfluentwidgets.components.time_picker"), this);
     const QString calendarSource = exampleSourceUrl("date_time/calendar_picker");
     const QString fastCalendarSource = exampleSourceUrl("date_time/fast_calendar_picker");
     const QString pickerSource = exampleSourceUrl("date_time/time_picker");
 
     auto *picker = new CalendarPicker(page);
-    picker->setDate(QDate::currentDate());
     page->addExampleCard(tx("DateTimeInterface", "A simple CalendarPicker"), picker, calendarSource);
 
     auto *fastPicker = new FastCalendarPicker(page);
-    fastPicker->setDate(QDate::currentDate());
     page->addExampleCard(tx("DateTimeInterface", "A fast CalendarPicker"), fastPicker, fastCalendarSource);
 
     auto *pickerFormatted = new CalendarPicker(page);
     pickerFormatted->setDateFormat(QStringLiteral("ddd MMM d yyyy"));
-    pickerFormatted->setDate(QDate::currentDate());
     page->addExampleCard(tx("DateTimeInterface", "A CalendarPicker in another format"), pickerFormatted, calendarSource);
 
     auto *datePicker = new DatePicker(page);
