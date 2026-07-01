@@ -1,13 +1,18 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
 #include <QtCore/QEventLoop>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
+#include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
 #include <QtCore/QVariant>
 #include <QtGui/QImage>
+#include <QtGui/QMouseEvent>
 #include <QtTest/QtTest>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QToolButton>
@@ -505,6 +510,8 @@ class ShellTest : public QObject
     {
         FluentQt::RealtimePlotWidget plot;
         QCOMPARE(plot.seriesCount(), 1);
+        QCOMPARE(plot.maximumVisiblePoints(), 10000);
+        QCOMPARE(plot.visibleSpan(), 9999.0);
         plot.setSeriesName(0, QStringLiteral("CPU"));
         plot.setSeriesColor(0, QColor(0, 159, 170));
         const int memorySeries = plot.addSeries(QStringLiteral("Memory"), QColor(22, 163, 74));
@@ -529,9 +536,50 @@ class ShellTest : public QObject
         QVERIFY(plot.isSeriesVisible(memorySeries));
         QVERIFY(seriesSpy.count() >= 2);
 
+        QSignalSpy crosshairSpy(&plot, &FluentQt::RealtimePlotWidget::crosshairMoved);
+        plot.setAutoScroll(true);
+        plot.setMaximumVisiblePoints(6);
+        QCOMPARE(plot.maximumVisiblePoints(), 6);
+        QCOMPARE(plot.visibleSpan(), 5.0);
+
         plot.resize(420, 260);
         plot.show();
         QVERIFY(QTest::qWaitForWindowExposed(&plot));
+        auto sendHover = [&](const QPoint &hoverPosition) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            QMouseEvent hoverEvent(QEvent::MouseMove, QPointF(hoverPosition), QPointF(hoverPosition),
+                                   QPointF(plot.mapToGlobal(hoverPosition)), Qt::NoButton, Qt::NoButton,
+                                   Qt::NoModifier);
+#else
+            QMouseEvent hoverEvent(QEvent::MouseMove, hoverPosition, plot.mapToGlobal(hoverPosition), Qt::NoButton,
+                                   Qt::NoButton, Qt::NoModifier);
+#endif
+            QCoreApplication::sendEvent(&plot, &hoverEvent);
+        };
+        sendHover(QPoint(60, 140));
+        QVERIFY(!crosshairSpy.isEmpty());
+        QVERIFY(crosshairSpy.constLast().constFirst().toPointF().x() >= -0.01);
+        crosshairSpy.clear();
+        sendHover(QPoint(360, 140));
+        QVERIFY(!crosshairSpy.isEmpty());
+        QVERIFY(crosshairSpy.constLast().constFirst().toPointF().x() <= 4.1);
+
+        plot.setMaximumVisiblePoints(10000);
+        crosshairSpy.clear();
+        sendHover(QPoint(60, 140));
+        QVERIFY(!crosshairSpy.isEmpty());
+        QVERIFY(crosshairSpy.constLast().constFirst().toPointF().x() >= -0.01);
+        crosshairSpy.clear();
+        sendHover(QPoint(360, 140));
+        QVERIFY(!crosshairSpy.isEmpty());
+        QVERIFY(crosshairSpy.constLast().constFirst().toPointF().x() <= 4.1);
+
+        plot.setMaximumVisiblePoints(6);
+        plot.appendPoint(memorySeries, 10.0, 9.0);
+        crosshairSpy.clear();
+        sendHover(QPoint(60, 140));
+        QVERIFY(!crosshairSpy.isEmpty());
+        QVERIFY(crosshairSpy.constLast().constFirst().toPointF().x() > 4.0);
 
         QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
         rendered.fill(Qt::transparent);
@@ -566,20 +614,115 @@ class ShellTest : public QObject
             return false;
         }());
         QVERIFY(contextMenu->menuActions().size() >= 9);
+        FluentQt::CheckableMenu *maximumPointsMenu = nullptr;
+        const auto childMenus = contextMenu->findChildren<FluentQt::CheckableMenu *>();
+        for (FluentQt::CheckableMenu *menu : childMenus) {
+            if (menu->title() == QStringLiteral("Maximum visible points")) {
+                maximumPointsMenu = menu;
+                break;
+            }
+        }
+        QVERIFY(maximumPointsMenu != nullptr);
+        QAction *tenThousandPoints = nullptr;
+        QAction *exportCsvAction = nullptr;
+        QAction *exportImageAction = nullptr;
+        for (QAction *action : contextMenu->menuActions()) {
+            if (action->text() == QStringLiteral("Export CSV")) {
+                exportCsvAction = action;
+            } else if (action->text() == QStringLiteral("Export image")) {
+                exportImageAction = action;
+            }
+        }
+        QVERIFY(exportCsvAction != nullptr);
+        QVERIFY(exportImageAction != nullptr);
+        for (QAction *action : maximumPointsMenu->menuActions()) {
+            if (action->text() == QStringLiteral("10000")) {
+                tenThousandPoints = action;
+                break;
+            }
+        }
+        QVERIFY(tenThousandPoints != nullptr);
+        tenThousandPoints->trigger();
+        QCOMPARE(plot.maximumVisiblePoints(), 10000);
+        QCOMPARE(plot.visibleSpan(), 9999.0);
         plot.setXRange(1.0, 2.0);
         plot.setYRange(6.0, 7.0);
         contextMenu->menuActions().constFirst()->trigger();
         QVERIFY(plot.autoScroll());
         QVERIFY(plot.autoYRange());
-        QVERIFY(plot.visibleSpan() >= 3.0);
-        QVERIFY(plot.xMinimum() >= 0.0);
-        QVERIFY(plot.xMaximum() >= 3.0);
-        QVERIFY(plot.yMinimum() < 5.0);
-        QVERIFY(plot.yMaximum() > 8.0);
+        QCOMPARE(plot.maximumVisiblePoints(), 10000);
+        QCOMPARE(plot.visibleSpan(), 9999.0);
         plot.appendPoint(memorySeries, 10.0, 9.0);
         QVERIFY(plot.autoScroll());
-        contextMenu->close();
-        QTRY_VERIFY(!contextMenu->isVisible());
+
+        QTemporaryDir exportDir;
+        QVERIFY(exportDir.isValid());
+        const QString previousDownloadFolder = FluentQt::FluentConfig::instance()->downloadFolder();
+        FluentQt::FluentConfig::instance()->setDownloadFolder(exportDir.path());
+        auto acceptSaveDialog = []() {
+            QTimer::singleShot(0, qApp, []() {
+                QFileDialog *dialog = nullptr;
+                for (QWidget *widget : QApplication::topLevelWidgets()) {
+                    dialog = qobject_cast<QFileDialog *>(widget);
+                    if (dialog && dialog->isVisible()) {
+                        break;
+                    }
+                }
+                QVERIFY(dialog != nullptr);
+                static_cast<QDialog *>(dialog)->done(QDialog::Accepted);
+            });
+        };
+
+        QPointer<FluentQt::CheckableMenu> csvMenu(contextMenu);
+        acceptSaveDialog();
+        exportCsvAction->trigger();
+
+        if (csvMenu && csvMenu->isVisible()) {
+            csvMenu->close();
+            QTRY_VERIFY(!csvMenu || !csvMenu->isVisible());
+        }
+
+        contextMenu = nullptr;
+        QTest::mouseClick(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
+        QTRY_VERIFY([&]() {
+            for (QWidget *widget : QApplication::topLevelWidgets()) {
+                auto *menu = qobject_cast<FluentQt::CheckableMenu *>(widget);
+                if (menu && menu->isVisible()) {
+                    contextMenu = menu;
+                    return true;
+                }
+            }
+            return false;
+        }());
+        exportImageAction = nullptr;
+        for (QAction *action : contextMenu->menuActions()) {
+            if (action->text() == QStringLiteral("Export image")) {
+                exportImageAction = action;
+                break;
+            }
+        }
+        QVERIFY(exportImageAction != nullptr);
+        QPointer<FluentQt::CheckableMenu> imageMenu(contextMenu);
+        acceptSaveDialog();
+        exportImageAction->trigger();
+
+        const QStringList csvFiles = QDir(exportDir.path()).entryList(QStringList{QStringLiteral("*.csv")});
+        const QStringList pngFiles = QDir(exportDir.path()).entryList(QStringList{QStringLiteral("*.png")});
+        QCOMPARE(csvFiles.size(), 1);
+        QCOMPARE(pngFiles.size(), 1);
+        QFile csvFile(QDir(exportDir.path()).filePath(csvFiles.constFirst()));
+        QVERIFY(csvFile.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QByteArray csv = csvFile.readAll();
+        QVERIFY(csv.startsWith("x;CPU;Memory\n"));
+        QVERIFY(csv.contains("2;3;7\n"));
+        QVERIFY(csv.contains("3;4;8\n"));
+        QVERIFY(csv.contains("10;;9\n"));
+        FluentQt::FluentConfig::instance()->setDownloadFolder(previousDownloadFolder);
+
+        if (imageMenu && imageMenu->isVisible()) {
+            imageMenu->close();
+            QTRY_VERIFY(!imageMenu || !imageMenu->isVisible());
+        }
 
         plot.setXRange(0.0, 4.0);
         plot.setYRange(4.0, 10.0);

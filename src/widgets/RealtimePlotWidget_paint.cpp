@@ -6,9 +6,11 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPen>
+#include <QtGui/QPolygonF>
 
 #include <cmath>
 #include <limits>
+#include <utility>
 
 namespace FluentQt {
 
@@ -38,6 +40,14 @@ QString tickText(qreal value)
         text.chop(1);
     }
     return text;
+}
+
+void appendUniqueIndex(QVector<int> *indices, int index)
+{
+    if (!indices || (!indices->isEmpty() && indices->constLast() == index)) {
+        return;
+    }
+    indices->append(index);
 }
 
 struct HoverSample
@@ -132,135 +142,141 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
             continue;
         }
 
-        QVector<QPointF> visibleDataPoints;
-        visibleDataPoints.reserve(qMin(series.count, pixelWidth * 8 + 32));
-        for (int i = 0; i < series.count; ++i) {
-            const QPointF point = pointAt(seriesIndex, i);
-            if (point.x() >= xMin && point.x() <= xMax) {
-                visibleDataPoints.append(point);
-            }
-        }
-        if (visibleDataPoints.isEmpty()) {
+        int firstIndex = 0;
+        int lastIndex = 0;
+        visibleIndexRange(seriesIndex, xMin, xMax, &firstIndex, &lastIndex, true);
+        const int visibleDataCount = lastIndex - firstIndex;
+        if (visibleDataCount <= 0) {
             continue;
         }
 
         const QColor lineColor = effectiveSeriesColor(seriesIndex);
-        const bool denseMode = visibleDataPoints.size() > pixelWidth * 4;
-        QPointF latestVisiblePoint;
-        HoverSample nearest;
-        nearest.seriesIndex = seriesIndex;
+        const bool performanceMode = visibleDataCount > qMax(1600, pixelWidth * 2);
+        const int targetPointCount =
+            performanceMode ? qBound(3, pixelWidth * 2, visibleDataCount) : visibleDataCount;
+        QVector<int> pointIndices;
+        pointIndices.reserve(qMin(visibleDataCount, targetPointCount + 1));
 
-        if (!denseMode) {
-            QPainterPath linePath;
-            QPainterPath fillPath;
-            QVector<QPointF> visiblePoints;
-            visiblePoints.reserve(visibleDataPoints.size());
-            bool started = false;
+        if (!performanceMode || visibleDataCount <= 3) {
+            for (int i = firstIndex; i < lastIndex; ++i) {
+                pointIndices.append(i);
+            }
+        } else {
+            appendUniqueIndex(&pointIndices, firstIndex);
 
-            for (const QPointF &point : visibleDataPoints) {
-                const QPointF mapped = mapToPlot(point, plot, xMin, xMax, yMin, yMax);
-                if (!started) {
-                    linePath.moveTo(mapped);
-                    fillPath.moveTo(mapped.x(), plot.bottom());
-                    fillPath.lineTo(mapped);
-                    started = true;
-                } else {
-                    linePath.lineTo(mapped);
-                    fillPath.lineTo(mapped);
+            const qreal bucketSize = static_cast<qreal>(visibleDataCount - 2) / (targetPointCount - 2);
+            int anchorIndex = firstIndex;
+            QPointF anchorPoint = mapToPlot(pointAt(seriesIndex, anchorIndex), plot, xMin, xMax, yMin, yMax);
+
+            for (int bucket = 0; bucket < targetPointCount - 2; ++bucket) {
+                int averageStart = firstIndex + 1 + qFloor((bucket + 1) * bucketSize);
+                int averageEnd = firstIndex + 1 + qFloor((bucket + 2) * bucketSize);
+                averageStart = qBound(firstIndex + 1, averageStart, lastIndex - 1);
+                averageEnd = qBound(averageStart + 1, averageEnd, lastIndex);
+
+                QPointF averagePoint;
+                const int averageCount = averageEnd - averageStart;
+                for (int i = averageStart; i < averageEnd; ++i) {
+                    averagePoint += mapToPlot(pointAt(seriesIndex, i), plot, xMin, xMax, yMin, yMax);
                 }
-                visiblePoints.append(mapped);
-                latestVisiblePoint = mapped;
-                if (m_hasHover) {
-                    const qreal distance = qAbs(mapped.x() - m_hoverPosition.x());
-                    if (distance < nearest.distance) {
-                        nearest.distance = distance;
-                        nearest.dataPoint = point;
-                        nearest.plotPoint = mapped;
+                averagePoint /= qMax(1, averageCount);
+
+                int rangeStart = firstIndex + 1 + qFloor(bucket * bucketSize);
+                int rangeEnd = firstIndex + 1 + qFloor((bucket + 1) * bucketSize);
+                rangeStart = qBound(firstIndex + 1, rangeStart, lastIndex - 1);
+                rangeEnd = qBound(rangeStart + 1, rangeEnd, lastIndex);
+
+                int bestIndex = rangeStart;
+                QPointF bestPoint = mapToPlot(pointAt(seriesIndex, bestIndex), plot, xMin, xMax, yMin, yMax);
+                qreal bestArea = -1;
+                for (int i = rangeStart; i < rangeEnd; ++i) {
+                    const QPointF candidate = mapToPlot(pointAt(seriesIndex, i), plot, xMin, xMax, yMin, yMax);
+                    const qreal area = qAbs((anchorPoint.x() - averagePoint.x()) *
+                                                (candidate.y() - anchorPoint.y()) -
+                                            (anchorPoint.x() - candidate.x()) *
+                                                (averagePoint.y() - anchorPoint.y()));
+                    if (area > bestArea) {
+                        bestArea = area;
+                        bestIndex = i;
+                        bestPoint = candidate;
                     }
                 }
-            }
-            visibleCount += visiblePoints.size();
 
-            if (m_fillVisible) {
-                fillPath.lineTo(visiblePoints.last().x(), plot.bottom());
-                fillPath.closeSubpath();
-
-                QLinearGradient gradient(plot.topLeft(), plot.bottomLeft());
-                gradient.setColorAt(0, withAlpha(lineColor, 48));
-                gradient.setColorAt(1, withAlpha(lineColor, 0));
-                painter.fillPath(fillPath, gradient);
+                appendUniqueIndex(&pointIndices, bestIndex);
+                anchorIndex = bestIndex;
+                anchorPoint = bestPoint;
             }
 
-            painter.setPen(QPen(lineColor, 2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-            painter.setBrush(Qt::NoBrush);
-            painter.drawPath(linePath);
-
-            if (m_pointsVisible && visiblePoints.size() <= 1000) {
-                painter.setPen(Qt::NoPen);
-                painter.setBrush(lineColor);
-                for (const QPointF &point : visiblePoints) {
-                    painter.drawEllipse(point, 2.4, 2.4);
-                }
-            }
-            if (nearest.distance < std::numeric_limits<qreal>::max()) {
-                hoverSamples.append(nearest);
-            }
-            latestSamples.append(qMakePair(seriesIndex, latestVisiblePoint));
-            continue;
+            appendUniqueIndex(&pointIndices, lastIndex - 1);
         }
 
-        const int targetPointCount = qMax(2, pixelWidth * 3);
-        const int stride = qMax(1, qCeil(static_cast<qreal>(visibleDataPoints.size()) / targetPointCount));
-        QVector<QPointF> sampledPoints;
-        sampledPoints.reserve(qMin(visibleDataPoints.size(), targetPointCount + 2));
-        for (int i = 0; i < visibleDataPoints.size(); i += stride) {
-            const QPointF point = visibleDataPoints.at(i);
-            latestVisiblePoint = mapToPlot(point, plot, xMin, xMax, yMin, yMax);
-            sampledPoints.append(latestVisiblePoint);
+        QVector<QPointF> screenPoints;
+        screenPoints.reserve(pointIndices.size());
+        HoverSample nearest;
+        nearest.seriesIndex = seriesIndex;
+        for (int pointIndex : pointIndices) {
+            const QPointF dataPoint = pointAt(seriesIndex, pointIndex);
+            const QPointF screenPoint = mapToPlot(dataPoint, plot, xMin, xMax, yMin, yMax);
+            screenPoints.append(screenPoint);
             if (m_hasHover) {
-                const qreal distance = qAbs(latestVisiblePoint.x() - m_hoverPosition.x());
+                const qreal distance = qAbs(screenPoint.x() - m_hoverPosition.x());
                 if (distance < nearest.distance) {
                     nearest.distance = distance;
-                    nearest.dataPoint = point;
-                    nearest.plotPoint = latestVisiblePoint;
+                    nearest.dataPoint = dataPoint;
+                    nearest.plotPoint = screenPoint;
                 }
             }
         }
-        if (visibleDataPoints.constLast() != visibleDataPoints.at((sampledPoints.size() - 1) * stride)) {
-            latestVisiblePoint = mapToPlot(visibleDataPoints.constLast(), plot, xMin, xMax, yMin, yMax);
-            sampledPoints.append(latestVisiblePoint);
-        }
-        visibleCount += visibleDataPoints.size();
+        visibleCount += visibleDataCount;
 
-        if (!sampledPoints.isEmpty()) {
-            QPainterPath linePath;
-            QPainterPath fillPath;
-            linePath.moveTo(sampledPoints.constFirst());
-            fillPath.moveTo(sampledPoints.constFirst().x(), plot.bottom());
-            fillPath.lineTo(sampledPoints.constFirst());
-            for (int i = 1; i < sampledPoints.size(); ++i) {
-                linePath.lineTo(sampledPoints.at(i));
-                fillPath.lineTo(sampledPoints.at(i));
-            }
-
+        if (screenPoints.size() >= 2) {
+            painter.setRenderHint(QPainter::Antialiasing, !performanceMode);
             if (m_fillVisible) {
-                fillPath.lineTo(sampledPoints.constLast().x(), plot.bottom());
-                fillPath.closeSubpath();
+                QPolygonF fillPolygon;
+                fillPolygon.reserve(screenPoints.size() + 2);
+                fillPolygon.append(QPointF(screenPoints.constFirst().x(), plot.bottom()));
+                for (const QPointF &point : std::as_const(screenPoints)) {
+                    fillPolygon.append(point);
+                }
+                fillPolygon.append(QPointF(screenPoints.constLast().x(), plot.bottom()));
+
                 QLinearGradient gradient(plot.topLeft(), plot.bottomLeft());
-                gradient.setColorAt(0, withAlpha(lineColor, 42));
+                gradient.setColorAt(0, withAlpha(lineColor, performanceMode ? 34 : 48));
                 gradient.setColorAt(1, withAlpha(lineColor, 0));
-                painter.fillPath(fillPath, gradient);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(gradient);
+                painter.drawPolygon(fillPolygon);
             }
 
-            painter.setPen(QPen(lineColor, 1.7, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.setPen(QPen(lineColor, performanceMode ? 1.35 : 2.0, Qt::SolidLine,
+                                performanceMode ? Qt::FlatCap : Qt::RoundCap,
+                                performanceMode ? Qt::MiterJoin : Qt::RoundJoin));
             painter.setBrush(Qt::NoBrush);
-            painter.drawPath(linePath);
+            painter.drawPolyline(screenPoints.constData(), screenPoints.size());
+        } else if (screenPoints.size() == 1) {
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(lineColor);
+            painter.drawEllipse(screenPoints.constFirst(), 2.4, 2.4);
+        }
+
+        if (m_pointsVisible && !performanceMode && screenPoints.size() <= 1000) {
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(lineColor);
+            for (const QPointF &point : std::as_const(screenPoints)) {
+                painter.drawEllipse(point, 2.4, 2.4);
+            }
         }
         if (nearest.distance < std::numeric_limits<qreal>::max()) {
             hoverSamples.append(nearest);
         }
-        latestSamples.append(qMakePair(seriesIndex, latestVisiblePoint));
+        if (!screenPoints.isEmpty()) {
+            latestSamples.append(qMakePair(seriesIndex, screenPoints.constLast()));
+        }
     }
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
     if (visibleCount == 0) {
         painter.setPen(QPen(withAlpha(textColor(), 55), 1.2, Qt::DashLine, Qt::RoundCap));

@@ -2,18 +2,82 @@
 
 #include "GalleryViewHelpers.h"
 
+#include <QtCore/QByteArray>
+#include <QtCore/QFile>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 #include <QtCore/QTimer>
+#include <QtCore/QUrl>
 #include <QtCore/QVector>
+#if defined(FQW_HAS_MULTIMEDIA) && FQW_HAS_MULTIMEDIA
+#include <QtMultimedia/QAudioOutput>
+#include <QtMultimedia/QMediaPlayer>
+#endif
 
 #include <cmath>
+#include <cstring>
+#include <limits>
 
 using namespace FluentQt;
 
 namespace {
 
-QVector<qreal> waveformSamples()
+constexpr auto kWaveformAudioResourcePath = ":/gallery/audio/test.wav";
+constexpr auto kWaveformAudioResourceUrl = "qrc:/gallery/audio/test.wav";
+
+quint16 readLittleEndian16(const QByteArray &data, int offset)
+{
+    if (offset < 0 || offset + 1 >= data.size()) {
+        return 0;
+    }
+    return static_cast<quint16>(static_cast<unsigned char>(data.at(offset))) |
+           (static_cast<quint16>(static_cast<unsigned char>(data.at(offset + 1))) << 8);
+}
+
+quint32 readLittleEndian32(const QByteArray &data, int offset)
+{
+    if (offset < 0 || offset + 3 >= data.size()) {
+        return 0;
+    }
+    return static_cast<quint32>(static_cast<unsigned char>(data.at(offset))) |
+           (static_cast<quint32>(static_cast<unsigned char>(data.at(offset + 1))) << 8) |
+           (static_cast<quint32>(static_cast<unsigned char>(data.at(offset + 2))) << 16) |
+           (static_cast<quint32>(static_cast<unsigned char>(data.at(offset + 3))) << 24);
+}
+
+bool chunkIdEquals(const QByteArray &data, int offset, const char *id)
+{
+    return offset >= 0 && offset + 4 <= data.size() && std::memcmp(data.constData() + offset, id, 4) == 0;
+}
+
+qreal pcmLevel(const QByteArray &data, int offset, int bitsPerSample)
+{
+    switch (bitsPerSample) {
+    case 8:
+        return qAbs((static_cast<int>(static_cast<unsigned char>(data.at(offset))) - 128) / 128.0);
+    case 16: {
+        const auto sample = static_cast<qint16>(readLittleEndian16(data, offset));
+        return qAbs(sample / 32768.0);
+    }
+    case 24: {
+        int sample = static_cast<int>(static_cast<unsigned char>(data.at(offset))) |
+                     (static_cast<int>(static_cast<unsigned char>(data.at(offset + 1))) << 8) |
+                     (static_cast<int>(static_cast<unsigned char>(data.at(offset + 2))) << 16);
+        if ((sample & 0x800000) != 0) {
+            sample |= ~0xFFFFFF;
+        }
+        return qAbs(sample / 8388608.0);
+    }
+    case 32: {
+        const auto sample = static_cast<qint32>(readLittleEndian32(data, offset));
+        return qAbs(sample / 2147483648.0);
+    }
+    default:
+        return 0;
+    }
+}
+
+QVector<qreal> generatedWaveformSamples()
 {
     QVector<qreal> samples;
     samples.reserve(260);
@@ -36,15 +100,178 @@ QVector<qreal> waveformSamples()
     return samples;
 }
 
-AudioWaveformWidget *createAudioWaveform(QWidget *parent)
+QVector<qreal> waveformSamplesFromWav(const QString &path, int maximumBars = 900)
 {
-    auto *waveform = new AudioWaveformWidget(parent);
-    waveform->setSamples(waveformSamples());
-    waveform->setProgress(0.53);
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return generatedWaveformSamples();
+    }
+
+    const QByteArray data = file.readAll();
+    if (data.size() < 44 || !chunkIdEquals(data, 0, "RIFF") || !chunkIdEquals(data, 8, "WAVE")) {
+        return generatedWaveformSamples();
+    }
+
+    int audioFormat = 0;
+    int channelCount = 0;
+    int bitsPerSample = 0;
+    int dataOffset = -1;
+    int dataSize = 0;
+    for (int offset = 12; offset + 8 <= data.size();) {
+        const quint32 chunkSize = readLittleEndian32(data, offset + 4);
+        const int payloadOffset = offset + 8;
+        const int nextOffset = payloadOffset + static_cast<int>(chunkSize) + static_cast<int>(chunkSize % 2);
+        if (nextOffset < payloadOffset || payloadOffset + static_cast<int>(chunkSize) > data.size()) {
+            break;
+        }
+
+        if (chunkIdEquals(data, offset, "fmt ") && chunkSize >= 16) {
+            audioFormat = readLittleEndian16(data, payloadOffset);
+            channelCount = readLittleEndian16(data, payloadOffset + 2);
+            bitsPerSample = readLittleEndian16(data, payloadOffset + 14);
+        } else if (chunkIdEquals(data, offset, "data")) {
+            dataOffset = payloadOffset;
+            dataSize = static_cast<int>(chunkSize);
+        }
+
+        offset = nextOffset;
+    }
+
+    const int bytesPerSample = bitsPerSample / 8;
+    const int frameSize = bytesPerSample * channelCount;
+    if (audioFormat != 1 || channelCount <= 0 || bytesPerSample <= 0 || frameSize <= 0 || dataOffset < 0 ||
+        dataSize <= 0) {
+        return generatedWaveformSamples();
+    }
+
+    const int frameCount = dataSize / frameSize;
+    const int barCount = qBound(1, maximumBars, frameCount);
+    QVector<qreal> peaks;
+    peaks.reserve(barCount);
+    qreal globalPeak = 0;
+    for (int i = 0; i < barCount; ++i) {
+        const int beginFrame = static_cast<int>(std::floor(static_cast<qreal>(i) * frameCount / barCount));
+        const int endFrame =
+            qMax(beginFrame + 1, static_cast<int>(std::floor(static_cast<qreal>(i + 1) * frameCount / barCount)));
+        qreal peak = 0;
+        for (int frame = beginFrame; frame < qMin(endFrame, frameCount); ++frame) {
+            const int frameOffset = dataOffset + frame * frameSize;
+            for (int channel = 0; channel < channelCount; ++channel) {
+                const int sampleOffset = frameOffset + channel * bytesPerSample;
+                peak = qMax(peak, pcmLevel(data, sampleOffset, bitsPerSample));
+            }
+        }
+        globalPeak = qMax(globalPeak, peak);
+        peaks.append(peak);
+    }
+
+    if (globalPeak > std::numeric_limits<qreal>::epsilon()) {
+        for (qreal &peak : peaks) {
+            peak = qBound<qreal>(0.0, peak / globalPeak, 1.0);
+        }
+    }
+    return peaks;
+}
+
+QString formatMilliseconds(qint64 milliseconds)
+{
+    const qint64 seconds = qMax<qint64>(0, milliseconds / 1000);
+    const qint64 minutes = seconds / 60;
+    const qint64 hours = minutes / 60;
+    if (hours > 0) {
+        return QStringLiteral("%1:%2:%3")
+            .arg(hours, 2, 10, QLatin1Char('0'))
+            .arg(minutes % 60, 2, 10, QLatin1Char('0'))
+            .arg(seconds % 60, 2, 10, QLatin1Char('0'));
+    }
+    return QStringLiteral("%1:%2").arg(minutes, 2, 10, QLatin1Char('0')).arg(seconds % 60, 2, 10, QLatin1Char('0'));
+}
+
+void updateAudioTimeLabel(BodyLabel *label, qint64 position, qint64 duration)
+{
+    if (!label) {
+        return;
+    }
+    label->setText(QStringLiteral("%1 / %2").arg(formatMilliseconds(position), formatMilliseconds(duration)));
+}
+
+QWidget *createAudioWaveform(QWidget *parent)
+{
+    auto *view = new QWidget(parent);
+    auto *layout = new QVBoxLayout(view);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(10);
+
+    auto *controls = new QWidget(view);
+    auto *controlsLayout = new QHBoxLayout(controls);
+    controlsLayout->setContentsMargins(4, 0, 4, 0);
+    controlsLayout->setSpacing(8);
+
+    auto *playButton = new TransparentToolButton(icon(FluentIcon::Play), controls);
+    playButton->setFixedSize(36, 36);
+    playButton->setIconSize(QSize(16, 16));
+
+    auto *fileLabel = new BodyLabel(QStringLiteral("test.wav"), controls);
+    auto *timeLabel = new BodyLabel(QStringLiteral("00:00 / 00:00"), controls);
+    timeLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    timeLabel->setMinimumWidth(96);
+
+    controlsLayout->addWidget(playButton);
+    controlsLayout->addWidget(fileLabel);
+    controlsLayout->addStretch(1);
+    controlsLayout->addWidget(timeLabel);
+
+    auto *waveform = new AudioWaveformWidget(view);
+    waveform->setSamples(waveformSamplesFromWav(QString::fromLatin1(kWaveformAudioResourcePath)));
+    waveform->setProgress(0);
     waveform->setMinimumHeight(220);
     waveform->setBarWidth(2.0);
     waveform->setBarGap(3.0);
-    return waveform;
+
+    layout->addWidget(controls);
+    layout->addWidget(waveform);
+
+#if defined(FQW_HAS_MULTIMEDIA) && FQW_HAS_MULTIMEDIA
+    auto *player = new QMediaPlayer(view);
+    auto *audioOutput = new QAudioOutput(view);
+    audioOutput->setVolume(0.8);
+    player->setAudioOutput(audioOutput);
+    player->setSource(QUrl(QString::fromLatin1(kWaveformAudioResourceUrl)));
+
+    QObject::connect(playButton, &QToolButton::clicked, view, [player]() {
+        if (player->playbackState() == QMediaPlayer::PlayingState) {
+            player->pause();
+        } else {
+            player->play();
+        }
+    });
+    QObject::connect(player, &QMediaPlayer::playbackStateChanged, view, [playButton](QMediaPlayer::PlaybackState state) {
+        playButton->setIcon(icon(state == QMediaPlayer::PlayingState ? FluentIcon::Pause : FluentIcon::Play));
+    });
+    QObject::connect(player, &QMediaPlayer::durationChanged, view,
+                     [player, timeLabel](qint64 duration) { updateAudioTimeLabel(timeLabel, player->position(), duration); });
+    QObject::connect(player, &QMediaPlayer::positionChanged, view, [player, waveform, timeLabel](qint64 position) {
+        const qint64 duration = player->duration();
+        if (duration > 0) {
+            waveform->setProgress(static_cast<qreal>(position) / duration);
+        }
+        updateAudioTimeLabel(timeLabel, position, duration);
+    });
+    QObject::connect(waveform, &AudioWaveformWidget::waveformClicked, view, [player](qreal progress) {
+        if (player->duration() > 0) {
+            player->setPosition(qRound64(progress * player->duration()));
+        }
+    });
+    QObject::connect(waveform, &AudioWaveformWidget::waveformMoved, view, [player](qreal progress) {
+        if (player->duration() > 0) {
+            player->setPosition(qRound64(progress * player->duration()));
+        }
+    });
+#else
+    playButton->setEnabled(false);
+#endif
+
+    return view;
 }
 
 qreal realtimeValue(qreal t, int seriesIndex)
@@ -65,7 +292,6 @@ RealtimePlotWidget *createRealtimePlot(QWidget *parent)
     auto *plot = new RealtimePlotWidget(parent);
     plot->setMinimumHeight(320);
     plot->setCapacity(60000);
-    plot->setVisibleSpan(420);
     plot->setSeriesName(0, tx("ChartInterface", "CPU"));
     plot->setSeriesColor(0, QColor(0, 159, 170));
     const int memorySeries = plot->addSeries(tx("ChartInterface", "Memory"), QColor(22, 163, 74));

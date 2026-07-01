@@ -117,10 +117,24 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Direct"), QStringLiteral("直接访问"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Web"), QStringLiteral("Web"));
         QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "View All"), QStringLiteral("查看全部"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Maximum visible points"),
+                 QStringLiteral("最大显示点数"));
         QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Auto-scroll X"),
                  QStringLiteral("X 轴自动滚动"));
         QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Fill under curves"),
                  QStringLiteral("曲线下方填充"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Export CSV"),
+                 QStringLiteral("导出 CSV"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Export image"),
+                 QStringLiteral("导出图片"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Save CSV"),
+                 QStringLiteral("保存 CSV"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "CSV files (*.csv)"),
+                 QStringLiteral("CSV 文件 (*.csv)"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Save image"),
+                 QStringLiteral("保存图片"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "PNG images (*.png)"),
+                 QStringLiteral("PNG 图片 (*.png)"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
                  QStringLiteral("通过提供反馈帮助我们改进 FluentQtWidgets。"));
         QCOMPARE(QCoreApplication::translate("IconInterface", "Icon name"), QStringLiteral("图标名字"));
@@ -192,10 +206,24 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Direct"), QStringLiteral("直接訪問"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Web"), QStringLiteral("Web"));
         QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "View All"), QStringLiteral("查看全部"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Maximum visible points"),
+                 QStringLiteral("最大顯示點數"));
         QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Auto-scroll X"),
                  QStringLiteral("X 軸自動滾動"));
         QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Fill under curves"),
                  QStringLiteral("曲線下方填充"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Export CSV"),
+                 QStringLiteral("匯出 CSV"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Export image"),
+                 QStringLiteral("匯出圖片"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Save CSV"),
+                 QStringLiteral("儲存 CSV"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "CSV files (*.csv)"),
+                 QStringLiteral("CSV 檔案 (*.csv)"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Save image"),
+                 QStringLiteral("儲存圖片"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "PNG images (*.png)"),
+                 QStringLiteral("PNG 圖片 (*.png)"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
                  QStringLiteral("通過提供反饋幫助我們改進 FluentQtWidgets。"));
         QCOMPARE(QCoreApplication::translate("IconInterface", "Icon name"), QStringLiteral("圖標名字"));

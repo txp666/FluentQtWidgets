@@ -207,7 +207,7 @@ Supported classes:
 
 `AudioWaveformWidget` is a native QWidget renderer for sampled audio amplitudes. It exposes `sampleLevels`, `progress`, bar metrics, light/dark waveform colors, and click/drag signals so callers can use it as a seekable waveform display without WebEngine.
 
-`RealtimePlotWidget` is a native QWidget renderer for live line plots. It keeps bounded per-series buffers, draws dense data through pixel-column min/max aggregation, supports auto-scrolling, wheel zoom, drag pan, pyqtgraph-style crosshair readouts, right-click view/display controls, and an in-plot line legend for toggling series visibility.
+`RealtimePlotWidget` is a native QWidget renderer for live line plots. It keeps bounded per-series buffers, uses visible-range clipping, cached Y-range blocks, and screen-width downsampling for dense data, supports auto-scrolling, wheel zoom, drag pan, pyqtgraph-style crosshair readouts, right-click view/display controls, configurable maximum visible points, CSV/image export, and an in-plot line legend for toggling series visibility.
 
 ## Layout
 

@@ -24,6 +24,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     Q_PROPERTY(int capacity READ capacity WRITE setCapacity NOTIFY capacityChanged)
     Q_PROPERTY(int sampleCount READ sampleCount NOTIFY samplesChanged)
     Q_PROPERTY(int seriesCount READ seriesCount NOTIFY seriesChanged)
+    Q_PROPERTY(int maximumVisiblePoints READ maximumVisiblePoints WRITE setMaximumVisiblePoints NOTIFY rangeChanged)
     Q_PROPERTY(qreal visibleSpan READ visibleSpan WRITE setVisibleSpan NOTIFY rangeChanged)
     Q_PROPERTY(qreal xMinimum READ xMinimum WRITE setXMinimum NOTIFY rangeChanged)
     Q_PROPERTY(qreal xMaximum READ xMaximum WRITE setXMaximum NOTIFY rangeChanged)
@@ -49,6 +50,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     int capacity() const;
     int sampleCount() const;
     int seriesCount() const;
+    int maximumVisiblePoints() const;
     qreal visibleSpan() const;
     qreal xMinimum() const;
     qreal xMaximum() const;
@@ -74,6 +76,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     void setSeriesColor(int seriesIndex, const QColor &color);
     void setSeriesVisible(int seriesIndex, bool visible);
     void setCapacity(int capacity);
+    void setMaximumVisiblePoints(int count);
     void setVisibleSpan(qreal span);
     void setXMinimum(qreal minimum);
     void setXMaximum(qreal maximum);
@@ -125,15 +128,27 @@ class FQW_API RealtimePlotWidget : public QWidget
         QString name;
         QColor color;
         QVector<QPointF> buffer;
+        QVector<qreal> yBlockMinimums;
+        QVector<qreal> yBlockMaximums;
         int start = 0;
         int count = 0;
         qreal nextX = 0;
         bool visible = true;
+        bool xMonotonic = true;
     };
 
     bool hasSeries(int seriesIndex) const;
     bool appendPointInternal(int seriesIndex, qreal x, qreal y);
     QPointF pointAt(int seriesIndex, int index) const;
+    void visibleIndexRange(int seriesIndex, qreal xMinimum, qreal xMaximum, int *first, int *last,
+                           bool includeAdjacent) const;
+    void resizeYRangeBlocks(PlotSeries *series);
+    void rebuildYRangeBlock(PlotSeries *series, int blockIndex) const;
+    void updateYRangeBlockAfterWrite(PlotSeries *series, int physicalIndex, qreal previousY, bool overwrote);
+    bool isPhysicalIndexValid(const PlotSeries &series, int physicalIndex) const;
+    void accumulatePhysicalYRange(const PlotSeries &series, int firstPhysical, int lastPhysical, qreal *minimum,
+                                  qreal *maximum) const;
+    void seriesYRange(int seriesIndex, int first, int last, qreal *minimum, qreal *maximum) const;
     QRectF plotRect() const;
     qreal viewXMinimum() const;
     qreal viewXMaximum() const;
@@ -150,13 +165,20 @@ class FQW_API RealtimePlotWidget : public QWidget
     void drawLegend(QPainter *painter, const QRectF &plot);
     void showContextMenu(const QPoint &globalPosition);
     void showAllData();
+    QString exportDirectory() const;
+    QString defaultExportPath(const QString &suffix) const;
+    QString chooseExportPath(const QString &title, const QString &suffix, const QString &nameFilter) const;
+    bool writeCsv(const QString &path) const;
+    bool exportCsv();
+    bool exportImage();
 
     QVector<PlotSeries> m_series;
     QVector<QRectF> m_legendToggleRects;
     int m_capacity = 120000;
-    qreal m_visibleSpan = 600;
+    int m_maximumVisiblePoints = 10000;
+    qreal m_visibleSpan = 9999;
     qreal m_xMinimum = 0;
-    qreal m_xMaximum = 600;
+    qreal m_xMaximum = 9999;
     qreal m_yMinimum = -1;
     qreal m_yMaximum = 1;
     bool m_autoScroll = true;

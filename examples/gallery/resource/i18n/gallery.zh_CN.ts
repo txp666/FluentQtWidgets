@@ -3068,6 +3068,10 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <translation>自动范围</translation>
     </message>
     <message>
+        <source>Maximum visible points</source>
+        <translation>最大显示点数</translation>
+    </message>
+    <message>
         <source>Auto-scroll X</source>
         <translation>X 轴自动滚动</translation>
     </message>
@@ -3094,6 +3098,30 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     <message>
         <source>Legend</source>
         <translation>图例</translation>
+    </message>
+    <message>
+        <source>Export CSV</source>
+        <translation>导出 CSV</translation>
+    </message>
+    <message>
+        <source>Export image</source>
+        <translation>导出图片</translation>
+    </message>
+    <message>
+        <source>Save CSV</source>
+        <translation>保存 CSV</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>CSV 文件 (*.csv)</translation>
+    </message>
+    <message>
+        <source>Save image</source>
+        <translation>保存图片</translation>
+    </message>
+    <message>
+        <source>PNG images (*.png)</source>
+        <translation>PNG 图片 (*.png)</translation>
     </message>
 </context>
 <context>

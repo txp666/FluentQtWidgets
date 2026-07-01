@@ -1,13 +1,22 @@
 #include <FluentQtWidgets/Widgets/RealtimePlotWidget.h>
 
+#include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/Theme.h>
 
+#include <QtCore/QDateTime>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QMap>
 #include <QtCore/QtMath>
+#include <QtCore/QTextStream>
 #include <QtGui/QAction>
+#include <QtGui/QActionGroup>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QSizePolicy>
 
 #include <FluentQtWidgets/Widgets/Menu.h>
@@ -21,6 +30,7 @@ namespace FluentQt {
 namespace {
 
 constexpr qreal kMinimumRange = 1.0e-6;
+constexpr int kYRangeBlockSize = 256;
 
 bool isFinite(qreal value)
 {
@@ -52,6 +62,23 @@ QPoint globalMousePosition(const QMouseEvent *event)
 #else
     return event->globalPos();
 #endif
+}
+
+QString csvField(QString value)
+{
+    const bool needsQuoting = value.contains(QLatin1Char(';')) || value.contains(QLatin1Char('"')) ||
+                              value.contains(QLatin1Char('\n')) || value.contains(QLatin1Char('\r'));
+    if (!needsQuoting) {
+        return value;
+    }
+
+    value.replace(QLatin1Char('"'), QStringLiteral("\"\""));
+    return QStringLiteral("\"%1\"").arg(value);
+}
+
+QString csvNumber(qreal value)
+{
+    return QString::number(value, 'g', 16);
 }
 
 } // namespace
@@ -102,6 +129,8 @@ int RealtimePlotWidget::sampleCount() const
 
 int RealtimePlotWidget::seriesCount() const { return m_series.size(); }
 
+int RealtimePlotWidget::maximumVisiblePoints() const { return m_maximumVisiblePoints; }
+
 qreal RealtimePlotWidget::visibleSpan() const { return m_visibleSpan; }
 
 qreal RealtimePlotWidget::xMinimum() const { return m_xMinimum; }
@@ -149,6 +178,7 @@ int RealtimePlotWidget::addSeries(const QString &name, const QColor &color)
     series.name = name.trimmed().isEmpty() ? QStringLiteral("Series %1").arg(m_series.size() + 1) : name;
     series.color = color;
     series.buffer.resize(m_capacity);
+    resizeYRangeBlocks(&series);
     m_series.append(series);
     m_legendToggleRects.resize(m_series.size());
 
@@ -244,8 +274,10 @@ void RealtimePlotWidget::setCapacity(int capacity)
         PlotSeries &series = m_series[seriesIndex];
         series.buffer.clear();
         series.buffer.resize(m_capacity);
+        resizeYRangeBlocks(&series);
         series.start = 0;
         series.count = 0;
+        series.xMonotonic = true;
         for (const QPointF &point : currentPoints.at(seriesIndex)) {
             appendPointInternal(seriesIndex, point.x(), point.y());
         }
@@ -264,6 +296,23 @@ void RealtimePlotWidget::setVisibleSpan(qreal span)
     }
 
     m_visibleSpan = boundedSpan;
+    m_maximumVisiblePoints = qMax(2, qCeil(m_visibleSpan) + 1);
+    if (!m_autoScroll) {
+        m_xMaximum = m_xMinimum + m_visibleSpan;
+    }
+    update();
+    emit rangeChanged();
+}
+
+void RealtimePlotWidget::setMaximumVisiblePoints(int count)
+{
+    const int boundedCount = qMax(2, count);
+    if (m_maximumVisiblePoints == boundedCount) {
+        return;
+    }
+
+    m_maximumVisiblePoints = boundedCount;
+    m_visibleSpan = m_maximumVisiblePoints - 1;
     if (!m_autoScroll) {
         m_xMaximum = m_xMinimum + m_visibleSpan;
     }
@@ -523,6 +572,8 @@ void RealtimePlotWidget::setSamples(int seriesIndex, const QVector<qreal> &sampl
     series.start = 0;
     series.count = 0;
     series.nextX = 0;
+    series.xMonotonic = true;
+    resizeYRangeBlocks(&series);
     for (int i = 0; i < samples.size(); ++i) {
         appendPointInternal(seriesIndex, i, samples.at(i));
     }
@@ -541,6 +592,8 @@ void RealtimePlotWidget::clear()
         series.start = 0;
         series.count = 0;
         series.nextX = 0;
+        series.xMonotonic = true;
+        resizeYRangeBlocks(&series);
     }
 
     if (!changed) {
@@ -755,6 +808,17 @@ void RealtimePlotWidget::showContextMenu(const QPoint &globalPosition)
     QAction *autoRangeAction = menu->addAction(tr("Auto Range"));
     menu->addSeparator();
 
+    auto *maximumPointsMenu = new CheckableMenu(tr("Maximum visible points"), menu, MenuIndicatorType::Radio);
+    auto *maximumPointsGroup = new QActionGroup(maximumPointsMenu);
+    maximumPointsGroup->setExclusive(true);
+    for (int count : {1000, 5000, 10000, 50000, 100000}) {
+        QAction *action = maximumPointsMenu->addCheckableAction(QString::number(count), m_maximumVisiblePoints == count);
+        action->setActionGroup(maximumPointsGroup);
+        connect(action, &QAction::triggered, this, [this, count]() { setMaximumVisiblePoints(count); });
+    }
+    menu->addMenu(maximumPointsMenu);
+    menu->addSeparator();
+
     QAction *autoScrollAction = menu->addCheckableAction(tr("Auto-scroll X"), m_autoScroll);
     QAction *autoYAction = menu->addCheckableAction(tr("Auto Y Range"), m_autoYRange);
 
@@ -764,6 +828,9 @@ void RealtimePlotWidget::showContextMenu(const QPoint &globalPosition)
     QAction *pointsAction = menu->addCheckableAction(tr("Points"), m_pointsVisible);
     QAction *crosshairAction = menu->addCheckableAction(tr("Crosshair"), m_crosshairVisible);
     QAction *legendAction = menu->addCheckableAction(tr("Legend"), m_legendVisible);
+    menu->addSeparator();
+    QAction *exportCsvAction = menu->addAction(tr("Export CSV"));
+    QAction *exportImageAction = menu->addAction(tr("Export image"));
 
     connect(viewAllAction, &QAction::triggered, this, &RealtimePlotWidget::showAllData);
     connect(autoRangeAction, &QAction::triggered, this, &RealtimePlotWidget::resetView);
@@ -783,53 +850,119 @@ void RealtimePlotWidget::showContextMenu(const QPoint &globalPosition)
     });
     connect(legendAction, &QAction::triggered, this,
             [this, legendAction]() { setLegendVisible(legendAction->isChecked()); });
+    connect(exportCsvAction, &QAction::triggered, this, [this]() { exportCsv(); });
+    connect(exportImageAction, &QAction::triggered, this, [this]() { exportImage(); });
 
     menu->exec(globalPosition, true, MenuAnimationType::FadeInDropDown);
 }
 
 void RealtimePlotWidget::showAllData()
 {
-    qreal xMin = std::numeric_limits<qreal>::max();
-    qreal xMax = std::numeric_limits<qreal>::lowest();
-    qreal yMin = std::numeric_limits<qreal>::max();
-    qreal yMax = std::numeric_limits<qreal>::lowest();
-
-    for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
-        const PlotSeries &series = m_series.at(seriesIndex);
-        if (!series.visible || series.count == 0) {
-            continue;
-        }
-        for (int i = 0; i < series.count; ++i) {
-            const QPointF point = pointAt(seriesIndex, i);
-            xMin = qMin(xMin, point.x());
-            xMax = qMax(xMax, point.x());
-            yMin = qMin(yMin, point.y());
-            yMax = qMax(yMax, point.y());
-        }
-    }
-
-    if (xMin == std::numeric_limits<qreal>::max() || xMax == std::numeric_limits<qreal>::lowest()) {
-        resetView();
-        return;
-    }
-
-    const qreal xRange = qMax<qreal>(kMinimumRange, xMax - xMin);
-    const qreal yRange = qMax<qreal>(kMinimumRange, yMax - yMin);
-    const qreal xPadding = qMax<qreal>(0.5, xRange * 0.02);
-    const qreal yPadding = qMax<qreal>(0.2, yRange * 0.12);
-    const qreal xLeftPadding = xMin >= 0 ? qMin(xPadding, xMin) : xPadding;
-    const qreal xLeft = xMin - xLeftPadding;
-
-    m_xMinimum = xLeft;
-    m_xMaximum = xMax;
-    m_yMinimum = yMin - yPadding;
-    m_yMaximum = yMax + yPadding;
-    m_visibleSpan = qMax<qreal>(0, m_xMaximum - m_xMinimum);
+    m_visibleSpan = m_maximumVisiblePoints - 1;
     m_autoScroll = true;
     m_autoYRange = true;
     update();
     emit interactionChanged();
     emit rangeChanged();
+}
+
+QString RealtimePlotWidget::exportDirectory() const
+{
+    QDir directory(FluentConfig::instance()->downloadFolder());
+    if (!directory.exists()) {
+        directory.mkpath(QStringLiteral("."));
+    }
+    return directory.absolutePath();
+}
+
+QString RealtimePlotWidget::defaultExportPath(const QString &suffix) const
+{
+    const QString timestamp = QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd_HHmmss_zzz"));
+    return QDir(exportDirectory()).filePath(QStringLiteral("realtime_plot_%1.%2").arg(timestamp, suffix));
+}
+
+QString RealtimePlotWidget::chooseExportPath(const QString &title, const QString &suffix,
+                                             const QString &nameFilter) const
+{
+    const QString initialPath = defaultExportPath(suffix);
+    QFileDialog dialog(const_cast<RealtimePlotWidget *>(this), title, exportDirectory(), nameFilter);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setDefaultSuffix(suffix);
+    dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+    dialog.selectFile(QFileInfo(initialPath).fileName());
+    if (dialog.exec() != QDialog::Accepted || dialog.selectedFiles().isEmpty()) {
+        return QString();
+    }
+
+    QString path = QDir::fromNativeSeparators(dialog.selectedFiles().constFirst().trimmed());
+    if (path.isEmpty()) {
+        return QString();
+    }
+
+    const QString extension = QStringLiteral(".%1").arg(suffix);
+    if (!path.endsWith(extension, Qt::CaseInsensitive)) {
+        path.append(extension);
+    }
+    return QDir::cleanPath(path);
+}
+
+bool RealtimePlotWidget::writeCsv(const QString &path) const
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        return false;
+    }
+
+    QTextStream stream(&file);
+    stream << csvField(QStringLiteral("x"));
+    for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+        const PlotSeries &series = m_series.at(seriesIndex);
+        const QString name =
+            series.name.isEmpty() ? QStringLiteral("Series %1").arg(seriesIndex + 1) : series.name;
+        stream << ';' << csvField(name);
+    }
+    stream << '\n';
+
+    QMap<qreal, QVector<QString>> rows;
+    for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+        const PlotSeries &series = m_series.at(seriesIndex);
+        for (int i = 0; i < series.count; ++i) {
+            const QPointF point = pointAt(seriesIndex, i);
+            QVector<QString> &columns = rows[point.x()];
+            if (columns.size() < m_series.size()) {
+                columns.resize(m_series.size());
+            }
+            columns[seriesIndex] = csvNumber(point.y());
+        }
+    }
+
+    for (auto it = rows.constBegin(); it != rows.constEnd(); ++it) {
+        stream << csvField(csvNumber(it.key()));
+        const QVector<QString> &columns = it.value();
+        for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+            stream << ';';
+            if (seriesIndex < columns.size()) {
+                stream << csvField(columns.at(seriesIndex));
+            }
+        }
+        stream << '\n';
+    }
+    return file.error() == QFile::NoError;
+}
+
+bool RealtimePlotWidget::exportCsv()
+{
+    const QString path =
+        chooseExportPath(tr("Save CSV"), QStringLiteral("csv"), tr("CSV files (*.csv)"));
+    return !path.isEmpty() && writeCsv(path);
+}
+
+bool RealtimePlotWidget::exportImage()
+{
+    const QString path =
+        chooseExportPath(tr("Save image"), QStringLiteral("png"), tr("PNG images (*.png)"));
+    return !path.isEmpty() && grab().save(path, "PNG");
 }
 
 void RealtimePlotWidget::leaveEvent(QEvent *event)
@@ -853,13 +986,19 @@ bool RealtimePlotWidget::appendPointInternal(int seriesIndex, qreal x, qreal y)
     }
 
     PlotSeries &series = m_series[seriesIndex];
-    const int index = series.count < m_capacity ? (series.start + series.count) % m_capacity : series.start;
+    if (series.count > 0 && x < pointAt(seriesIndex, series.count - 1).x()) {
+        series.xMonotonic = false;
+    }
+    const bool overwrote = series.count >= m_capacity;
+    const int index = overwrote ? series.start : (series.start + series.count) % m_capacity;
+    const qreal previousY = overwrote ? series.buffer.at(index).y() : 0;
     series.buffer[index] = QPointF(x, y);
     if (series.count < m_capacity) {
         ++series.count;
     } else {
         series.start = (series.start + 1) % m_capacity;
     }
+    updateYRangeBlockAfterWrite(&series, index, previousY, overwrote);
     return true;
 }
 
@@ -867,6 +1006,183 @@ QPointF RealtimePlotWidget::pointAt(int seriesIndex, int index) const
 {
     const PlotSeries &series = m_series.at(seriesIndex);
     return series.buffer.at((series.start + index) % m_capacity);
+}
+
+void RealtimePlotWidget::resizeYRangeBlocks(PlotSeries *series)
+{
+    if (!series) {
+        return;
+    }
+    const int blockCount = qMax(1, (m_capacity + kYRangeBlockSize - 1) / kYRangeBlockSize);
+    series->yBlockMinimums.fill(std::numeric_limits<qreal>::max(), blockCount);
+    series->yBlockMaximums.fill(std::numeric_limits<qreal>::lowest(), blockCount);
+}
+
+bool RealtimePlotWidget::isPhysicalIndexValid(const PlotSeries &series, int physicalIndex) const
+{
+    if (physicalIndex < 0 || physicalIndex >= m_capacity || series.count <= 0) {
+        return false;
+    }
+    if (series.count >= m_capacity) {
+        return true;
+    }
+
+    const int end = (series.start + series.count) % m_capacity;
+    if (series.start < end) {
+        return physicalIndex >= series.start && physicalIndex < end;
+    }
+    return physicalIndex >= series.start || physicalIndex < end;
+}
+
+void RealtimePlotWidget::rebuildYRangeBlock(PlotSeries *series, int blockIndex) const
+{
+    if (!series || blockIndex < 0 || blockIndex >= series->yBlockMinimums.size()) {
+        return;
+    }
+
+    qreal yMin = std::numeric_limits<qreal>::max();
+    qreal yMax = std::numeric_limits<qreal>::lowest();
+    const int first = blockIndex * kYRangeBlockSize;
+    const int last = qMin(m_capacity, first + kYRangeBlockSize);
+    for (int i = first; i < last; ++i) {
+        if (!isPhysicalIndexValid(*series, i)) {
+            continue;
+        }
+        const qreal y = series->buffer.at(i).y();
+        yMin = qMin(yMin, y);
+        yMax = qMax(yMax, y);
+    }
+
+    series->yBlockMinimums[blockIndex] = yMin;
+    series->yBlockMaximums[blockIndex] = yMax;
+}
+
+void RealtimePlotWidget::updateYRangeBlockAfterWrite(PlotSeries *series, int physicalIndex, qreal previousY,
+                                                     bool overwrote)
+{
+    if (!series || physicalIndex < 0 || physicalIndex >= m_capacity) {
+        return;
+    }
+
+    const int blockIndex = physicalIndex / kYRangeBlockSize;
+    if (blockIndex < 0 || blockIndex >= series->yBlockMinimums.size()) {
+        return;
+    }
+
+    const qreal y = series->buffer.at(physicalIndex).y();
+    qreal &blockMinimum = series->yBlockMinimums[blockIndex];
+    qreal &blockMaximum = series->yBlockMaximums[blockIndex];
+    if (overwrote &&
+        (qFuzzyCompare(previousY + 1, blockMinimum + 1) || qFuzzyCompare(previousY + 1, blockMaximum + 1))) {
+        rebuildYRangeBlock(series, blockIndex);
+        return;
+    }
+
+    blockMinimum = qMin(blockMinimum, y);
+    blockMaximum = qMax(blockMaximum, y);
+}
+
+void RealtimePlotWidget::accumulatePhysicalYRange(const PlotSeries &series, int firstPhysical, int lastPhysical,
+                                                  qreal *minimum, qreal *maximum) const
+{
+    if (!minimum || !maximum || firstPhysical >= lastPhysical) {
+        return;
+    }
+
+    int index = firstPhysical;
+    while (index < lastPhysical && index % kYRangeBlockSize != 0) {
+        const qreal y = series.buffer.at(index).y();
+        *minimum = qMin(*minimum, y);
+        *maximum = qMax(*maximum, y);
+        ++index;
+    }
+
+    while (index + kYRangeBlockSize <= lastPhysical) {
+        const int blockIndex = index / kYRangeBlockSize;
+        if (blockIndex >= 0 && blockIndex < series.yBlockMinimums.size()) {
+            *minimum = qMin(*minimum, series.yBlockMinimums.at(blockIndex));
+            *maximum = qMax(*maximum, series.yBlockMaximums.at(blockIndex));
+        }
+        index += kYRangeBlockSize;
+    }
+
+    while (index < lastPhysical) {
+        const qreal y = series.buffer.at(index).y();
+        *minimum = qMin(*minimum, y);
+        *maximum = qMax(*maximum, y);
+        ++index;
+    }
+}
+
+void RealtimePlotWidget::seriesYRange(int seriesIndex, int first, int last, qreal *minimum, qreal *maximum) const
+{
+    if (!hasSeries(seriesIndex) || !minimum || !maximum || first >= last) {
+        return;
+    }
+
+    const PlotSeries &series = m_series.at(seriesIndex);
+    const int physicalFirst = (series.start + first) % m_capacity;
+    const int length = last - first;
+    if (physicalFirst + length <= m_capacity) {
+        accumulatePhysicalYRange(series, physicalFirst, physicalFirst + length, minimum, maximum);
+        return;
+    }
+
+    accumulatePhysicalYRange(series, physicalFirst, m_capacity, minimum, maximum);
+    accumulatePhysicalYRange(series, 0, (physicalFirst + length) % m_capacity, minimum, maximum);
+}
+
+void RealtimePlotWidget::visibleIndexRange(int seriesIndex, qreal xMinimum, qreal xMaximum, int *first, int *last,
+                                           bool includeAdjacent) const
+{
+    if (!hasSeries(seriesIndex)) {
+        *first = 0;
+        *last = 0;
+        return;
+    }
+
+    const PlotSeries &series = m_series.at(seriesIndex);
+    if (series.count == 0) {
+        *first = 0;
+        *last = 0;
+        return;
+    }
+    if (!series.xMonotonic) {
+        *first = 0;
+        *last = series.count;
+        return;
+    }
+
+    int low = 0;
+    int high = series.count;
+    while (low < high) {
+        const int mid = low + (high - low) / 2;
+        if (pointAt(seriesIndex, mid).x() < xMinimum) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    int begin = low;
+
+    low = begin;
+    high = series.count;
+    while (low < high) {
+        const int mid = low + (high - low) / 2;
+        if (pointAt(seriesIndex, mid).x() <= xMaximum) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    int end = low;
+
+    if (includeAdjacent) {
+        begin = qMax(0, begin - 1);
+        end = qMin(series.count, end + 1);
+    }
+    *first = begin;
+    *last = end;
 }
 
 QRectF RealtimePlotWidget::plotRect() const
@@ -877,7 +1193,7 @@ QRectF RealtimePlotWidget::plotRect() const
 qreal RealtimePlotWidget::viewXMinimum() const
 {
     if (m_autoScroll) {
-        return viewXMaximum() - m_visibleSpan;
+        return qMax<qreal>(0, viewXMaximum() - m_visibleSpan);
     }
     return m_xMinimum;
 }
@@ -897,9 +1213,9 @@ qreal RealtimePlotWidget::viewXMaximum() const
         latest = qMax(latest, pointAt(seriesIndex, series.count - 1).x());
     }
     if (latest == std::numeric_limits<qreal>::lowest()) {
-        return m_visibleSpan;
+        return 1;
     }
-    return latest;
+    return qMax<qreal>(1, latest);
 }
 
 void RealtimePlotWidget::visibleYRange(qreal xMinimum, qreal xMaximum, qreal *minimum, qreal *maximum) const
@@ -917,14 +1233,10 @@ void RealtimePlotWidget::visibleYRange(qreal xMinimum, qreal xMaximum, qreal *mi
         if (!series.visible) {
             continue;
         }
-        for (int i = 0; i < series.count; ++i) {
-            const QPointF point = pointAt(seriesIndex, i);
-            if (point.x() < xMinimum || point.x() > xMaximum) {
-                continue;
-            }
-            yMin = qMin(yMin, point.y());
-            yMax = qMax(yMax, point.y());
-        }
+        int first = 0;
+        int last = 0;
+        visibleIndexRange(seriesIndex, xMinimum, xMaximum, &first, &last, false);
+        seriesYRange(seriesIndex, first, last, &yMin, &yMax);
     }
 
     if (yMin == std::numeric_limits<qreal>::max() || yMax == std::numeric_limits<qreal>::lowest()) {
