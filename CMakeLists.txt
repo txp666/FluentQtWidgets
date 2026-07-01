@@ -40,7 +40,6 @@ project(
 option(FQW_BUILD_SHARED "Build FluentQtWidgets as a shared library" ON)
 option(FQW_BUILD_EXAMPLES "Build examples" ON)
 option(FQW_BUILD_TESTS "Build tests" OFF)
-option(FQW_REQUIRE_WEBENGINE_WIDGETS "Fail configuration when Qt WebEngineWidgets is unavailable" OFF)
 set(FQW_QT_MAJOR_VERSION "6" CACHE STRING "Qt major version to use")
 set_property(CACHE FQW_QT_MAJOR_VERSION PROPERTY STRINGS 6 5)
 
@@ -56,17 +55,9 @@ include(CMakePackageConfigHelpers)
 
 if(FQW_QT_MAJOR_VERSION STREQUAL "6")
     find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Svg Network)
-    find_package(Qt6 6.5 QUIET COMPONENTS Multimedia MultimediaWidgets)
-    if(FQW_REQUIRE_WEBENGINE_WIDGETS)
-        find_package(Qt6 6.5 REQUIRED COMPONENTS PrintSupport WebEngineWidgets)
-    else()
-        find_package(Qt6 6.5 QUIET COMPONENTS PrintSupport WebEngineWidgets)
-    endif()
+    find_package(Qt6 6.5 QUIET COMPONENTS Multimedia MultimediaWidgets WebEngineWidgets)
     set(FQW_QT_PACKAGE Qt6)
 elseif(FQW_QT_MAJOR_VERSION STREQUAL "5")
-    if(FQW_REQUIRE_WEBENGINE_WIDGETS)
-        message(FATAL_ERROR "FQW_REQUIRE_WEBENGINE_WIDGETS requires Qt 6 WebEngineWidgets.")
-    endif()
     find_package(Qt5 5.15 REQUIRED COMPONENTS Core Gui Widgets Svg Network)
     set(FQW_QT_PACKAGE Qt5)
 else()
@@ -84,10 +75,6 @@ if(FQW_QT_MAJOR_VERSION STREQUAL "6" AND TARGET Qt6::WebEngineWidgets)
     set(FQW_HAS_WEBENGINE_WIDGETS ON)
 endif()
 set(FQW_HAS_WEBENGINE_WIDGETS "${FQW_HAS_WEBENGINE_WIDGETS}" CACHE BOOL "Whether Qt WebEngineWidgets support is available" FORCE)
-if(FQW_REQUIRE_WEBENGINE_WIDGETS AND NOT FQW_HAS_WEBENGINE_WIDGETS)
-    message(FATAL_ERROR "FQW_REQUIRE_WEBENGINE_WIDGETS is ON, but Qt WebEngineWidgets was not found.")
-endif()
-
 set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/FluentQtWidgets.h
     include/FluentQtWidgets/Global.h
@@ -211,6 +198,7 @@ set(FQW_SOURCES
     src/widgets/PipsPager.cpp
     src/widgets/ProgressBar.cpp
     src/widgets/RealtimePlotWidget.cpp
+    src/widgets/RealtimePlotWidget_paint.cpp
     src/widgets/ScrollArea.cpp
     src/widgets/Separator.cpp
     src/widgets/SmoothScrollDelegate.cpp
@@ -251,9 +239,6 @@ endif()
 if(FQW_HAS_MULTIMEDIA)
     target_compile_definitions(FluentQtWidgets PUBLIC FQW_HAS_MULTIMEDIA=1)
 endif()
-if(FQW_HAS_WEBENGINE_WIDGETS)
-    target_compile_definitions(FluentQtWidgets PUBLIC FQW_HAS_WEBENGINE_WIDGETS=1)
-endif()
 
 target_include_directories(
     FluentQtWidgets
@@ -282,14 +267,6 @@ if(FQW_HAS_MULTIMEDIA)
             ${FQW_QT_PACKAGE}::MultimediaWidgets
     )
 endif()
-if(FQW_HAS_WEBENGINE_WIDGETS)
-    target_link_libraries(
-        FluentQtWidgets
-        PUBLIC
-            ${FQW_QT_PACKAGE}::WebEngineWidgets
-    )
-endif()
-
 target_compile_features(FluentQtWidgets PUBLIC cxx_std_17)
 target_compile_definitions(
     FluentQtWidgets

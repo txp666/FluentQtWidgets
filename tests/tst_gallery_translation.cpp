@@ -109,8 +109,18 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Realtime multi-series plot"),
                  QStringLiteral("实时多曲线图"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Memory"), QStringLiteral("内存"));
-        QCOMPARE(QCoreApplication::translate("ChartInterface", "Mixed bar and line chart powered by ECharts"),
-                 QStringLiteral("由 ECharts 驱动的柱状折线混合图"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Native mixed bar and line chart"),
+                 QStringLiteral("原生柱状折线混合图"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Mon"), QStringLiteral("周一"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Jan"), QStringLiteral("1月"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Search"), QStringLiteral("搜索"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Direct"), QStringLiteral("直接访问"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Web"), QStringLiteral("Web"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "View All"), QStringLiteral("查看全部"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Auto-scroll X"),
+                 QStringLiteral("X 轴自动滚动"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Fill under curves"),
+                 QStringLiteral("曲线下方填充"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
                  QStringLiteral("通过提供反馈帮助我们改进 FluentQtWidgets。"));
         QCOMPARE(QCoreApplication::translate("IconInterface", "Icon name"), QStringLiteral("图标名字"));
@@ -174,8 +184,18 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Realtime multi-series plot"),
                  QStringLiteral("實時多曲線圖"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Memory"), QStringLiteral("記憶體"));
-        QCOMPARE(QCoreApplication::translate("ChartInterface", "Mixed bar and line chart powered by ECharts"),
-                 QStringLiteral("由 ECharts 驅動的柱狀折線混合圖"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Native mixed bar and line chart"),
+                 QStringLiteral("原生柱狀折線混合圖"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Mon"), QStringLiteral("週一"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Jan"), QStringLiteral("1月"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Search"), QStringLiteral("搜尋"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Direct"), QStringLiteral("直接訪問"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Web"), QStringLiteral("Web"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "View All"), QStringLiteral("查看全部"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Auto-scroll X"),
+                 QStringLiteral("X 軸自動滾動"));
+        QCOMPARE(QCoreApplication::translate("FluentQt::RealtimePlotWidget", "Fill under curves"),
+                 QStringLiteral("曲線下方填充"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
                  QStringLiteral("通過提供反饋幫助我們改進 FluentQtWidgets。"));
         QCOMPARE(QCoreApplication::translate("IconInterface", "Icon name"), QStringLiteral("圖標名字"));

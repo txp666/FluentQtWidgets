@@ -203,11 +203,11 @@ Supported classes:
 - `AudioWaveformWidget`
 - `RealtimePlotWidget`
 
-`ChartWidget` renders Apache ECharts options inside a FluentQtWidgets application using Qt WebEngine when `Qt6::WebEngineWidgets` is available. It stores the ECharts runtime in the Qt resource system, exposes `option`, `chartTheme`, `setOptionJson()`, and `reload()`, and automatically refreshes on theme/accent changes. macOS app bundle deployment includes a Qt WebEngine helper fix so `QtWebEngineProcess.app` can resolve bundled Qt frameworks.
+`ChartWidget` is a native QWidget renderer for common chart options. It supports bar, line, area, mixed bar/line, donut, scatter, radar, gauge, and heatmap displays without Qt WebEngine, includes ECharts-style staggered reveal animation, data labels, and hover feedback, exposes `option`, `chartTheme`, `setOptionJson()`, and `reload()`, and automatically refreshes on theme/accent changes.
 
 `AudioWaveformWidget` is a native QWidget renderer for sampled audio amplitudes. It exposes `sampleLevels`, `progress`, bar metrics, light/dark waveform colors, and click/drag signals so callers can use it as a seekable waveform display without WebEngine.
 
-`RealtimePlotWidget` is a native QWidget renderer for live line plots. It keeps bounded per-series buffers, draws dense data through pixel-column min/max aggregation, supports auto-scrolling, wheel zoom, drag pan, crosshair readout, and an in-plot checkbox legend for toggling series visibility.
+`RealtimePlotWidget` is a native QWidget renderer for live line plots. It keeps bounded per-series buffers, draws dense data through pixel-column min/max aggregation, supports auto-scrolling, wheel zoom, drag pan, pyqtgraph-style crosshair readouts, right-click view/display controls, and an in-plot line legend for toggling series visibility.
 
 ## Layout
 

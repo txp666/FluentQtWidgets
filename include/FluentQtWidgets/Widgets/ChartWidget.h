@@ -3,10 +3,15 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QJsonObject>
+#include <QtCore/QPointF>
 #include <QtCore/QSize>
 #include <QtWidgets/QWidget>
 
+class QPaintEvent;
+class QEvent;
+class QMouseEvent;
 class QResizeEvent;
+class QVariantAnimation;
 
 namespace FluentQt {
 
@@ -36,6 +41,9 @@ class FQW_API ChartWidget : public QWidget
     void loadFinished(bool ok);
 
   protected:
+    void paintEvent(QPaintEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void leaveEvent(QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
   private:
@@ -43,12 +51,16 @@ class FQW_API ChartWidget : public QWidget
     void renderChart();
     void applyPendingOption();
     void resizeChart();
+    void startRenderAnimation();
     QString resolvedChartTheme() const;
 
     QJsonObject m_option;
     QString m_chartTheme = QStringLiteral("auto");
-    QWidget *m_view = nullptr;
-    bool m_loaded = false;
+    QVariantAnimation *m_animation = nullptr;
+    qreal m_animationProgress = 1.0;
+    bool m_pendingRenderAnimation = true;
+    bool m_hasHover = false;
+    QPointF m_hoverPosition;
 };
 
 } // namespace FluentQt

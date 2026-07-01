@@ -396,7 +396,7 @@ HomeInterface::HomeInterface(QWidget *parent) : ScrollArea(parent)
                                "A native high-performance plot widget for streaming data and selectable series.",
                                "chartInterface", 1},
                               {"controls/WebView.png", "ChartWidget",
-                               "A widget that renders ECharts options inside a Fluent styled Qt application.",
+                               "A native QWidget chart renderer for Fluent styled Qt applications.",
                                "chartInterface", 2},
                           });
 

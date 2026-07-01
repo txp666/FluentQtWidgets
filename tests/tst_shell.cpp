@@ -14,11 +14,6 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
-#if defined(FQW_HAS_WEBENGINE_WIDGETS)
-#include <QtWebEngineCore/QWebEnginePage>
-#include <QtWebEngineWidgets/QWebEngineView>
-#endif
-
 #if defined(Q_OS_WIN)
 #include <windows.h>
 #include <windowsx.h>
@@ -555,11 +550,49 @@ class ShellTest : public QObject
         QVERIFY(hasSeriesPixel);
 
         QVERIFY(plot.isSeriesVisible(0));
-        QTest::mouseClick(&plot, Qt::LeftButton, Qt::NoModifier, QPoint(320, 44));
+        QTest::mouseClick(&plot, Qt::LeftButton, Qt::NoModifier, QPoint(166, 36));
         QVERIFY(!plot.isSeriesVisible(0));
+
+        QTest::mouseClick(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
+        FluentQt::CheckableMenu *contextMenu = nullptr;
+        QTRY_VERIFY([&]() {
+            for (QWidget *widget : QApplication::topLevelWidgets()) {
+                auto *menu = qobject_cast<FluentQt::CheckableMenu *>(widget);
+                if (menu && menu->isVisible()) {
+                    contextMenu = menu;
+                    return true;
+                }
+            }
+            return false;
+        }());
+        QVERIFY(contextMenu->menuActions().size() >= 9);
+        plot.setXRange(1.0, 2.0);
+        plot.setYRange(6.0, 7.0);
+        contextMenu->menuActions().constFirst()->trigger();
+        QVERIFY(plot.autoScroll());
+        QVERIFY(plot.autoYRange());
+        QVERIFY(plot.visibleSpan() >= 3.0);
+        QVERIFY(plot.xMinimum() >= 0.0);
+        QVERIFY(plot.xMaximum() >= 3.0);
+        QVERIFY(plot.yMinimum() < 5.0);
+        QVERIFY(plot.yMaximum() > 8.0);
+        plot.appendPoint(memorySeries, 10.0, 9.0);
+        QVERIFY(plot.autoScroll());
+        contextMenu->close();
+        QTRY_VERIFY(!contextMenu->isVisible());
+
+        plot.setXRange(0.0, 4.0);
+        plot.setYRange(4.0, 10.0);
+        const qreal previousXSpan = plot.xMaximum() - plot.xMinimum();
+        const qreal previousYSpan = plot.yMaximum() - plot.yMinimum();
+        QTest::mousePress(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
+        QTest::mouseMove(&plot, QPoint(300, 180));
+        QTest::mouseRelease(&plot, Qt::RightButton, Qt::NoModifier, QPoint(300, 180));
+        QVERIFY((plot.xMaximum() - plot.xMinimum()) < previousXSpan);
+        QVERIFY((plot.yMaximum() - plot.yMinimum()) > previousYSpan);
     }
 
-    void chartWidgetLoadsBundledEcharts()
+    void chartWidgetRendersNativeChart()
     {
         QJsonObject option{
             {QStringLiteral("xAxis"), QJsonObject{{QStringLiteral("type"), QStringLiteral("category")},
@@ -575,39 +608,33 @@ class ShellTest : public QObject
         QVERIFY(chart.option().contains(QStringLiteral("title")));
         chart.setChartTheme(QStringLiteral("dark"));
         QCOMPARE(chart.chartTheme(), QStringLiteral("dark"));
+        chart.setOption(option);
 
-#if defined(FQW_HAS_WEBENGINE_WIDGETS)
         QSignalSpy loadSpy(&chart, &FluentQt::ChartWidget::loadFinished);
         chart.resize(420, 260);
         chart.show();
         QVERIFY(QTest::qWaitForWindowExposed(&chart));
         chart.reload();
         if (loadSpy.isEmpty()) {
-            QVERIFY(loadSpy.wait(15000));
+            QVERIFY(loadSpy.wait(1000));
         }
         QVERIFY(loadSpy.last().value(0).toBool());
 
-        auto *view = chart.findChild<QWebEngineView *>();
-        QVERIFY(view != nullptr);
-        QVERIFY(view->page() != nullptr);
+        QImage rendered(chart.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        chart.render(&rendered);
 
-        QEventLoop loop;
-        QVariant scriptResult;
-        QTimer timeout;
-        timeout.setSingleShot(true);
-        connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
-        view->page()->runJavaScript(
-            QStringLiteral("Boolean(window.echarts && document.querySelector('canvas'))"),
-            [&scriptResult, &loop](const QVariant &value) {
-                scriptResult = value;
-                loop.quit();
-            });
-        timeout.start(15000);
-        loop.exec();
-        QVERIFY(scriptResult.toBool());
-#else
-        QVERIFY(chart.findChild<QLabel *>() != nullptr);
-#endif
+        bool hasChartPixel = false;
+        for (int y = 0; y < rendered.height() && !hasChartPixel; ++y) {
+            for (int x = 0; x < rendered.width(); ++x) {
+                const QColor pixel = QColor::fromRgba(rendered.pixel(x, y));
+                if (pixel.alpha() > 0 && pixel.green() > 100 && pixel.red() < 80) {
+                    hasChartPixel = true;
+                    break;
+                }
+            }
+        }
+        QVERIFY(hasChartPixel);
     }
 
     void fluentWindowExposesMicaApi()

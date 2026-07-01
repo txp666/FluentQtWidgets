@@ -125,8 +125,9 @@ QJsonObject axisChartOption(const QString &title, const QStringList &categories,
 QJsonObject barOption()
 {
     return axisChartOption(tx("ChartInterface", "Weekly active users"),
-                           {QStringLiteral("Mon"), QStringLiteral("Tue"), QStringLiteral("Wed"), QStringLiteral("Thu"),
-                            QStringLiteral("Fri"), QStringLiteral("Sat"), QStringLiteral("Sun")},
+                           {tx("ChartInterface", "Mon"), tx("ChartInterface", "Tue"), tx("ChartInterface", "Wed"),
+                            tx("ChartInterface", "Thu"), tx("ChartInterface", "Fri"), tx("ChartInterface", "Sat"),
+                            tx("ChartInterface", "Sun")},
                            QJsonArray{120, 200, 150, 80, 70, 110, 130},
                            tx("ChartInterface", "Users"), QStringLiteral("bar"));
 }
@@ -134,16 +135,17 @@ QJsonObject barOption()
 QJsonObject lineOption()
 {
     return axisChartOption(tx("ChartInterface", "Revenue trend"),
-                           {QStringLiteral("Jan"), QStringLiteral("Feb"), QStringLiteral("Mar"), QStringLiteral("Apr"),
-                            QStringLiteral("May"), QStringLiteral("Jun")},
+                           {tx("ChartInterface", "Jan"), tx("ChartInterface", "Feb"), tx("ChartInterface", "Mar"),
+                            tx("ChartInterface", "Apr"), tx("ChartInterface", "May"), tx("ChartInterface", "Jun")},
                            QJsonArray{820, 932, 901, 934, 1290, 1330},
                            tx("ChartInterface", "Revenue"), QStringLiteral("line"));
 }
 
 QJsonObject areaOption()
 {
-    const QStringList days{QStringLiteral("Mon"), QStringLiteral("Tue"), QStringLiteral("Wed"), QStringLiteral("Thu"),
-                           QStringLiteral("Fri"), QStringLiteral("Sat"), QStringLiteral("Sun")};
+    const QStringList days{tx("ChartInterface", "Mon"), tx("ChartInterface", "Tue"), tx("ChartInterface", "Wed"),
+                           tx("ChartInterface", "Thu"), tx("ChartInterface", "Fri"), tx("ChartInterface", "Sat"),
+                           tx("ChartInterface", "Sun")};
     return {
         {QStringLiteral("title"),
          QJsonObject{{QStringLiteral("text"), tx("ChartInterface", "Stacked engagement")},
@@ -184,8 +186,8 @@ QJsonObject areaOption()
 
 QJsonObject mixedOption()
 {
-    const QStringList months{QStringLiteral("Jan"), QStringLiteral("Feb"), QStringLiteral("Mar"), QStringLiteral("Apr"),
-                             QStringLiteral("May"), QStringLiteral("Jun")};
+    const QStringList months{tx("ChartInterface", "Jan"), tx("ChartInterface", "Feb"), tx("ChartInterface", "Mar"),
+                             tx("ChartInterface", "Apr"), tx("ChartInterface", "May"), tx("ChartInterface", "Jun")};
     const QJsonArray yAxis{
         QJsonObject{{QStringLiteral("type"), QStringLiteral("value")},
                     {QStringLiteral("name"), tx("ChartInterface", "Orders")}},
@@ -235,11 +237,11 @@ QJsonObject pieOption()
              {QStringLiteral("radius"), QJsonArray{QStringLiteral("40%"), QStringLiteral("70%")}},
              {QStringLiteral("avoidLabelOverlap"), false},
              {QStringLiteral("data"),
-              QJsonArray{QJsonObject{{QStringLiteral("value"), 1048}, {QStringLiteral("name"), QStringLiteral("Search")}},
-                         QJsonObject{{QStringLiteral("value"), 735}, {QStringLiteral("name"), QStringLiteral("Direct")}},
-                         QJsonObject{{QStringLiteral("value"), 580}, {QStringLiteral("name"), QStringLiteral("Email")}},
-                         QJsonObject{{QStringLiteral("value"), 484}, {QStringLiteral("name"), QStringLiteral("Ads")}},
-                         QJsonObject{{QStringLiteral("value"), 300}, {QStringLiteral("name"), QStringLiteral("Video")}}}}}}}};
+              QJsonArray{QJsonObject{{QStringLiteral("value"), 1048}, {QStringLiteral("name"), tx("ChartInterface", "Search")}},
+                         QJsonObject{{QStringLiteral("value"), 735}, {QStringLiteral("name"), tx("ChartInterface", "Direct")}},
+                         QJsonObject{{QStringLiteral("value"), 580}, {QStringLiteral("name"), tx("ChartInterface", "Email")}},
+                         QJsonObject{{QStringLiteral("value"), 484}, {QStringLiteral("name"), tx("ChartInterface", "Ads")}},
+                         QJsonObject{{QStringLiteral("value"), 300}, {QStringLiteral("name"), tx("ChartInterface", "Video")}}}}}}}};
 }
 
 QJsonObject scatterOption()
@@ -295,9 +297,9 @@ QJsonObject radarOption()
                                 {QStringLiteral("type"), QStringLiteral("radar")},
                                 {QStringLiteral("data"),
                                  QJsonArray{QJsonObject{{QStringLiteral("value"), QJsonArray{92, 88, 84, 76, 80}},
-                                                        {QStringLiteral("name"), QStringLiteral("Qt")}},
+                                                        {QStringLiteral("name"), tx("ChartInterface", "Qt")}},
                                             QJsonObject{{QStringLiteral("value"), QJsonArray{84, 82, 78, 88, 90}},
-                                                        {QStringLiteral("name"), QStringLiteral("Web")}}}}}}}};
+                                                        {QStringLiteral("name"), tx("ChartInterface", "Web")}}}}}}}};
 }
 
 QJsonObject gaugeOption()
@@ -324,8 +326,8 @@ QJsonObject heatmapOption()
 {
     const QStringList hours{QStringLiteral("10:00"), QStringLiteral("12:00"), QStringLiteral("14:00"),
                             QStringLiteral("16:00"), QStringLiteral("18:00"), QStringLiteral("20:00")};
-    const QStringList weekdays{QStringLiteral("Mon"), QStringLiteral("Tue"), QStringLiteral("Wed"), QStringLiteral("Thu"),
-                               QStringLiteral("Fri")};
+    const QStringList weekdays{tx("ChartInterface", "Mon"), tx("ChartInterface", "Tue"), tx("ChartInterface", "Wed"),
+                               tx("ChartInterface", "Thu"), tx("ChartInterface", "Fri")};
     return {
         {QStringLiteral("title"),
          QJsonObject{{QStringLiteral("text"), tx("ChartInterface", "Activity heatmap")},
@@ -392,23 +394,22 @@ QWidget *GalleryWindow::createChartPage()
 
     page->addExampleCard(tx("ChartInterface", "Audio waveform widget"), createAudioWaveform(page), waveformSource, 1);
     page->addExampleCard(tx("ChartInterface", "Realtime multi-series plot"), createRealtimePlot(page), realtimeSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Bar chart powered by ECharts"), createChart(barOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native bar chart"), createChart(barOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Line chart powered by ECharts"), createChart(lineOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native line chart"), createChart(lineOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Stacked area chart powered by ECharts"), createChart(areaOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native stacked area chart"), createChart(areaOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Mixed bar and line chart powered by ECharts"),
-                         createChart(mixedOption(), page), chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Donut chart powered by ECharts"), createChart(pieOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native mixed bar and line chart"), createChart(mixedOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Scatter chart powered by ECharts"), createChart(scatterOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native donut chart"), createChart(pieOption(), page), chartSource, 1);
+    page->addExampleCard(tx("ChartInterface", "Native scatter chart"), createChart(scatterOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Radar chart powered by ECharts"), createChart(radarOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native radar chart"), createChart(radarOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Gauge chart powered by ECharts"), createChart(gaugeOption(), page),
+    page->addExampleCard(tx("ChartInterface", "Native gauge chart"), createChart(gaugeOption(), page),
                          chartSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Heatmap powered by ECharts"), createChart(heatmapOption(), page, 360),
+    page->addExampleCard(tx("ChartInterface", "Native heatmap"), createChart(heatmapOption(), page, 360),
                          chartSource, 1);
 
     return page;

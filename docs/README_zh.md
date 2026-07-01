@@ -13,7 +13,7 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 - C++17
 - Qt 6.5+（Core/Gui/Widgets/Svg/Network），可选：
   - Multimedia + MultimediaWidgets
-  - WebEngineWidgets
+  - WebEngineWidgets（仅独立 WebEngine 示例需要）
 
 ## 构建
 

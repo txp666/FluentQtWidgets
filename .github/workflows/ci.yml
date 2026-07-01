@@ -24,14 +24,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.0"
-          modules: "qtmultimedia qtpositioning qtwebchannel qtwebengine"
-
-      - name: Install Linux WebEngine dependencies
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libcups2-dev
+          modules: "qtmultimedia"
 
       - name: Configure
-        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON -DFQW_REQUIRE_WEBENGINE_WIDGETS=ON
+        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
@@ -62,14 +58,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.0"
-          modules: "qtmultimedia qtpositioning qtwebchannel qtwebengine"
-
-      - name: Install Linux WebEngine dependencies
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libcups2-dev
+          modules: "qtmultimedia"
 
       - name: Configure
-        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=OFF -DFQW_REQUIRE_WEBENGINE_WIDGETS=ON
+        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=OFF
 
       - name: Build Gallery
         run: cmake --build build --config Release --parallel 2 --target FluentQtWidgets FluentQtWidgetsGallery

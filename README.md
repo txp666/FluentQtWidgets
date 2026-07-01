@@ -18,7 +18,7 @@ Current release line: **0.1.6**. Local reference checkouts, build trees, and dev
 - Qt 6.5+ (Core, Gui, Widgets, Svg, Network)
 - Optional Qt modules:
   - Multimedia + MultimediaWidgets
-  - WebEngineWidgets
+  - WebEngineWidgets for the standalone WebEngine demo only
 
 ## Build
 

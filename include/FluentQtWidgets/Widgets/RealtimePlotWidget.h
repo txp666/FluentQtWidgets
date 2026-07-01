@@ -10,6 +10,7 @@
 #include <QtWidgets/QWidget>
 
 class QEvent;
+class QContextMenuEvent;
 class QMouseEvent;
 class QPainter;
 class QPaintEvent;
@@ -115,6 +116,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
     void leaveEvent(QEvent *event) override;
 
   private:
@@ -146,6 +148,8 @@ class FQW_API RealtimePlotWidget : public QWidget
     QColor gridColor() const;
     QColor effectiveSeriesColor(int seriesIndex) const;
     void drawLegend(QPainter *painter, const QRectF &plot);
+    void showContextMenu(const QPoint &globalPosition);
+    void showAllData();
 
     QVector<PlotSeries> m_series;
     QVector<QRectF> m_legendToggleRects;
@@ -164,11 +168,20 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool m_legendVisible = true;
     QColor m_curveColor;
     bool m_dragging = false;
+    bool m_rightDragPending = false;
+    bool m_rightScaling = false;
+    bool m_suppressNextContextMenu = false;
     bool m_hasHover = false;
     QPointF m_hoverPosition;
     QPointF m_dragStartPosition;
     qreal m_dragStartXMinimum = 0;
     qreal m_dragStartXMaximum = 0;
+    QPointF m_rightDragStartPosition;
+    QPointF m_rightDragAnchor;
+    qreal m_rightDragStartXMinimum = 0;
+    qreal m_rightDragStartXMaximum = 0;
+    qreal m_rightDragStartYMinimum = 0;
+    qreal m_rightDragStartYMaximum = 0;
 };
 
 } // namespace FluentQt

@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/qfluentwidgets">
-        <file>chart/echarts.min.js</file>
         <file>qss/dark/button.qss</file>
         <file>qss/dark/calendar_picker.qss</file>
         <file>qss/dark/card_widget.qss</file>

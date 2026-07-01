@@ -2,16 +2,14 @@
 
 ## 0.1.6
 
-### Chart widgets and macOS WebEngine deployment
+### Native chart widgets and macOS fixes
 
-- Added `ChartWidget`, a Qt WebEngine-backed widget that renders bundled Apache ECharts options inside FluentQtWidgets applications.
+- Added `ChartWidget`, a native QWidget chart renderer for common bar, line, area, mixed, donut, scatter, radar, gauge, and heatmap displays with ECharts-style staggered reveal animation, data labels, and hover feedback.
 - Added `AudioWaveformWidget`, an interactive QWidget-based waveform renderer for sampled audio amplitudes with progress, color, and metric customization.
-- Added `RealtimePlotWidget`, a native QWidget live plot with bounded multi-series buffers, dense-data aggregation, crosshair interaction, and checkbox legend toggles.
-- Integrated the new chart components into Gallery with realtime, audio-waveform, and ECharts bar, line, stacked area, mixed bar/line, donut, scatter, radar, gauge, and heatmap demos.
-- Bundled `echarts.min.js` in the Qt resource system and documented the Apache ECharts third-party notice.
-- Fixed macOS Gallery deployment for Qt WebEngine helper dependencies, including `QtWebChannel.framework` lookup from `QtWebEngineProcess.app`.
+- Added `RealtimePlotWidget`, a native QWidget live plot with bounded multi-series buffers, dense-data aggregation, pyqtgraph-style crosshair readouts, right-click view controls, and line legend toggles.
+- Integrated the new chart components into Gallery with realtime, audio-waveform, native bar, line, stacked area, mixed bar/line, donut, scatter, radar, gauge, and heatmap demos.
 - Fixed macOS Fluent window corner rendering so native rounded corners remain visible without clipping child content.
-- Added tests for bundled ECharts loading, waveform sample/progress behavior, realtime plot multi-series rendering, checkbox legend toggling, and Gallery translations.
+- Added tests for native chart rendering, waveform sample/progress behavior, realtime plot multi-series rendering, checkbox legend toggling, and Gallery translations.
 - Updated release metadata and documentation for the 0.1.6 release line.
 
 ## 0.1.5

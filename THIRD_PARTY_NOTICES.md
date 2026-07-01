@@ -15,9 +15,3 @@ Gallery image resources copied from the reference gallery into `examples/gallery
 ## Qt
 
 Qt is provided under GPL, LGPL, and commercial license options depending on modules and distribution model. Users are responsible for complying with the Qt license that applies to their build.
-
-## Apache ECharts
-
-ChartWidget bundles Apache ECharts from https://echarts.apache.org/ in `resources/chart/echarts.min.js`.
-
-ECharts is licensed under the Apache License 2.0.

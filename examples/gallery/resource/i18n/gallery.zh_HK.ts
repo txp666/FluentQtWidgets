@@ -2700,8 +2700,8 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     </message>
     <message>
         <location filename="../../app/view/home_interface.cpp"/>
-        <source>A widget that renders ECharts options inside a Fluent styled Qt application.</source>
-        <translation>在 Fluent 風格的 Qt 應用中渲染 ECharts 選項的控件。</translation>
+        <source>A native QWidget chart renderer for Fluent styled Qt applications.</source>
+        <translation>Fluent 風格 Qt 應用的原生 QWidget 圖表渲染控件。</translation>
     </message>
     <message>
         <location filename="../../app/view/home_interface.cpp"/>
@@ -2773,48 +2773,48 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Bar chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的柱狀圖</translation>
+        <source>Native bar chart</source>
+        <translation>原生柱狀圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Line chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的折線圖</translation>
+        <source>Native line chart</source>
+        <translation>原生折線圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Stacked area chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的堆疊面積圖</translation>
+        <source>Native stacked area chart</source>
+        <translation>原生堆疊面積圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Mixed bar and line chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的柱狀折線混合圖</translation>
+        <source>Native mixed bar and line chart</source>
+        <translation>原生柱狀折線混合圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Donut chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的圓環圖</translation>
+        <source>Native donut chart</source>
+        <translation>原生圓環圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Scatter chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的散點圖</translation>
+        <source>Native scatter chart</source>
+        <translation>原生散點圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Radar chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的雷達圖</translation>
+        <source>Native radar chart</source>
+        <translation>原生雷達圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Gauge chart powered by ECharts</source>
-        <translation>由 ECharts 驅動的儀表盤</translation>
+        <source>Native gauge chart</source>
+        <translation>原生儀表盤</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
-        <source>Heatmap powered by ECharts</source>
-        <translation>由 ECharts 驅動的熱力圖</translation>
+        <source>Native heatmap</source>
+        <translation>原生熱力圖</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
@@ -2955,6 +2955,145 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <location filename="../../app/view/chart_interface.cpp"/>
         <source>Activity</source>
         <translation>活躍度</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Mon</source>
+        <translation>週一</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Tue</source>
+        <translation>週二</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Wed</source>
+        <translation>週三</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Thu</source>
+        <translation>週四</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Fri</source>
+        <translation>週五</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Sat</source>
+        <translation>週六</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Sun</source>
+        <translation>週日</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Jan</source>
+        <translation>1月</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Feb</source>
+        <translation>2月</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Mar</source>
+        <translation>3月</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Apr</source>
+        <translation>4月</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>May</source>
+        <translation>5月</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Jun</source>
+        <translation>6月</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Search</source>
+        <translation>搜尋</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Direct</source>
+        <translation>直接訪問</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Email</source>
+        <translation>郵件</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Ads</source>
+        <translation>廣告</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Video</source>
+        <translation>影片</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Qt</source>
+        <translation>Qt</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Web</source>
+        <translation>Web</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::RealtimePlotWidget</name>
+    <message>
+        <source>View All</source>
+        <translation>查看全部</translation>
+    </message>
+    <message>
+        <source>Auto Range</source>
+        <translation>自動範圍</translation>
+    </message>
+    <message>
+        <source>Auto-scroll X</source>
+        <translation>X 軸自動滾動</translation>
+    </message>
+    <message>
+        <source>Auto Y Range</source>
+        <translation>Y 軸自動範圍</translation>
+    </message>
+    <message>
+        <source>Grid</source>
+        <translation>網格</translation>
+    </message>
+    <message>
+        <source>Fill under curves</source>
+        <translation>曲線下方填充</translation>
+    </message>
+    <message>
+        <source>Points</source>
+        <translation>數據點</translation>
+    </message>
+    <message>
+        <source>Crosshair</source>
+        <translation>十字準星</translation>
+    </message>
+    <message>
+        <source>Legend</source>
+        <translation>圖例</translation>
     </message>
 </context>
 <context>
