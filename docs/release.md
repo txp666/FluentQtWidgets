@@ -33,7 +33,8 @@ Pushing a `v*` tag runs the GitHub Actions release job after the CI build matrix
 The release job uses `docs/release-notes/${GITHUB_REF_NAME}.md` as the GitHub Release description.
 Release CI installs Qt Multimedia, Qt Positioning, Qt WebChannel, and Qt WebEngine explicitly
 and configures with `-DFQW_REQUIRE_WEBENGINE_WIDGETS=ON` so Gallery archives fail fast instead
-of shipping ChartWidget fallback placeholders.
+of shipping ChartWidget fallback placeholders. Linux release jobs also install CUPS development
+headers because Qt WebEngineWidgets depends on Qt PrintSupport.
 
 ## Release Assets
 
