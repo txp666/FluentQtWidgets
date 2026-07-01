@@ -9,6 +9,7 @@
 
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QStringList>
 #include <QtGui/QColor>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
@@ -16,6 +17,7 @@
 #include <QtGui/QShowEvent>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
+#include <QtWidgets/QGraphicsOpacityEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QVBoxLayout>
 
@@ -32,6 +34,199 @@ QColor defaultMaskColor()
 QWidget *dialogOverlayTarget(QWidget *parent)
 {
     return parent ? parent->window() : nullptr;
+}
+
+enum class TextCharType
+{
+    Space,
+    Asian,
+    Latin,
+};
+
+int textCharWidth(QChar ch)
+{
+    const ushort u = ch.unicode();
+    if ((u >= 0x1100 && u <= 0x115F) || u == 0x2329 || u == 0x232A ||
+        (u >= 0x2E80 && u <= 0xA4CF) || (u >= 0xAC00 && u <= 0xD7A3) ||
+        (u >= 0xF900 && u <= 0xFAFF) || (u >= 0xFE10 && u <= 0xFE19) ||
+        (u >= 0xFE30 && u <= 0xFE6F) || (u >= 0xFF00 && u <= 0xFF60) ||
+        (u >= 0xFFE0 && u <= 0xFFE6)) {
+        return 2;
+    }
+    return 1;
+}
+
+int textDisplayWidth(const QString &text)
+{
+    int width = 0;
+    for (QChar ch : text) {
+        width += textCharWidth(ch);
+    }
+    return width;
+}
+
+TextCharType textCharType(QChar ch)
+{
+    if (ch.isSpace()) {
+        return TextCharType::Space;
+    }
+    return textCharWidth(ch) == 1 ? TextCharType::Latin : TextCharType::Asian;
+}
+
+QString trimmedRight(QString text)
+{
+    while (!text.isEmpty() && text.back().isSpace()) {
+        text.chop(1);
+    }
+    return text;
+}
+
+QString normalizedWhitespace(const QString &text)
+{
+    QString result;
+    bool inWhitespace = false;
+    for (QChar ch : text) {
+        if (ch.isSpace()) {
+            if (!inWhitespace) {
+                result.append(QLatin1Char(' '));
+                inWhitespace = true;
+            }
+        } else {
+            result.append(ch);
+            inWhitespace = false;
+        }
+    }
+    return result.trimmed();
+}
+
+QStringList splitLines(const QString &text)
+{
+    QStringList lines;
+    QString current;
+    for (int i = 0; i < text.size(); ++i) {
+        const QChar ch = text.at(i);
+        if (ch == QLatin1Char('\r') || ch == QLatin1Char('\n')) {
+            lines.append(current);
+            current.clear();
+            if (ch == QLatin1Char('\r') && i + 1 < text.size() && text.at(i + 1) == QLatin1Char('\n')) {
+                ++i;
+            }
+        } else {
+            current.append(ch);
+        }
+    }
+    lines.append(current);
+    return lines;
+}
+
+QStringList tokenizeForWrap(const QString &text)
+{
+    QStringList tokens;
+    QString buffer;
+    TextCharType lastType = TextCharType::Latin;
+    bool hasLastType = false;
+
+    for (QChar ch : text) {
+        const TextCharType type = textCharType(ch);
+        if (!buffer.isEmpty() && (type != lastType || type != TextCharType::Latin)) {
+            tokens.append(buffer);
+            buffer.clear();
+        }
+        buffer.append(ch);
+        lastType = type;
+        hasLastType = true;
+    }
+
+    if (hasLastType) {
+        tokens.append(buffer);
+    }
+    return tokens;
+}
+
+QStringList splitLongToken(const QString &token, int width)
+{
+    QStringList chunks;
+    for (int i = 0; i < token.size(); i += width) {
+        chunks.append(token.mid(i, width));
+    }
+    return chunks;
+}
+
+QString wrapLineLikeOriginal(const QString &text, int width)
+{
+    QString lineBuffer;
+    QStringList wrappedLines;
+    int currentWidth = 0;
+
+    for (const QString &token : tokenizeForWrap(text)) {
+        const int tokenWidth = textDisplayWidth(token);
+
+        if (token == QLatin1String(" ") && currentWidth == 0) {
+            continue;
+        }
+
+        if (currentWidth + tokenWidth <= width) {
+            lineBuffer += token;
+            currentWidth += tokenWidth;
+            if (currentWidth == width) {
+                wrappedLines.append(trimmedRight(lineBuffer));
+                lineBuffer.clear();
+                currentWidth = 0;
+            }
+        } else {
+            if (currentWidth != 0) {
+                wrappedLines.append(trimmedRight(lineBuffer));
+            }
+
+            const QStringList chunks = splitLongToken(token, width);
+            for (int i = 0; i + 1 < chunks.size(); ++i) {
+                wrappedLines.append(trimmedRight(chunks.at(i)));
+            }
+
+            lineBuffer = chunks.isEmpty() ? QString() : chunks.last();
+            currentWidth = textDisplayWidth(lineBuffer);
+        }
+    }
+
+    if (currentWidth != 0) {
+        wrappedLines.append(trimmedRight(lineBuffer));
+    }
+
+    return wrappedLines.join(QLatin1Char('\n'));
+}
+
+QString wrapTextByCharacters(const QString &text, int maxChars)
+{
+    const int width = qMax(maxChars, 1);
+    QStringList wrappedLines;
+
+    for (QString line : splitLines(text)) {
+        line = normalizedWhitespace(line);
+        if (textDisplayWidth(line) > width) {
+            wrappedLines.append(wrapLineLikeOriginal(line, width));
+        } else {
+            wrappedLines.append(line);
+        }
+    }
+    return wrappedLines.join(QLatin1Char('\n'));
+}
+
+int messageWrapCharacterCount(QWidget *dialog, QLabel *titleLabel)
+{
+    if (!dialog) {
+        return 100;
+    }
+
+    if (dialog->isWindow()) {
+        if (QWidget *parent = dialog->parentWidget()) {
+            const int width = qMax(titleLabel ? titleLabel->width() : 0, parent->width());
+            return qMax(qMin(width / 9, 140), 30);
+        }
+        return 100;
+    }
+
+    const int width = qMax(titleLabel ? titleLabel->width() : 0, dialog->window()->width());
+    return qMax(qMin(width / 9, 100), 30);
 }
 
 } // namespace
@@ -51,7 +246,6 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     layout->setSpacing(12);
 
     m_view = new QFrame(this);
-    m_view->setMinimumWidth(360);
     FluentStyleSheet::setRole(m_view, QStringLiteral("Dialog"));
     auto *shadow = new QGraphicsDropShadowEffect(m_view);
     shadow->setBlurRadius(30);
@@ -80,7 +274,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
     m_messageLabel = new BodyLabel(m_view);
     m_messageLabel->setObjectName(QStringLiteral("contentLabel"));
-    m_messageLabel->setWordWrap(true);
+    m_messageLabel->setWordWrap(false);
     m_messageLabel->setContextMenuPolicy(Qt::CustomContextMenu);
     m_textLayout->addWidget(m_messageLabel, 0, Qt::AlignTop);
 
@@ -123,6 +317,16 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
 void Dialog::showEvent(QShowEvent *event)
 {
+    if (layout()) {
+        layout()->activate();
+    }
+    adjustSize();
+    if (QWidget *parentWindow = parentWidget() ? parentWidget()->window() : nullptr) {
+        const QPoint targetCenter = parentWindow->frameGeometry().center();
+        const QPoint dialogCenter = m_view ? m_view->geometry().center() : rect().center();
+        move(targetCenter - dialogCenter);
+    }
+
     QDialog::showEvent(event);
     installFadeInAnimation();
 }
@@ -155,7 +359,10 @@ void Dialog::setTitle(const QString &title)
     m_titleLabel->setText(title);
 }
 
-void Dialog::setMessage(const QString &message) { m_messageLabel->setText(message); }
+void Dialog::setMessage(const QString &message)
+{
+    m_messageLabel->setText(wrapTextByCharacters(message, messageWrapCharacterCount(this, m_titleLabel)));
+}
 
 void Dialog::setContentCopyable(bool copyable)
 {
@@ -246,7 +453,6 @@ MaskDialogBase::MaskDialogBase(QWidget *parent)
 
     m_widget = new QFrame(this);
     m_widget->setObjectName(QStringLiteral("centerWidget"));
-    m_widget->setMinimumWidth(360);
     m_widget->installEventFilter(this);
     m_hBoxLayout->addWidget(m_widget, 1, Qt::AlignCenter);
 
@@ -394,15 +600,22 @@ void MaskDialogBase::setCenterWidgetRole(const QString &role)
 
 void MaskDialogBase::installFadeInAnimation()
 {
+    setWindowOpacity(1.0);
     setGraphicsEffect(nullptr);
-    setWindowOpacity(0.0);
-    auto *ani = new QPropertyAnimation(this, "windowOpacity", this);
+
+    auto *opacityEffect = new QGraphicsOpacityEffect(this);
+    opacityEffect->setOpacity(0.0);
+    setGraphicsEffect(opacityEffect);
+
+    auto *ani = new QPropertyAnimation(opacityEffect, "opacity", this);
     ani->setDuration(200);
     ani->setStartValue(0.0);
     ani->setEndValue(1.0);
     ani->setEasingCurve(QEasingCurve::InSine);
-    connect(ani, &QPropertyAnimation::finished, this, [this]() {
-        setWindowOpacity(1.0);
+    connect(ani, &QPropertyAnimation::finished, this, [this, opacityEffect]() {
+        if (graphicsEffect() == opacityEffect) {
+            setGraphicsEffect(nullptr);
+        }
     });
     ani->start(QAbstractAnimation::DeleteWhenStopped);
 }
@@ -414,14 +627,21 @@ void MaskDialogBase::installFadeOutAnimation(int result)
         m_widget->setGraphicsEffect(nullptr);
     }
 
-    setGraphicsEffect(nullptr);
     setWindowOpacity(1.0);
-    auto *ani = new QPropertyAnimation(this, "windowOpacity", this);
+    setGraphicsEffect(nullptr);
+
+    auto *opacityEffect = new QGraphicsOpacityEffect(this);
+    opacityEffect->setOpacity(1.0);
+    setGraphicsEffect(opacityEffect);
+
+    auto *ani = new QPropertyAnimation(opacityEffect, "opacity", this);
     ani->setDuration(100);
     ani->setStartValue(1.0);
     ani->setEndValue(0.0);
-    connect(ani, &QPropertyAnimation::finished, this, [this, result]() {
-        setGraphicsEffect(nullptr);
+    connect(ani, &QPropertyAnimation::finished, this, [this, result, opacityEffect]() {
+        if (graphicsEffect() == opacityEffect) {
+            setGraphicsEffect(nullptr);
+        }
         setWindowOpacity(1.0);
         m_finishing = false;
         QDialog::done(result);
@@ -559,7 +779,7 @@ MessageBox::MessageBox(const QString &title, const QString &message, QWidget *pa
 
     m_messageLabel = new BodyLabel(m_widget);
     m_messageLabel->setObjectName(QStringLiteral("contentLabel"));
-    m_messageLabel->setWordWrap(true);
+    m_messageLabel->setWordWrap(false);
     m_messageLabel->setContextMenuPolicy(Qt::CustomContextMenu);
     m_viewLayout->insertWidget(1, m_messageLabel, 0, Qt::AlignTop);
 
@@ -614,12 +834,16 @@ void MessageBox::adjustMessageSize()
         return;
     }
 
+    m_messageLabel->setText(wrapTextByCharacters(m_content, messageWrapCharacterCount(this, m_titleLabel)));
     m_titleLabel->adjustSize();
     m_messageLabel->adjustSize();
+    if (m_widget->layout()) {
+        m_widget->layout()->activate();
+    }
     const int contentWidth = qMax(m_titleLabel->sizeHint().width(), m_messageLabel->sizeHint().width());
-    const int width = qBound(280, contentWidth + 48, 640);
-    m_widget->setMinimumWidth(width);
-    m_widget->adjustSize();
+    const int width = qMax(m_buttonGroup ? m_buttonGroup->minimumWidth() : 0, contentWidth + 48);
+    const int height = m_messageLabel->y() + m_messageLabel->height() + 105;
+    m_widget->setFixedSize(width, height);
 }
 
 MessageDialog::MessageDialog(const QString &title, const QString &message, QWidget *parent)

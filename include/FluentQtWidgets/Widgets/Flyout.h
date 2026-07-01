@@ -103,6 +103,8 @@ private:
     QHBoxLayout *m_viewLayout = nullptr;
     QVBoxLayout *m_widgetLayout = nullptr;
     QVBoxLayout *m_bodyLayout = nullptr;
+    QString m_title;
+    QString m_content;
     bool m_closable = false;
 };
 

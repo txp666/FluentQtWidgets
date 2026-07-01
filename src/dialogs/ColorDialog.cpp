@@ -337,8 +337,7 @@ ColorDialog::ColorDialog(const QColor &color, const QString &title, QWidget *par
     setShadowEffect(60, QPoint(0, 10), QColor(0, 0, 0, 80));
     setMaskColor(QColor(0, 0, 0, 76));
 
-    m_widget->setMaximumSize(488, 696 + (m_alphaEnabled ? 40 : 0));
-    m_widget->resize(488, 696 + (m_alphaEnabled ? 40 : 0));
+    m_widget->setFixedSize(488, 696 + (m_alphaEnabled ? 40 : 0));
 
     auto *scrollArea = new ColorDialogScrollArea(m_widget);
     m_scrollArea = scrollArea;

@@ -12,6 +12,7 @@
 
 class QCloseEvent;
 class QEvent;
+class QHBoxLayout;
 class QLabel;
 class QObject;
 class QPaintEvent;
@@ -24,6 +25,7 @@ class QGraphicsDropShadowEffect;
 
 namespace FluentQt {
 
+class IconWidget;
 class ImageLabel;
 
 enum class TeachingTipTailPosition
@@ -91,14 +93,17 @@ private:
     void updateImageLayout();
     TeachingTipImagePosition imagePositionForTail(TeachingTipTailPosition tail) const;
 
-    QLabel *m_iconLabel = nullptr;
+    IconWidget *m_iconWidget = nullptr;
     QLabel *m_titleLabel = nullptr;
     QLabel *m_contentLabel = nullptr;
     ImageLabel *m_imageLabel = nullptr;
     QToolButton *m_closeButton = nullptr;
     QVBoxLayout *m_rootLayout = nullptr;
-    QVBoxLayout *m_contentLayout = nullptr;
-    QVBoxLayout *m_bodyLayout = nullptr;
+    QHBoxLayout *m_viewLayout = nullptr;
+    QVBoxLayout *m_widgetLayout = nullptr;
+    QHBoxLayout *m_sideLayout = nullptr;
+    QString m_title;
+    QString m_content;
     bool m_closable = true;
     TeachingTipTailPosition m_tailHint = TeachingTipTailPosition::Bottom;
 };

@@ -4,6 +4,17 @@
 
 using namespace FluentQt;
 
+namespace {
+
+QIcon successInfoBarIcon()
+{
+    const QString themeToken = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QStringLiteral("dark")
+                                                                                        : QStringLiteral("light");
+    return QIcon(QStringLiteral(":/qfluentwidgets/images/info_bar/Success_%1.svg").arg(themeToken));
+}
+
+} // namespace
+
 QWidget *GalleryWindow::createDialogPage()
 {
     auto *page = new GalleryInterface(navTx("Dialogs & flyouts"),
@@ -24,6 +35,7 @@ QWidget *GalleryWindow::createDialogPage()
                          "automatically wrap like this."),
                       page->window());
         dialog.setContentCopyable(true);
+        dialog.widget()->setFixedSize(240, 192);
         dialog.exec();
     });
     page->addExampleCard(tx("DialogInterface", "A frameless message box"), dialogBtn, dialogSource);
@@ -44,24 +56,23 @@ QWidget *GalleryWindow::createDialogPage()
     // -- Custom message box (demonstrates extending Dialog) --
     auto *customBtn = new PushButton(tx("DialogInterface", "Show dialog"));
     connect(customBtn, &QPushButton::clicked, page, [page]() {
-        Dialog customBox(tx("CustomMessageBox", "Open URL"), QString(), page->window());
-        customBox.acceptButton()->setText(tx("CustomMessageBox", "Open"));
-        customBox.setMinimumWidth(360);
-        customBox.contentLabel()->hide();
+        MessageBoxBase customBox(page->window());
+        customBox.yesButton()->setText(tx("CustomMessageBox", "Open"));
+        customBox.cancelButton()->setText(tx("CustomMessageBox", "Cancel"));
+        customBox.widget()->setMinimumWidth(360);
 
         auto *urlEdit = new LineEdit(customBox.view());
         urlEdit->setPlaceholderText(tx("CustomMessageBox", "Enter the URL of a file, stream, or playlist"));
         urlEdit->setClearButtonEnabled(true);
-        urlEdit->setMinimumWidth(360);
-        customBox.textLayout()->addWidget(urlEdit);
-        customBox.acceptButton()->setEnabled(false);
+        customBox.viewLayout()->addWidget(new SubtitleLabel(tx("CustomMessageBox", "Open URL"), customBox.view()));
+        customBox.viewLayout()->addWidget(urlEdit);
+        customBox.yesButton()->setEnabled(false);
         QObject::connect(urlEdit, &QLineEdit::textChanged, &customBox, [&customBox](const QString &text) {
-            customBox.acceptButton()->setEnabled(QUrl(text).isValid());
+            customBox.yesButton()->setEnabled(QUrl(text).isValid());
         });
 
         if (customBox.exec() == QDialog::Accepted) {
-            InfoBar::info(QStringLiteral("URL"), urlEdit->text(), Qt::Horizontal, true, 2000,
-                          InfoBarPosition::TopRight, page);
+            qDebug() << urlEdit->text();
         }
     });
     page->addExampleCard(tx("DialogInterface", "A custom message box"), customBtn, customMessageBoxSource);
@@ -78,9 +89,9 @@ QWidget *GalleryWindow::createDialogPage()
 
     // -- Simple Flyout --
     auto *simpleFlyoutBtn = new PushButton(tx("DialogInterface", "Show flyout"));
-    connect(simpleFlyoutBtn, &QPushButton::clicked, page, [simpleFlyoutBtn]() {
-        Flyout::make(QStringLiteral("Lesson 3"), tx("DialogInterface", "Believe in the spin, just keep believing!"),
-                     simpleFlyoutBtn);
+    connect(simpleFlyoutBtn, &QPushButton::clicked, page, [page, simpleFlyoutBtn]() {
+        Flyout::create(QStringLiteral("Lesson 3"), tx("DialogInterface", "Believe in the spin, just keep believing!"),
+                       successInfoBarIcon(), QPixmap(), false, simpleFlyoutBtn, page->window());
     });
     page->addExampleCard(tx("DialogInterface", "A simple flyout"), simpleFlyoutBtn, flyoutSource);
 
@@ -91,23 +102,25 @@ QWidget *GalleryWindow::createDialogPage()
                                     tx("DialogInterface",
                                        "Where the tennis ball will land when it touches the net, no one can predict.\n"
                                        "If that moment comes, I hope the 'goddess' exists.\n"
-                                       "In that case, I would accept it no matter which side the ball falls on."));
-        view->setImagePath(QStringLiteral(":/gallery/images/chidanta.jpg"));
-        view->setClosable(true);
+                                       "In that case, I would accept it no matter which side the ball falls on."),
+                                    QIcon(), QStringLiteral(":/gallery/images/SBR.jpg"), false);
         auto *actionButton = new PushButton(tx("DialogInterface", "Action"));
         actionButton->setFixedWidth(120);
         view->addWidget(actionButton, 0, Qt::AlignRight);
-        Flyout::create(view, complexFlyoutBtn, FlyoutAnimationType::SlideRight);
+        view->widgetLayout()->insertSpacing(1, 5);
+        view->widgetLayout()->insertSpacing(0, 5);
+        view->widgetLayout()->addSpacing(5);
+        Flyout::make(view, complexFlyoutBtn, complexFlyoutBtn->window(), FlyoutAnimationType::SlideRight);
     });
     page->addExampleCard(tx("DialogInterface", "A flyout with image and button"), complexFlyoutBtn, flyoutSource);
 
     // -- TeachingTip (Bottom) --
     auto *teachingBtn = new PushButton(tx("DialogInterface", "Show teaching tip"));
-    connect(teachingBtn, &QPushButton::clicked, page, [teachingBtn]() {
+    connect(teachingBtn, &QPushButton::clicked, page, [page, teachingBtn]() {
         TeachingTip::create(QStringLiteral("Lesson 4"),
                             tx("DialogInterface", "With respect, let's advance towards a new stage of the spin."),
-                            teachingBtn,
-                            TeachingTipTailPosition::Bottom, 2500);
+                            successInfoBarIcon(), QPixmap(), true, teachingBtn,
+                            TeachingTipTailPosition::Bottom, -1, page);
     });
     page->addExampleCard(tx("DialogInterface", "A teaching tip"), teachingBtn, teachingTipSource);
 
@@ -117,7 +130,7 @@ QWidget *GalleryWindow::createDialogPage()
         auto *view =
             new TeachingTipView(QStringLiteral("Lesson 5"),
                                 tx("DialogInterface", "The shortest shortcut is to take a detour."));
-        view->setImagePath(QStringLiteral(":/gallery/images/chidanta2.jpg"));
+        view->setImagePath(QStringLiteral(":/gallery/images/Gyro.jpg"));
         view->setClosable(true);
         auto *actionButton = new PushButton(tx("DialogInterface", "Action"));
         actionButton->setFixedWidth(120);

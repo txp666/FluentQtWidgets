@@ -1921,6 +1921,20 @@ class DisplayTest : public QObject
         QVERIFY(view.imageLabel() != nullptr);
         QVERIFY(view.closeButton() != nullptr);
         QVERIFY(!view.closeButton()->isHidden());
+        QVERIFY(!view.titleLabel()->wordWrap());
+        QVERIFY(!view.contentLabel()->wordWrap());
+
+        FluentQt::FlyoutView simpleView(QStringLiteral("Lesson 3"),
+                                        QStringLiteral("Believe in the spin, just keep believing!"));
+        QVERIFY(!simpleView.contentLabel()->wordWrap());
+        QVERIFY(!simpleView.contentLabel()->text().contains(QLatin1Char('\n')));
+
+        QPixmap largeImage(1680, 1050);
+        largeImage.fill(Qt::cyan);
+        FluentQt::FlyoutView dynamicImageView(QStringLiteral("Julius Zeppeli"),
+                                              QStringLiteral("Where the tennis ball will land."));
+        dynamicImageView.setImage(largeImage);
+        QVERIFY(dynamicImageView.imageLabel()->width() < 500);
 
         auto *extra = new FluentQt::PushButton(QStringLiteral("Action"));
         view.addWidget(extra);

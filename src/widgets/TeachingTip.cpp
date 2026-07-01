@@ -4,10 +4,12 @@
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Button.h>
+#include <FluentQtWidgets/Widgets/IconWidget.h>
 #include <FluentQtWidgets/Widgets/Label.h>
 
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QStringList>
 #include <QtCore/QTimer>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QGuiApplication>
@@ -75,6 +77,31 @@ int maxTipImageHeight()
     QScreen *screen = QGuiApplication::primaryScreen();
     const int screenHeight = screen ? screen->availableGeometry().height() : 700;
     return qMax(120, qMin(520, screenHeight - 200));
+}
+
+QString wrapTipText(const QString &text, int maxChars)
+{
+    if (maxChars <= 0 || text.size() <= maxChars) {
+        return text;
+    }
+
+    QStringList lines;
+    QString remaining = text;
+    while (remaining.size() > maxChars) {
+        int breakIndex = maxChars;
+        for (int i = maxChars; i >= maxChars / 2; --i) {
+            if (i < remaining.size() && remaining.at(i).isSpace()) {
+                breakIndex = i;
+                break;
+            }
+        }
+        lines.append(remaining.left(breakIndex).trimmed());
+        remaining = remaining.mid(breakIndex).trimmed();
+    }
+    if (!remaining.isEmpty()) {
+        lines.append(remaining);
+    }
+    return lines.join(QLatin1Char('\n'));
 }
 
 QColor bubbleBackgroundColor()
@@ -357,51 +384,48 @@ TeachingTipView::TeachingTipView(const QString &title, const QString &content, Q
     m_imageLabel = new ImageLabel(this);
     m_imageLabel->hide();
 
-    m_contentLayout = new QVBoxLayout;
-    m_contentLayout->setContentsMargins(6, 8, 6, 8);
-    m_contentLayout->setSpacing(4);
+    m_viewLayout = new QHBoxLayout;
+    m_viewLayout->setSpacing(4);
 
-    auto *headerLayout = new QHBoxLayout;
-    headerLayout->setContentsMargins(0, 0, 0, 0);
-    headerLayout->setSpacing(4);
+    m_widgetLayout = new QVBoxLayout;
+    m_widgetLayout->setContentsMargins(0, 8, 0, 8);
+    m_widgetLayout->setSpacing(0);
 
-    m_iconLabel = new QLabel(this);
-    m_iconLabel->setFixedSize(36, 36);
-    m_iconLabel->setAlignment(Qt::AlignCenter);
-    m_iconLabel->hide();
-    headerLayout->addWidget(m_iconLabel, 0, Qt::AlignTop);
+    m_sideLayout = new QHBoxLayout;
+    m_sideLayout->setContentsMargins(0, 0, 0, 0);
+    m_sideLayout->setSpacing(0);
 
-    m_titleLabel = new StrongBodyLabel(this);
-    m_titleLabel->setObjectName(QStringLiteral("TeachingTipTitle"));
-    headerLayout->addWidget(m_titleLabel, 1);
+    m_iconWidget = new IconWidget(this);
+    m_iconWidget->setFixedSize(36, 54);
+    m_iconWidget->setIconSize(QSize(20, 20));
+    m_iconWidget->hide();
+
+    m_titleLabel = new QLabel(this);
+    m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_titleLabel->setWordWrap(true);
+
+    m_contentLabel = new QLabel(this);
+    m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
+    m_contentLabel->setWordWrap(true);
 
     m_closeButton = new TransparentToolButton(icon(FluentIcon::Close), this);
     m_closeButton->setFixedSize(32, 32);
     m_closeButton->setIconSize(QSize(12, 12));
-    m_closeButton->setToolTip(tr("Close"));
-    headerLayout->addWidget(m_closeButton, 0, Qt::AlignTop);
     connect(m_closeButton, &QToolButton::clicked, this, [this]() { emit closed(); });
 
-    m_contentLayout->addLayout(headerLayout);
-
-    m_contentLabel = new BodyLabel(this);
-    m_contentLabel->setObjectName(QStringLiteral("TeachingTipContent"));
-    m_contentLabel->setWordWrap(true);
-    m_contentLabel->setMinimumWidth(220);
-    m_contentLayout->addWidget(m_contentLabel);
-
-    m_bodyLayout = new QVBoxLayout;
-    m_bodyLayout->setContentsMargins(0, 0, 0, 0);
-    m_bodyLayout->setSpacing(8);
-    m_contentLayout->addLayout(m_bodyLayout);
-
-    m_rootLayout->addWidget(m_imageLabel);
-    m_rootLayout->addLayout(m_contentLayout);
+    m_viewLayout->addWidget(m_iconWidget, 0, Qt::AlignTop);
+    m_widgetLayout->addWidget(m_titleLabel);
+    m_widgetLayout->addWidget(m_contentLabel);
+    m_viewLayout->addLayout(m_widgetLayout);
+    m_viewLayout->addWidget(m_closeButton, 0, Qt::AlignRight | Qt::AlignTop);
+    m_rootLayout->addLayout(m_viewLayout);
 
     setTitle(title);
     setContent(content);
+    setClosable(true);
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("TeachingTipView"));
+    updateImageLayout();
 }
 
 TeachingTipView::TeachingTipView(const QString &title, const QString &content, const QIcon &iconValue,
@@ -429,26 +453,36 @@ TeachingTipView::TeachingTipView(const QString &title, const QString &content, c
     }
 }
 
-QString TeachingTipView::title() const { return m_titleLabel->text(); }
+QString TeachingTipView::title() const { return m_title; }
 
-QString TeachingTipView::content() const { return m_contentLabel->text(); }
+QString TeachingTipView::content() const { return m_content; }
 
 bool TeachingTipView::isClosable() const { return m_closable; }
 
-void TeachingTipView::setTitle(const QString &title) { m_titleLabel->setText(title); }
+void TeachingTipView::setTitle(const QString &title)
+{
+    m_title = title;
+    updateImageLayout();
+}
 
-void TeachingTipView::setContent(const QString &content) { m_contentLabel->setText(content); }
+void TeachingTipView::setContent(const QString &content)
+{
+    m_content = content;
+    updateImageLayout();
+}
 
 void TeachingTipView::setIcon(const QIcon &iconValue)
 {
-    m_iconLabel->setVisible(!iconValue.isNull());
-    m_iconLabel->setPixmap(iconValue.pixmap(QSize(18, 18), devicePixelRatioF()));
+    m_iconWidget->setIcon(iconValue);
+    m_iconWidget->setHidden(iconValue.isNull());
+    updateImageLayout();
 }
 
 void TeachingTipView::setClosable(bool closable)
 {
     m_closable = closable;
     m_closeButton->setVisible(m_closable);
+    updateImageLayout();
 }
 
 void TeachingTipView::setImage(const QPixmap &pixmap) { setImage(pixmap.toImage()); }
@@ -472,7 +506,7 @@ bool TeachingTipView::setImagePath(const QString &path)
     return true;
 }
 
-QVBoxLayout *TeachingTipView::bodyLayout() const { return m_bodyLayout; }
+QVBoxLayout *TeachingTipView::bodyLayout() const { return m_widgetLayout; }
 
 void TeachingTipView::setTailHint(TeachingTipTailPosition tail)
 {
@@ -482,10 +516,11 @@ void TeachingTipView::setTailHint(TeachingTipTailPosition tail)
 
 void TeachingTipView::addWidget(QWidget *widget, int stretch, Qt::Alignment alignment)
 {
-    if (!widget || !m_bodyLayout) {
+    if (!widget || !m_widgetLayout) {
         return;
     }
-    m_bodyLayout->addWidget(widget, stretch, alignment);
+    m_widgetLayout->addSpacing(8);
+    m_widgetLayout->addWidget(widget, stretch, alignment);
     adjustSize();
 }
 
@@ -502,25 +537,78 @@ void TeachingTipView::showEvent(QShowEvent *event)
 
 void TeachingTipView::updateImageLayout()
 {
+    if (!m_rootLayout || !m_viewLayout || !m_widgetLayout || !m_imageLabel || !m_sideLayout) {
+        return;
+    }
+
+    if (m_titleLabel) {
+        m_titleLabel->setVisible(!m_title.isEmpty());
+    }
+    if (m_contentLabel) {
+        m_contentLabel->setVisible(!m_content.isEmpty());
+    }
+    QScreen *screen = QGuiApplication::primaryScreen();
+    const int screenWidth = screen ? screen->availableGeometry().width() : 1100;
+    const int textWidth = qMin(900, screenWidth - 200);
+    if (m_titleLabel) {
+        const int chars = qMax(qMin(textWidth / 10, 120), 30);
+        m_titleLabel->setText(wrapTipText(m_title, chars));
+    }
+    if (m_contentLabel) {
+        const int chars = qMax(qMin(textWidth / 9, 120), 30);
+        m_contentLabel->setText(wrapTipText(m_content, chars));
+    }
+
+    if (m_iconWidget && (m_title.isEmpty() || m_content.isEmpty())) {
+        m_iconWidget->setFixedHeight(36);
+    } else if (m_iconWidget) {
+        m_iconWidget->setFixedHeight(54);
+    }
+
+    QMargins margins(6, 5, 6, 5);
+    margins.setLeft(m_iconWidget && !m_iconWidget->icon().isNull() ? 5 : 20);
+    margins.setRight(m_closable ? 6 : 20);
+    m_viewLayout->setContentsMargins(margins);
+
+    m_rootLayout->removeWidget(m_imageLabel);
+    m_rootLayout->removeItem(m_viewLayout);
+    m_rootLayout->removeItem(m_sideLayout);
+    m_sideLayout->removeWidget(m_imageLabel);
+    m_sideLayout->removeItem(m_viewLayout);
+    m_imageLabel->setParent(this);
+
     if (m_imageLabel->isNull()) {
         m_imageLabel->hide();
+        m_rootLayout->addLayout(m_viewLayout);
         return;
     }
 
     const TeachingTipImagePosition imagePosition = imagePositionForTail(m_tailHint);
-    const QSize contentHint = m_contentLayout ? m_contentLayout->sizeHint() : QSize(220, 120);
     if (imagePosition == TeachingTipImagePosition::Top || imagePosition == TeachingTipImagePosition::Bottom) {
-        const int width = qMax(1, qMin(qMax(220, contentHint.width()) - 2, maxTipImageWidth()));
+        const int width = qMax(1, qMin(m_viewLayout->sizeHint().width() - 2, maxTipImageWidth()));
         m_imageLabel->scaledToWidth(width);
         if (imagePosition == TeachingTipImagePosition::Top) {
             m_imageLabel->setBorderRadius(8, 8, 0, 0);
+            m_rootLayout->addWidget(m_imageLabel);
+            m_rootLayout->addLayout(m_viewLayout);
         } else {
             m_imageLabel->setBorderRadius(0, 0, 8, 8);
+            m_rootLayout->addLayout(m_viewLayout);
+            m_rootLayout->addWidget(m_imageLabel);
         }
     } else {
-        const int height = qMax(1, qMin(qMax(120, contentHint.height()) - 2, maxTipImageHeight()));
+        const int height = qMax(1, qMin(m_viewLayout->sizeHint().height() - 2, maxTipImageHeight()));
         m_imageLabel->scaledToHeight(height);
-        m_imageLabel->setBorderRadius(8);
+        if (imagePosition == TeachingTipImagePosition::Left) {
+            m_imageLabel->setBorderRadius(8, 0, 8, 0);
+            m_sideLayout->addWidget(m_imageLabel);
+            m_sideLayout->addLayout(m_viewLayout);
+        } else {
+            m_imageLabel->setBorderRadius(0, 8, 0, 8);
+            m_sideLayout->addLayout(m_viewLayout);
+            m_sideLayout->addWidget(m_imageLabel);
+        }
+        m_rootLayout->addLayout(m_sideLayout);
     }
     m_imageLabel->show();
 }

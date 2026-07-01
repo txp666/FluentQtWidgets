@@ -749,6 +749,10 @@ class ThemeTest : public QObject
         QVERIFY(alphaDialog.windowFlags() & Qt::NoDropShadowWindowHint);
         QVERIFY(alphaDialog.widget() != nullptr);
         QCOMPARE(alphaDialog.widget()->property("fqw").toString(), QStringLiteral("ColorDialog"));
+        QCOMPARE(alphaDialog.widget()->size(), QSize(488, 736));
+        QCOMPARE(alphaDialog.widget()->minimumSize(), QSize(488, 736));
+        QCOMPARE(alphaDialog.widget()->maximumSize(), QSize(488, 736));
+        QCOMPARE(alphaDialog.scrollWidget()->size(), QSize(440, 600));
         QCOMPARE(alphaDialog.huePanel()->size(), QSize(256, 256));
         QVERIFY(alphaDialog.brightnessSlider() != nullptr);
         QCOMPARE(alphaDialog.hexLineEdit()->text(), QStringLiteral("5012aaa2"));
@@ -767,6 +771,10 @@ class ThemeTest : public QObject
         acceptDialog.yesButton()->click();
         QCOMPARE(acceptSpy.count(), 1);
         QCOMPARE(acceptSpy.takeFirst().at(0).value<QColor>(), QColor(QStringLiteral("#445566")));
+        QCOMPARE(acceptDialog.widget()->size(), QSize(488, 696));
+        QCOMPARE(acceptDialog.widget()->minimumSize(), QSize(488, 696));
+        QCOMPARE(acceptDialog.widget()->maximumSize(), QSize(488, 696));
+        QCOMPARE(acceptDialog.scrollWidget()->size(), QSize(440, 560));
         QVERIFY(acceptDialog.opacityLineEdit()->isHidden());
 
         FluentQt::ColorSettingCard card(QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
@@ -796,6 +804,10 @@ class ThemeTest : public QObject
             QVERIFY(dialog->testAttribute(Qt::WA_TranslucentBackground));
             QVERIFY(dialog->windowFlags() & Qt::NoDropShadowWindowHint);
             QCOMPARE(dialog->widget()->property("fqw").toString(), QStringLiteral("ColorDialog"));
+            QCOMPARE(dialog->widget()->size(), QSize(488, 696));
+            QCOMPARE(dialog->scrollWidget()->size(), QSize(440, 560));
+            QCOMPARE(dialog->buttonGroup()->size(), QSize(486, 81));
+            QCOMPARE(dialog->scrollArea()->verticalScrollBar()->maximum(), 0);
             QCOMPARE(dialog->findChildren<FluentQt::BrightnessSlider *>().size(), 1);
             QVERIFY(dialog->findChildren<QColorDialog *>().isEmpty());
 
@@ -827,6 +839,10 @@ class ThemeTest : public QObject
             }
 
             alphaDialogInspected = true;
+            QCOMPARE(alphaPopupDialog->widget()->size(), QSize(488, 736));
+            QCOMPARE(alphaPopupDialog->scrollWidget()->size(), QSize(440, 600));
+            QCOMPARE(alphaPopupDialog->buttonGroup()->size(), QSize(486, 81));
+            QCOMPARE(alphaPopupDialog->scrollArea()->verticalScrollBar()->maximum(), 0);
             QVERIFY(!alphaPopupDialog->opacityLineEdit()->isHidden());
             alphaPopupDialog->cancelButton()->click();
         });
@@ -860,6 +876,7 @@ class ThemeTest : public QObject
         QCOMPARE(dialog.windowTitleLabel()->text(), QStringLiteral("Title"));
         QCOMPARE(dialog.titleLabel()->text(), QStringLiteral("Title"));
         QCOMPARE(dialog.contentLabel()->text(), QStringLiteral("Message"));
+        QVERIFY(!dialog.contentLabel()->wordWrap());
         QCOMPARE(dialog.property("windowTitleLabel").value<QLabel *>(), dialog.windowTitleLabel());
         dialog.setTitleBarVisible(false);
         QVERIFY(dialog.windowTitleLabel()->isHidden());
@@ -954,6 +971,28 @@ class ThemeTest : public QObject
         QCOMPARE(messageBox.buttonGroup()->parentWidget(), messageBox.view());
         QCOMPARE(messageBox.titleLabel()->text(), QStringLiteral("Title"));
         QCOMPARE(messageBox.contentLabel()->text(), QStringLiteral("Message"));
+        QVERIFY(!messageBox.contentLabel()->wordWrap());
+
+        QWidget dialogParent;
+        dialogParent.resize(1000, 640);
+        dialogParent.move(80, 90);
+        dialogParent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dialogParent));
+        FluentQt::Dialog galleryDialog(
+            QStringLiteral("This is a frameless message dialog"),
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this."),
+            &dialogParent);
+        galleryDialog.widget()->setFixedSize(240, 192);
+        QVERIFY(!galleryDialog.contentLabel()->wordWrap());
+        QVERIFY(!galleryDialog.contentLabel()->text().contains(QLatin1Char('\n')));
+        galleryDialog.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&galleryDialog));
+        const QPoint viewCenter = galleryDialog.widget()->mapToGlobal(galleryDialog.widget()->rect().center());
+        const QPoint parentCenter = dialogParent.frameGeometry().center();
+        QVERIFY(qAbs(viewCenter.x() - parentCenter.x()) <= 2);
+        QVERIFY(qAbs(viewCenter.y() - parentCenter.y()) <= 2);
+        galleryDialog.close();
 
         messageBox.show();
         QVERIFY(QTest::qWaitForWindowExposed(&messageBox));
@@ -1040,6 +1079,18 @@ class ThemeTest : public QObject
         QVERIFY(qobject_cast<QGraphicsOpacityEffect *>(dialog.graphicsEffect()) == nullptr);
 
         manager->setTheme(previousTheme);
+    }
+
+    void maskedDialogFadeKeepsNativeWindowOpaque()
+    {
+        FluentQt::MessageBox dialog(QStringLiteral("Title"), QStringLiteral("Message"));
+        dialog.show();
+        QCoreApplication::processEvents();
+
+        QCOMPARE(dialog.windowOpacity(), 1.0);
+        QVERIFY(qobject_cast<QGraphicsOpacityEffect *>(dialog.graphicsEffect()) != nullptr);
+        QTRY_VERIFY(dialog.graphicsEffect() == nullptr);
+        QCOMPARE(dialog.windowOpacity(), 1.0);
     }
 
     void folderListSettingCardUsesFluentFolderDialog()

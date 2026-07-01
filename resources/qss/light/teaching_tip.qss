@@ -4,6 +4,15 @@ QFrame[fqw="TeachingTipView"] {
     background: transparent;
 }
 
-QLabel#TeachingTipContent {
-    color: #616161;
+QLabel#titleLabel {
+    font: 14px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+    font-weight: bold;
+    color: black;
+    background-color: transparent;
+}
+
+QLabel#contentLabel {
+    font: 14px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+    color: black;
+    background-color: transparent;
 }
