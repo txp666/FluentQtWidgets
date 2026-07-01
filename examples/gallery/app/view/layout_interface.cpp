@@ -6,16 +6,20 @@ using namespace FluentQt;
 
 QWidget *GalleryWindow::createLayoutPage()
 {
-    auto *page = new GalleryInterface(navTx("Layout"), QStringLiteral("FluentQtWidgets::Layout"),
-                                      this);
+    auto *page = new GalleryInterface(navTx("Layout"), QStringLiteral("qfluentwidgets.components.layout"), this);
+    page->setObjectName(QStringLiteral("layoutInterface"));
     const QString flowLayoutSource = exampleSourceUrl("layout/flow_layout");
-    const QString adaptiveFlowLayoutSource = exampleSourceUrl("layout/adaptive_flow_layout");
 
-    const QStringList texts = {QStringLiteral("Star Platinum"),  QStringLiteral("Hierophant Green"),
-                               QStringLiteral("Silver Chariot"), QStringLiteral("Crazy diamond"),
-                               QStringLiteral("Heaven's Door"),  QStringLiteral("Killer Queen"),
-                               QStringLiteral("Gold Experience"), QStringLiteral("Sticky Fingers"),
-                               QStringLiteral("Sex Pistols"),    QStringLiteral("Dirty Deeds Done Dirt Cheap")};
+    const QStringList texts = {tx("LayoutInterface", "Star Platinum"),
+                               tx("LayoutInterface", "Hierophant Green"),
+                               tx("LayoutInterface", "Silver Chariot"),
+                               tx("LayoutInterface", "Crazy diamond"),
+                               tx("LayoutInterface", "Heaven's Door"),
+                               tx("LayoutInterface", "Killer Queen"),
+                               tx("LayoutInterface", "Gold Experience"),
+                               tx("LayoutInterface", "Sticky Fingers"),
+                               tx("LayoutInterface", "Sex Pistols"),
+                               tx("LayoutInterface", "Dirty Deeds Done Dirt Cheap")};
 
     auto createFlowWidget = [texts](bool animation) {
         auto *widget = new QWidget;
@@ -30,8 +34,7 @@ QWidget *GalleryWindow::createLayoutPage()
     };
 
     page->addExampleCard(tx("LayoutInterface", "Flow layout without animation"), createFlowWidget(false), flowLayoutSource, 1);
-    page->addExampleCard(tx("LayoutInterface", "Flow layout with animation"), createFlowWidget(true), adaptiveFlowLayoutSource,
-                         1);
+    page->addExampleCard(tx("LayoutInterface", "Flow layout with animation"), createFlowWidget(true), flowLayoutSource, 1);
 
     return page;
 }

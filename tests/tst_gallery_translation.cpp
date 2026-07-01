@@ -11,6 +11,7 @@
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
+#include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
 
@@ -312,6 +313,110 @@ class GalleryTranslationTest : public QObject
             }
         }
         QVERIFY(foundTranslatedTitle);
+    }
+
+    void layoutPageMatchesPythonGalleryAndUsesTranslations()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("zh_CN"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("layoutInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("layoutInterface"));
+
+        const QString withoutAnimation =
+            QCoreApplication::translate("LayoutInterface", "Flow layout without animation");
+        const QString withAnimation = QCoreApplication::translate("LayoutInterface", "Flow layout with animation");
+        const QString starPlatinum = QCoreApplication::translate("LayoutInterface", "Star Platinum");
+        const QString d4c = QCoreApplication::translate("LayoutInterface", "Dirty Deeds Done Dirt Cheap");
+        QVERIFY(withoutAnimation != QStringLiteral("Flow layout without animation"));
+        QVERIFY(withAnimation != QStringLiteral("Flow layout with animation"));
+        QVERIFY(starPlatinum != QStringLiteral("Star Platinum"));
+        QVERIFY(d4c != QStringLiteral("Dirty Deeds Done Dirt Cheap"));
+
+        bool foundSubtitle = false;
+        bool foundWithoutAnimation = false;
+        bool foundWithAnimation = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.layout")) {
+                foundSubtitle = true;
+            } else if (label->text() == withoutAnimation) {
+                foundWithoutAnimation = true;
+            } else if (label->text() == withAnimation) {
+                foundWithAnimation = true;
+            }
+        }
+        QVERIFY(foundSubtitle);
+        QVERIFY(foundWithoutAnimation);
+        QVERIFY(foundWithAnimation);
+
+        bool foundStarPlatinum = false;
+        bool foundD4C = false;
+        const auto buttons = page->findChildren<FluentQt::PushButton *>();
+        for (FluentQt::PushButton *button : buttons) {
+            if (button->text() == starPlatinum) {
+                foundStarPlatinum = true;
+            } else if (button->text() == d4c) {
+                foundD4C = true;
+            }
+        }
+        QVERIFY(foundStarPlatinum);
+        QVERIFY(foundD4C);
+    }
+
+    void materialPageMatchesPythonGalleryAndUsesTranslations()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("zh_CN"));
+
+        auto *config = FluentQt::FluentConfig::instance();
+        const int previousAcrylicBlurRadius = config->acrylicBlurRadius();
+        config->setAcrylicBlurRadius(23);
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("materialInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("materialInterface"));
+
+        const QString acrylicLabelTitle = QCoreApplication::translate("MaterialInterface", "Acrylic label");
+        QVERIFY(acrylicLabelTitle != QStringLiteral("Acrylic label"));
+
+        bool foundSubtitle = false;
+        bool foundTitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.widgets")) {
+                foundSubtitle = true;
+            } else if (label->text() == acrylicLabelTitle) {
+                foundTitle = true;
+            }
+        }
+        QVERIFY(foundSubtitle);
+        QVERIFY(foundTitle);
+
+        const auto acrylicLabels = page->findChildren<FluentQt::AcrylicLabel *>();
+        QCOMPARE(acrylicLabels.size(), 1);
+        auto *acrylicLabel = acrylicLabels.constFirst();
+        QCOMPARE(acrylicLabel->minimumSize(), QSize(197, 145));
+        QCOMPARE(acrylicLabel->maximumSize(), QSize(787, 579));
+        QCOMPARE(acrylicLabel->blurRadius(), 23);
+        QVERIFY(!acrylicLabel->isNull());
+
+        config->setAcrylicBlurRadius(31);
+        QCOMPARE(acrylicLabel->blurRadius(), 31);
+        QVERIFY(!acrylicLabel->isNull());
+
+        config->setAcrylicBlurRadius(previousAcrylicBlurRadius);
     }
 
     void basicInputTrailingTransparentTogglesStayCheckable()
