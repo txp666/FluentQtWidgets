@@ -6,6 +6,8 @@
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/Label.h>
 
+#include <QtCore/QEvent>
+#include <QtCore/QTimer>
 #include <QtCore/QtGlobal>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
@@ -13,6 +15,10 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
+
+#if defined(Q_OS_WIN)
+#include <windows.h>
+#endif
 
 namespace FluentQt {
 
@@ -151,6 +157,23 @@ void FluentTitleBar::setWindowIcon(const QIcon &windowIcon)
     m_iconLabel->setPixmap(windowIcon.pixmap(QSize(18, 18), devicePixelRatioF()));
 }
 
+void FluentTitleBar::updateMaximizeButtonState()
+{
+    QWidget *targetWindow = window();
+    const bool maximized = targetWindow && (targetWindow->isMaximized() || targetWindow->isFullScreen());
+    asTitleBarButton(m_maxButton)->setSymbol(maximized ? TitleBarSymbol::Restore : TitleBarSymbol::Maximize);
+    m_maxButton->setToolTip(maximized ? QStringLiteral("Restore") : QStringLiteral("Maximize"));
+    m_maxButton->setProperty("windowMaximized", maximized);
+}
+
+bool FluentTitleBar::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == window() && event && event->type() == QEvent::WindowStateChange) {
+        updateMaximizeButtonState();
+    }
+    return QFrame::eventFilter(watched, event);
+}
+
 void FluentTitleBar::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && isCaptionArea(event->pos())) {
@@ -278,9 +301,11 @@ void FluentTitleBar::syncWithWindow()
 
     setTitle(window->windowTitle());
     setWindowIcon(window->windowIcon());
+    updateMaximizeButtonState();
 
     connect(window, &QWidget::windowTitleChanged, this, &FluentTitleBar::setTitle);
     connect(window, &QWidget::windowIconChanged, this, &FluentTitleBar::setWindowIcon);
+    window->installEventFilter(this);
 }
 
 bool FluentTitleBar::isCaptionArea(const QPoint &pos) const
@@ -298,9 +323,12 @@ bool FluentTitleBar::isCaptionArea(const QPoint &pos) const
 void FluentTitleBar::toggleMaximized()
 {
     if (QWidget *targetWindow = window()) {
-        targetWindow->isMaximized() ? targetWindow->showNormal() : targetWindow->showMaximized();
-        asTitleBarButton(m_maxButton)->setSymbol(targetWindow->isMaximized() ? TitleBarSymbol::Restore
-                                                                             : TitleBarSymbol::Maximize);
+        const bool restore = targetWindow->isMaximized() || targetWindow->isFullScreen();
+        restore ? targetWindow->showNormal() : targetWindow->showMaximized();
+#if defined(Q_OS_WIN)
+        SendMessageW(reinterpret_cast<HWND>(targetWindow->winId()), WM_LBUTTONUP, 0, 0);
+#endif
+        QTimer::singleShot(0, this, &FluentTitleBar::updateMaximizeButtonState);
     }
 }
 

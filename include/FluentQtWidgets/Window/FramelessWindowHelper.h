@@ -14,6 +14,7 @@ class QWindow;
 namespace FluentQt {
 
 class FluentTitleBar;
+class TransparentToolButton;
 
 enum class FramelessArea
 {
@@ -68,6 +69,7 @@ private:
 
     QWidget *m_host;
     FluentTitleBar *m_titleBar = nullptr;
+    TransparentToolButton *m_pressedMaxButton = nullptr;
 
     // Frameless interaction state
     bool m_mousePressed = false;

@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/Dialogs/ColorDialog.h>
 #include <FluentQtWidgets/Dialogs/FolderListDialog.h>
+#include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Views/ItemViews.h>
@@ -31,6 +32,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QDialog>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -302,15 +304,17 @@ SettingCardGroup::SettingCardGroup(const QString &title, QWidget *parent) : QWid
 {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(12);
+    layout->setSpacing(0);
+    layout->setAlignment(Qt::AlignTop);
 
     m_titleLabel = new SubtitleLabel(title, this);
     layout->addWidget(m_titleLabel);
+    layout->addSpacing(12);
 
-    m_cardLayout = new QVBoxLayout;
+    m_cardLayout = new ExpandLayout;
     m_cardLayout->setContentsMargins(0, 0, 0, 0);
     m_cardLayout->setSpacing(2);
-    layout->addLayout(m_cardLayout);
+    layout->addLayout(m_cardLayout, 1);
 
     FluentStyleSheet::setRole(this, QStringLiteral("SettingCardGroup"));
 }
@@ -319,7 +323,7 @@ QString SettingCardGroup::title() const { return m_titleLabel ? m_titleLabel->te
 
 QLabel *SettingCardGroup::titleLabel() const { return m_titleLabel; }
 
-QVBoxLayout *SettingCardGroup::cardLayout() const { return m_cardLayout; }
+ExpandLayout *SettingCardGroup::cardLayout() const { return m_cardLayout; }
 
 QList<QWidget *> SettingCardGroup::cards() const
 {
@@ -354,6 +358,7 @@ void SettingCardGroup::addSettingCard(QWidget *card)
 
     card->setParent(this);
     m_cardLayout->addWidget(card);
+    adjustSize();
 }
 
 void SettingCardGroup::addSettingCards(const QList<QWidget *> &cards)
@@ -361,6 +366,13 @@ void SettingCardGroup::addSettingCards(const QList<QWidget *> &cards)
     for (QWidget *card : cards) {
         addSettingCard(card);
     }
+}
+
+void SettingCardGroup::adjustSize()
+{
+    const int height = (m_cardLayout ? m_cardLayout->heightForWidth(width()) : 0) + 46;
+    resize(width(), height);
+    updateGeometry();
 }
 
 PushSettingCard::PushSettingCard(const QString &buttonText, const QIcon &icon, const QString &title,
@@ -492,11 +504,12 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, const QI
     m_valueLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     m_slider = new ClickableSlider(Qt::Horizontal, this);
-    m_slider->setMinimumWidth(220);
+    m_slider->setMinimumWidth(268);
     m_slider->setRange(minimum, maximum);
     m_slider->setValue(value);
     updateValueLabel(m_slider->value());
 
+    actionLayout()->setSpacing(6);
     actionLayout()->addWidget(m_valueLabel, 0, Qt::AlignRight);
     actionLayout()->addWidget(m_slider, 0, Qt::AlignRight);
 
@@ -1587,20 +1600,13 @@ bool FolderListSettingCard::removeFolder(const QString &folder)
 void FolderListSettingCard::chooseFolder()
 {
     const QString startDirectory = m_dialogDirectory.isEmpty() ? QDir::homePath() : m_dialogDirectory;
-    auto *dialog = new FolderPickerDialog(startDirectory, window());
+    const QString folder = QFileDialog::getExistingDirectory(this, tr("Choose folder"), startDirectory);
+    if (folder.isEmpty() || m_folders.contains(folder)) {
+        return;
+    }
 
-    QObject::disconnect(dialog->acceptButton(), &QPushButton::clicked, dialog, &QDialog::accept);
-    connect(dialog->acceptButton(), &QPushButton::clicked, this, [this, dialog]() {
-        const QString folder = dialog->selectedFolder();
-        if (!folder.isEmpty()) {
-            addFolder(folder);
-            m_dialogDirectory = folder;
-        }
-        dialog->accept();
-    });
-
-    dialog->exec();
-    dialog->deleteLater();
+    addFolder(folder);
+    m_dialogDirectory = folder;
 }
 
 void FolderListSettingCard::rebuildFolderItems()

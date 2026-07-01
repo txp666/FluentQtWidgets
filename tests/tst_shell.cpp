@@ -419,7 +419,7 @@ class ShellTest : public QObject
     {
         FluentQt::FluentWidget widget;
         QVERIFY(widget.windowFlags() & Qt::FramelessWindowHint);
-        QVERIFY(widget.testAttribute(Qt::WA_TranslucentBackground));
+        QVERIFY(!widget.testAttribute(Qt::WA_TranslucentBackground));
         QCOMPARE(widget.property("fqw").toString(), QStringLiteral("FluentWidget"));
         QVERIFY(widget.titleBar() != nullptr);
         QCOMPARE(widget.titleBar()->height(), 48);
@@ -457,6 +457,24 @@ class ShellTest : public QObject
         QVERIFY(window.metaObject()->indexOfProperty("micaEffectEnabled") >= 0);
     }
 
+    void fluentWindowsEnableNativeAnimationStyles()
+    {
+#if defined(Q_OS_WIN)
+        FluentQt::FluentWidget widget;
+        widget.resize(360, 240);
+        widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&widget));
+
+        const LONG_PTR style = GetWindowLongPtrW(reinterpret_cast<HWND>(widget.winId()), GWL_STYLE);
+        QVERIFY(style & WS_MINIMIZEBOX);
+        QVERIFY(style & WS_MAXIMIZEBOX);
+        QVERIFY(style & WS_CAPTION);
+        QVERIFY(style & WS_THICKFRAME);
+#else
+        QSKIP("Windows native animation styles only apply on Windows");
+#endif
+    }
+
     void framelessWindowInteriorHitTestStaysClientArea()
     {
 #if defined(Q_OS_WIN)
@@ -474,6 +492,153 @@ class ShellTest : public QObject
         QCOMPARE(result, qintptr(HTCLIENT));
 #else
         QSKIP("Windows hit-test behavior only applies on Windows");
+#endif
+    }
+
+    void framelessWindowHandlesNcCalcSize()
+    {
+#if defined(Q_OS_WIN)
+        QWidget host;
+        host.resize(320, 240);
+        host.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&host));
+
+        FluentQt::FramelessWindowHelper helper(&host);
+        RECT rect = {0, 0, 320, 240};
+        MSG message = {};
+        message.hwnd = reinterpret_cast<HWND>(host.winId());
+        message.message = WM_NCCALCSIZE;
+        message.wParam = FALSE;
+        message.lParam = reinterpret_cast<LPARAM>(&rect);
+        qintptr result = -1;
+
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
+        QCOMPARE(result, qintptr(0));
+
+        NCCALCSIZE_PARAMS params = {};
+        params.rgrc[0] = {0, 0, 320, 240};
+        message.wParam = TRUE;
+        message.lParam = reinterpret_cast<LPARAM>(&params);
+        result = -1;
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
+        QCOMPARE(result, qintptr(WVR_REDRAW));
+#else
+        QSKIP("Windows non-client sizing behavior only applies on Windows");
+#endif
+    }
+
+    void framelessWindowMaximizeButtonUsesNativeHitTest()
+    {
+#if defined(Q_OS_WIN)
+        QWidget host;
+        host.resize(320, 240);
+        FluentQt::FluentTitleBar titleBar(&host);
+        titleBar.resize(host.width(), titleBar.height());
+        titleBar.show();
+        host.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&host));
+
+        FluentQt::FramelessWindowHelper helper(&host);
+        helper.setTitleBar(&titleBar);
+        QCoreApplication::processEvents();
+
+        auto *maximizeButton = titleBar.maximizeButton();
+        QVERIFY(maximizeButton != nullptr);
+        const QPoint globalPos = maximizeButton->mapToGlobal(maximizeButton->rect().center());
+        MSG message = {};
+        message.message = WM_NCHITTEST;
+        message.lParam = MAKELPARAM(globalPos.x(), globalPos.y());
+        qintptr result = 0;
+
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
+        QCOMPARE(result, qintptr(HTMAXBUTTON));
+#else
+        QSKIP("Windows hit-test behavior only applies on Windows");
+#endif
+    }
+
+    void framelessWindowMaximizeButtonReleaseDoesNotStick()
+    {
+#if defined(Q_OS_WIN)
+        QWidget host;
+        host.resize(320, 240);
+        FluentQt::FluentTitleBar titleBar(&host);
+        titleBar.resize(host.width(), titleBar.height());
+        titleBar.show();
+        host.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&host));
+
+        FluentQt::FramelessWindowHelper helper(&host);
+        helper.setTitleBar(&titleBar);
+        QCoreApplication::processEvents();
+
+        auto *maximizeButton = titleBar.maximizeButton();
+        QVERIFY(maximizeButton != nullptr);
+        int clickedCount = 0;
+        connect(maximizeButton, &QToolButton::clicked, this, [&clickedCount](bool) {
+            ++clickedCount;
+        });
+        const QPoint pressPos = maximizeButton->mapToGlobal(maximizeButton->rect().center());
+        MSG press = {};
+        press.message = WM_NCLBUTTONDOWN;
+        press.lParam = MAKELPARAM(pressPos.x(), pressPos.y());
+        qintptr pressResult = -1;
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &press, &pressResult));
+        QCOMPARE(pressResult, qintptr(0));
+        QVERIFY(maximizeButton->isDown());
+
+        const QPoint releasePos = host.mapToGlobal(QPoint(8, host.height() - 8));
+        MSG release = {};
+        release.message = WM_NCLBUTTONUP;
+        release.lParam = MAKELPARAM(releasePos.x(), releasePos.y());
+        qintptr releaseResult = -1;
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &release, &releaseResult));
+        QCOMPARE(releaseResult, qintptr(0));
+        QVERIFY(!maximizeButton->isDown());
+        QCOMPARE(clickedCount, 0);
+        QVERIFY(!host.isMaximized());
+#else
+        QSKIP("Windows non-client button behavior only applies on Windows");
+#endif
+    }
+
+    void framelessWindowMaximizeButtonNativeClickTogglesWindow()
+    {
+#if defined(Q_OS_WIN)
+        QWidget host;
+        host.resize(320, 240);
+        FluentQt::FluentTitleBar titleBar(&host);
+        titleBar.resize(host.width(), titleBar.height());
+        titleBar.show();
+        host.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&host));
+
+        FluentQt::FramelessWindowHelper helper(&host);
+        helper.setTitleBar(&titleBar);
+        QCoreApplication::processEvents();
+
+        auto *maximizeButton = titleBar.maximizeButton();
+        QVERIFY(maximizeButton != nullptr);
+        const QPoint buttonPos = maximizeButton->mapToGlobal(maximizeButton->rect().center());
+        MSG press = {};
+        press.message = WM_NCLBUTTONDOWN;
+        press.lParam = MAKELPARAM(buttonPos.x(), buttonPos.y());
+        qintptr pressResult = -1;
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &press, &pressResult));
+        QCOMPARE(pressResult, qintptr(0));
+
+        MSG release = {};
+        release.message = WM_NCLBUTTONUP;
+        release.lParam = MAKELPARAM(buttonPos.x(), buttonPos.y());
+        qintptr releaseResult = -1;
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &release, &releaseResult));
+        QCOMPARE(releaseResult, qintptr(0));
+
+        QTRY_VERIFY(host.isMaximized());
+        QTRY_COMPARE(maximizeButton->toolTip(), QStringLiteral("Restore"));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), true);
+#else
+        QSKIP("Windows non-client button behavior only applies on Windows");
 #endif
     }
 
@@ -527,6 +692,127 @@ class ShellTest : public QObject
             }
             QVERIFY(hasGlyph);
         }
+    }
+
+    void fluentTitleBarTracksWindowStateChanges()
+    {
+        FluentQt::FluentWidget widget;
+        widget.resize(360, 240);
+        widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&widget));
+
+        auto *maximizeButton = widget.titleBar()->maximizeButton();
+        QVERIFY(maximizeButton != nullptr);
+        QCOMPARE(maximizeButton->toolTip(), QStringLiteral("Maximize"));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), false);
+
+        widget.showMaximized();
+        QTRY_COMPARE(maximizeButton->toolTip(), QStringLiteral("Restore"));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), true);
+
+        widget.showNormal();
+        QTRY_COMPARE(maximizeButton->toolTip(), QStringLiteral("Maximize"));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), false);
+    }
+
+    void fluentTitleBarMaximizeButtonTogglesWindow()
+    {
+        FluentQt::FluentWidget widget;
+        widget.resize(360, 240);
+        widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&widget));
+
+        auto *maximizeButton = widget.titleBar()->maximizeButton();
+        QVERIFY(maximizeButton != nullptr);
+
+        maximizeButton->click();
+        QTRY_VERIFY(widget.isMaximized());
+        QTRY_COMPARE(maximizeButton->toolTip(), QStringLiteral("Restore"));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), true);
+
+        maximizeButton->click();
+        QTRY_VERIFY(!widget.isMaximized());
+        QTRY_COMPARE(maximizeButton->toolTip(), QStringLiteral("Maximize"));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), false);
+    }
+
+    void fluentWindowMaximizeButtonUsesNativeWorkArea()
+    {
+#if defined(Q_OS_WIN)
+        FluentQt::FluentWindow window;
+        window.resize(960, 780);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        auto *maximizeButton = window.titleBar()->maximizeButton();
+        QVERIFY(maximizeButton != nullptr);
+        maximizeButton->click();
+        QTRY_VERIFY(window.isMaximized());
+
+        const HWND hwnd = reinterpret_cast<HWND>(window.winId());
+        RECT windowRect = {};
+        QVERIFY(GetWindowRect(hwnd, &windowRect));
+
+        MONITORINFO monitorInfo = {};
+        monitorInfo.cbSize = sizeof(MONITORINFO);
+        QVERIFY(GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &monitorInfo));
+
+        const RECT expected = {
+            monitorInfo.rcWork.left,
+            monitorInfo.rcWork.top,
+            monitorInfo.rcWork.right,
+            monitorInfo.rcWork.bottom,
+        };
+
+        const auto closeEnough = [](LONG actual, LONG target) {
+            return qAbs(actual - target) <= 2;
+        };
+        const QString actualExpected =
+            QStringLiteral("actual=(%1,%2,%3,%4), expected=(%5,%6,%7,%8), work=(%9,%10,%11,%12)")
+                .arg(windowRect.left).arg(windowRect.top).arg(windowRect.right).arg(windowRect.bottom)
+                .arg(expected.left).arg(expected.top).arg(expected.right).arg(expected.bottom)
+                .arg(monitorInfo.rcWork.left).arg(monitorInfo.rcWork.top)
+                .arg(monitorInfo.rcWork.right).arg(monitorInfo.rcWork.bottom);
+        QVERIFY2(closeEnough(windowRect.left, expected.left), qPrintable(actualExpected));
+        QVERIFY2(closeEnough(windowRect.top, expected.top), qPrintable(actualExpected));
+        QVERIFY2(closeEnough(windowRect.right, expected.right), qPrintable(actualExpected));
+        QVERIFY2(closeEnough(windowRect.bottom, expected.bottom), qPrintable(actualExpected));
+        QCOMPARE(maximizeButton->property("windowMaximized").toBool(), true);
+#else
+        QSKIP("Windows native maximize geometry only applies on Windows");
+#endif
+    }
+
+    void fluentWindowCaptionNativeDoubleClickTogglesWindow()
+    {
+#if defined(Q_OS_WIN)
+        FluentQt::FluentWindow window;
+        window.resize(960, 780);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        auto *titleBar = window.titleBar();
+        QVERIFY(titleBar != nullptr);
+        const QPoint captionPos(220, titleBar->height() / 2);
+        QVERIFY(titleBar->rect().contains(captionPos));
+        QVERIFY(titleBar->childAt(captionPos) == nullptr);
+
+        FluentQt::FramelessWindowHelper helper(&window);
+        helper.setTitleBar(titleBar);
+        const QPoint globalPos = titleBar->mapToGlobal(captionPos);
+
+        MSG message = {};
+        message.hwnd = reinterpret_cast<HWND>(window.winId());
+        message.message = WM_NCLBUTTONDBLCLK;
+        message.lParam = MAKELPARAM(globalPos.x(), globalPos.y());
+        qintptr result = -1;
+        QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
+        QCOMPARE(result, qintptr(0));
+        QTRY_VERIFY(window.isMaximized());
+        QCOMPARE(titleBar->maximizeButton()->property("windowMaximized").toBool(), true);
+#else
+        QSKIP("Windows native caption double-click only applies on Windows");
+#endif
     }
 
     void fluentWindowHistoryNavigation()

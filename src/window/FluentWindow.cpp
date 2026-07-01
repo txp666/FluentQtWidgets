@@ -84,6 +84,18 @@ void setTitleBarNavigationBackground(FluentTitleBar *titleBar, bool visible)
 }
 
 #if defined(Q_OS_WIN)
+void enableWindowAnimation(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+
+    HWND hwnd = reinterpret_cast<HWND>(widget->winId());
+    LONG_PTR style = GetWindowLongPtrW(hwnd, GWL_STYLE);
+    style |= WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION | WS_THICKFRAME;
+    SetWindowLongPtrW(hwnd, GWL_STYLE, style);
+}
+
 constexpr UINT kDwmSystemBackdropTypeAttribute = []() constexpr
 {
 #ifdef DWMWA_SYSTEMBACKDROP_TYPE
@@ -167,6 +179,8 @@ void syncDwmWindowAttributes(QWidget *widget, bool micaEnabled, bool refreshMica
     DwmSetWindowAttribute(hwnd, kDwmMicaEffectAttribute, &mica, sizeof(mica));
 }
 #else
+void enableWindowAnimation(QWidget *) {}
+
 void syncDwmWindowAttributes(QWidget *, bool, bool = false) {}
 #endif
 
@@ -177,11 +191,7 @@ QColor windowBackgroundColor()
 
 QColor micaHitTestBackgroundColor()
 {
-    // Fully transparent layered windows can become mouse-transparent on Windows.
-    // Keep one alpha step so Mica remains visually transparent but the window stays hit-testable.
-    QColor background = windowBackgroundColor();
-    background.setAlpha(1);
-    return background;
+    return QColor(0, 0, 0, 0);
 }
 
 } // namespace
@@ -204,7 +214,6 @@ bool isMicaEffectAvailable()
 FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
 {
     setWindowFlag(Qt::FramelessWindowHint, true);
-    setAttribute(Qt::WA_TranslucentBackground, true);
     setAutoFillBackground(false);
     FluentStyleSheet::setRole(this, QStringLiteral("FluentWidget"));
 
@@ -224,6 +233,7 @@ FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
     setMicaEffectEnabled(true);
     updateTitleBarGeometry();
     updateWindowMask();
+    enableWindowAnimation(this);
     syncDwmWindowAttributes(this, m_isMicaEnabled);
 }
 
@@ -327,10 +337,13 @@ void FluentWidget::paintEvent(QPaintEvent *event)
     Q_UNUSED(event)
 
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
     painter.setBrush(backgroundColor());
 
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    painter.drawRect(rect());
+#else
+    painter.setRenderHint(QPainter::Antialiasing);
     const QRectF backgroundRect = isMaximized() || isFullScreen() ? QRectF(rect()) : QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
     QPainterPath path;
     if (isMaximized() || isFullScreen()) {
@@ -339,6 +352,7 @@ void FluentWidget::paintEvent(QPaintEvent *event)
         path.addRoundedRect(backgroundRect, kWindowCornerRadius, kWindowCornerRadius);
     }
     painter.drawPath(path);
+#endif
 }
 
 void FluentWidget::resizeEvent(QResizeEvent *event)
@@ -392,7 +406,9 @@ void FluentWidget::updateTitleBarGeometry()
 void FluentWidget::updateWindowMask()
 {
     updateRoundedWindowMask(this);
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
     update();
+#endif
 }
 
 // ============================================================
@@ -402,7 +418,6 @@ void FluentWidget::updateWindowMask()
 FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowFlag(Qt::FramelessWindowHint, true);
-    setAttribute(Qt::WA_TranslucentBackground, true);
     setAutoFillBackground(false);
     setMinimumSize(900, 620);
     FluentStyleSheet::setRole(this, QStringLiteral("FluentWindow"));
@@ -447,6 +462,7 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     m_titleBar->raise();
     updateTitleBarGeometry();
     updateWindowMask();
+    enableWindowAnimation(this);
     syncDwmWindowAttributes(this, m_isMicaEnabled);
 }
 
@@ -648,11 +664,14 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     Q_UNUSED(event)
 
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    painter.drawRect(rect());
+#else
+    painter.setRenderHint(QPainter::Antialiasing);
     const QRectF backgroundRect = isMaximized() || isFullScreen() ? QRectF(rect()) : QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
     QPainterPath path;
     if (isMaximized() || isFullScreen()) {
@@ -661,6 +680,7 @@ void FluentWindow::paintEvent(QPaintEvent *event)
         path.addRoundedRect(backgroundRect, kWindowCornerRadius, kWindowCornerRadius);
     }
     painter.drawPath(path);
+#endif
 }
 
 void FluentWindow::resizeEvent(QResizeEvent *event)
@@ -746,7 +766,9 @@ void FluentWindow::updateStackedBackground()
 void FluentWindow::updateWindowMask()
 {
     updateRoundedWindowMask(this);
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
     update();
+#endif
 }
 
 // ============================================================
@@ -768,7 +790,6 @@ SplitFluentWindow::SplitFluentWindow(QWidget *parent) : FluentWindow(parent)
 MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowFlag(Qt::FramelessWindowHint, true);
-    setAttribute(Qt::WA_TranslucentBackground, true);
     setAutoFillBackground(false);
     setMinimumSize(900, 620);
     FluentStyleSheet::setRole(this, QStringLiteral("MSFluentWindow"));
@@ -814,6 +835,7 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
     m_titleBar->raise();
     updateTitleBarGeometry();
     updateWindowMask();
+    enableWindowAnimation(this);
     syncDwmWindowAttributes(this, m_isMicaEnabled);
 }
 
@@ -997,11 +1019,14 @@ void MSFluentWindow::paintEvent(QPaintEvent *event)
     Q_UNUSED(event)
 
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    painter.drawRect(rect());
+#else
+    painter.setRenderHint(QPainter::Antialiasing);
     const QRectF backgroundRect =
         isMaximized() || isFullScreen() ? QRectF(rect()) : QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
     QPainterPath path;
@@ -1011,6 +1036,7 @@ void MSFluentWindow::paintEvent(QPaintEvent *event)
         path.addRoundedRect(backgroundRect, kWindowCornerRadius, kWindowCornerRadius);
     }
     painter.drawPath(path);
+#endif
 }
 
 void MSFluentWindow::resizeEvent(QResizeEvent *event)
@@ -1061,7 +1087,9 @@ void MSFluentWindow::updateStackedBackground()
 void MSFluentWindow::updateWindowMask()
 {
     updateRoundedWindowMask(this);
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
     update();
+#endif
 }
 
 } // namespace FluentQt

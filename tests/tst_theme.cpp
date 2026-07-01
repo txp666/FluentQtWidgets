@@ -654,6 +654,9 @@ class ThemeTest : public QObject
         group.addSettingCards(
             {switchCard, rangeCard, comboCard, colorCard, optionsCard, folderCard, customColorCard, hyperlinkCard});
         QCOMPARE(group.cards().size(), 8);
+        QVERIFY(group.cardLayout() != nullptr);
+        QCOMPARE(group.height(), group.cardLayout()->heightForWidth(group.width()) + 46);
+        QVERIFY(group.height() > 0);
 
         QSignalSpy switchSpy(switchCard, &FluentQt::SwitchSettingCard::checkedChanged);
         switchCard->setChecked(true);
@@ -1112,7 +1115,7 @@ class ThemeTest : public QObject
         QCOMPARE(dialog.windowOpacity(), 1.0);
     }
 
-    void folderListSettingCardUsesFluentFolderDialog()
+    void folderListSettingCardTracksFoldersAndDialogDirectory()
     {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
@@ -1120,32 +1123,19 @@ class ThemeTest : public QObject
         FluentQt::FolderListSettingCard card(QStringList(), FluentQt::FluentIcon::Folder, QStringLiteral("Folders"),
                                              QString(), directory.path());
         QSignalSpy folderAddedSpy(&card, &FluentQt::FolderListSettingCard::folderAdded);
+        QSignalSpy foldersChangedSpy(&card, &FluentQt::FolderListSettingCard::foldersChanged);
 
-        QTimer::singleShot(0, &card, [&card]() {
-            QWidget *dialog = nullptr;
-            QTRY_VERIFY((dialog = findVisibleTopLevelByRole(QStringLiteral("FolderPickerDialogPopup"))) != nullptr);
-            QVERIFY(dialog->testAttribute(Qt::WA_TranslucentBackground));
-            QVERIFY(dialog->windowFlags() & Qt::FramelessWindowHint);
-            QVERIFY(dialog->windowFlags() & Qt::NoDropShadowWindowHint);
-            QVERIFY(dialog->findChildren<QFileDialog *>().isEmpty());
-            QVERIFY(!dialog->findChildren<FluentQt::TreeView *>().isEmpty());
-            QVERIFY(!dialog->findChildren<FluentQt::LineEdit *>().isEmpty());
-
-            auto *acceptButton = dialog->findChild<QPushButton *>(QString(), Qt::FindChildrenRecursively);
-            const auto buttons = dialog->findChildren<QPushButton *>();
-            for (QPushButton *button : buttons) {
-                if (button->property("fqw").toString() == QStringLiteral("PrimaryPushButton")) {
-                    acceptButton = button;
-                    break;
-                }
-            }
-            QVERIFY(acceptButton != nullptr);
-            acceptButton->click();
-        });
-
-        card.chooseFolder();
+        QCOMPARE(card.dialogDirectory(), directory.path());
+        QVERIFY(card.addFolder(directory.path()));
         QCOMPARE(folderAddedSpy.count(), 1);
         QCOMPARE(card.folders(), QStringList({QDir::cleanPath(directory.path())}));
+        QCOMPARE(foldersChangedSpy.count(), 1);
+        QVERIFY(!card.addFolder(directory.path()));
+        QCOMPARE(folderAddedSpy.count(), 1);
+
+        const QString nextDirectory = QDir::homePath();
+        card.setDialogDirectory(nextDirectory);
+        QCOMPARE(card.dialogDirectory(), nextDirectory);
 
         FluentQt::FolderListDialog listDialog(QStringList{QStringLiteral("/tmp/music")},
                                               QStringLiteral("Build your collection"),
@@ -1426,6 +1416,10 @@ class ThemeTest : public QObject
         QCOMPARE(area.scrollDelegate()->vScrollBar(), area.scrollDelegate()->verticalScrollBar());
         QCOMPARE(area.scrollDelegate()->hScrollBar(), area.scrollDelegate()->horizontalScrollBar());
         QCOMPARE(area.property("fqw").toString(), QStringLiteral("ScrollArea"));
+        area.setViewportMargins(1, 2, 3, 4);
+        QCOMPARE(area.viewportMargins(), QMargins(1, 2, 3, 4));
+        area.setViewportMargins(QMargins(5, 6, 7, 8));
+        QCOMPARE(area.viewportMargins(), QMargins(5, 6, 7, 8));
         area.enableTransparentBackground();
         QCOMPARE(area.property("transparent").toBool(), true);
         area.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

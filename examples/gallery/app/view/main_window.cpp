@@ -107,7 +107,7 @@ bool GalleryWindow::addGalleryInterface(int index)
         return true;
     case 12:
         addSubInterface(createSettingsPage(), icon(FluentIcon::Setting), mainTx("Settings"),
-                        QStringLiteral("settings"), NavigationItemPosition::Bottom);
+                        QStringLiteral("settingInterface"), NavigationItemPosition::Bottom);
         return true;
     default:
         return false;

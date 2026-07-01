@@ -222,6 +222,7 @@ void bindCustomColorSettingCard(CustomColorSettingCard *card, ColorConfigItem *i
         return;
     }
 
+    card->setDefaultColor(item->defaultValue().value<QColor>());
     card->setColor(item->value().value<QColor>());
     QObject::connect(card, &CustomColorSettingCard::colorChanged, item,
                      [item](const QColor &color) { item->setValue(color); });

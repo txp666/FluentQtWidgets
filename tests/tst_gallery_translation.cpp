@@ -12,12 +12,14 @@
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QTreeWidgetItemIterator>
 #include <QtWidgets/QVBoxLayout>
 
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
+#include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
 #include <FluentQtWidgets/Views/ItemViews.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
@@ -30,6 +32,8 @@
 #include <FluentQtWidgets/Widgets/Menu.h>
 #include <FluentQtWidgets/Widgets/PipsPager.h>
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
+#include <FluentQtWidgets/Widgets/ScrollArea.h>
+#include <FluentQtWidgets/Widgets/Slider.h>
 #include <FluentQtWidgets/Widgets/SpinBox.h>
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 
@@ -221,7 +225,7 @@ class GalleryTranslationTest : public QObject
         window.resize(900, 640);
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
-        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
         FluentQt::ComboBoxSettingCard *languageCard = nullptr;
         const auto cards = window.findChildren<FluentQt::ComboBoxSettingCard *>();
@@ -251,7 +255,7 @@ class GalleryTranslationTest : public QObject
         QVERIFY(oldWindow);
         QVERIFY(!window.isVisible());
         QVERIFY(newWindow->testAttribute(Qt::WA_DeleteOnClose));
-        QCOMPARE(newWindow->currentRouteKey(), QStringLiteral("settings"));
+        QCOMPARE(newWindow->currentRouteKey(), QStringLiteral("settingInterface"));
 
         newWindow->close();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
@@ -859,7 +863,7 @@ class GalleryTranslationTest : public QObject
         window.resize(1040, 760);
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
-        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
         FluentQt::ComboBoxSettingCard *themeModeCard = nullptr;
         const auto comboCards = window.findChildren<FluentQt::ComboBoxSettingCard *>();
@@ -886,6 +890,110 @@ class GalleryTranslationTest : public QObject
         manager->setTheme(previousManagerTheme);
     }
 
+    void settingsPageMatchesPythonGallery()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        auto *config = FluentQt::FluentConfig::instance();
+        auto *manager = FluentQt::ThemeManager::instance();
+        const QColor previousThemeColor = config->themeColor();
+        const QColor previousAccentColor = manager->accentColor();
+        const QColor defaultThemeColor(QStringLiteral("#009faa"));
+        const QColor currentThemeColor(QStringLiteral("#112233"));
+        config->setThemeColor(currentThemeColor);
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(!window.switchTo(QStringLiteral("settings")));
+        QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("settingInterface"));
+
+        auto *scrollArea = qobject_cast<FluentQt::ScrollArea *>(page);
+        QVERIFY(scrollArea != nullptr);
+        QCOMPARE(scrollArea->horizontalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
+        QCOMPARE(scrollArea->viewportMargins(), QMargins(0, 80, 0, 20));
+        QVERIFY(scrollArea->widgetResizable());
+
+        QWidget *scrollWidget = scrollArea->widget();
+        QVERIFY(scrollWidget != nullptr);
+        QCOMPARE(scrollWidget->objectName(), QStringLiteral("scrollWidget"));
+
+        auto *layout = qobject_cast<FluentQt::ExpandLayout *>(scrollWidget->layout());
+        QVERIFY(layout != nullptr);
+        QCOMPARE(layout->spacing(), 28);
+        QCOMPARE(layout->contentsMargins(), QMargins(36, 10, 36, 0));
+        QCOMPARE(layout->count(), 5);
+
+        auto *settingLabel = page->findChild<QLabel *>(QStringLiteral("settingLabel"));
+        QVERIFY(settingLabel != nullptr);
+        QCOMPARE(settingLabel->text(), QStringLiteral("Settings"));
+        QCOMPARE(settingLabel->pos(), QPoint(36, 30));
+        QCOMPARE(settingLabel->parentWidget(), page);
+
+        QList<FluentQt::SettingCardGroup *> groups;
+        for (int i = 0; i < layout->count(); ++i) {
+            auto *group = qobject_cast<FluentQt::SettingCardGroup *>(layout->itemAt(i)->widget());
+            QVERIFY(group != nullptr);
+            groups.append(group);
+        }
+
+        QCOMPARE(groups.at(0)->title(), QStringLiteral("Music on this PC"));
+        QCOMPARE(groups.at(1)->title(), QStringLiteral("Personalization"));
+        QCOMPARE(groups.at(2)->title(), QStringLiteral("Material"));
+        QCOMPARE(groups.at(3)->title(), QStringLiteral("Software update"));
+        QCOMPARE(groups.at(4)->title(), QStringLiteral("About"));
+
+        QCOMPARE(groups.at(0)->cards().size(), 2);
+        QCOMPARE(groups.at(1)->cards().size(), 5);
+        QCOMPARE(groups.at(2)->cards().size(), 1);
+        QCOMPARE(groups.at(3)->cards().size(), 1);
+        QCOMPARE(groups.at(4)->cards().size(), 3);
+        for (FluentQt::SettingCardGroup *group : std::as_const(groups)) {
+            QVERIFY(group->cardLayout() != nullptr);
+            QCOMPARE(group->height(), group->cardLayout()->heightForWidth(group->width()) + 46);
+        }
+        for (int i = 1; i < groups.size(); ++i) {
+            QVERIFY2(groups.at(i - 1)->geometry().bottom() < groups.at(i)->geometry().top(),
+                     qPrintable(QStringLiteral("%1 overlaps %2")
+                                    .arg(groups.at(i - 1)->title(), groups.at(i)->title())));
+        }
+
+        auto *updateCard = qobject_cast<FluentQt::SwitchSettingCard *>(groups.at(3)->cards().constFirst());
+        QVERIFY(updateCard != nullptr);
+        QCOMPARE(updateCard->title(), QStringLiteral("Check for updates when the application starts"));
+
+        auto *themeColorCard = qobject_cast<FluentQt::CustomColorSettingCard *>(groups.at(1)->cards().at(2));
+        QVERIFY(themeColorCard != nullptr);
+        QCOMPARE(themeColorCard->defaultColor(), defaultThemeColor);
+        QCOMPARE(themeColorCard->customColor(), currentThemeColor);
+        QVERIFY(themeColorCard->isCustomColorEnabled());
+        QCOMPARE(themeColorCard->color(), currentThemeColor);
+        QVERIFY(themeColorCard->choiceLabel() != nullptr);
+        QCOMPARE(themeColorCard->choiceLabel()->text(), QStringLiteral("Custom color"));
+
+        auto *blurRadiusCard = qobject_cast<FluentQt::RangeSettingCard *>(groups.at(2)->cards().constFirst());
+        QVERIFY(blurRadiusCard != nullptr);
+        QVERIFY(blurRadiusCard->slider() != nullptr);
+        QCOMPARE(blurRadiusCard->slider()->minimumWidth(), 268);
+        QCOMPARE(blurRadiusCard->actionLayout()->spacing(), 6);
+
+        auto *aboutCard = qobject_cast<FluentQt::PrimaryPushSettingCard *>(groups.at(4)->cards().at(2));
+        QVERIFY(aboutCard != nullptr);
+        QCOMPARE(aboutCard->title(), QStringLiteral("About"));
+        QVERIFY(aboutCard->button() != nullptr);
+        QCOMPARE(aboutCard->button()->text(), QStringLiteral("Check update"));
+        QVERIFY(aboutCard->content().contains(QStringLiteral("Copyright 2026, FluentQtWidgets. Version ")));
+
+        config->setThemeColor(previousThemeColor);
+        manager->setAccentColor(previousAccentColor);
+        config->save();
+    }
+
     void settingsZoomCardPersistsRestartScale()
     {
         GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
@@ -897,7 +1005,7 @@ class GalleryTranslationTest : public QObject
         window.resize(1040, 760);
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
-        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
         FluentQt::OptionsSettingCard *zoomCard = nullptr;
         const auto optionCards = window.findChildren<FluentQt::OptionsSettingCard *>();
@@ -932,7 +1040,7 @@ class GalleryTranslationTest : public QObject
         window.resize(1040, 760);
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
-        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
         FluentQt::PushSettingCard *downloadCard = nullptr;
         const auto pushCards = window.findChildren<FluentQt::PushSettingCard *>();
@@ -962,7 +1070,7 @@ class GalleryTranslationTest : public QObject
         window.resize(1040, 760);
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
-        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
         FluentQt::SwitchSettingCard *micaCard = nullptr;
         const auto switchCards = window.findChildren<FluentQt::SwitchSettingCard *>();

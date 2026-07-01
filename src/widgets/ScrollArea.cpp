@@ -1058,11 +1058,23 @@ SmoothScrollDelegate *ScrollArea::scrollDelegate() const { return m_scrollDelega
 
 SmoothScrollDelegate *ScrollArea::scrollDelagate() const { return m_scrollDelegate; }
 
+QMargins ScrollArea::viewportMargins() const { return QScrollArea::viewportMargins(); }
+
 void ScrollArea::enableTransparentBackground(bool enabled)
 {
     setTransparent(this, enabled);
     setTransparent(viewport(), enabled);
     setTransparent(widget(), enabled);
+}
+
+void ScrollArea::setViewportMargins(int left, int top, int right, int bottom)
+{
+    QScrollArea::setViewportMargins(left, top, right, bottom);
+}
+
+void ScrollArea::setViewportMargins(const QMargins &margins)
+{
+    QScrollArea::setViewportMargins(margins);
 }
 
 void ScrollArea::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)

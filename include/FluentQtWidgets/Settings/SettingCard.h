@@ -37,6 +37,7 @@ class ClickableSlider;
 class ComboBox;
 class HyperlinkButton;
 class IconWidget;
+class ExpandLayout;
 class RadioButton;
 class ScrollArea;
 class SwitchButton;
@@ -107,20 +108,21 @@ class FQW_API SettingCardGroup : public QWidget
 
     QString title() const;
     QLabel *titleLabel() const;
-    QVBoxLayout *cardLayout() const;
+    ExpandLayout *cardLayout() const;
     QList<QWidget *> cards() const;
 
   public slots:
     void setTitle(const QString &title);
     void addSettingCard(QWidget *card);
     void addSettingCards(const QList<QWidget *> &cards);
+    void adjustSize();
 
   signals:
     void titleChanged(const QString &title);
 
   private:
     QLabel *m_titleLabel = nullptr;
-    QVBoxLayout *m_cardLayout = nullptr;
+    ExpandLayout *m_cardLayout = nullptr;
 };
 
 class FQW_API PushSettingCard : public SettingCard
@@ -637,8 +639,6 @@ class FQW_API FolderListSettingCard : public ExpandSettingCard
     QPushButton *m_addFolderButton = nullptr;
     QList<FolderItem *> m_folderItems;
 };
-
-class FQW_API FolderListDialog; // forward declaration, defined in Dialogs/FolderListDialog.h
 
 class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
 {

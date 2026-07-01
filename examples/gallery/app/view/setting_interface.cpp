@@ -3,35 +3,59 @@
 #include "../update/GalleryUpdateChecker.h"
 #include "GalleryViewHelpers.h"
 
-#include <QtCore/QSignalBlocker>
+#include <FluentQtWidgets/Layout/FlowLayout.h>
+#include <FluentQtWidgets/Widgets/ScrollArea.h>
+
+#include <QtCore/QUrl>
+#include <QtGui/QDesktopServices>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QLabel>
 
 using namespace FluentQt;
 
 QWidget *GalleryWindow::createSettingsPage()
 {
-    auto *page = new GalleryInterface(settingTx("Settings"), QStringLiteral("Personalization, layout and project options"),
-                                      this);
-    auto *layout = page->contentLayout();
+    auto *page = new ScrollArea(this);
+    page->resize(1000, 800);
+    page->setObjectName(QStringLiteral("settingInterface"));
+    page->setAttribute(Qt::WA_StyledBackground);
+    page->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    if (page->horizontalFluentScrollBar()) {
+        page->horizontalFluentScrollBar()->setForceHidden(true);
+    }
+    page->setViewportMargins(0, 80, 0, 20);
+    page->setWidgetResizable(true);
 
-    // ---- Music on this PC ----
-    auto *musicGroup = new SettingCardGroup(settingTx("Music on this PC"));
+    auto *scrollWidget = new QWidget(page);
+    scrollWidget->setObjectName(QStringLiteral("scrollWidget"));
+    scrollWidget->setAttribute(Qt::WA_StyledBackground);
+    page->setWidget(scrollWidget);
+
+    auto *settingLabel = new QLabel(settingTx("Settings"), page);
+    settingLabel->setObjectName(QStringLiteral("settingLabel"));
+    settingLabel->move(36, 30);
+
+    auto *layout = new ExpandLayout(scrollWidget);
+    layout->setSpacing(28);
+    layout->setContentsMargins(36, 10, 36, 0);
+
+    applyGalleryViewStyle(page, QStringLiteral("setting_interface"));
+
+    auto *musicGroup = new SettingCardGroup(settingTx("Music on this PC"), scrollWidget);
     const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     auto *musicFolderCard =
         new FolderListSettingCard(QStringList{musicPath}, FluentIcon::Folder, settingTx("Local music library"),
-                                  QString(), musicPath.isEmpty() ? QDir::homePath() : musicPath);
+                                  QString(), musicPath.isEmpty() ? QDir::homePath() : musicPath, musicGroup);
     auto *downloadFolderCard = new PushSettingCard(settingTx("Choose folder"), FluentIcon::Download,
                                                    settingTx("Download directory"),
-                                                   FluentConfig::instance()->downloadFolder());
+                                                   FluentConfig::instance()->downloadFolder(), musicGroup);
     musicGroup->addSettingCards({musicFolderCard, downloadFolderCard});
     layout->addWidget(musicGroup);
 
-    // ---- Personalization ----
-    auto *personalization = new SettingCardGroup(settingTx("Personalization"));
-
-    // Mica/Acrylic effect switch
+    auto *personalization = new SettingCardGroup(settingTx("Personalization"), scrollWidget);
     auto *micaCard = new SwitchSettingCard(FluentIcon::Transparent, settingTx("Mica effect"),
-                                           settingTx("Apply semi transparent to windows and surfaces"));
+                                           settingTx("Apply semi transparent to windows and surfaces"),
+                                           personalization);
     auto *micaWindow = qobject_cast<FluentWindow *>(window());
     micaCard->setEnabled(isMicaEffectAvailable());
     if (micaWindow && isMicaEffectAvailable()) {
@@ -51,19 +75,16 @@ QWidget *GalleryWindow::createSettingsPage()
         micaCard->setEnabled(false);
     }
 
-    // Application theme
     auto *themeMode = new ComboBoxSettingCard(
         QStringList{settingTx("Light"), settingTx("Dark"), settingTx("Use system setting")}, FluentIcon::Brush,
-        settingTx("Application theme"), settingTx("Change the appearance of your application"));
-
-    // Theme color
+        settingTx("Application theme"), settingTx("Change the appearance of your application"), personalization);
+    const QColor defaultThemeColor(QStringLiteral("#009faa"));
+    const QColor currentThemeColor = FluentConfig::instance()->themeColor();
     auto *themeColorCard =
-        new CustomColorSettingCard(ThemeManager::instance()->accentColor(), QColor(QStringLiteral("#c239b3")),
-                                   FluentIcon::Palette, settingTx("Theme color"),
-                                   settingTx("Change the theme color of you application"));
-    themeColorCard->setCustomColorEnabled(false);
+        new CustomColorSettingCard(defaultThemeColor, currentThemeColor, FluentIcon::Palette,
+                                   settingTx("Theme color"),
+                                   settingTx("Change the theme color of you application"), personalization);
 
-    // Interface zoom
     const QStringList zoomTexts = {QStringLiteral("100%"), QStringLiteral("125%"), QStringLiteral("150%"),
                                    QStringLiteral("175%"), QStringLiteral("200%"),
                                    settingTx("Use system setting")};
@@ -71,15 +92,15 @@ QWidget *GalleryWindow::createSettingsPage()
                                      QStringLiteral("1.75"), QStringLiteral("2"), QStringLiteral("Auto")};
     auto *zoomCard = new OptionsSettingCard(zoomTexts, zoomValues, FluentIcon::Zoom,
                                             settingTx("Interface zoom"),
-                                            settingTx("Change the size of widgets and fonts"));
-
-    // Language
+                                            settingTx("Change the size of widgets and fonts"),
+                                            personalization);
     auto *language = new ComboBoxSettingCard(
-        QStringList{QStringLiteral("简体中文"), QStringLiteral("繁體中文"), QStringLiteral("English"),
-                    settingTx("Use system setting")},
-        FluentIcon::Language, settingTx("Language"), settingTx("Set your preferred language for UI"));
+        QStringList{QString::fromUtf8("\xE7\xAE\x80\xE4\xBD\x93\xE4\xB8\xAD\xE6\x96\x87"),
+                    QString::fromUtf8("\xE7\xB9\x81\xE9\xAB\x94\xE4\xB8\xAD\xE6\x96\x87"),
+                    QStringLiteral("English"), settingTx("Use system setting")},
+        FluentIcon::Language, settingTx("Language"), settingTx("Set your preferred language for UI"),
+        personalization);
 
-    // Config items
     const auto themeToIndex = [](Theme theme) {
         switch (theme) {
         case Theme::Light:
@@ -105,8 +126,8 @@ QWidget *GalleryWindow::createSettingsPage()
         QStringLiteral("Gallery"), QStringLiteral("ThemeMode"), static_cast<int>(FluentConfig::instance()->themeMode()),
         {static_cast<int>(Theme::Light), static_cast<int>(Theme::Dark), static_cast<int>(Theme::Auto)}, page);
     auto *accentColorItem =
-        new ColorConfigItem(QStringLiteral("Gallery"), QStringLiteral("AccentColor"),
-                            FluentConfig::instance()->themeColor(), page);
+        new ColorConfigItem(QStringLiteral("Gallery"), QStringLiteral("AccentColor"), defaultThemeColor, page);
+    accentColorItem->setValue(currentThemeColor);
     auto *dpiScaleItem = new OptionsConfigItem(QStringLiteral("Gallery"), QStringLiteral("DpiScale"),
                                                FluentConfig::instance()->dpiScale(), zoomValues, page);
     dpiScaleItem->setRestartRequired(true);
@@ -162,12 +183,11 @@ QWidget *GalleryWindow::createSettingsPage()
     personalization->addSettingCards({micaCard, themeMode, themeColorCard, zoomCard, language});
     layout->addWidget(personalization);
 
-    // ---- Material ----
-    auto *materialGroup = new SettingCardGroup(settingTx("Material"));
+    auto *materialGroup = new SettingCardGroup(settingTx("Material"), scrollWidget);
     auto *blurRadiusCard =
         new RangeSettingCard(0, 40, FluentConfig::instance()->acrylicBlurRadius(),
                              FluentIcon::Album, settingTx("Acrylic blur radius"),
-                             settingTx("The greater the radius, the more blurred the image"));
+                             settingTx("The greater the radius, the more blurred the image"), materialGroup);
     connect(blurRadiusCard, &RangeSettingCard::valueChanged, page, [](int value) {
         FluentConfig::instance()->setAcrylicBlurRadius(value);
         FluentConfig::instance()->save();
@@ -175,39 +195,42 @@ QWidget *GalleryWindow::createSettingsPage()
     materialGroup->addSettingCards({blurRadiusCard});
     layout->addWidget(materialGroup);
 
-    // ---- Software update ----
-    auto *updateGroup = new SettingCardGroup(settingTx("Software update"));
+    auto *updateGroup = new SettingCardGroup(settingTx("Software update"), scrollWidget);
     auto *autoUpdateCard =
         new SwitchSettingCard(FluentIcon::Update, settingTx("Check for updates when the application starts"),
-                             settingTx("The new version will be more stable and have more features"));
-    auto *manualUpdateCard =
-        new PrimaryPushSettingCard(settingTx("Check update"), FluentIcon::Update, settingTx("Software update"),
-                                  settingTx("Check latest version from GitHub releases"));
+                             settingTx("The new version will be more stable and have more features"),
+                             updateGroup);
     autoUpdateCard->setChecked(FluentConfig::instance()->isAutoUpdateEnabled());
     connect(autoUpdateCard, &SwitchSettingCard::checkedChanged, page, [](bool checked) {
         FluentConfig::instance()->setAutoUpdateEnabled(checked);
         FluentConfig::instance()->save();
     });
-    connect(manualUpdateCard, &PushSettingCard::clicked, page, [page]() {
-        checkGalleryUpdate(page, true, false);
-    });
-    updateGroup->addSettingCards({autoUpdateCard, manualUpdateCard});
+    updateGroup->addSettingCards({autoUpdateCard});
     layout->addWidget(updateGroup);
 
-    // ---- About ----
-    auto *aboutGroup = new SettingCardGroup(settingTx("About"));
+    auto *aboutGroup = new SettingCardGroup(settingTx("About"), scrollWidget);
     auto *helpCard =
         new HyperlinkCard(QStringLiteral(FQW_REPOSITORY_URL "/tree/main/docs"), settingTx("Open help page"),
                           FluentIcon::Help, settingTx("Help"),
-                          settingTx("Discover new features and learn useful tips about FluentQtWidgets"));
+                          settingTx("Discover new features and learn useful tips about FluentQtWidgets"),
+                          aboutGroup);
     auto *feedbackCard =
         new PrimaryPushSettingCard(settingTx("Provide feedback"), FluentIcon::Feedback,
                                    settingTx("Provide feedback"),
-                                   settingTx("Help us improve FluentQtWidgets by providing feedback"));
+                                   settingTx("Help us improve FluentQtWidgets by providing feedback"),
+                                   aboutGroup);
     auto *aboutCard = new PrimaryPushSettingCard(
-        settingTx("Version"), FluentIcon::Info, settingTx("About"),
-        QString(QStringLiteral("© FluentQtWidgets ") + settingTx("Version") + QStringLiteral(" ")
-                + FluentQt::libraryVersion()));
+        settingTx("Check update"), FluentIcon::Info, settingTx("About"),
+        QString(QString::fromUtf8("\xC2\xA9 ") + settingTx("Copyright")
+                + QStringLiteral(" 2026, FluentQtWidgets. ") + settingTx("Version")
+                + QStringLiteral(" ") + FluentQt::libraryVersion()),
+        aboutGroup);
+    connect(feedbackCard, &PushSettingCard::clicked, page, []() {
+        QDesktopServices::openUrl(QUrl(QStringLiteral(FQW_REPOSITORY_URL "/issues")));
+    });
+    connect(aboutCard, &PushSettingCard::clicked, page, [page]() {
+        checkGalleryUpdate(page, true, false);
+    });
 
     aboutGroup->addSettingCards({helpCard, feedbackCard, aboutCard});
     layout->addWidget(aboutGroup);

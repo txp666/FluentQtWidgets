@@ -1,6 +1,9 @@
 #include <FluentQtWidgets/Window/FramelessWindowHelper.h>
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
+#include <FluentQtWidgets/Widgets/Button.h>
 
+#include <QtCore/QCoreApplication>
+#include <QtCore/QEvent>
 #include <QtCore/QtGlobal>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMouseEvent>
@@ -17,7 +20,11 @@ namespace FluentQt {
 
 namespace {
 
-constexpr int kFramelessResizeBorder = 8;
+constexpr int kFramelessResizeBorder = 5;
+
+#if defined(Q_OS_WIN) && !defined(SM_CXPADDEDBORDER)
+constexpr int SM_CXPADDEDBORDER = 92;
+#endif
 
 Qt::CursorShape cursorForFramelessArea(FramelessArea area)
 {
@@ -92,6 +99,154 @@ QRect constrainedResizeRect(const QRect &baseRect, const QRect &screenRect, Qt::
     return target;
 }
 
+TransparentToolButton *hoveredMaximizeButton(FluentTitleBar *titleBar, const QPoint &globalPos)
+{
+    if (!titleBar || !titleBar->isVisible()) {
+        return nullptr;
+    }
+
+    auto *button = titleBar->maximizeButton();
+    if (!button || !button->isVisible() || !button->isEnabled()) {
+        return nullptr;
+    }
+
+    const QPoint buttonPos = button->mapFromGlobal(globalPos);
+    return button->rect().contains(buttonPos) ? button : nullptr;
+}
+
+bool isTitleBarCaptionPoint(FluentTitleBar *titleBar, const QPoint &globalPos)
+{
+    if (!titleBar || !titleBar->isVisible()) {
+        return false;
+    }
+
+    const QPoint titlePos = titleBar->mapFromGlobal(globalPos);
+    return titleBar->rect().contains(titlePos) && !titleBar->childAt(titlePos);
+}
+
+#if defined(Q_OS_WIN)
+int resizeBorderThickness(HWND hwnd, bool horizontal)
+{
+    const int frameMetric = horizontal ? SM_CXSIZEFRAME : SM_CYSIZEFRAME;
+    const int frame = GetSystemMetrics(frameMetric);
+    const int padded = GetSystemMetrics(SM_CXPADDEDBORDER);
+    const int thickness = frame + padded;
+    if (thickness > 0) {
+        return thickness;
+    }
+    return 8;
+}
+
+bool isNativeMaximized(HWND hwnd)
+{
+    WINDOWPLACEMENT placement = {};
+    placement.length = sizeof(WINDOWPLACEMENT);
+    return GetWindowPlacement(hwnd, &placement) && placement.showCmd == SW_MAXIMIZE;
+}
+
+bool isNativeFullScreen(HWND hwnd)
+{
+    RECT windowRect = {};
+    if (!GetWindowRect(hwnd, &windowRect)) {
+        return false;
+    }
+
+    HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO monitorInfo = {};
+    monitorInfo.cbSize = sizeof(MONITORINFO);
+    if (!GetMonitorInfoW(monitor, &monitorInfo)) {
+        return false;
+    }
+
+    const RECT &monitorRect = monitorInfo.rcMonitor;
+    return windowRect.left == monitorRect.left && windowRect.top == monitorRect.top
+           && windowRect.right == monitorRect.right && windowRect.bottom == monitorRect.bottom;
+}
+
+bool handleNcCalcSize(MSG *msg, qintptr *result)
+{
+    if (!msg || msg->message != WM_NCCALCSIZE) {
+        return false;
+    }
+
+    RECT *rect = nullptr;
+    if (msg->wParam) {
+        auto *params = reinterpret_cast<NCCALCSIZE_PARAMS *>(msg->lParam);
+        rect = params ? &params->rgrc[0] : nullptr;
+    } else {
+        rect = reinterpret_cast<RECT *>(msg->lParam);
+    }
+
+    if (!rect) {
+        return false;
+    }
+
+    const HWND hwnd = msg->hwnd;
+    const bool maximized = isNativeMaximized(hwnd);
+    const bool fullScreen = isNativeFullScreen(hwnd);
+    if (maximized && !fullScreen) {
+        const int verticalBorder = resizeBorderThickness(hwnd, false);
+        rect->top += verticalBorder;
+        rect->bottom -= verticalBorder;
+
+        const int horizontalBorder = resizeBorderThickness(hwnd, true);
+        rect->left += horizontalBorder;
+        rect->right -= horizontalBorder;
+    }
+
+    *result = msg->wParam ? WVR_REDRAW : 0;
+    return true;
+}
+
+bool handleGetMinMaxInfo(MSG *msg, qintptr *result)
+{
+    if (!msg || msg->message != WM_GETMINMAXINFO) {
+        return false;
+    }
+
+    auto *minMaxInfo = reinterpret_cast<MINMAXINFO *>(msg->lParam);
+    if (!minMaxInfo) {
+        return false;
+    }
+
+    HMONITOR monitor = MonitorFromWindow(msg->hwnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO monitorInfo = {};
+    monitorInfo.cbSize = sizeof(MONITORINFO);
+    if (!GetMonitorInfoW(monitor, &monitorInfo)) {
+        return false;
+    }
+
+    const RECT &monitorRect = monitorInfo.rcMonitor;
+    const RECT &workRect = monitorInfo.rcWork;
+    const int horizontalBorder = resizeBorderThickness(msg->hwnd, true);
+    const int verticalBorder = resizeBorderThickness(msg->hwnd, false);
+
+    minMaxInfo->ptMaxPosition.x = workRect.left - monitorRect.left - horizontalBorder;
+    minMaxInfo->ptMaxPosition.y = workRect.top - monitorRect.top - verticalBorder;
+    minMaxInfo->ptMaxSize.x = workRect.right - workRect.left + horizontalBorder * 2;
+    minMaxInfo->ptMaxSize.y = workRect.bottom - workRect.top + verticalBorder * 2;
+
+    *result = 0;
+    return true;
+}
+#endif
+
+void sendMaximizeButtonMouseEvent(TransparentToolButton *button, QEvent::Type type, Qt::MouseButton buttonState)
+{
+    if (!button) {
+        return;
+    }
+
+    const QPoint localPos = button->rect().center();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QMouseEvent event(type, QPointF(localPos), QPointF(button->mapToGlobal(localPos)),
+                      buttonState, buttonState, Qt::NoModifier);
+#else
+    QMouseEvent event(type, localPos, button->mapToGlobal(localPos), buttonState, buttonState, Qt::NoModifier);
+#endif
+    QCoreApplication::sendEvent(button, &event);
+}
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 static QPoint eventGlobalPos(const QMouseEvent *event)
 {
@@ -143,11 +298,79 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
 {
     Q_UNUSED(eventType)
     auto *msg = static_cast<MSG *>(message);
-    if (!msg || msg->message != WM_NCHITTEST) {
+    if (!msg) {
         return false;
     }
 
+#if defined(Q_OS_WIN)
+    if (handleNcCalcSize(msg, result)) {
+        return true;
+    }
+    if (handleGetMinMaxInfo(msg, result)) {
+        return true;
+    }
+#endif
+
     const QPoint globalPos(GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam));
+    auto *maxButton = hoveredMaximizeButton(m_titleBar, globalPos);
+
+    if ((msg->message == WM_NCLBUTTONDOWN || msg->message == WM_NCLBUTTONDBLCLK) && maxButton) {
+        m_pressedMaxButton = maxButton;
+        sendMaximizeButtonMouseEvent(maxButton, QEvent::MouseButtonPress, Qt::LeftButton);
+        *result = 0;
+        return true;
+    }
+
+    if (msg->message == WM_NCLBUTTONUP || msg->message == WM_NCRBUTTONUP) {
+        if (m_pressedMaxButton) {
+            auto *pressedButton = m_pressedMaxButton;
+            m_pressedMaxButton = nullptr;
+            if (pressedButton == maxButton) {
+                sendMaximizeButtonMouseEvent(pressedButton, QEvent::MouseButtonRelease, Qt::LeftButton);
+            } else {
+                pressedButton->setDown(false);
+                pressedButton->update();
+            }
+            *result = 0;
+            return true;
+        }
+
+        if (maxButton) {
+            sendMaximizeButtonMouseEvent(maxButton, QEvent::MouseButtonRelease, Qt::LeftButton);
+            *result = 0;
+            return true;
+        }
+    }
+
+    if (msg->message == WM_CANCELMODE && m_pressedMaxButton) {
+        m_pressedMaxButton->setDown(false);
+        m_pressedMaxButton->update();
+        m_pressedMaxButton = nullptr;
+        *result = 0;
+        return true;
+    }
+
+    if (msg->message == WM_NCMOUSELEAVE && m_titleBar && m_titleBar->maximizeButton()) {
+        m_titleBar->maximizeButton()->setDown(false);
+        m_titleBar->maximizeButton()->update();
+        return false;
+    }
+
+    if (msg->message == WM_NCLBUTTONDBLCLK && isTitleBarCaptionPoint(m_titleBar, globalPos)) {
+        m_titleBar->toggleMaximized();
+        *result = 0;
+        return true;
+    }
+
+    if (msg->message != WM_NCHITTEST) {
+        return false;
+    }
+
+    if (maxButton) {
+        *result = HTMAXBUTTON;
+        return true;
+    }
+
     const QPoint localPos = m_host->mapFromGlobal(globalPos);
     const bool resizable = !isMaximizedOrFullScreen();
 
@@ -168,8 +391,7 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
     }
 
     if (m_titleBar && m_titleBar->isVisible()) {
-        const QPoint titlePos = m_titleBar->mapFromGlobal(globalPos);
-        if (m_titleBar->rect().contains(titlePos) && !m_titleBar->childAt(titlePos)) {
+        if (isTitleBarCaptionPoint(m_titleBar, globalPos)) {
             *result = HTCAPTION;
             return true;
         }
@@ -372,6 +594,11 @@ void FramelessWindowHelper::handleWindowStateChange()
     m_dragging = false;
     m_resizing = false;
     m_resizeEdges = Qt::Edges();
+    if (m_pressedMaxButton) {
+        m_pressedMaxButton->setDown(false);
+        m_pressedMaxButton->update();
+        m_pressedMaxButton = nullptr;
+    }
 }
 
 } // namespace FluentQt

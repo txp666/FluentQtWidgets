@@ -28,8 +28,11 @@ class FQW_API FluentTitleBar : public QFrame
   public slots:
     void setTitle(const QString &title);
     void setWindowIcon(const QIcon &icon);
+    void updateMaximizeButtonState();
+    void toggleMaximized();
 
   protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -39,7 +42,6 @@ class FQW_API FluentTitleBar : public QFrame
     void initLayout();
     void syncWithWindow();
     bool isCaptionArea(const QPoint &pos) const;
-    void toggleMaximized();
 
     CaptionLabel *m_titleLabel = nullptr;
     QLabel *m_iconLabel = nullptr;

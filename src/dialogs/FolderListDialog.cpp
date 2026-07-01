@@ -17,6 +17,7 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QTreeView>
@@ -234,9 +235,9 @@ bool FolderListDialog::removeFolder(const QString &folder)
 
 void FolderListDialog::chooseFolder()
 {
-    FolderPickerDialog dialog(QString(), window());
-    if (dialog.exec() == QDialog::Accepted) {
-        addFolder(dialog.selectedFolder());
+    const QString path = QFileDialog::getExistingDirectory(this, tr("Choose folder"), QStringLiteral("./"));
+    if (!path.isEmpty()) {
+        addFolder(path);
     }
 }
 

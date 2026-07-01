@@ -5,6 +5,7 @@
 #include <FluentQtWidgets/Theme.h>
 
 #include <QtCore/QEasingCurve>
+#include <QtCore/QMargins>
 #include <QtCore/QObject>
 #include <QtCore/QtGlobal>
 #include <QtGui/QColor>
@@ -305,9 +306,12 @@ class FQW_API ScrollArea : public QScrollArea
     ScrollBar *hScrollBar() const;
     SmoothScrollDelegate *scrollDelegate() const;
     SmoothScrollDelegate *scrollDelagate() const;
+    QMargins viewportMargins() const;
 
   public slots:
     void enableTransparentBackground(bool enabled = true);
+    void setViewportMargins(int left, int top, int right, int bottom);
+    void setViewportMargins(const QMargins &margins);
     void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
