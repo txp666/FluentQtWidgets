@@ -1821,6 +1821,12 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <translation>图标</translation>
     </message>
     <message>
+        <location filename="../../app/view/main_window.cpp"/>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Charts</source>
+        <translation>图表</translation>
+    </message>
+    <message>
         <location filename="../../common/translator.py" line="10"/>
         <source>View</source>
         <translation>视图</translation>
@@ -2414,6 +2420,21 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     </message>
     <message>
         <location filename="../../app/view/home_interface.cpp"/>
+        <source>Chart samples</source>
+        <translation>图表示例</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>ChartWidget</source>
+        <translation>ChartWidget</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A widget that renders ECharts options inside a Fluent styled Qt application.</source>
+        <translation>在 Fluent 风格的 Qt 应用中渲染 ECharts 选项的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
         <source>ListView</source>
         <translation>ListView</translation>
     </message>
@@ -2451,6 +2472,194 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <location filename="../../app/view/home_interface.cpp"/>
         <source>Presents a collection of items that the user can flip through,one item at a time.</source>
         <translation>呈现用户可以逐个翻看的项目集合。</translation>
+    </message>
+</context>
+<context>
+    <name>ChartInterface</name>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Bar chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的柱状图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Line chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的折线图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Stacked area chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的堆叠面积图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Mixed bar and line chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的柱状折线混合图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Donut chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的圆环图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Scatter chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的散点图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Radar chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的雷达图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Gauge chart powered by ECharts</source>
+        <translation>由 ECharts 驱动的仪表盘</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Heatmap powered by ECharts</source>
+        <translation>由 ECharts 驱动的热力图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Weekly active users</source>
+        <translation>每周活跃用户</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Users</source>
+        <translation>用户</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Revenue trend</source>
+        <translation>收入趋势</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Revenue</source>
+        <translation>收入</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Stacked engagement</source>
+        <translation>堆叠参与度</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Desktop</source>
+        <translation>桌面端</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Mobile</source>
+        <translation>移动端</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Tablet</source>
+        <translation>平板端</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Sales and conversion</source>
+        <translation>销售和转化</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Orders</source>
+        <translation>订单</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Rate</source>
+        <translation>比率</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Conversion</source>
+        <translation>转化率</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Traffic source</source>
+        <translation>流量来源</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Visits</source>
+        <translation>访问量</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Satisfaction by response time</source>
+        <translation>按响应时间的满意度</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Response time</source>
+        <translation>响应时间</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Score</source>
+        <translation>评分</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Tickets</source>
+        <translation>工单</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Product capability</source>
+        <translation>产品能力</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Design</source>
+        <translation>设计</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Performance</source>
+        <translation>性能</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Stability</source>
+        <translation>稳定性</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Docs</source>
+        <translation>文档</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Ecosystem</source>
+        <translation>生态</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Deployment health</source>
+        <translation>部署健康度</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Healthy</source>
+        <translation>健康</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Activity heatmap</source>
+        <translation>活跃度热力图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Activity</source>
+        <translation>活跃度</translation>
     </message>
 </context>
 <context>
