@@ -31,9 +31,9 @@ git push origin main v0.1.6
 
 Pushing a `v*` tag runs the GitHub Actions release job after the CI build matrix passes.
 The release job uses `docs/release-notes/${GITHUB_REF_NAME}.md` as the GitHub Release description.
-Release CI installs Qt Multimedia, Qt WebChannel, and Qt WebEngine explicitly and configures
-with `-DFQW_REQUIRE_WEBENGINE_WIDGETS=ON` so Gallery archives fail fast instead of shipping
-ChartWidget fallback placeholders.
+Release CI installs Qt Multimedia, Qt Positioning, Qt WebChannel, and Qt WebEngine explicitly
+and configures with `-DFQW_REQUIRE_WEBENGINE_WIDGETS=ON` so Gallery archives fail fast instead
+of shipping ChartWidget fallback placeholders.
 
 ## Release Assets
 
