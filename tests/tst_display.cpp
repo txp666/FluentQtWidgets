@@ -111,8 +111,12 @@ class DisplayTest : public QObject
         FluentQt::InfoBadge textBadge(QStringLiteral("3"));
         QCOMPARE(textBadge.level(), FluentQt::InfoLevel::Attention);
 
+        FluentQt::InfoBadge singleDigitBadge(QStringLiteral("1"));
+        QVERIFY(singleDigitBadge.sizeHint().width() >= singleDigitBadge.sizeHint().height());
+        QVERIFY(singleDigitBadge.minimumSizeHint().width() >= singleDigitBadge.minimumSizeHint().height());
+
         auto *infoBadge = FluentQt::InfoBadge::info(120);
-        QCOMPARE(infoBadge->text(), QStringLiteral("99+"));
+        QCOMPARE(infoBadge->text(), QStringLiteral("120"));
         QCOMPARE(infoBadge->level(), FluentQt::InfoLevel::Info);
         delete infoBadge;
 

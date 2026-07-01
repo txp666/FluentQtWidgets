@@ -41,6 +41,7 @@ StrongBodyLabel {
     color: black;
 }
 
-ExampleCard > #card InfoBadge {
+GalleryInterface #card QLabel[fqw="InfoBadge"] {
     font-size: 11px;
+    color: white;
 }

@@ -70,6 +70,7 @@ class FQW_API InfoBadge : public QLabel
     QColor darkBackgroundColor() const;
     InfoBadgeManager *manager() const;
     QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
     void setCount(int count);
     void setCustomBackgroundColor(const QColor &lightBackground, const QColor &darkBackground = QColor());
 

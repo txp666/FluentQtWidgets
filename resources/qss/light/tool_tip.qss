@@ -6,7 +6,7 @@ QFrame[fqw="ToolTip"] {
 QFrame[fqw="ToolTip"] QFrame#container {
     border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 4px;
-    background: rgb(249, 249, 249);
+    background: rgb(243, 243, 243);
 }
 
 QFrame[fqw="ToolTip"] QFrame#container[transparent="true"] {

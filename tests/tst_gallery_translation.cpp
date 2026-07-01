@@ -7,6 +7,7 @@
 #include <QtTest/QtTest>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QVBoxLayout>
 
@@ -15,8 +16,14 @@
 #include <FluentQtWidgets/Settings/SettingCard.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
+#include <FluentQtWidgets/Widgets/InfoBadge.h>
+#include <FluentQtWidgets/Widgets/InfoBar.h>
+#include <FluentQtWidgets/Widgets/Label.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
 #include <FluentQtWidgets/Widgets/PipsPager.h>
+#include <FluentQtWidgets/Widgets/ProgressBar.h>
+#include <FluentQtWidgets/Widgets/SpinBox.h>
+#include <FluentQtWidgets/Widgets/ToolTip.h>
 
 class GalleryTranslationTest : public QObject
 {
@@ -476,6 +483,115 @@ class GalleryTranslationTest : public QObject
             }
         }
         QCOMPARE(timedToolTipCards, 3);
+    }
+
+    void statusInfoPageMatchesPythonGallery()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("statusInfoInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("statusInfoInterface"));
+
+        bool foundSubtitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.widgets")) {
+                foundSubtitle = true;
+                break;
+            }
+        }
+        QVERIFY(foundSubtitle);
+
+        FluentQt::PushButton *toolTipButton = nullptr;
+        const auto buttons = page->findChildren<FluentQt::PushButton *>();
+        for (FluentQt::PushButton *button : buttons) {
+            if (button->text() == QStringLiteral("Button with a simple ToolTip")) {
+                toolTipButton = button;
+                break;
+            }
+        }
+        QVERIFY(toolTipButton != nullptr);
+        QCOMPARE(toolTipButton->toolTip(), QStringLiteral("Simple ToolTip"));
+        QVERIFY(toolTipButton->findChild<FluentQt::ToolTipFilter *>() != nullptr);
+        QCOMPARE(page->findChildren<FluentQt::PixmapLabel *>().size(), 1);
+
+        QStringList badgeTexts;
+        QWidget *badgeRow = nullptr;
+        const auto badges = page->findChildren<FluentQt::InfoBadge *>();
+        for (FluentQt::InfoBadge *badge : badges) {
+            if (badge->property("fqw").toString() == QStringLiteral("InfoBadge")) {
+                badgeTexts.append(badge->text());
+                if (badge->text() == QStringLiteral("1w+")) {
+                    badgeRow = badge->parentWidget();
+                }
+            }
+        }
+        for (const QString &text : {QStringLiteral("1"), QStringLiteral("10"), QStringLiteral("100"),
+                                   QStringLiteral("1000"), QStringLiteral("10000"), QStringLiteral("1w+")}) {
+            QVERIFY2(badgeTexts.contains(text), qPrintable(QStringLiteral("Missing badge %1").arg(text)));
+        }
+        QVERIFY(!badgeTexts.contains(QStringLiteral("99+")));
+        QVERIFY(badgeRow != nullptr);
+        auto *badgeLayout = qobject_cast<QHBoxLayout *>(badgeRow->layout());
+        QVERIFY(badgeLayout != nullptr);
+        QCOMPARE(badgeLayout->contentsMargins(), QMargins(0, 10, 0, 10));
+        QCOMPARE(badgeLayout->spacing(), 20);
+
+        FluentQt::PushButton *topRightButton = nullptr;
+        for (FluentQt::PushButton *button : buttons) {
+            if (button->text() == QStringLiteral("Top right")) {
+                topRightButton = button;
+                break;
+            }
+        }
+        QVERIFY(topRightButton != nullptr);
+        auto *positionLayout = qobject_cast<QHBoxLayout *>(topRightButton->parentWidget()->layout());
+        QVERIFY(positionLayout != nullptr);
+        QCOMPARE(positionLayout->spacing(), 15);
+
+        const auto infoBars = page->findChildren<FluentQt::InfoBar *>();
+        QCOMPARE(infoBars.size(), 3);
+        bool foundVerticalWarning = false;
+        bool foundCustomInfoBar = false;
+        for (FluentQt::InfoBar *bar : infoBars) {
+            if (bar->title() == QStringLiteral("Warning") && bar->orient() == Qt::Vertical) {
+                foundVerticalWarning = true;
+            } else if (bar->title() == QStringLiteral("GitHub")) {
+                foundCustomInfoBar = true;
+                QVERIFY(!bar->iconWidget()->customIcon().isNull());
+            }
+        }
+        QVERIFY(foundVerticalWarning);
+        QVERIFY(foundCustomInfoBar);
+
+        const auto spinBoxes = page->findChildren<FluentQt::SpinBox *>();
+        QCOMPARE(spinBoxes.size(), 2);
+        for (FluentQt::SpinBox *spinBox : spinBoxes) {
+            QCOMPARE(spinBox->value(), 0);
+        }
+
+        const auto indeterminateBars = page->findChildren<FluentQt::IndeterminateProgressBar *>();
+        QCOMPARE(indeterminateBars.size(), 1);
+        QWidget *progressCard = indeterminateBars.constFirst();
+        while (progressCard && !progressCard->findChild<QFrame *>(QStringLiteral("card"), Qt::FindDirectChildrenOnly)) {
+            progressCard = progressCard->parentWidget();
+        }
+        QVERIFY(progressCard != nullptr);
+        auto *innerCard = progressCard->findChild<QFrame *>(QStringLiteral("card"), Qt::FindDirectChildrenOnly);
+        QVERIFY(innerCard != nullptr);
+        auto *cardLayout = qobject_cast<QVBoxLayout *>(innerCard->layout());
+        QVERIFY(cardLayout != nullptr);
+        QLayoutItem *topItem = cardLayout->itemAt(0);
+        QVERIFY(topItem != nullptr);
+        QVERIFY(topItem->layout() != nullptr);
+        QCOMPARE(topItem->layout()->contentsMargins(), QMargins(12, 24, 12, 24));
     }
 
     void basicInputTrailingTransparentTogglesStayCheckable()

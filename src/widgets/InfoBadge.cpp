@@ -6,6 +6,7 @@
 
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QPalette>
 #include <QtWidgets/QSizePolicy>
 
 namespace FluentQt {
@@ -28,7 +29,7 @@ Badge *attachBadge(Badge *badge, QWidget *target, InfoBadgePosition position)
 
 QString badgeText(int count)
 {
-    return count > 99 ? QStringLiteral("99+") : QString::number(qMax(0, count));
+    return QString::number(count);
 }
 
 } // namespace
@@ -130,9 +131,9 @@ InfoBadge *InfoBadge::error(int count, QWidget *parent, QWidget *target, InfoBad
 InfoBadge *InfoBadge::custom(const QString &text, const QColor &lightBackground, const QColor &darkBackground,
                              QWidget *parent, QWidget *target, InfoBadgePosition position)
 {
-    auto *badge = new InfoBadge(text, InfoLevel::Info, parent);
+    auto *badge = make(text, parent, InfoLevel::Info, target, position);
     badge->setCustomBackgroundColor(lightBackground, darkBackground);
-    return attachBadge(badge, target, position);
+    return badge;
 }
 
 InfoLevel InfoBadge::level() const { return m_level; }
@@ -178,24 +179,31 @@ void InfoBadge::setManager(InfoBadgeManager *manager) { m_manager = manager; }
 
 void InfoBadge::paintEvent(QPaintEvent *event)
 {
-    {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(backgroundColor());
+    Q_UNUSED(event);
 
-        const qreal radius = height() / 2.0;
-        painter.drawRoundedRect(rect(), radius, radius);
-    }
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(backgroundColor());
 
-    QLabel::paintEvent(event);
+    const qreal radius = height() / 2.0;
+    painter.drawRoundedRect(rect(), radius, radius);
+
+    painter.setFont(font());
+    painter.setPen(palette().color(QPalette::WindowText));
+    painter.drawText(rect(), Qt::AlignCenter, text());
 }
 
 QSize InfoBadge::sizeHint() const
 {
     const QSize labelSize = QLabel::sizeHint();
-    const int height = 20;
-    return QSize(qMax(height, labelSize.width() + 12), height);
+    return QSize(qMax(labelSize.width(), labelSize.height()), labelSize.height());
+}
+
+QSize InfoBadge::minimumSizeHint() const
+{
+    const QSize labelSize = QLabel::minimumSizeHint();
+    return QSize(qMax(labelSize.width(), labelSize.height()), labelSize.height());
 }
 
 QColor InfoBadge::backgroundColor() const

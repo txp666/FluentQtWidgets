@@ -4,22 +4,38 @@
 
 using namespace FluentQt;
 
+namespace {
+
+void setCardTopMargins(QWidget *exampleCard, const QMargins &margins)
+{
+    auto *innerCard = exampleCard ? exampleCard->findChild<QFrame *>(QStringLiteral("card")) : nullptr;
+    auto *cardLayout = innerCard ? qobject_cast<QVBoxLayout *>(innerCard->layout()) : nullptr;
+    QLayoutItem *topItem = cardLayout ? cardLayout->itemAt(0) : nullptr;
+    if (topItem && topItem->layout()) {
+        topItem->layout()->setContentsMargins(margins);
+    }
+}
+
+} // namespace
+
 QWidget *GalleryWindow::createStatusInfoPage()
 {
     auto *page = new GalleryInterface(navTx("Status & info"),
                                       QStringLiteral("qfluentwidgets.components.widgets"), this);
+    page->setObjectName(QStringLiteral("statusInfoInterface"));
     const QString stateToolTipSource = exampleSourceUrl("status_info/state_tool_tip");
     const QString toolTipSource = exampleSourceUrl("status_info/tool_tip");
-    const QString infoBadgeSource = exampleSourceUrl("status_info/info_badge");
     const QString infoBarSource = exampleSourceUrl("status_info/info_bar");
     const QString progressBarSource = exampleSourceUrl("status_info/progress_bar");
+    const QString progressRingSource = exampleSourceUrl("status_info/progress_ring");
 
     // -- StateToolTip --
     auto *stateBtn = new PushButton(tx("StatusInfoInterface", "Show StateToolTip"));
     QPointer<StateToolTip> stateTip;
     connect(stateBtn, &QPushButton::clicked, page, [stateBtn, stateTip]() mutable {
         if (stateTip) {
-            stateTip->setContent(tx("StatusInfoInterface", "The model training is complete!"));
+            stateTip->setContent(tx("StatusInfoInterface", "The model training is complete!")
+                                 + QString::fromUtf8(" \xf0\x9f\x98\x85"));
             stateTip->setState(true);
             stateBtn->setText(tx("StatusInfoInterface", "Show StateToolTip"));
             stateTip.clear();
@@ -35,13 +51,14 @@ QWidget *GalleryWindow::createStatusInfoPage()
     // -- ToolTip (with ToolTipFilter) --
     {
         auto *tooltipBtn = new PushButton(tx("StatusInfoInterface", "Button with a simple ToolTip"));
-        tooltipBtn->installEventFilter(new ToolTipFilter(tx("StatusInfoInterface", "Simple ToolTip"), ToolTipPosition::Top));
+        tooltipBtn->setToolTip(tx("StatusInfoInterface", "Simple ToolTip"));
+        tooltipBtn->installEventFilter(new ToolTipFilter(tooltipBtn));
         page->addExampleCard(tx("StatusInfoInterface", "A button with a simple ToolTip"), tooltipBtn, toolTipSource);
     }
 
     // -- Label with ToolTip --
     {
-        auto *tooltipLabel = new QLabel(page);
+        auto *tooltipLabel = new PixmapLabel(page);
         tooltipLabel->setPixmap(QPixmap(QStringLiteral(":/gallery/images/kunkun.png"))
                                     .scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         tooltipLabel->installEventFilter(new ToolTipFilter(tooltipLabel, 500));
@@ -54,17 +71,16 @@ QWidget *GalleryWindow::createStatusInfoPage()
     // -- InfoBadge --
     auto *badgeWidget = new QWidget(page);
     auto *badgeLayout = new QHBoxLayout(badgeWidget);
-    badgeLayout->setContentsMargins(0, 0, 0, 0);
+    badgeLayout->setContentsMargins(0, 10, 0, 10);
     badgeLayout->setSpacing(20);
     badgeLayout->addWidget(InfoBadge::info(1));
     badgeLayout->addWidget(InfoBadge::success(10));
     badgeLayout->addWidget(InfoBadge::attention(100));
     badgeLayout->addWidget(InfoBadge::warning(1000));
     badgeLayout->addWidget(InfoBadge::error(10000));
-    badgeLayout->addWidget(new DotInfoBadge(InfoLevel::Attention));
-    badgeLayout->addWidget(new DotInfoBadge(InfoLevel::Error));
-    badgeLayout->addStretch();
-    page->addExampleCard(tx("StatusInfoInterface", "InfoBadge in different styles"), badgeWidget, infoBadgeSource);
+    badgeLayout->addWidget(InfoBadge::custom(QStringLiteral("1w+"), QColor(QStringLiteral("#005fb8")),
+                                             QColor(QStringLiteral("#60cdff"))));
+    page->addExampleCard(tx("StatusInfoInterface", "InfoBadge in different styles"), badgeWidget, infoBarSource);
 
     // -- Short InfoBar --
     auto *infoBarShort = InfoBar::success(
@@ -95,7 +111,7 @@ QWidget *GalleryWindow::createStatusInfoPage()
     auto *infoBarPosWidget = new QWidget(page);
     auto *posLayout = new QHBoxLayout(infoBarPosWidget);
     posLayout->setContentsMargins(0, 0, 0, 0);
-    posLayout->setSpacing(8);
+    posLayout->setSpacing(15);
     auto makeInfoBarBtn = [page](const QString &text, InfoBarPosition pos, InfoBarSeverity severity) {
         auto *btn = new PushButton(text);
         connect(btn, &QPushButton::clicked, page, [page, pos, severity]() {
@@ -154,7 +170,9 @@ QWidget *GalleryWindow::createStatusInfoPage()
     // -- Indeterminate progress bar --
     auto *indeterminateBar = new IndeterminateProgressBar(page);
     indeterminateBar->setFixedWidth(200);
-    page->addExampleCard(tx("StatusInfoInterface", "An indeterminate progress bar"), indeterminateBar, progressBarSource);
+    auto *indeterminateBarCard = page->addExampleCard(tx("StatusInfoInterface", "An indeterminate progress bar"),
+                                                      indeterminateBar, progressBarSource);
+    setCardTopMargins(indeterminateBarCard, QMargins(12, 24, 12, 24));
 
     // -- Determinate progress bar --
     {
@@ -178,7 +196,8 @@ QWidget *GalleryWindow::createStatusInfoPage()
     // -- Indeterminate progress ring --
     auto *indeterminateRing = new IndeterminateProgressRing(page);
     indeterminateRing->setFixedSize(70, 70);
-    page->addExampleCard(tx("StatusInfoInterface", "An indeterminate progress ring"), indeterminateRing, progressBarSource);
+    page->addExampleCard(tx("StatusInfoInterface", "An indeterminate progress ring"), indeterminateRing,
+                         progressRingSource);
 
     // -- Determinate progress ring --
     {
@@ -190,14 +209,14 @@ QWidget *GalleryWindow::createStatusInfoPage()
         progressRing->setTextVisible(true);
         auto *ringSpin = new SpinBox(page);
         ringSpin->setRange(0, 100);
-        ringSpin->setValue(72);
         ringRowLayout->addWidget(progressRing);
         ringRowLayout->addSpacing(50);
         ringRowLayout->addWidget(new QLabel(tx("StatusInfoInterface", "Progress")));
         ringRowLayout->addSpacing(5);
         ringRowLayout->addWidget(ringSpin);
         connect(ringSpin, QOverload<int>::of(&SpinBox::valueChanged), progressRing, &ProgressRing::setValue);
-        page->addExampleCard(tx("StatusInfoInterface", "An determinate progress ring"), ringRow, progressBarSource);
+        ringSpin->setValue(0);
+        page->addExampleCard(tx("StatusInfoInterface", "An determinate progress ring"), ringRow, progressRingSource);
     }
 
     return page;

@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
+#include <QtCore/QFile>
 #include <QtCore/QTemporaryDir>
 #include <QtGui/QImage>
 #include <QtTest/QtTest>
@@ -67,6 +68,34 @@ class FeedbackTest : public QObject
         QVERIFY(point.y() >= 0);
     }
 
+    void tooltipAndStateQssMatchPythonGallery()
+    {
+        FluentQt::ToolTip tip(QStringLiteral("Simple"));
+        QVERIFY(tip.shadowEffect() != nullptr);
+        QCOMPARE(tip.shadowEffect()->color(), QColor(0, 0, 0, 60));
+        QVERIFY(!(tip.windowFlags() & Qt::WindowStaysOnTopHint));
+
+        QFile lightState(QStringLiteral(":/qfluentwidgets/qss/light/state_tool_tip.qss"));
+        QVERIFY(lightState.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString lightStateQss = QString::fromUtf8(lightState.readAll());
+        QVERIFY(lightStateQss.contains(QStringLiteral("background-color: --ThemeColorDark1")));
+        QVERIFY(lightStateQss.contains(QStringLiteral("color: white")));
+        QVERIFY(!lightStateQss.contains(QStringLiteral("@accentColor")));
+
+        QFile darkState(QStringLiteral(":/qfluentwidgets/qss/dark/state_tool_tip.qss"));
+        QVERIFY(darkState.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString darkStateQss = QString::fromUtf8(darkState.readAll());
+        QVERIFY(darkStateQss.contains(QStringLiteral("background-color: --ThemeColorDark1")));
+        QVERIFY(darkStateQss.contains(QStringLiteral("color: black")));
+        QVERIFY(!darkStateQss.contains(QStringLiteral("@accentColor")));
+
+        QFile lightBadge(QStringLiteral(":/qfluentwidgets/qss/light/info_badge.qss"));
+        QVERIFY(lightBadge.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString lightBadgeQss = QString::fromUtf8(lightBadge.readAll());
+        QVERIFY(lightBadgeQss.contains(QStringLiteral("padding: 1px 3px 1px 3px")));
+        QVERIFY(!lightBadgeQss.contains(QStringLiteral("min-width: 20px")));
+    }
+
     void infoBarExposesPythonIconApiAndWidgets()
     {
         FluentQt::InfoBarIconWidget iconWidget(FluentQt::InfoBarIcon::Information);
@@ -129,6 +158,13 @@ class FeedbackTest : public QObject
         QVERIFY(customIconBar != nullptr);
         QVERIFY(customIconBar->iconWidget() != nullptr);
         QVERIFY(!customIconBar->iconWidget()->customIcon().isNull());
+
+        parent.resize(760, 480);
+        FluentQt::InfoBar longChineseBar(
+            FluentQt::InfoBarIcon::Warning, QStringLiteral("Warning"),
+            QStringLiteral("我的名字是吉良吉影，年龄33岁，家住杜王町东北部别墅区，未婚。我在龟友百货连锁公司上班，每天最晚也是八点前回家，不吸烟，酒也是浅尝辄止。"),
+            Qt::Vertical, true, -1, FluentQt::InfoBarPosition::None, &parent);
+        QVERIFY(longChineseBar.contentLabel()->text().contains(QLatin1Char('\n')));
     }
 
     void teachingTipViewExposesContentAndBodyLayout()

@@ -1,17 +1,4 @@
-QLabel[fqw="InfoBadge"],
-QLabel[fqw="DotInfoBadge"] {
-    min-width: 20px;
-    min-height: 20px;
-    padding: 0 6px;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-QLabel[fqw="DotInfoBadge"] {
-    min-width: 4px;
-    max-width: 4px;
-    min-height: 4px;
-    max-height: 4px;
-    padding: 0;
+QLabel[fqw="InfoBadge"] {
+    padding: 1px 3px 1px 3px;
+    color: white;
 }

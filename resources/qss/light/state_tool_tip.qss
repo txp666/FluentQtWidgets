@@ -1,12 +1,13 @@
 QWidget[fqw="StateToolTip"] {
+    background-color: --ThemeColorDark1;
     border: none;
     border-radius: 7px;
-    background: @accentColor;
 }
 
 QWidget[fqw="StateToolTip"] QLabel {
-    color: #ffffff;
-    background: transparent;
+    color: white;
+    background-color: transparent;
+    font-family: --FontFamilies;
     border: none;
 }
 

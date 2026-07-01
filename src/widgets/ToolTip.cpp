@@ -24,10 +24,9 @@ namespace FluentQt {
 
 ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
 {
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setAttribute(Qt::WA_TranslucentBackground);
-    setAttribute(Qt::WA_ShowWithoutActivating);
 
     auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(12, 8, 12, 12);
@@ -48,7 +47,7 @@ ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
 
     m_shadowEffect = new QGraphicsDropShadowEffect(this);
     m_shadowEffect->setBlurRadius(25);
-    m_shadowEffect->setColor(QColor(0, 0, 0, 50));
+    m_shadowEffect->setColor(QColor(0, 0, 0, 60));
     m_shadowEffect->setOffset(0, 5);
     m_container->setGraphicsEffect(m_shadowEffect);
 

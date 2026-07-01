@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/InfoBar.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -7,15 +8,18 @@
 #include <FluentQtWidgets/Widgets/InfoBarManager.h>
 
 #include <QtCore/QEvent>
+#include <QtCore/QFile>
 #include <QtCore/QStringList>
 #include <QtCore/QTimer>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtCore/QPropertyAnimation>
+#include <QtSvg/QSvgRenderer>
 #include <QtWidgets/QGraphicsOpacityEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLayout>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QVBoxLayout>
 
@@ -95,30 +99,169 @@ QString typeNameFromInfoBarIcon(InfoBarIcon icon)
     return QStringLiteral("Info");
 }
 
+enum class InfoBarCharType
+{
+    Space,
+    Asian,
+    Latin
+};
+
+int infoBarCharWidth(QChar ch)
+{
+    const uint u = ch.unicode();
+    if ((u >= 0x1100 && u <= 0x115f) || u == 0x2329 || u == 0x232a || (u >= 0x2e80 && u <= 0xa4cf)
+        || (u >= 0xac00 && u <= 0xd7a3) || (u >= 0xf900 && u <= 0xfaff) || (u >= 0xfe10 && u <= 0xfe19)
+        || (u >= 0xfe30 && u <= 0xfe6f) || (u >= 0xff00 && u <= 0xff60) || (u >= 0xffe0 && u <= 0xffe6)) {
+        return 2;
+    }
+    return 1;
+}
+
+int infoBarTextWidth(const QString &text)
+{
+    int width = 0;
+    for (QChar ch : text) {
+        width += infoBarCharWidth(ch);
+    }
+    return width;
+}
+
+InfoBarCharType infoBarCharType(QChar ch)
+{
+    if (ch.isSpace()) {
+        return InfoBarCharType::Space;
+    }
+    return infoBarCharWidth(ch) == 1 ? InfoBarCharType::Latin : InfoBarCharType::Asian;
+}
+
+QString processInfoBarWhitespace(const QString &text)
+{
+    QString normalized;
+    normalized.reserve(text.size());
+
+    bool previousWasSpace = false;
+    for (QChar ch : text.trimmed()) {
+        if (ch.isSpace()) {
+            if (!previousWasSpace) {
+                normalized.append(QLatin1Char(' '));
+            }
+            previousWasSpace = true;
+        } else {
+            normalized.append(ch);
+            previousWasSpace = false;
+        }
+    }
+    return normalized.trimmed();
+}
+
+QStringList tokenizeInfoBarText(const QString &text)
+{
+    QStringList tokens;
+    QString buffer;
+    InfoBarCharType lastType = InfoBarCharType::Latin;
+    bool hasLastType = false;
+
+    for (QChar ch : text) {
+        const InfoBarCharType charType = infoBarCharType(ch);
+        if (!buffer.isEmpty() && (charType != lastType || charType != InfoBarCharType::Latin)) {
+            tokens.append(buffer);
+            buffer.clear();
+        }
+
+        buffer.append(ch);
+        lastType = charType;
+        hasLastType = true;
+    }
+
+    if (hasLastType || !buffer.isEmpty()) {
+        tokens.append(buffer);
+    }
+    return tokens;
+}
+
+QStringList splitLongInfoBarToken(const QString &token, int width)
+{
+    QStringList chunks;
+    QString chunk;
+    int chunkWidth = 0;
+
+    for (QChar ch : token) {
+        const int charWidth = infoBarCharWidth(ch);
+        if (!chunk.isEmpty() && chunkWidth + charWidth > width) {
+            chunks.append(chunk);
+            chunk.clear();
+            chunkWidth = 0;
+        }
+        chunk.append(ch);
+        chunkWidth += charWidth;
+    }
+
+    if (!chunk.isEmpty()) {
+        chunks.append(chunk);
+    }
+    return chunks;
+}
+
+QString wrapInfoBarLine(const QString &text, int width)
+{
+    QString lineBuffer;
+    QStringList wrappedLines;
+    int currentWidth = 0;
+
+    for (const QString &token : tokenizeInfoBarText(text)) {
+        const int tokenWidth = infoBarTextWidth(token);
+        if (token == QLatin1String(" ") && currentWidth == 0) {
+            continue;
+        }
+
+        if (currentWidth + tokenWidth <= width) {
+            lineBuffer.append(token);
+            currentWidth += tokenWidth;
+
+            if (currentWidth == width) {
+                wrappedLines.append(lineBuffer.trimmed());
+                lineBuffer.clear();
+                currentWidth = 0;
+            }
+        } else {
+            if (currentWidth != 0) {
+                wrappedLines.append(lineBuffer.trimmed());
+            }
+
+            const QStringList chunks = splitLongInfoBarToken(token, width);
+            for (int i = 0; i < chunks.size() - 1; ++i) {
+                wrappedLines.append(chunks.at(i).trimmed());
+            }
+
+            lineBuffer = chunks.isEmpty() ? QString() : chunks.constLast();
+            currentWidth = infoBarTextWidth(lineBuffer);
+        }
+    }
+
+    if (currentWidth != 0) {
+        wrappedLines.append(lineBuffer.trimmed());
+    }
+
+    return wrappedLines.join(QLatin1Char('\n'));
+}
+
 QString wrapInfoBarText(const QString &text, int maxChars)
 {
-    if (text.size() <= maxChars || maxChars <= 0) {
+    if (maxChars <= 0) {
         return text;
     }
 
-    QStringList lines;
-    QString remaining = text;
-    while (remaining.size() > maxChars) {
-        int breakIndex = maxChars;
-        for (int i = maxChars; i >= maxChars / 2; --i) {
-            if (remaining.at(i).isSpace()) {
-                breakIndex = i;
-                break;
-            }
+    QStringList wrappedLines;
+    for (const QString &line : text.split(QLatin1Char('\n'))) {
+        const QString normalizedLine = processInfoBarWhitespace(line);
+        if (infoBarTextWidth(normalizedLine) > maxChars) {
+            wrappedLines.append(wrapInfoBarLine(normalizedLine, maxChars));
+        } else {
+            wrappedLines.append(normalizedLine);
         }
-        lines.append(remaining.left(breakIndex).trimmed());
-        remaining = remaining.mid(breakIndex).trimmed();
     }
 
-    if (!remaining.isEmpty()) {
-        lines.append(remaining);
-    }
-    return lines.join(QLatin1Char('\n'));
+    return wrappedLines.join(QLatin1Char('\n'));
 }
 
 } // namespace
@@ -185,6 +328,21 @@ void InfoBarIconWidget::paintEvent(QPaintEvent * /*event*/)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     const QRect rect(10, 10, 15, 15);
+    if (m_customIcon.isNull() && m_icon == InfoBarIcon::Information) {
+        const QString themeToken = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QStringLiteral("dark")
+                                                                                            : QStringLiteral("light");
+        QFile file(QStringLiteral(":/qfluentwidgets/images/info_bar/Info_%1.svg").arg(themeToken));
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QByteArray svg = file.readAll();
+            const QByteArray accent = themeColor().name(QColor::HexRgb).toUtf8();
+            svg.replace("#00b7c3", accent);
+            svg.replace("#00B7C3", accent);
+            QSvgRenderer renderer(svg);
+            renderer.render(&painter, QRectF(rect));
+            return;
+        }
+    }
+
     const QIcon qicon = !m_customIcon.isNull() ? m_customIcon : infoBarIcon(m_icon);
     qicon.paint(&painter, rect);
 }
@@ -399,6 +557,7 @@ void InfoBar::initWidget()
 void InfoBar::initLayout()
 {
     m_hBoxLayout->setContentsMargins(6, 6, 6, 6);
+    m_hBoxLayout->setSizeConstraint(QLayout::SetMinimumSize);
     m_hBoxLayout->setSpacing(0);
 
     // Add icon
@@ -406,6 +565,7 @@ void InfoBar::initLayout()
 
     // Text layout
     if (m_orient == Qt::Horizontal) {
+        m_textLayout->setSizeConstraint(QLayout::SetMinimumSize);
         m_textLayout->setContentsMargins(1, 8, 0, 8);
         m_textLayout->setSpacing(5);
         m_textLayout->setAlignment(Qt::AlignTop);
@@ -423,6 +583,7 @@ void InfoBar::initLayout()
         m_widgetHLayout->setSpacing(10);
         m_hBoxLayout->addLayout(m_widgetHLayout);
     } else {
+        m_textVLayout->setSizeConstraint(QLayout::SetMinimumSize);
         m_textVLayout->setContentsMargins(1, 8, 0, 8);
         m_textVLayout->setSpacing(5);
         m_textVLayout->setAlignment(Qt::AlignTop);
