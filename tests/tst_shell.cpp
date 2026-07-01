@@ -1,12 +1,23 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
+#include <QtCore/QEventLoop>
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
+#include <QtCore/QTimer>
+#include <QtCore/QVariant>
 #include <QtGui/QImage>
 #include <QtTest/QtTest>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+
+#if defined(FQW_HAS_WEBENGINE_WIDGETS)
+#include <QtWebEngineCore/QWebEnginePage>
+#include <QtWebEngineWidgets/QWebEngineView>
+#endif
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
@@ -444,6 +455,57 @@ class ShellTest : public QObject
         auto *replacementTitleBar = new FluentQt::FluentTitleBar;
         widget.setTitleBar(replacementTitleBar);
         QCOMPARE(widget.titleBar(), replacementTitleBar);
+    }
+
+    void chartWidgetLoadsBundledEcharts()
+    {
+        QJsonObject option{
+            {QStringLiteral("xAxis"), QJsonObject{{QStringLiteral("type"), QStringLiteral("category")},
+                                                  {QStringLiteral("data"), QJsonArray{QStringLiteral("A"), QStringLiteral("B")}}}},
+            {QStringLiteral("yAxis"), QJsonObject{{QStringLiteral("type"), QStringLiteral("value")}}},
+            {QStringLiteral("series"),
+             QJsonArray{QJsonObject{{QStringLiteral("type"), QStringLiteral("bar")},
+                                    {QStringLiteral("data"), QJsonArray{1, 2}}}}}};
+        FluentQt::ChartWidget chart(option);
+        QCOMPARE(chart.option(), option);
+        QCOMPARE(chart.chartTheme(), QStringLiteral("auto"));
+        chart.setOptionJson(QStringLiteral("{\"title\":{\"text\":\"Updated\"}}"));
+        QVERIFY(chart.option().contains(QStringLiteral("title")));
+        chart.setChartTheme(QStringLiteral("dark"));
+        QCOMPARE(chart.chartTheme(), QStringLiteral("dark"));
+
+#if defined(FQW_HAS_WEBENGINE_WIDGETS)
+        QSignalSpy loadSpy(&chart, &FluentQt::ChartWidget::loadFinished);
+        chart.resize(420, 260);
+        chart.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&chart));
+        chart.reload();
+        if (loadSpy.isEmpty()) {
+            QVERIFY(loadSpy.wait(15000));
+        }
+        QVERIFY(loadSpy.last().value(0).toBool());
+
+        auto *view = chart.findChild<QWebEngineView *>();
+        QVERIFY(view != nullptr);
+        QVERIFY(view->page() != nullptr);
+
+        QEventLoop loop;
+        QVariant scriptResult;
+        QTimer timeout;
+        timeout.setSingleShot(true);
+        connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+        view->page()->runJavaScript(
+            QStringLiteral("Boolean(window.echarts && document.querySelector('canvas'))"),
+            [&scriptResult, &loop](const QVariant &value) {
+                scriptResult = value;
+                loop.quit();
+            });
+        timeout.start(15000);
+        loop.exec();
+        QVERIFY(scriptResult.toBool());
+#else
+        QVERIFY(chart.findChild<QLabel *>() != nullptr);
+#endif
     }
 
     void fluentWindowExposesMicaApi()

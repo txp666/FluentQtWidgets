@@ -37,6 +37,7 @@ add_executable(tst_gallery_translation
     ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/GalleryViewHelpers.h
     ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/main_window.cpp
     ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/basic_input_interface.cpp
+    ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/chart_interface.cpp
     ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/date_time_interface.cpp
     ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/dialog_interface.cpp
     ${CMAKE_SOURCE_DIR}/examples/gallery/app/view/gallery_interface.cpp

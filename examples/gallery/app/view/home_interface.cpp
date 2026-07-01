@@ -386,6 +386,14 @@ HomeInterface::HomeInterface(QWidget *parent) : ScrollArea(parent)
                                   "dateTimeInterface", 4},
                              });
 
+    auto *chartView = new SampleCardView(
+        QCoreApplication::translate("HomeInterface", "Chart samples"), m_view);
+    addSection(chartView, {
+                              {"controls/WebView.png", "ChartWidget",
+                               "A widget that renders ECharts options inside a Fluent styled Qt application.",
+                               "chartInterface", 0},
+                          });
+
     auto *dialogView = new SampleCardView(
         QCoreApplication::translate("HomeInterface", "Dialog samples"), m_view);
     addSection(dialogView, {

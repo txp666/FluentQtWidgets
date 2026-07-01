@@ -112,6 +112,7 @@ set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/Widgets/AcrylicLabel.h
     include/FluentQtWidgets/Widgets/Button.h
     include/FluentQtWidgets/Widgets/CardWidget.h
+    include/FluentQtWidgets/Widgets/ChartWidget.h
     include/FluentQtWidgets/Widgets/CommandBar.h
     include/FluentQtWidgets/Widgets/ComboBox.h
     include/FluentQtWidgets/Widgets/CycleListWidget.h
@@ -178,6 +179,7 @@ set(FQW_SOURCES
     src/widgets/AcrylicLabel.cpp
     src/widgets/Button.cpp
     src/widgets/CardWidget.cpp
+    src/widgets/ChartWidget.cpp
     src/widgets/CommandBar.cpp
     src/widgets/ComboBox.cpp
     src/widgets/CycleListWidget.cpp
@@ -262,6 +264,13 @@ if(FQW_HAS_MULTIMEDIA)
         PUBLIC
             ${FQW_QT_PACKAGE}::Multimedia
             ${FQW_QT_PACKAGE}::MultimediaWidgets
+    )
+endif()
+if(FQW_HAS_WEBENGINE_WIDGETS)
+    target_link_libraries(
+        FluentQtWidgets
+        PUBLIC
+            ${FQW_QT_PACKAGE}::WebEngineWidgets
     )
 endif()
 

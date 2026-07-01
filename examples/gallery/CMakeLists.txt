@@ -4,6 +4,7 @@ add_executable(FluentQtWidgetsGallery
     app/view/GalleryViewHelpers.h
     app/view/main_window.cpp
     app/view/basic_input_interface.cpp
+    app/view/chart_interface.cpp
     app/view/date_time_interface.cpp
     app/view/dialog_interface.cpp
     app/view/gallery_interface.cpp
