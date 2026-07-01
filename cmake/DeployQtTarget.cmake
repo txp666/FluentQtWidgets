@@ -62,6 +62,9 @@ function(fqw_deploy_qt_executable target)
                 TARGET ${target}
                 POST_BUILD
                 COMMAND "${MACDEPLOYQT_EXECUTABLE}" "$<TARGET_BUNDLE_DIR:${target}>"
+                COMMAND ${CMAKE_COMMAND}
+                        -DAPP_BUNDLE="$<TARGET_BUNDLE_DIR:${target}>"
+                        -P "${CMAKE_SOURCE_DIR}/cmake/FixMacWebEngineHelper.cmake"
                 COMMENT "Deploy Qt frameworks for ${target}.app"
                 VERBATIM
             )

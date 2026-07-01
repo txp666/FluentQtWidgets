@@ -1,12 +1,23 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
+#include <QtCore/QEventLoop>
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
+#include <QtCore/QTimer>
+#include <QtCore/QVariant>
 #include <QtGui/QImage>
 #include <QtTest/QtTest>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+
+#if defined(FQW_HAS_WEBENGINE_WIDGETS)
+#include <QtWebEngineCore/QWebEnginePage>
+#include <QtWebEngineWidgets/QWebEngineView>
+#endif
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
@@ -444,6 +455,102 @@ class ShellTest : public QObject
         auto *replacementTitleBar = new FluentQt::FluentTitleBar;
         widget.setTitleBar(replacementTitleBar);
         QCOMPARE(widget.titleBar(), replacementTitleBar);
+    }
+
+    void audioWaveformWidgetTracksSamplesAndProgress()
+    {
+        FluentQt::AudioWaveformWidget waveform;
+        QVector<qreal> samples{0.0, 0.2, 0.8, 1.4, -0.5};
+        QSignalSpy samplesSpy(&waveform, &FluentQt::AudioWaveformWidget::samplesChanged);
+        QSignalSpy progressSpy(&waveform, &FluentQt::AudioWaveformWidget::progressChanged);
+        QSignalSpy clickSpy(&waveform, &FluentQt::AudioWaveformWidget::waveformClicked);
+
+        waveform.setSamples(samples);
+        QCOMPARE(samplesSpy.count(), 1);
+        QCOMPARE(waveform.samples().size(), 5);
+        QCOMPARE(waveform.samples().at(3), 1.0);
+        QCOMPARE(waveform.samples().at(4), 0.5);
+        QCOMPARE(waveform.sampleLevels().size(), 5);
+
+        waveform.setProgress(1.8);
+        QCOMPARE(waveform.progress(), 1.0);
+        waveform.setProgress(-0.4);
+        QCOMPARE(waveform.progress(), 0.0);
+        QVERIFY(progressSpy.count() >= 2);
+
+        waveform.resize(360, 120);
+        waveform.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&waveform));
+        QTest::mouseClick(&waveform, Qt::LeftButton, Qt::NoModifier, QPoint(180, 60));
+        QCOMPARE(clickSpy.count(), 1);
+        QVERIFY(waveform.progress() > 0.40);
+        QVERIFY(waveform.progress() < 0.60);
+
+        QImage rendered(waveform.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        waveform.render(&rendered);
+        bool hasPlayedWaveformPixel = false;
+        for (int y = 0; y < rendered.height() && !hasPlayedWaveformPixel; ++y) {
+            for (int x = 0; x < rendered.width(); ++x) {
+                const QColor pixel = QColor::fromRgba(rendered.pixel(x, y));
+                if (pixel.alpha() > 0 && pixel.red() < 180 && pixel.green() < 180 && pixel.blue() < 180) {
+                    hasPlayedWaveformPixel = true;
+                    break;
+                }
+            }
+        }
+        QVERIFY(hasPlayedWaveformPixel);
+    }
+
+    void chartWidgetLoadsBundledEcharts()
+    {
+        QJsonObject option{
+            {QStringLiteral("xAxis"), QJsonObject{{QStringLiteral("type"), QStringLiteral("category")},
+                                                  {QStringLiteral("data"), QJsonArray{QStringLiteral("A"), QStringLiteral("B")}}}},
+            {QStringLiteral("yAxis"), QJsonObject{{QStringLiteral("type"), QStringLiteral("value")}}},
+            {QStringLiteral("series"),
+             QJsonArray{QJsonObject{{QStringLiteral("type"), QStringLiteral("bar")},
+                                    {QStringLiteral("data"), QJsonArray{1, 2}}}}}};
+        FluentQt::ChartWidget chart(option);
+        QCOMPARE(chart.option(), option);
+        QCOMPARE(chart.chartTheme(), QStringLiteral("auto"));
+        chart.setOptionJson(QStringLiteral("{\"title\":{\"text\":\"Updated\"}}"));
+        QVERIFY(chart.option().contains(QStringLiteral("title")));
+        chart.setChartTheme(QStringLiteral("dark"));
+        QCOMPARE(chart.chartTheme(), QStringLiteral("dark"));
+
+#if defined(FQW_HAS_WEBENGINE_WIDGETS)
+        QSignalSpy loadSpy(&chart, &FluentQt::ChartWidget::loadFinished);
+        chart.resize(420, 260);
+        chart.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&chart));
+        chart.reload();
+        if (loadSpy.isEmpty()) {
+            QVERIFY(loadSpy.wait(15000));
+        }
+        QVERIFY(loadSpy.last().value(0).toBool());
+
+        auto *view = chart.findChild<QWebEngineView *>();
+        QVERIFY(view != nullptr);
+        QVERIFY(view->page() != nullptr);
+
+        QEventLoop loop;
+        QVariant scriptResult;
+        QTimer timeout;
+        timeout.setSingleShot(true);
+        connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+        view->page()->runJavaScript(
+            QStringLiteral("Boolean(window.echarts && document.querySelector('canvas'))"),
+            [&scriptResult, &loop](const QVariant &value) {
+                scriptResult = value;
+                loop.quit();
+            });
+        timeout.start(15000);
+        loop.exec();
+        QVERIFY(scriptResult.toBool());
+#else
+        QVERIFY(chart.findChild<QLabel *>() != nullptr);
+#endif
     }
 
     void fluentWindowExposesMicaApi()
@@ -925,8 +1032,8 @@ class ShellTest : public QObject
 
     void fluentWindowClipsChildBackgroundToWindowRadius()
     {
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
-        QSKIP("Windows and macOS use native or painted rounded corners without a QWidget mask");
+#if defined(Q_OS_WIN)
+        QSKIP("Windows uses native rounded corners without a QWidget mask");
 #else
         FluentQt::FluentWindow window;
         window.resize(480, 360);

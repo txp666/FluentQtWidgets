@@ -34,8 +34,10 @@
 #include <FluentQtWidgets/Translator.h>
 #include <FluentQtWidgets/Views/ItemViews.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
+#include <FluentQtWidgets/Widgets/AudioWaveformWidget.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/CardWidget.h>
+#include <FluentQtWidgets/Widgets/ChartWidget.h>
 #include <FluentQtWidgets/Widgets/CommandBar.h>
 #include <FluentQtWidgets/Widgets/ComboBox.h>
 #include <FluentQtWidgets/Widgets/CycleListWidget.h>

@@ -4,7 +4,7 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 
 本项目是 Python 版 [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets) 的 **C++/Qt Widgets 移植版本**。Python 原版是本仓库的行为与视觉基准：控件状态、间距、QSS 常量、示例内容、资源路径、Gallery 页面结构和翻译均按 Python 原版对齐；只有 Qt/C++ 平台差异不可避免时才保留差异说明。
 
-当前发布线：**0.1.5**。本地上游参考源码、构建目录和开发 agent 元数据不会进入源码发布包。
+当前发布线：**0.1.6**。本地上游参考源码、构建目录和开发 agent 元数据不会进入源码发布包。
 
 
 ## 环境要求

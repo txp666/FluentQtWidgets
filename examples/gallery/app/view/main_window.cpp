@@ -63,49 +63,53 @@ bool GalleryWindow::addGalleryInterface(int index)
         return true;
     case 1:
         navigationInterface()->addSeparator();
+        addSubInterface(createChartPage(), icon(FluentIcon::PieSingle), navTx("Charts"),
+                        QStringLiteral("chartInterface"));
+        return true;
+    case 2:
         addSubInterface(createBasicInputPage(), icon(FluentIcon::Checkbox), navTx("Basic input"),
                         QStringLiteral("basicInputInterface"));
         return true;
-    case 2:
+    case 3:
         addSubInterface(createDateTimePage(), icon(FluentIcon::DateTime), navTx("Date & time"),
                         QStringLiteral("dateTimeInterface"));
         return true;
-    case 3:
+    case 4:
         addSubInterface(createDialogPage(), icon(FluentIcon::Message), navTx("Dialogs & flyouts"),
                         QStringLiteral("dialogInterface"));
         return true;
-    case 4:
+    case 5:
         addSubInterface(createLayoutPage(), icon(FluentIcon::Layout), navTx("Layout"), QStringLiteral("layoutInterface"));
         return true;
-    case 5:
+    case 6:
         addSubInterface(createMaterialPage(), icon(FluentIcon::Palette), navTx("Material"),
                         QStringLiteral("materialInterface"));
         return true;
-    case 6:
+    case 7:
         addSubInterface(createMenuPage(), galleryNavIcon(GalleryIcon::Menu), navTx("Menus & toolbars"),
                         QStringLiteral("menuInterface"));
         return true;
-    case 7:
+    case 8:
         addSubInterface(createNavigationPage(), icon(FluentIcon::Menu), navTx("Navigation"),
                         QStringLiteral("navigationViewInterface"));
         return true;
-    case 8:
+    case 9:
         addSubInterface(createScrollPage(), icon(FluentIcon::Scroll), navTx("Scrolling"),
                         QStringLiteral("scrollInterface"));
         return true;
-    case 9:
+    case 10:
         addSubInterface(createStatusInfoPage(), icon(FluentIcon::Chat), navTx("Status & info"),
                         QStringLiteral("statusInfoInterface"));
         return true;
-    case 10:
+    case 11:
         addSubInterface(createTextPage(), galleryNavIcon(GalleryIcon::Text), navTx("Text"),
                         QStringLiteral("textInterface"));
         return true;
-    case 11:
+    case 12:
         addSubInterface(createViewsPage(), galleryNavIcon(GalleryIcon::Grid), navTx("View"),
                         QStringLiteral("viewInterface"));
         return true;
-    case 12:
+    case 13:
         addSubInterface(createSettingsPage(), icon(FluentIcon::Setting), mainTx("Settings"),
                         QStringLiteral("settingInterface"), NavigationItemPosition::Bottom);
         return true;

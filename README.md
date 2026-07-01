@@ -8,7 +8,7 @@ FluentQtWidgets is a C++/Qt Widgets library that implements a Fluent Design comp
 
 This repository is a **C++/Qt Widgets port of the Python project** [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). The Python project is the behavioral and visual reference for this port: widget state, spacing, QSS constants, demo content, resource paths, Gallery structure, and translations are aligned to the upstream Python implementation unless Qt/C++ platform behavior makes an exact match impossible.
 
-Current release line: **0.1.5**. Local reference checkouts, build trees, and development-agent metadata are intentionally excluded from the source distribution.
+Current release line: **0.1.6**. Local reference checkouts, build trees, and development-agent metadata are intentionally excluded from the source distribution.
 
 
 ## Requirements

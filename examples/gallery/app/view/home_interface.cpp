@@ -386,6 +386,17 @@ HomeInterface::HomeInterface(QWidget *parent) : ScrollArea(parent)
                                   "dateTimeInterface", 4},
                              });
 
+    auto *chartView = new SampleCardView(
+        QCoreApplication::translate("HomeInterface", "Chart samples"), m_view);
+    addSection(chartView, {
+                              {"controls/Sound.png", "AudioWaveformWidget",
+                               "A widget that renders sampled audio amplitudes as an interactive waveform.",
+                               "chartInterface", 0},
+                              {"controls/WebView.png", "ChartWidget",
+                               "A widget that renders ECharts options inside a Fluent styled Qt application.",
+                               "chartInterface", 1},
+                          });
+
     auto *dialogView = new SampleCardView(
         QCoreApplication::translate("HomeInterface", "Dialog samples"), m_view);
     addSection(dialogView, {

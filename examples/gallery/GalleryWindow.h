@@ -34,6 +34,7 @@ class GalleryWindow : public FluentQt::FluentWindow
     QWidget *createStatusInfoPage();
     QWidget *createTextPage();
     QWidget *createIconPage();
+    QWidget *createChartPage();
     QWidget *createLayoutPage();
     QWidget *createMaterialPage();
 
