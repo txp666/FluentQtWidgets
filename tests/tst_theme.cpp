@@ -7,6 +7,8 @@
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
 #include <QtGui/QAction>
+#include <QtGui/QImage>
+#include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
 #include <QtTest/QtTest>
@@ -17,10 +19,12 @@
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QGraphicsOpacityEffect>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
+#include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QTreeWidgetItem>
@@ -1191,12 +1195,23 @@ class ThemeTest : public QObject
         table.setCurrentCell(0, 0);
         QCOMPARE(table.property("fqw").toString(), QStringLiteral("TableWidget"));
         QVERIFY(table.isBorderVisible());
+        QVERIFY(table.alternatingRowColors());
         QCOMPARE(table.selectionBehavior(), QAbstractItemView::SelectRows);
+        QCOMPARE(table.horizontalHeader()->sectionResizeMode(0), QHeaderView::Interactive);
         QCOMPARE(table.item(0, 1)->text(), QStringLiteral("Ready"));
         QCOMPARE(table.delegate(), table.fluentItemDelegate());
         QCOMPARE(table.scrollDelagate(), table.scrollDelegate());
         QCOMPARE(table.property("delegate").value<FluentQt::TableItemDelegate *>(), table.delegate());
         QCOMPARE(table.property("scrollDelagate").value<FluentQt::SmoothScrollDelegate *>(), table.scrollDelegate());
+        QStyleOptionViewItem editorOption;
+        editorOption.text = QStringLiteral("Component");
+        QWidget *editor = table.delegate()->createEditor(&table, editorOption, table.model()->index(0, 0));
+        auto *lineEditor = qobject_cast<FluentQt::LineEdit *>(editor);
+        QVERIFY(lineEditor != nullptr);
+        QCOMPARE(lineEditor->text(), QStringLiteral("Component"));
+        QCOMPARE(lineEditor->property("transparent").toBool(), false);
+        QVERIFY(lineEditor->isClearButtonEnabled());
+        delete editor;
 
         FluentQt::TreeWidget tree;
         tree.setHeaderLabels({QStringLiteral("Area"), QStringLiteral("Status")});
@@ -1205,6 +1220,7 @@ class ThemeTest : public QObject
         tree.setBorderVisible(true);
         QCOMPARE(tree.property("fqw").toString(), QStringLiteral("TreeWidget"));
         QVERIFY(tree.isBorderVisible());
+        QCOMPARE(tree.iconSize(), QSize(16, 16));
         QCOMPARE(tree.topLevelItemCount(), 1);
         QCOMPARE(tree.topLevelItem(0)->child(0)->text(0), QStringLiteral("ListWidget"));
         QCOMPARE(tree.delegate(), tree.fluentItemDelegate());
@@ -1254,6 +1270,45 @@ class ThemeTest : public QObject
         QVERIFY2(secondColor.red() + 4 < firstColor.red(),
                  qPrintable(QStringLiteral("first=%1 second=%2").arg(firstColor.name(QColor::HexArgb),
                                                                      secondColor.name(QColor::HexArgb))));
+
+        FluentQt::ThemeManager::instance()->setTheme(previousTheme);
+    }
+
+    void treeCheckBoxPaintsInsideStyleIndicatorRect()
+    {
+        const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
+        FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
+
+        FluentQt::TreeWidget tree;
+        tree.setColumnCount(1);
+        auto *item = new QTreeWidgetItem(&tree, QStringList{QStringLiteral("Tree text")});
+        item->setCheckState(0, Qt::Unchecked);
+        const QModelIndex index = tree.indexFromItem(item);
+
+        QStyleOptionViewItem option;
+        option.rect = QRect(40, 0, 140, 32);
+        option.state = QStyle::State_Enabled;
+        option.widget = &tree;
+        tree.delegate()->initStyleOption(&option, index);
+
+        const QRect indicatorRect =
+            tree.style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option, &tree);
+        const QRect textRect = tree.style()->subElementRect(QStyle::SE_ItemViewItemText, &option, &tree);
+        QVERIFY(indicatorRect.isValid());
+        QVERIFY(textRect.isValid());
+        QVERIFY2(indicatorRect.right() < textRect.left(),
+                 qPrintable(QStringLiteral("indicator=%1 text=%2").arg(QString::number(indicatorRect.right()),
+                                                                        QString::number(textRect.left()))));
+
+        QImage image(QSize(220, 36), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::white);
+
+        QPainter painter(&image);
+        tree.delegate()->paint(&painter, option, index);
+        painter.end();
+
+        QVERIFY(image.rect().contains(indicatorRect.center()));
+        QVERIFY(image.pixelColor(indicatorRect.center()) != QColor(Qt::white));
 
         FluentQt::ThemeManager::instance()->setTheme(previousTheme);
     }

@@ -2,45 +2,71 @@
 
 #include "GalleryViewHelpers.h"
 
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QTreeWidgetItemIterator>
 
 using namespace FluentQt;
 
+namespace {
+
+class ViewFrame : public QFrame
+{
+  public:
+    explicit ViewFrame(QWidget *parent = nullptr) : QFrame(parent)
+    {
+        setObjectName(QStringLiteral("frame"));
+        setAttribute(Qt::WA_StyledBackground);
+        setFixedSize(300, 380);
+        applyGalleryViewStyle(this, QStringLiteral("view_interface"));
+
+        m_layout = new QHBoxLayout(this);
+        m_layout->setContentsMargins(0, 8, 0, 0);
+    }
+
+    void addWidget(QWidget *widget) { m_layout->addWidget(widget); }
+
+  private:
+    QHBoxLayout *m_layout = nullptr;
+};
+
+} // namespace
+
 QWidget *GalleryWindow::createViewsPage()
 {
-    auto *page = new GalleryInterface(navTx("View"), QStringLiteral("FluentQtWidgets::Views"), this);
+    auto *page = new GalleryInterface(navTx("View"), QStringLiteral("qfluentwidgets.components.widgets"), this);
+    page->setObjectName(QStringLiteral("viewInterface"));
     const QString listViewSource = exampleSourceUrl("view/list_view");
     const QString tableViewSource = exampleSourceUrl("view/table_view");
     const QString treeViewSource = exampleSourceUrl("view/tree_view");
     const QString flipViewSource = exampleSourceUrl("view/flip_view");
 
     // List view
-    auto *listWidget = new ListWidget;
-    listWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    auto *listFrame = new ViewFrame(page);
+    auto *listWidget = new ListWidget(listFrame);
+    listFrame->addWidget(listWidget);
     const QStringList stands = {
-        QStringLiteral("Star Platinum"),       QStringLiteral("Hierophant Green"),
-        QStringLiteral("Made in Haven"),        QStringLiteral("King Crimson"),
-        QStringLiteral("Silver Chariot"),       QStringLiteral("Crazy diamond"),
-        QStringLiteral("Metallica"),            QStringLiteral("Another One Bites The Dust"),
-        QStringLiteral("Heaven's Door"),        QStringLiteral("Killer Queen"),
-        QStringLiteral("The Grateful Dead"),    QStringLiteral("Stone Free"),
-        QStringLiteral("The World"),            QStringLiteral("Sticky Fingers"),
-        QStringLiteral("Ozone Baby"),           QStringLiteral("Love Love Deluxe"),
-        QStringLiteral("Hermit Purple"),        QStringLiteral("Gold Experience"),
-        QStringLiteral("King Nothing"),         QStringLiteral("Paper Moon King"),
-        QStringLiteral("Scary Monster"),        QStringLiteral("Mandom"),
-        QStringLiteral("20th Century Boy"),     QStringLiteral("Tusk Act 4"),
-        QStringLiteral("Ball Breaker"),         QStringLiteral("Sex Pistols"),
-        QStringLiteral("D4C • Love Train"),     QStringLiteral("Born This Way"),
-        QStringLiteral("SOFT & WET"),           QStringLiteral("Paisley Park"),
-        QStringLiteral("Wonder of U"),          QStringLiteral("Walking Heart"),
-        QStringLiteral("Cream Starter"),        QStringLiteral("November Rain"),
-        QStringLiteral("Smooth Operators"),     QStringLiteral("The Matte Kudasai"),
+        tx("ListFrame", "Star Platinum"),       tx("ListFrame", "Hierophant Green"),
+        tx("ListFrame", "Made in Haven"),        tx("ListFrame", "King Crimson"),
+        tx("ListFrame", "Silver Chariot"),       tx("ListFrame", "Crazy diamond"),
+        tx("ListFrame", "Metallica"),            tx("ListFrame", "Another One Bites The Dust"),
+        tx("ListFrame", "Heaven's Door"),        tx("ListFrame", "Killer Queen"),
+        tx("ListFrame", "The Grateful Dead"),    tx("ListFrame", "Stone Free"),
+        tx("ListFrame", "The World"),            tx("ListFrame", "Sticky Fingers"),
+        tx("ListFrame", "Ozone Baby"),           tx("ListFrame", "Love Love Deluxe"),
+        tx("ListFrame", "Hermit Purple"),        tx("ListFrame", "Gold Experience"),
+        tx("ListFrame", "King Nothing"),         tx("ListFrame", "Paper Moon King"),
+        tx("ListFrame", "Scary Monster"),        tx("ListFrame", "Mandom"),
+        tx("ListFrame", "20th Century Boy"),     tx("ListFrame", "Tusk Act 4"),
+        tx("ListFrame", "Ball Breaker"),         tx("ListFrame", "Sex Pistols"),
+        tx("ListFrame", "D4C • Love Train"),     tx("ListFrame", "Born This Way"),
+        tx("ListFrame", "SOFT & WET"),           tx("ListFrame", "Paisley Park"),
+        tx("ListFrame", "Wonder of U"),          tx("ListFrame", "Walking Heart"),
+        tx("ListFrame", "Cream Starter"),        tx("ListFrame", "November Rain"),
+        tx("ListFrame", "Smooth Operators"),     tx("ListFrame", "The Matte Kudasai"),
     };
     listWidget->addItems(stands);
-    listWidget->setMinimumHeight(380);
-    listWidget->setMaximumHeight(380);
-    page->addExampleCard(navTx("A simple ListView"), listWidget, listViewSource);
+    page->addExampleCard(tx("ViewInterface", "A simple ListView"), listFrame, listViewSource);
 
     // Table view
     auto *tableWidget = new TableWidget;
@@ -77,7 +103,7 @@ QWidget *GalleryWindow::createViewsPage()
         {QStringLiteral("愛は勝手"), QStringLiteral("aiko"), QStringLiteral("湿った夏の始まり"), QStringLiteral("2018"), QStringLiteral("5:31")},
         {QStringLiteral("ドライブモード"), QStringLiteral("aiko"), QStringLiteral("湿った夏の始まり"), QStringLiteral("2018"), QStringLiteral("3:37")},
         {QStringLiteral("うん。"), QStringLiteral("aiko"), QStringLiteral("湿った夏の始まり"), QStringLiteral("2018"), QStringLiteral("5:48")},
-        {QStringLiteral("キラキラ"), QStringLiteral("aiko"), QStringLiteral("aikoの詩。"), QStringLiteral("2019"), QStringLiteral("5:08")},
+        {QStringLiteral("キラキラ"), QStringLiteral("aikoの詩。"), QStringLiteral("2019"), QStringLiteral("5:08"), QStringLiteral("aiko")},
         {QStringLiteral("恋のスーパーボール"), QStringLiteral("aiko"), QStringLiteral("aikoの詩。"), QStringLiteral("2019"), QStringLiteral("4:31")},
         {QStringLiteral("磁石"), QStringLiteral("aiko"), QStringLiteral("どうしたって伝えられないから"), QStringLiteral("2021"), QStringLiteral("4:24")},
         {QStringLiteral("食べた愛"), QStringLiteral("aiko"), QStringLiteral("食べた愛/あたしたち"), QStringLiteral("2021"), QStringLiteral("5:17")},
@@ -96,14 +122,15 @@ QWidget *GalleryWindow::createViewsPage()
             tableWidget->setItem(i, j, new QTableWidgetItem(songInfo[j]));
         }
     }
-    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
     tableWidget->resizeColumnsToContents();
     tableWidget->setFixedSize(625, 440);
-    page->addExampleCard(navTx("A simple TableView"), tableWidget, tableViewSource);
+    page->addExampleCard(tx("ViewInterface", "A simple TableView"), tableWidget, tableViewSource);
 
     // Tree view
     {
-        auto *treeWidget = new TreeWidget;
+        auto *treeFrame = new ViewFrame(page);
+        auto *treeWidget = new TreeWidget(treeFrame);
+        treeFrame->addWidget(treeWidget);
         treeWidget->setHeaderHidden(true);
 
         auto *item1 = new QTreeWidgetItem({tx("TreeFrame", "JoJo 1 - Phantom Blood")});
@@ -127,16 +154,14 @@ QWidget *GalleryWindow::createViewsPage()
         treeWidget->addTopLevelItem(item2);
 
         treeWidget->expandAll();
-        treeWidget->setBorderVisible(true);
-        treeWidget->setSelectionMode(QAbstractItemView::NoSelection);
-        treeWidget->setMinimumHeight(380);
-        treeWidget->setMaximumHeight(380);
-        page->addExampleCard(navTx("A simple TreeView"), treeWidget, treeViewSource);
+        page->addExampleCard(tx("ViewInterface", "A simple TreeView"), treeFrame, treeViewSource);
     }
 
     // Tree view with multi-selection
     {
-        auto *treeWidget = new TreeWidget;
+        auto *treeFrame = new ViewFrame(page);
+        auto *treeWidget = new TreeWidget(treeFrame);
+        treeFrame->addWidget(treeWidget);
         treeWidget->setHeaderHidden(true);
 
         auto *item1 = new QTreeWidgetItem({tx("TreeFrame", "JoJo 1 - Phantom Blood")});
@@ -160,10 +185,6 @@ QWidget *GalleryWindow::createViewsPage()
         treeWidget->addTopLevelItem(item2);
 
         treeWidget->expandAll();
-        treeWidget->setBorderVisible(true);
-        treeWidget->setSelectionMode(QAbstractItemView::NoSelection);
-        treeWidget->setMinimumHeight(380);
-        treeWidget->setMaximumHeight(380);
 
         // Enable checkboxes for all items
         QTreeWidgetItemIterator it(treeWidget);
@@ -172,7 +193,7 @@ QWidget *GalleryWindow::createViewsPage()
             ++it;
         }
 
-        page->addExampleCard(navTx("A TreeView with Multi-selection enabled"), treeWidget, treeViewSource);
+        page->addExampleCard(tx("ViewInterface", "A TreeView with Multi-selection enabled"), treeFrame, treeViewSource);
     }
 
     // Flip view
@@ -181,7 +202,7 @@ QWidget *GalleryWindow::createViewsPage()
                                     QStringLiteral(":/gallery/images/Shoko2.jpg"),
                                     QStringLiteral(":/gallery/images/Shoko3.jpg"),
                                     QStringLiteral(":/gallery/images/Shoko4.jpg")});
-    page->addExampleCard(navTx("Flip view"), flipView, flipViewSource);
+    page->addExampleCard(tx("ViewInterface", "Flip view"), flipView, flipViewSource);
 
     return page;
 }

@@ -18,6 +18,7 @@ class QPaintEvent;
 class QPainter;
 class QEnterEvent;
 class QMouseEvent;
+class QPropertyAnimation;
 class QResizeEvent;
 class QWheelEvent;
 
@@ -31,6 +32,8 @@ class FQW_API FlipView : public QWidget
     Q_PROPERTY(int spacing READ spacing WRITE setSpacing)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
+    Q_PROPERTY(qreal previousButtonOpacity READ previousButtonOpacity WRITE setPreviousButtonOpacity)
+    Q_PROPERTY(qreal nextButtonOpacity READ nextButtonOpacity WRITE setNextButtonOpacity)
 
   public:
     explicit FlipView(QWidget *parent = nullptr);
@@ -43,6 +46,8 @@ class FQW_API FlipView : public QWidget
     int spacing() const;
     Qt::AspectRatioMode aspectRatioMode() const;
     int currentIndex() const;
+    qreal previousButtonOpacity() const;
+    qreal nextButtonOpacity() const;
     int count() const;
     QImage image(int index) const;
     QSize sizeHint() const override;
@@ -80,7 +85,12 @@ class FQW_API FlipView : public QWidget
     QRect previousButtonRect() const;
     QRect nextButtonRect() const;
     void paintImage(QPainter *painter);
-    void paintButton(QPainter *painter, const QRect &rect, bool nextButton);
+    void paintButton(QPainter *painter, const QRect &rect, bool nextButton, qreal opacity);
+    void setPreviousButtonOpacity(qreal opacity);
+    void setNextButtonOpacity(qreal opacity);
+    void fadePreviousButton(qreal opacity);
+    void fadeNextButton(qreal opacity);
+    void updateButtonOpacityForCurrentIndex(bool animated);
     void updateCursorForPosition(const QPoint &pos);
 
     Qt::Orientation m_orientation = Qt::Horizontal;
@@ -94,6 +104,10 @@ class FQW_API FlipView : public QWidget
     bool m_previousPressed = false;
     bool m_nextPressed = false;
     bool m_isScrolling = false;
+    qreal m_previousButtonOpacity = 0;
+    qreal m_nextButtonOpacity = 0;
+    QPropertyAnimation *m_previousButtonOpacityAnimation = nullptr;
+    QPropertyAnimation *m_nextButtonOpacityAnimation = nullptr;
 };
 
 class FQW_API HorizontalFlipView : public FlipView

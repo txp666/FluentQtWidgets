@@ -43,6 +43,10 @@ class FQW_API TableItemDelegate : public QStyledItemDelegate
 
     void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const override;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const override;
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     bool helpEvent(QHelpEvent *event, QAbstractItemView *view, const QStyleOptionViewItem &option,
                    const QModelIndex &index) override;
@@ -50,6 +54,8 @@ class FQW_API TableItemDelegate : public QStyledItemDelegate
   protected:
     virtual void drawBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     virtual void drawIndicator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    virtual void drawCheckBox(QPainter *painter, const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const;
     bool isRowSelected(int row) const;
     bool isRowHovered(int row) const;
     bool isRowPressed(int row) const;
@@ -90,6 +96,8 @@ class FQW_API TreeItemDelegate : public TableItemDelegate
   protected:
     void drawBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     void drawIndicator(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void drawCheckBox(QPainter *painter, const QStyleOptionViewItem &option,
+                      const QModelIndex &index) const override;
 
   private:
     bool isIndexHovered(const QModelIndex &index) const;

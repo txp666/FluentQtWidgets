@@ -7,6 +7,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QClipboard>
 #include <QtGui/QColor>
+#include <QtGui/QEnterEvent>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
 #include <QtGui/QKeyEvent>
@@ -669,6 +670,8 @@ class DisplayTest : public QObject
         QCOMPARE(flipView.spacing(), 15);
         QCOMPARE(flipView.property("spacing").toInt(), 15);
         QCOMPARE(flipView.aspectRatioMode(), Qt::KeepAspectRatioByExpanding);
+        QCOMPARE(flipView.previousButtonOpacity(), 0.0);
+        QCOMPARE(flipView.nextButtonOpacity(), 0.0);
 
         flipView.resize(120, 80);
         QImage rendered(flipView.size(), QImage::Format_ARGB32_Premultiplied);
@@ -677,6 +680,21 @@ class DisplayTest : public QObject
         flipView.render(&painter);
         painter.end();
         QVERIFY(qAlpha(rendered.pixel(10, 10)) > 0);
+
+        flipView.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&flipView));
+        QEnterEvent enterEvent(QPointF(60, 40), QPointF(60, 40), QPointF(60, 40));
+        QApplication::sendEvent(&flipView, &enterEvent);
+        QTRY_VERIFY(flipView.nextButtonOpacity() > 0.99);
+        QCOMPARE(flipView.previousButtonOpacity(), 0.0);
+
+        flipView.scrollNext();
+        QTRY_VERIFY(flipView.previousButtonOpacity() > 0.99);
+        QTRY_VERIFY(flipView.nextButtonOpacity() < 0.01);
+
+        QEvent leaveEvent(QEvent::Leave);
+        QApplication::sendEvent(&flipView, &leaveEvent);
+        QTRY_VERIFY(flipView.previousButtonOpacity() < 0.01);
     }
 
     void flowLayoutWrapsAndManagesWidgets()

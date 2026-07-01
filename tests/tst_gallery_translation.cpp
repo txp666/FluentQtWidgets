@@ -9,15 +9,20 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QCompleter>
 #include <QtWidgets/QFrame>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QTableWidgetItem>
+#include <QtWidgets/QTreeWidgetItemIterator>
 #include <QtWidgets/QVBoxLayout>
 
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
+#include <FluentQtWidgets/Views/ItemViews.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
+#include <FluentQtWidgets/Widgets/FlipView.h>
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 #include <FluentQtWidgets/Widgets/InfoBar.h>
 #include <FluentQtWidgets/Widgets/Label.h>
@@ -470,6 +475,100 @@ class GalleryTranslationTest : public QObject
         QTRY_COMPARE(textEdit->height(), 150);
         QVERIFY(textEdit->toPlainText().contains(QStringLiteral("Johnny Joestar")));
         QVERIFY(textEdit->toPlainText().contains(QStringLiteral("Gyro Zeppeli")));
+    }
+
+    void viewPageMatchesPythonGallery()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("viewInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("viewInterface"));
+
+        bool foundSubtitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.widgets")) {
+                foundSubtitle = true;
+                break;
+            }
+        }
+        QVERIFY(foundSubtitle);
+
+        QList<QFrame *> viewFrames;
+        const auto frames = page->findChildren<QFrame *>(QStringLiteral("frame"));
+        for (QFrame *frame : frames) {
+            if (frame->minimumSize() == QSize(300, 380) && frame->maximumSize() == QSize(300, 380)) {
+                viewFrames.append(frame);
+            }
+        }
+        QCOMPARE(viewFrames.size(), 3);
+        for (QFrame *frame : viewFrames) {
+            QVERIFY(qobject_cast<QHBoxLayout *>(frame->layout()) != nullptr);
+            QCOMPARE(frame->layout()->contentsMargins(), QMargins(0, 8, 0, 0));
+        }
+
+        auto *list = page->findChild<FluentQt::ListWidget *>();
+        QVERIFY(list != nullptr);
+        QCOMPARE(list->count(), 36);
+        QCOMPARE(list->selectionMode(), QAbstractItemView::SingleSelection);
+        QCOMPARE(list->item(0)->text(), QStringLiteral("Star Platinum"));
+        QCOMPARE(list->item(27)->text(), QStringLiteral("Born This Way"));
+        QVERIFY(list->scrollDelegate() != nullptr);
+
+        auto *table = page->findChild<FluentQt::TableWidget *>();
+        QVERIFY(table != nullptr);
+        QCOMPARE(table->rowCount(), 60);
+        QCOMPARE(table->columnCount(), 5);
+        QCOMPARE(table->selectionMode(), QAbstractItemView::SingleSelection);
+        QCOMPARE(table->selectionBehavior(), QAbstractItemView::SelectRows);
+        QVERIFY(table->alternatingRowColors());
+        QCOMPARE(table->horizontalHeader()->sectionResizeMode(0), QHeaderView::Interactive);
+        QVERIFY(table->verticalHeader()->isHidden());
+        QVERIFY(table->isBorderVisible());
+        QCOMPARE(table->minimumSize(), QSize(625, 440));
+        QCOMPARE(table->maximumSize(), QSize(625, 440));
+        QCOMPARE(table->item(20, 4)->text(), QStringLiteral("aiko"));
+
+        const auto trees = page->findChildren<FluentQt::TreeWidget *>();
+        QCOMPARE(trees.size(), 2);
+        FluentQt::TreeWidget *checkableTree = nullptr;
+        int checkableItems = 0;
+        for (FluentQt::TreeWidget *tree : trees) {
+            QVERIFY(tree->isHeaderHidden());
+            QCOMPARE(tree->iconSize(), QSize(16, 16));
+            QCOMPARE(tree->selectionMode(), QAbstractItemView::SingleSelection);
+            QVERIFY(!tree->isBorderVisible());
+            QCOMPARE(tree->topLevelItemCount(), 2);
+            QCOMPARE(tree->topLevelItem(0)->text(0), QStringLiteral("JoJo 1 - Phantom Blood"));
+
+            int currentCheckableItems = 0;
+            QTreeWidgetItemIterator it(tree);
+            while (*it) {
+                if ((*it)->data(0, Qt::CheckStateRole).isValid()) {
+                    ++currentCheckableItems;
+                }
+                ++it;
+            }
+            if (currentCheckableItems > 0) {
+                checkableTree = tree;
+                checkableItems = currentCheckableItems;
+            }
+        }
+        QVERIFY(checkableTree != nullptr);
+        QCOMPARE(checkableItems, 11);
+
+        auto *flip = page->findChild<FluentQt::HorizontalFlipView *>();
+        QVERIFY(flip != nullptr);
+        QCOMPARE(flip->count(), 4);
+        QCOMPARE(flip->itemSize(), QSize(480, 270));
+        QCOMPARE(flip->currentIndex(), 0);
     }
 
     void materialPageMatchesPythonGalleryAndUsesTranslations()

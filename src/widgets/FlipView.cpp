@@ -3,6 +3,8 @@
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
+#include <QtCore/QEasingCurve>
+#include <QtCore/QPropertyAnimation>
 #include <QtCore/QtMath>
 #include <QtCore/QTimer>
 #include <QtGui/QEnterEvent>
@@ -23,6 +25,14 @@ FlipView::FlipView(Qt::Orientation orientation, QWidget *parent) : QWidget(paren
     setMouseTracking(true);
     setMinimumSize(m_itemSize);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+    m_previousButtonOpacityAnimation = new QPropertyAnimation(this, "previousButtonOpacity", this);
+    m_nextButtonOpacityAnimation = new QPropertyAnimation(this, "nextButtonOpacity", this);
+    for (QPropertyAnimation *animation : {m_previousButtonOpacityAnimation, m_nextButtonOpacityAnimation}) {
+        animation->setDuration(150);
+        animation->setEasingCurve(QEasingCurve::OutCubic);
+    }
+
     FluentStyleSheet::setRole(this, QStringLiteral("FlipView"));
 }
 
@@ -39,6 +49,10 @@ int FlipView::spacing() const { return m_spacing; }
 Qt::AspectRatioMode FlipView::aspectRatioMode() const { return m_aspectRatioMode; }
 
 int FlipView::currentIndex() const { return m_currentIndex; }
+
+qreal FlipView::previousButtonOpacity() const { return m_previousButtonOpacity; }
+
+qreal FlipView::nextButtonOpacity() const { return m_nextButtonOpacity; }
 
 int FlipView::count() const { return m_images.size(); }
 
@@ -104,6 +118,7 @@ void FlipView::setCurrentIndex(int index)
     }
 
     m_currentIndex = index;
+    updateButtonOpacityForCurrentIndex(true);
     updateCursorForPosition(mapFromGlobal(QCursor::pos()));
     update();
     emit currentIndexChanged(m_currentIndex);
@@ -123,6 +138,7 @@ void FlipView::addImage(const QImage &image)
     if (m_currentIndex < 0) {
         m_currentIndex = 0;
     }
+    updateButtonOpacityForCurrentIndex(false);
     update();
 }
 
@@ -165,6 +181,7 @@ void FlipView::clear()
 {
     m_images.clear();
     m_currentIndex = -1;
+    updateButtonOpacityForCurrentIndex(false);
     updateCursorForPosition(mapFromGlobal(QCursor::pos()));
     update();
 }
@@ -175,15 +192,15 @@ void FlipView::paintEvent(QPaintEvent *)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     paintImage(&painter);
 
-    if (!m_hovered || m_images.size() <= 1) {
+    if (m_images.size() <= 1) {
         return;
     }
 
-    if (m_currentIndex > 0) {
-        paintButton(&painter, previousButtonRect(), false);
+    if (m_currentIndex > 0 && m_previousButtonOpacity > 0) {
+        paintButton(&painter, previousButtonRect(), false, m_previousButtonOpacity);
     }
-    if (m_currentIndex < m_images.size() - 1) {
-        paintButton(&painter, nextButtonRect(), true);
+    if (m_currentIndex < m_images.size() - 1 && m_nextButtonOpacity > 0) {
+        paintButton(&painter, nextButtonRect(), true, m_nextButtonOpacity);
     }
 }
 
@@ -191,6 +208,7 @@ void FlipView::enterEvent(QEnterEvent *event)
 {
     QWidget::enterEvent(event);
     m_hovered = true;
+    updateButtonOpacityForCurrentIndex(true);
     updateCursorForPosition(event->position().toPoint());
     update();
 }
@@ -201,6 +219,7 @@ void FlipView::leaveEvent(QEvent *event)
     m_hovered = false;
     m_previousPressed = false;
     m_nextPressed = false;
+    updateButtonOpacityForCurrentIndex(true);
     unsetCursor();
     update();
 }
@@ -310,7 +329,7 @@ void FlipView::paintImage(QPainter *painter)
     painter->restore();
 }
 
-void FlipView::paintButton(QPainter *painter, const QRect &rect, bool nextButton)
+void FlipView::paintButton(QPainter *painter, const QRect &rect, bool nextButton, qreal opacity)
 {
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     const bool pressed = nextButton ? m_nextPressed : m_previousPressed;
@@ -318,10 +337,12 @@ void FlipView::paintButton(QPainter *painter, const QRect &rect, bool nextButton
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(Qt::NoPen);
+    painter->setOpacity(opacity);
     painter->setBrush(dark ? QColor(44, 44, 44, 245) : QColor(252, 252, 252, 217));
     painter->drawRoundedRect(rect, 4, 4);
 
-    painter->setBrush(dark ? QColor(255, 255, 255, pressed ? 197 : 138) : QColor(0, 0, 0, pressed ? 157 : 115));
+    painter->setOpacity(opacity * (dark ? (pressed ? 0.773 : 0.541) : (pressed ? 0.616 : 0.45)));
+    painter->setBrush(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
     QPainterPath arrow;
     if (isHorizontal()) {
         const int size = pressed ? 6 : 8;
@@ -351,6 +372,60 @@ void FlipView::paintButton(QPainter *painter, const QRect &rect, bool nextButton
     arrow.closeSubpath();
     painter->drawPath(arrow);
     painter->restore();
+}
+
+void FlipView::setPreviousButtonOpacity(qreal opacity)
+{
+    m_previousButtonOpacity = qBound<qreal>(0, opacity, 1);
+    update(previousButtonRect());
+}
+
+void FlipView::setNextButtonOpacity(qreal opacity)
+{
+    m_nextButtonOpacity = qBound<qreal>(0, opacity, 1);
+    update(nextButtonRect());
+}
+
+void FlipView::fadePreviousButton(qreal opacity)
+{
+    const qreal target = qBound<qreal>(0, opacity, 1);
+    if (qFuzzyCompare(m_previousButtonOpacity, target)) {
+        return;
+    }
+
+    m_previousButtonOpacityAnimation->stop();
+    m_previousButtonOpacityAnimation->setStartValue(m_previousButtonOpacity);
+    m_previousButtonOpacityAnimation->setEndValue(target);
+    m_previousButtonOpacityAnimation->start();
+}
+
+void FlipView::fadeNextButton(qreal opacity)
+{
+    const qreal target = qBound<qreal>(0, opacity, 1);
+    if (qFuzzyCompare(m_nextButtonOpacity, target)) {
+        return;
+    }
+
+    m_nextButtonOpacityAnimation->stop();
+    m_nextButtonOpacityAnimation->setStartValue(m_nextButtonOpacity);
+    m_nextButtonOpacityAnimation->setEndValue(target);
+    m_nextButtonOpacityAnimation->start();
+}
+
+void FlipView::updateButtonOpacityForCurrentIndex(bool animated)
+{
+    const qreal previousTarget = m_hovered && m_currentIndex > 0 ? 1 : 0;
+    const qreal nextTarget = m_hovered && m_currentIndex >= 0 && m_currentIndex < m_images.size() - 1 ? 1 : 0;
+
+    if (animated) {
+        fadePreviousButton(previousTarget);
+        fadeNextButton(nextTarget);
+    } else {
+        m_previousButtonOpacityAnimation->stop();
+        m_nextButtonOpacityAnimation->stop();
+        setPreviousButtonOpacity(previousTarget);
+        setNextButtonOpacity(nextTarget);
+    }
 }
 
 void FlipView::updateCursorForPosition(const QPoint &pos)

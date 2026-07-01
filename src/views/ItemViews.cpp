@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
+#include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 
 #include <QtCore/QMargins>
@@ -9,10 +10,10 @@
 #include <QtCore/QEvent>
 #include <QtGui/QBrush>
 #include <QtGui/QHelpEvent>
+#include <QtGui/QIcon>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
 #include <QtGui/QPalette>
 #include <QtWidgets/QAbstractItemView>
 #include <QtWidgets/QHeaderView>
@@ -29,6 +30,14 @@ QColor resolvedCheckedColor(const QColor &light, const QColor &dark, Theme theme
     const Theme resolvedTheme = theme == Theme::Auto ? ThemeManager::instance()->effectiveTheme() : theme;
     const QColor color = resolvedTheme == Theme::Dark ? dark : light;
     return color.isValid() ? color : ThemeManager::instance()->accentColor();
+}
+
+QString checkBoxIconPath(Qt::CheckState state)
+{
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    const QString color = dark ? QStringLiteral("black") : QStringLiteral("white");
+    const QString name = state == Qt::PartiallyChecked ? QStringLiteral("PartialAccept") : QStringLiteral("Accept");
+    return QStringLiteral(":/qfluentwidgets/images/check_box/%1_%2.svg").arg(name, color);
 }
 
 void updateDelegateParent(QObject *delegate)
@@ -75,7 +84,7 @@ void initTableLikeView(QTableView *view, TableItemDelegate *delegate, const QStr
 {
     view->setShowGrid(false);
     view->setMouseTracking(true);
-    view->setAlternatingRowColors(false);
+    view->setAlternatingRowColors(true);
     view->setSelectionBehavior(QAbstractItemView::SelectRows);
     view->setSelectionMode(QAbstractItemView::SingleSelection);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -84,7 +93,6 @@ void initTableLikeView(QTableView *view, TableItemDelegate *delegate, const QStr
 
     if (view->horizontalHeader()) {
         view->horizontalHeader()->setHighlightSections(false);
-        view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     }
     if (view->verticalHeader()) {
         view->verticalHeader()->setHighlightSections(false);
@@ -112,7 +120,7 @@ void initTableLikeView(QTableView *view, TableItemDelegate *delegate, const QStr
 void initTreeLikeView(QTreeView *view, TreeItemDelegate *delegate, const QString &role)
 {
     view->setMouseTracking(true);
-    view->setIconSize(QSize(12, 12));
+    view->setIconSize(QSize(16, 16));
     view->setAlternatingRowColors(false);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setItemDelegate(delegate);
@@ -240,14 +248,44 @@ QSize TableItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QMod
     return QStyledItemDelegate::sizeHint(option, index).grownBy(QMargins(0, m_margin, 0, m_margin));
 }
 
+QWidget *TableItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                                         const QModelIndex &index) const
+{
+    Q_UNUSED(index)
+
+    auto *lineEdit = new LineEdit(parent);
+    lineEdit->setProperty("transparent", false);
+    FluentStyleSheet::polish(lineEdit);
+    lineEdit->setText(option.text);
+    lineEdit->setClearButtonEnabled(true);
+    return lineEdit;
+}
+
+void TableItemDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                                             const QModelIndex &index) const
+{
+    const QRect rect = option.rect;
+    const int y = rect.y() + (rect.height() - editor->height()) / 2;
+    const int x = qMax(8, rect.x());
+    int width = rect.width();
+    if (index.column() == 0) {
+        width -= 8;
+    }
+
+    editor->setGeometry(x, y, width, rect.height());
+}
+
 void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItem itemOption(option);
     itemOption.rect.adjust(0, m_margin, 0, -m_margin);
+    initStyleOption(&itemOption, index);
 
     painter->save();
     painter->setPen(Qt::NoPen);
     painter->setRenderHint(QPainter::Antialiasing);
+    painter->setClipping(true);
+    painter->setClipRect(option.rect);
 
     const bool selected = isRowSelected(index.row());
     const bool hovered = isRowHovered(index.row());
@@ -281,6 +319,10 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     if (selected && index.column() == 0) {
         drawIndicator(painter, itemOption, index);
+    }
+
+    if (index.data(Qt::CheckStateRole).isValid()) {
+        drawCheckBox(painter, itemOption, index);
     }
 
     painter->restore();
@@ -325,6 +367,40 @@ void TableItemDelegate::drawIndicator(QPainter *painter, const QStyleOptionViewI
     painter->drawRoundedRect(QRect(4, option.rect.y() + padding, 3, height - 2 * padding), 1.5, 1.5);
 }
 
+void TableItemDelegate::drawCheckBox(QPainter *painter, const QStyleOptionViewItem &option,
+                                     const QModelIndex &index) const
+{
+    const QVariant checkStateData = index.data(Qt::CheckStateRole);
+    if (!checkStateData.isValid()) {
+        return;
+    }
+
+    const auto checkState = static_cast<Qt::CheckState>(checkStateData.toInt());
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    QRect indicatorRect;
+    if (option.widget) {
+        indicatorRect = option.widget->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option,
+                                                               option.widget);
+    }
+    if (indicatorRect.isEmpty()) {
+        indicatorRect = QRect(option.rect.x() + 15, qRound(option.rect.center().y() - 9.5), 19, 19);
+    }
+    const QRectF rect(indicatorRect.center().x() - 9.5, indicatorRect.center().y() - 9.5, 19, 19);
+
+    painter->save();
+    if (checkState == Qt::Unchecked) {
+        painter->setBrush(dark ? QColor(0, 0, 0, 26) : QColor(0, 0, 0, 6));
+        painter->setPen(dark ? QColor(255, 255, 255, 142) : QColor(0, 0, 0, 122));
+        painter->drawRoundedRect(rect, 4.5, 4.5);
+    } else {
+        painter->setPen(checkedColor());
+        painter->setBrush(checkedColor());
+        painter->drawRoundedRect(rect, 4.5, 4.5);
+        QIcon(checkBoxIconPath(checkState)).paint(painter, rect.toRect());
+    }
+    painter->restore();
+}
+
 bool TableItemDelegate::isRowSelected(int row) const { return m_selectedRows.contains(row); }
 
 bool TableItemDelegate::isRowHovered(int row) const { return m_hoverRow == row; }
@@ -366,32 +442,35 @@ void TreeItemDelegate::setHoverIndex(const QModelIndex &index)
 void TreeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItem itemOption(option);
-    // Shift rect left to leave room for branch indicator (handled by drawBranches)
-    itemOption.rect.adjust(-15, 0, 0, 0);
+    initStyleOption(&itemOption, index);
+
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    QStyledItemDelegate::paint(painter, itemOption, index);
+
+    if (index.data(Qt::CheckStateRole).isValid()) {
+        drawCheckBox(painter, itemOption, index);
+    }
+
+    const bool selected = itemOption.state & QStyle::State_Selected;
+    const bool hovered = isIndexHovered(index) || (itemOption.state & QStyle::State_MouseOver);
+    if (!selected && !hovered) {
+        return;
+    }
 
     painter->save();
     painter->setPen(Qt::NoPen);
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-    const bool selected = itemOption.state & QStyle::State_Selected;
-    const bool hovered = isIndexHovered(index);
-    if (selected || hovered) {
-        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-        const int channel = dark ? 255 : 0;
-        painter->setBrush(QColor(channel, channel, channel, 9));
-        drawBackground(painter, itemOption, index);
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    const int channel = dark ? 255 : 0;
+    painter->setBrush(QColor(channel, channel, channel, 9));
+    drawBackground(painter, itemOption, index);
 
-        const auto *view = qobject_cast<const QTreeView *>(parent());
-        if (selected && index.column() == 0 && view && view->horizontalScrollBar()->value() == 0) {
-            drawIndicator(painter, itemOption, index);
-        }
+    const auto *view = qobject_cast<const QTreeView *>(parent());
+    if (selected && index.column() == 0 && view && view->horizontalScrollBar()->value() == 0) {
+        drawIndicator(painter, itemOption, index);
     }
 
     painter->restore();
-
-    itemOption.state &= ~QStyle::State_Selected;
-    itemOption.state &= ~QStyle::State_MouseOver;
-    QStyledItemDelegate::paint(painter, itemOption, index);
 }
 
 bool TreeItemDelegate::isIndexHovered(const QModelIndex &index) const { return m_hoverIndex == index; }
@@ -399,41 +478,11 @@ bool TreeItemDelegate::isIndexHovered(const QModelIndex &index) const { return m
 void TreeItemDelegate::drawBackground(QPainter *painter, const QStyleOptionViewItem &option,
                                       const QModelIndex &index) const
 {
-    const int lastColumn = index.model() ? index.model()->columnCount(index.parent()) - 1 : index.column();
-    QRectF rect = QRectF(option.rect);
-    rect.setTop(option.rect.y() + 2);
-    rect.setHeight(option.rect.height() - 4);
+    Q_UNUSED(index)
 
-    constexpr qreal radius = 4.0;
-    QPainterPath path;
-
-    if (index.column() == 0) {
-        rect.setX(4);
-    }
-
-    if (index.column() == 0 && index.column() == lastColumn) {
-        path.addRoundedRect(rect, radius, radius);
-    } else if (index.column() == 0) {
-        path.moveTo(rect.right(), rect.top());
-        path.lineTo(rect.right(), rect.bottom());
-        path.lineTo(rect.x() + radius, rect.bottom());
-        path.arcTo(rect.x(), rect.bottom() - 2 * radius, 2 * radius, 2 * radius, 270, -90);
-        path.lineTo(rect.x(), rect.top() + radius);
-        path.arcTo(rect.x(), rect.top(), 2 * radius, 2 * radius, 180, -90);
-        path.closeSubpath();
-    } else if (index.column() == lastColumn) {
-        path.moveTo(rect.x(), rect.top());
-        path.lineTo(rect.right() - radius, rect.top());
-        path.arcTo(rect.right() - 2 * radius, rect.top(), 2 * radius, 2 * radius, 90, -90);
-        path.lineTo(rect.right(), rect.bottom() - radius);
-        path.arcTo(rect.right() - 2 * radius, rect.bottom() - 2 * radius, 2 * radius, 2 * radius, 0, -90);
-        path.lineTo(rect.x(), rect.bottom());
-        path.closeSubpath();
-    } else {
-        path.addRect(rect);
-    }
-
-    painter->drawPath(path);
+    const auto *view = qobject_cast<const QTreeView *>(parent());
+    const int width = view ? view->width() : option.rect.width();
+    painter->drawRoundedRect(QRect(4, option.rect.y() + 2, width - 8, option.rect.height() - 4), 4, 4);
 }
 
 void TreeItemDelegate::drawIndicator(QPainter *painter, const QStyleOptionViewItem &option,
@@ -442,6 +491,40 @@ void TreeItemDelegate::drawIndicator(QPainter *painter, const QStyleOptionViewIt
     const int height = option.rect.height() - 4;
     painter->setBrush(checkedColor());
     painter->drawRoundedRect(QRect(4, 9 + option.rect.y(), 3, height - 13), 1.5, 1.5);
+}
+
+void TreeItemDelegate::drawCheckBox(QPainter *painter, const QStyleOptionViewItem &option,
+                                    const QModelIndex &index) const
+{
+    const QVariant checkStateData = index.data(Qt::CheckStateRole);
+    if (!checkStateData.isValid()) {
+        return;
+    }
+
+    const auto checkState = static_cast<Qt::CheckState>(checkStateData.toInt());
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    QRect indicatorRect;
+    if (option.widget) {
+        indicatorRect = option.widget->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option,
+                                                               option.widget);
+    }
+    if (indicatorRect.isEmpty()) {
+        indicatorRect = QRect(option.rect.x() + 23, option.rect.center().y() - 9, 19, 19);
+    }
+    const QRectF rect(indicatorRect.center().x() - 9.5, indicatorRect.center().y() - 9.5, 19, 19);
+
+    painter->save();
+    if (checkState == Qt::Unchecked) {
+        painter->setBrush(dark ? QColor(0, 0, 0, 26) : QColor(0, 0, 0, 6));
+        painter->setPen(dark ? QColor(255, 255, 255, 142) : QColor(0, 0, 0, 122));
+        painter->drawRoundedRect(rect, 4.5, 4.5);
+    } else {
+        painter->setPen(checkedColor());
+        painter->setBrush(checkedColor());
+        painter->drawRoundedRect(rect, 4.5, 4.5);
+        QIcon(checkBoxIconPath(checkState)).paint(painter, rect.toRect());
+    }
+    painter->restore();
 }
 
 ListView::ListView(QWidget *parent) : QListView(parent) { init(); }
