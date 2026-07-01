@@ -59,7 +59,7 @@ void updateRoundedWindowMask(QWidget *widget)
         return;
     }
 
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+#if defined(Q_OS_WIN)
     widget->clearMask();
 #else
     if (widget->isMaximized() || widget->isFullScreen() || widget->width() <= 0 || widget->height() <= 0) {
@@ -340,7 +340,7 @@ void FluentWidget::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
     painter.setBrush(backgroundColor());
 
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+#if defined(Q_OS_WIN)
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
@@ -406,7 +406,7 @@ void FluentWidget::updateTitleBarGeometry()
 void FluentWidget::updateWindowMask()
 {
     updateRoundedWindowMask(this);
-#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+#if !defined(Q_OS_WIN)
     update();
 #endif
 }
@@ -668,7 +668,7 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+#if defined(Q_OS_WIN)
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
@@ -766,7 +766,7 @@ void FluentWindow::updateStackedBackground()
 void FluentWindow::updateWindowMask()
 {
     updateRoundedWindowMask(this);
-#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+#if !defined(Q_OS_WIN)
     update();
 #endif
 }
@@ -1023,7 +1023,7 @@ void MSFluentWindow::paintEvent(QPaintEvent *event)
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+#if defined(Q_OS_WIN)
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
@@ -1087,7 +1087,7 @@ void MSFluentWindow::updateStackedBackground()
 void MSFluentWindow::updateWindowMask()
 {
     updateRoundedWindowMask(this);
-#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+#if !defined(Q_OS_WIN)
     update();
 #endif
 }
