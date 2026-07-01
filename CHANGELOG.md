@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.5
+
+### Public release polish and Python parity
+
+- Aligned the Gallery status/info, text, view, and settings pages more closely with the Python reference, including badge geometry, info bar layout, view containers, and settings-card spacing.
+- Refined shared base widgets used by those pages, including info badges, info bars, item views, tree widgets, setting cards, and frameless window content surfaces.
+- Improved Windows frameless-window behavior: native maximize/double-click handling, maximize hit testing, resize constraints, and smoother main-content resizing during state changes.
+- Fixed settings-page release issues including overlapped cards, default theme/accent state, and native folder selection behavior.
+- Updated release metadata and public documentation for the 0.1.5 open-source release line.
+- Removed development-agent metadata, stale planning notes, and machine-specific example paths from the tracked source distribution.
+- Adjusted the example parity checker so missing Python-reference examples fail release validation while documented C++-only examples are reported as additional coverage.
+- Added tag-specific release notes so GitHub Releases include a human-readable description when `v0.1.5` is pushed.
+
 ## 0.1.3
 
 ### Windows build presets and documentation

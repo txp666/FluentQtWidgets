@@ -1,6 +1,6 @@
 {
   "name": "fluentqtwidgets",
-  "version-string": "0.1.3",
+  "version-string": "0.1.5",
   "description": "A Fluent Design inspired QWidget library for C++/Qt.",
   "dependencies": [
     {

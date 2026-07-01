@@ -1,6 +1,8 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
 #include <QtCore/QDebug>
+#include <QtCore/QDir>
+#include <QtCore/QStandardPaths>
 #include <QtCore/QtGlobal>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
@@ -26,10 +28,22 @@ class Demo : public QWidget
   private:
     void showDialog()
     {
-        QStringList folderPaths = {QStringLiteral("D:/KuGou"),
-                                   QStringLiteral("C:/Users/shoko/Documents/Music")};
-        FolderListDialog dialog(folderPaths,
-                                QStringLiteral("Build your collection from your local music files"),
+        QStringList folderPaths;
+        const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
+        if (!musicPath.isEmpty()) {
+            folderPaths << musicPath;
+        }
+
+        const QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+        if (!homePath.isEmpty() && !folderPaths.contains(homePath)) {
+            folderPaths << homePath;
+        }
+
+        if (folderPaths.isEmpty()) {
+            folderPaths << QDir::homePath();
+        }
+
+        FolderListDialog dialog(folderPaths, QStringLiteral("Build your collection from your local music files"),
                                 QStringLiteral("Right now, we're watching these folders:"), this);
         connect(&dialog, &FolderListDialog::folderChanged, this,
                 [](const QStringList &folders) { qDebug() << folders; });

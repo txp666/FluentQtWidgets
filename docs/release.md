@@ -10,17 +10,27 @@ That version is used by:
 - Gallery About/version display
 - Gallery update comparisons
 - Release asset names
+- CMake package version metadata
+
+Keep `include/FluentQtWidgets/Version.h` and `vcpkg.json` on the same release number so installed headers and package manifests remain consistent.
 
 ## Release Tags
 
-Release tags use the `vX.Y.Z` format. The current release line is `v0.1.4`.
+Release tags use the `vX.Y.Z` format. The current release line is `v0.1.5`.
+
+Create a matching release-notes file before tagging:
+
+```text
+docs/release-notes/vX.Y.Z.md
+```
 
 ```bash
-git tag v0.1.4
-git push origin main v0.1.4
+git tag v0.1.5
+git push origin main v0.1.5
 ```
 
 Pushing a `v*` tag runs the GitHub Actions release job after the CI build matrix passes.
+The release job uses `docs/release-notes/${GITHUB_REF_NAME}.md` as the GitHub Release description.
 
 ## Release Assets
 
@@ -53,9 +63,23 @@ The update checker compares the current CMake project version with the latest Gi
 Run the local checks before moving a release tag:
 
 ```bash
-cmake --build build/debug --parallel
-ctest --test-dir build/debug --output-on-failure
+cmake --preset ninja-debug
+cmake --build --preset debug --parallel
+ctest --preset debug --output-on-failure
 python3 scripts/verify_example_parity.py
 ```
+
+`scripts/verify_example_parity.py` confirms that every Python reference example directory has a C++ counterpart. C++-only examples are allowed when they demonstrate Qt/C++ specific APIs or composed controls.
+
+On Windows MinGW, use the matching preset instead:
+
+```powershell
+cmake --preset mingw-debug
+cmake --build --preset mingw-debug --parallel
+ctest --preset mingw-debug --output-on-failure
+python scripts/verify_example_parity.py
+```
+
+Before tagging, confirm `git status --short` is clean and that local reference checkouts such as `PyQt-Fluent-Widgets/` are not tracked.
 
 For GitHub release validation, confirm the tag workflow succeeds and that the release contains all three platform archives.

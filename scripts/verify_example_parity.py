@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Check C++ and Python example directory parity (excluding the gallery app layer)."""
+"""Check that Python reference examples have C++ counterparts.
+
+C++-only examples are allowed because the port includes additional demos for
+Qt/C++ specific APIs and composed controls. Missing Python reference examples
+still fail the release check.
+"""
 
 from __future__ import annotations
 
@@ -44,11 +49,11 @@ def main() -> int:
         for item in missing_in_cpp:
             print(f" - {item}")
     if missing_in_py:
-        print("Extra in C++ examples:")
+        print("Additional C++ examples:")
         for item in missing_in_py:
             print(f" - {item}")
 
-    return 1 if missing_in_cpp or missing_in_py else 0
+    return 1 if missing_in_cpp else 0
 
 
 if __name__ == "__main__":

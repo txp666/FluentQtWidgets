@@ -5,8 +5,7 @@ out/
 !.vscode/
 !.vscode/tasks.json
 !.vscode/launch.json
-.agents/*
-!.agents/AGENTS.md
+.agents/
 .codex/
 CMakeUserPresets.json
 CMakeFiles/

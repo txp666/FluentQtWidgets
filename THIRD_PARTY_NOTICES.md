@@ -4,7 +4,7 @@
 
 Upstream project: [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets).
 
-This repository is a Codex C++ migration of the upstream Python project. The upstream implementation is the reference for API inventory, behavior, examples, resource layout, Gallery structure, QSS, and translation parity. The upstream checkout is intentionally not committed to this repository.
+This repository is a C++/Qt Widgets port of the upstream Python project. The upstream implementation is the reference for API inventory, behavior, examples, resource layout, Gallery structure, QSS, and translation parity. The upstream checkout is intentionally not committed to this repository.
 
 The reference project is GPLv3 licensed. This C++ project follows GPL-compatible licensing because the implementation and selected resources are derivative of the Python reference rather than a clean-room rewrite.
 

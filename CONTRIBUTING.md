@@ -1,15 +1,23 @@
 # Contributing
 
-FluentQtWidgets is a Codex C++ migration of [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). Contributions must treat the Python implementation as the reference for public behavior, visual spacing, Gallery content, resources, and translations.
+FluentQtWidgets is a C++/Qt Widgets port of [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). Contributions must treat the Python implementation as the reference for public behavior, visual spacing, Gallery content, resources, and translations.
 
 ## Development Setup
 
-Use CMake and a Qt 6 kit:
+Use CMake and a Qt 6 kit. On macOS/Linux use the `ninja-debug` configure preset and `debug` build/test preset:
 
 ```powershell
-cmake -S . -B build -G Ninja -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
-cmake --build build
-ctest --test-dir build --output-on-failure
+cmake --preset ninja-debug
+cmake --build --preset debug --parallel
+ctest --preset debug --output-on-failure
+```
+
+On Windows MinGW, make the matching Qt kit, MinGW compiler, and Ninja visible first, then use:
+
+```powershell
+cmake --preset mingw-debug
+cmake --build --preset mingw-debug --parallel
+ctest --preset mingw-debug --output-on-failure
 ```
 
 ## Code Style
@@ -54,6 +62,7 @@ Only add assets with clear licensing. Resources copied from PyQt-Fluent-Widgets 
 - Documentation is updated
 - Python parity is checked for the touched demo or Gallery page
 - `ctest --test-dir build --output-on-failure` passes when tests are enabled
+- Release metadata is consistent in `CMakeLists.txt`, `include/FluentQtWidgets/Version.h`, `vcpkg.json`, and the release docs
 
 ## Conduct
 

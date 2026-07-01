@@ -6,7 +6,9 @@
 
 FluentQtWidgets is a C++/Qt Widgets library that implements a Fluent Design component system with reusable controls, standalone demos, and a full Gallery application.
 
-This repository is a **Codex C++ migration of the Python project** [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). The Python project is the behavioral and visual reference for this port: widget state, spacing, QSS constants, demo content, resource paths, Gallery structure, and translations are aligned to the upstream Python implementation unless Qt/C++ platform behavior makes an exact match impossible.
+This repository is a **C++/Qt Widgets port of the Python project** [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). The Python project is the behavioral and visual reference for this port: widget state, spacing, QSS constants, demo content, resource paths, Gallery structure, and translations are aligned to the upstream Python implementation unless Qt/C++ platform behavior makes an exact match impossible.
+
+Current release line: **0.1.5**. Local reference checkouts, build trees, and development-agent metadata are intentionally excluded from the source distribution.
 
 
 ## Requirements
@@ -24,6 +26,17 @@ This repository is a **Codex C++ migration of the Python project** [PyQt-Fluent-
 cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
+```
+
+### Install / consume
+
+```bash
+cmake --install build --prefix <install-prefix>
+```
+
+```cmake
+find_package(FluentQtWidgets CONFIG REQUIRED)
+target_link_libraries(my_app PRIVATE FluentQtWidgets::Widgets)
 ```
 
 ### Windows Qt kit selection
