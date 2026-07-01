@@ -8,6 +8,7 @@
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/QEnterEvent>
 #endif
+#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QBoxLayout>
@@ -64,6 +65,70 @@ class PipsScrollButton final : public QToolButton
 
   private:
     FluentIcon m_icon;
+};
+
+class PipsDotButton final : public QToolButton
+{
+  public:
+    explicit PipsDotButton(QWidget *parent = nullptr) : QToolButton(parent)
+    {
+        setCheckable(true);
+        setAutoRaise(true);
+        setFixedSize(12, 12);
+        setCursor(Qt::PointingHandCursor);
+        FluentStyleSheet::setRole(this, QStringLiteral("PipsPagerDot"));
+    }
+
+  protected:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    void enterEvent(QEnterEvent *event) override
+    {
+        QToolButton::enterEvent(event);
+        update();
+    }
+#else
+    void enterEvent(QEvent *event) override
+    {
+        QToolButton::enterEvent(event);
+        update();
+    }
+#endif
+
+    void leaveEvent(QEvent *event) override
+    {
+        QToolButton::leaveEvent(event);
+        update();
+    }
+
+    void mousePressEvent(QMouseEvent *event) override
+    {
+        QToolButton::mousePressEvent(event);
+        update();
+    }
+
+    void mouseReleaseEvent(QMouseEvent *event) override
+    {
+        QToolButton::mouseReleaseEvent(event);
+        update();
+    }
+
+    void paintEvent(QPaintEvent *event) override
+    {
+        Q_UNUSED(event)
+
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(Qt::NoPen);
+
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        const bool active = underMouse() || isDown();
+        const int alpha = dark ? (active ? 197 : 138) : (active ? 157 : 114);
+        painter.setBrush(dark ? QColor(255, 255, 255, alpha) : QColor(0, 0, 0, alpha));
+
+        const bool expanded = isChecked() || (underMouse() && !isDown());
+        const qreal radius = expanded ? 3.0 : 2.0;
+        painter.drawEllipse(QRectF(6.0 - radius, 6.0 - radius, 2.0 * radius, 2.0 * radius));
+    }
 };
 } // namespace
 
@@ -250,9 +315,9 @@ void PipsPager::init()
 
     m_layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    m_layout->setSpacing(0);
+    m_layout->setSpacing(3);
 
-    m_previousButton = new PipsScrollButton(FluentIcon::LeftArrow, this);
+    m_previousButton = new PipsScrollButton(FluentIcon::CareLeftSolid, this);
     m_previousButton->setToolTip(tr("Previous Page"));
     m_previousButton->setProperty("displayMode", displayModeName(m_previousButtonDisplayMode));
     QSizePolicy previousButtonSizePolicy = m_previousButton->sizePolicy();
@@ -260,7 +325,7 @@ void PipsPager::init()
     m_previousButton->setSizePolicy(previousButtonSizePolicy);
     connect(m_previousButton, &QToolButton::clicked, this, &PipsPager::scrollPrevious);
 
-    m_nextButton = new PipsScrollButton(FluentIcon::RightArrow, this);
+    m_nextButton = new PipsScrollButton(FluentIcon::CareRightSolid, this);
     m_nextButton->setToolTip(tr("Next Page"));
     m_nextButton->setProperty("displayMode", displayModeName(m_nextButtonDisplayMode));
     QSizePolicy nextButtonSizePolicy = m_nextButton->sizePolicy();
@@ -293,14 +358,9 @@ void PipsPager::rebuildPips()
     m_pipButtons.clear();
 
     for (int i = 0; i < m_pageNumber; ++i) {
-        auto *button = new QToolButton(m_pipContainer);
-        button->setCheckable(true);
-        button->setAutoRaise(true);
-        button->setFixedSize(12, 12);
-        button->setCursor(Qt::PointingHandCursor);
+        auto *button = new PipsDotButton(m_pipContainer);
         button->setToolTip(tr("Page %1").arg(i + 1));
         button->setProperty("pageIndex", i);
-        FluentStyleSheet::setRole(button, QStringLiteral("PipsPagerDot"));
         connect(button, &QToolButton::clicked, this, [this, i]() { setCurrentIndex(i); });
         m_pipButtons.append(button);
     }
@@ -394,10 +454,10 @@ void PipsPager::updateLayoutDirection()
     }
 
     if (auto *button = dynamic_cast<PipsScrollButton *>(m_previousButton)) {
-        button->setFluentIcon(isHorizontal() ? FluentIcon::LeftArrow : FluentIcon::Up);
+        button->setFluentIcon(isHorizontal() ? FluentIcon::CareLeftSolid : FluentIcon::CareUpSolid);
     }
     if (auto *button = dynamic_cast<PipsScrollButton *>(m_nextButton)) {
-        button->setFluentIcon(isHorizontal() ? FluentIcon::RightArrow : FluentIcon::Download);
+        button->setFluentIcon(isHorizontal() ? FluentIcon::CareRightSolid : FluentIcon::CareDownSolid);
     }
     m_layout->setDirection(isHorizontal() ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom);
 

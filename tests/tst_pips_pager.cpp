@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
+#include <QtCore/QFile>
 #include <QtCore/QPropertyAnimation>
 #include <QtTest/QtTest>
 #include <QtWidgets/QToolButton>
@@ -70,6 +71,23 @@ class PipsPagerTest : public QObject
 
         pager.setCurrentIndex(99);
         QCOMPARE(pager.currentIndex(), 4);
+    }
+
+    void pagerQssLeavesPipsAndArrowsTransparent()
+    {
+        const QStringList paths = {
+            QStringLiteral(":/qfluentwidgets/qss/light/pips_pager.qss"),
+            QStringLiteral(":/qfluentwidgets/qss/dark/pips_pager.qss"),
+        };
+
+        for (const QString &path : paths) {
+            QFile file(path);
+            QVERIFY2(file.open(QIODevice::ReadOnly | QIODevice::Text), qPrintable(path));
+            const QString qss = QString::fromUtf8(file.readAll());
+            QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"PipsPagerDot\"]")), qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"PipsPagerScrollButton\"]")), qPrintable(path));
+            QVERIFY2(!qss.contains(QStringLiteral("background: rgba")), qPrintable(path));
+        }
     }
 
     void pagerSupportsOrientationAndClampsState()

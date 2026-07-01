@@ -6,7 +6,9 @@
 #include <QtCore/QPointer>
 #include <QtTest/QtTest>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QFrame>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QVBoxLayout>
 
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
@@ -14,6 +16,7 @@
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
+#include <FluentQtWidgets/Widgets/PipsPager.h>
 
 class GalleryTranslationTest : public QObject
 {
@@ -417,6 +420,62 @@ class GalleryTranslationTest : public QObject
         QVERIFY(!acrylicLabel->isNull());
 
         config->setAcrylicBlurRadius(previousAcrylicBlurRadius);
+    }
+
+    void scrollPageMatchesPythonGallery()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("scrollInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("scrollInterface"));
+
+        bool foundSubtitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.widgets")) {
+                foundSubtitle = true;
+                break;
+            }
+        }
+        QVERIFY(foundSubtitle);
+
+        const auto pagers = page->findChildren<FluentQt::HorizontalPipsPager *>();
+        QCOMPARE(pagers.size(), 1);
+        auto *pager = pagers.constFirst();
+        QCOMPARE(pager->pageNumber(), 15);
+        QCOMPARE(pager->previousButtonDisplayMode(), FluentQt::PipsScrollButtonDisplayMode::Always);
+        QCOMPARE(pager->nextButtonDisplayMode(), FluentQt::PipsScrollButtonDisplayMode::Always);
+
+        QWidget *pipsCard = pager;
+        while (pipsCard && !pipsCard->findChild<QFrame *>(QStringLiteral("card"), Qt::FindDirectChildrenOnly)) {
+            pipsCard = pipsCard->parentWidget();
+        }
+        QVERIFY(pipsCard != nullptr);
+        auto *innerCard = pipsCard->findChild<QFrame *>(QStringLiteral("card"), Qt::FindDirectChildrenOnly);
+        QVERIFY(innerCard != nullptr);
+        auto *cardLayout = qobject_cast<QVBoxLayout *>(innerCard->layout());
+        QVERIFY(cardLayout != nullptr);
+        QLayoutItem *topItem = cardLayout->itemAt(0);
+        QVERIFY(topItem != nullptr);
+        QVERIFY(topItem->layout() != nullptr);
+        QCOMPARE(topItem->layout()->contentsMargins(), QMargins(12, 20, 12, 20));
+
+        const auto cards = page->findChildren<QFrame *>(QStringLiteral("card"));
+        QVERIFY(cards.size() >= 3);
+        int timedToolTipCards = 0;
+        for (QFrame *card : cards) {
+            if (card->toolTipDuration() == 2000) {
+                ++timedToolTipCards;
+            }
+        }
+        QCOMPARE(timedToolTipCards, 3);
     }
 
     void basicInputTrailingTransparentTogglesStayCheckable()
