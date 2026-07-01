@@ -506,6 +506,59 @@ class ShellTest : public QObject
         QVERIFY(hasPlayedWaveformPixel);
     }
 
+    void realtimePlotWidgetSupportsMultipleSeriesAndLegend()
+    {
+        FluentQt::RealtimePlotWidget plot;
+        QCOMPARE(plot.seriesCount(), 1);
+        plot.setSeriesName(0, QStringLiteral("CPU"));
+        plot.setSeriesColor(0, QColor(0, 159, 170));
+        const int memorySeries = plot.addSeries(QStringLiteral("Memory"), QColor(22, 163, 74));
+        QCOMPARE(plot.seriesCount(), 2);
+        QCOMPARE(plot.seriesName(memorySeries), QStringLiteral("Memory"));
+
+        QSignalSpy samplesSpy(&plot, &FluentQt::RealtimePlotWidget::samplesChanged);
+        QSignalSpy seriesSpy(&plot, &FluentQt::RealtimePlotWidget::seriesChanged);
+
+        plot.setCapacity(4);
+        plot.appendSamples(0, QVector<qreal>{1, 2, 3, 4, 5});
+        QCOMPARE(plot.points(0).size(), 4);
+        QCOMPARE(plot.points(0).first().y(), 2.0);
+        plot.setSamples(memorySeries, QVector<qreal>{5, 6, 7, 8});
+        QCOMPARE(plot.sampleCount(), 4);
+        QVERIFY(samplesSpy.count() >= 2);
+
+        QVERIFY(plot.isSeriesVisible(memorySeries));
+        plot.setSeriesVisible(memorySeries, false);
+        QVERIFY(!plot.isSeriesVisible(memorySeries));
+        plot.setSeriesVisible(memorySeries, true);
+        QVERIFY(plot.isSeriesVisible(memorySeries));
+        QVERIFY(seriesSpy.count() >= 2);
+
+        plot.resize(420, 260);
+        plot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&plot));
+
+        QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        plot.render(&rendered);
+
+        bool hasSeriesPixel = false;
+        for (int y = 0; y < rendered.height() && !hasSeriesPixel; ++y) {
+            for (int x = 0; x < rendered.width(); ++x) {
+                const QColor pixel = QColor::fromRgba(rendered.pixel(x, y));
+                if (pixel.green() > 110 && pixel.red() < 120 && pixel.blue() < 150) {
+                    hasSeriesPixel = true;
+                    break;
+                }
+            }
+        }
+        QVERIFY(hasSeriesPixel);
+
+        QVERIFY(plot.isSeriesVisible(0));
+        QTest::mouseClick(&plot, Qt::LeftButton, Qt::NoModifier, QPoint(320, 44));
+        QVERIFY(!plot.isSeriesVisible(0));
+    }
+
     void chartWidgetLoadsBundledEcharts()
     {
         QJsonObject option{

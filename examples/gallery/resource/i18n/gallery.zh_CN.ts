@@ -2685,6 +2685,16 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     </message>
     <message>
         <location filename="../../app/view/home_interface.cpp"/>
+        <source>RealtimePlotWidget</source>
+        <translation>RealtimePlotWidget</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A native high-performance plot widget for streaming data and selectable series.</source>
+        <translation>用于流式数据和可选择曲线的原生高性能绘图控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
         <source>ChartWidget</source>
         <translation>ChartWidget</translation>
     </message>
@@ -2740,6 +2750,26 @@ In that case, I would accept it no matter which side the ball falls on.</source>
         <location filename="../../app/view/chart_interface.cpp"/>
         <source>Audio waveform widget</source>
         <translation>音频波形控件</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Realtime multi-series plot</source>
+        <translation>实时多曲线图</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>CPU</source>
+        <translation>CPU</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Memory</source>
+        <translation>内存</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>I/O</source>
+        <translation>I/O</translation>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>

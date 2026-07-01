@@ -103,8 +103,12 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Basic input samples"), QStringLiteral("基本输入示例"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Chart samples"), QStringLiteral("图表示例"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "AudioWaveformWidget"), QStringLiteral("AudioWaveformWidget"));
+        QCOMPARE(QCoreApplication::translate("HomeInterface", "RealtimePlotWidget"), QStringLiteral("RealtimePlotWidget"));
         QCOMPARE(QCoreApplication::translate("Translator", "Charts"), QStringLiteral("图表"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Audio waveform widget"), QStringLiteral("音频波形控件"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Realtime multi-series plot"),
+                 QStringLiteral("实时多曲线图"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Memory"), QStringLiteral("内存"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Mixed bar and line chart powered by ECharts"),
                  QStringLiteral("由 ECharts 驱动的柱状折线混合图"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),
@@ -164,8 +168,12 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Basic input samples"), QStringLiteral("基本輸入示例"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Chart samples"), QStringLiteral("圖表示例"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "AudioWaveformWidget"), QStringLiteral("AudioWaveformWidget"));
+        QCOMPARE(QCoreApplication::translate("HomeInterface", "RealtimePlotWidget"), QStringLiteral("RealtimePlotWidget"));
         QCOMPARE(QCoreApplication::translate("Translator", "Charts"), QStringLiteral("圖表"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Audio waveform widget"), QStringLiteral("音頻波形控件"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Realtime multi-series plot"),
+                 QStringLiteral("實時多曲線圖"));
+        QCOMPARE(QCoreApplication::translate("ChartInterface", "Memory"), QStringLiteral("記憶體"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Mixed bar and line chart powered by ECharts"),
                  QStringLiteral("由 ECharts 驅動的柱狀折線混合圖"));
         QCOMPARE(QCoreApplication::translate("HomeInterface", "Help us improve FluentQtWidgets by providing feedback."),

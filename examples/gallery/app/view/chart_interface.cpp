@@ -4,6 +4,7 @@
 
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
+#include <QtCore/QTimer>
 #include <QtCore/QVector>
 
 #include <cmath>
@@ -44,6 +45,58 @@ AudioWaveformWidget *createAudioWaveform(QWidget *parent)
     waveform->setBarWidth(2.0);
     waveform->setBarGap(3.0);
     return waveform;
+}
+
+qreal realtimeValue(qreal t, int seriesIndex)
+{
+    const qreal base = 48.0 + 20.0 * std::sin(t * 0.032 + seriesIndex * 0.8);
+    const qreal detail = 9.0 * std::sin(t * (0.097 + seriesIndex * 0.013));
+    const qreal drift = 6.0 * std::sin(t * 0.007 + seriesIndex * 1.7);
+    qreal pulse = 0.0;
+    if (seriesIndex == 2) {
+        const qreal phase = std::fmod(t, 180.0);
+        pulse = phase < 24.0 ? 28.0 * std::exp(-phase * 0.12) : 0.0;
+    }
+    return qBound<qreal>(0.0, base + detail + drift + pulse, 100.0);
+}
+
+RealtimePlotWidget *createRealtimePlot(QWidget *parent)
+{
+    auto *plot = new RealtimePlotWidget(parent);
+    plot->setMinimumHeight(320);
+    plot->setCapacity(60000);
+    plot->setVisibleSpan(420);
+    plot->setSeriesName(0, tx("ChartInterface", "CPU"));
+    plot->setSeriesColor(0, QColor(0, 159, 170));
+    const int memorySeries = plot->addSeries(tx("ChartInterface", "Memory"), QColor(22, 163, 74));
+    const int ioSeries = plot->addSeries(tx("ChartInterface", "I/O"), QColor(245, 158, 11));
+
+    constexpr int seedCount = 900;
+    QVector<qreal> cpu;
+    QVector<qreal> memory;
+    QVector<qreal> io;
+    cpu.reserve(seedCount);
+    memory.reserve(seedCount);
+    io.reserve(seedCount);
+    for (int i = 0; i < seedCount; ++i) {
+        cpu.append(realtimeValue(i, 0));
+        memory.append(realtimeValue(i, 1));
+        io.append(realtimeValue(i, 2));
+    }
+    plot->setSamples(0, cpu);
+    plot->setSamples(memorySeries, memory);
+    plot->setSamples(ioSeries, io);
+
+    auto *timer = new QTimer(plot);
+    QObject::connect(timer, &QTimer::timeout, plot,
+                     [plot, memorySeries, ioSeries, t = static_cast<qreal>(seedCount)]() mutable {
+                         plot->appendSample(0, realtimeValue(t, 0));
+                         plot->appendSample(memorySeries, realtimeValue(t, 1));
+                         plot->appendSample(ioSeries, realtimeValue(t, 2));
+                         t += 1.0;
+                     });
+    timer->start(24);
+    return plot;
 }
 
 QJsonObject axisChartOption(const QString &title, const QStringList &categories, const QJsonArray &values,
@@ -334,8 +387,11 @@ QWidget *GalleryWindow::createChartPage()
     const QString chartSource = QStringLiteral(FQW_REPOSITORY_URL "/blob/main/include/FluentQtWidgets/Widgets/ChartWidget.h");
     const QString waveformSource =
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/include/FluentQtWidgets/Widgets/AudioWaveformWidget.h");
+    const QString realtimeSource =
+        QStringLiteral(FQW_REPOSITORY_URL "/blob/main/include/FluentQtWidgets/Widgets/RealtimePlotWidget.h");
 
     page->addExampleCard(tx("ChartInterface", "Audio waveform widget"), createAudioWaveform(page), waveformSource, 1);
+    page->addExampleCard(tx("ChartInterface", "Realtime multi-series plot"), createRealtimePlot(page), realtimeSource, 1);
     page->addExampleCard(tx("ChartInterface", "Bar chart powered by ECharts"), createChart(barOption(), page),
                          chartSource, 1);
     page->addExampleCard(tx("ChartInterface", "Line chart powered by ECharts"), createChart(lineOption(), page),

@@ -392,9 +392,12 @@ HomeInterface::HomeInterface(QWidget *parent) : ScrollArea(parent)
                               {"controls/Sound.png", "AudioWaveformWidget",
                                "A widget that renders sampled audio amplitudes as an interactive waveform.",
                                "chartInterface", 0},
+                              {"controls/Line.png", "RealtimePlotWidget",
+                               "A native high-performance plot widget for streaming data and selectable series.",
+                               "chartInterface", 1},
                               {"controls/WebView.png", "ChartWidget",
                                "A widget that renders ECharts options inside a Fluent styled Qt application.",
-                               "chartInterface", 1},
+                               "chartInterface", 2},
                           });
 
     auto *dialogView = new SampleCardView(

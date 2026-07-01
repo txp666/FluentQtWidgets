@@ -53,6 +53,7 @@
 #include <FluentQtWidgets/Widgets/Menu.h>
 #include <FluentQtWidgets/Widgets/PipsPager.h>
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
+#include <FluentQtWidgets/Widgets/RealtimePlotWidget.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 #include <FluentQtWidgets/Widgets/Separator.h>
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>

@@ -6,11 +6,12 @@
 
 - Added `ChartWidget`, a Qt WebEngine-backed widget that renders bundled Apache ECharts options inside FluentQtWidgets applications.
 - Added `AudioWaveformWidget`, an interactive QWidget-based waveform renderer for sampled audio amplitudes with progress, color, and metric customization.
-- Integrated the new chart components into Gallery with ECharts bar, line, stacked area, mixed bar/line, donut, scatter, radar, gauge, heatmap, and audio-waveform demos.
+- Added `RealtimePlotWidget`, a native QWidget live plot with bounded multi-series buffers, dense-data aggregation, crosshair interaction, and checkbox legend toggles.
+- Integrated the new chart components into Gallery with realtime, audio-waveform, and ECharts bar, line, stacked area, mixed bar/line, donut, scatter, radar, gauge, and heatmap demos.
 - Bundled `echarts.min.js` in the Qt resource system and documented the Apache ECharts third-party notice.
 - Fixed macOS Gallery deployment for Qt WebEngine helper dependencies, including `QtWebChannel.framework` lookup from `QtWebEngineProcess.app`.
 - Fixed macOS Fluent window corner rendering so native rounded corners remain visible without clipping child content.
-- Added tests for bundled ECharts loading, waveform sample/progress behavior, waveform rendering, and Gallery translations.
+- Added tests for bundled ECharts loading, waveform sample/progress behavior, realtime plot multi-series rendering, checkbox legend toggling, and Gallery translations.
 - Updated release metadata and documentation for the 0.1.6 release line.
 
 ## 0.1.5

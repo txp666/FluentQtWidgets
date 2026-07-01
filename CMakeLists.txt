@@ -141,6 +141,7 @@ set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/Widgets/Menu.h
     include/FluentQtWidgets/Widgets/PipsPager.h
     include/FluentQtWidgets/Widgets/ProgressBar.h
+    include/FluentQtWidgets/Widgets/RealtimePlotWidget.h
     include/FluentQtWidgets/Widgets/ScrollArea.h
     include/FluentQtWidgets/Widgets/Separator.h
     include/FluentQtWidgets/Widgets/SmoothScrollDelegate.h
@@ -209,6 +210,7 @@ set(FQW_SOURCES
     src/widgets/Menu.cpp
     src/widgets/PipsPager.cpp
     src/widgets/ProgressBar.cpp
+    src/widgets/RealtimePlotWidget.cpp
     src/widgets/ScrollArea.cpp
     src/widgets/Separator.cpp
     src/widgets/SmoothScrollDelegate.cpp

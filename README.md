@@ -139,6 +139,7 @@ The repository focuses on Fluent-style:
 - Menus, dialogs, flyouts, popups
 - Navigation and layout controls
 - Editors, selectors, info and feedback components
+- Charts, live plots, and waveform visualization
 - Table/tree/list views and scrolling
 - Basic Material helpers
 

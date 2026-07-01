@@ -190,16 +190,24 @@ auto *chart = new FluentQt::ChartWidget(option);
 auto *waveform = new FluentQt::AudioWaveformWidget;
 waveform->setSamples({0.1, 0.4, 0.9, 0.3});
 waveform->setProgress(0.5);
+
+auto *plot = new FluentQt::RealtimePlotWidget;
+int memorySeries = plot->addSeries("Memory");
+plot->appendSample(0, 42.0);
+plot->appendSample(memorySeries, 58.0);
 ```
 
 Supported classes:
 
 - `ChartWidget`
 - `AudioWaveformWidget`
+- `RealtimePlotWidget`
 
 `ChartWidget` renders Apache ECharts options inside a FluentQtWidgets application using Qt WebEngine when `Qt6::WebEngineWidgets` is available. It stores the ECharts runtime in the Qt resource system, exposes `option`, `chartTheme`, `setOptionJson()`, and `reload()`, and automatically refreshes on theme/accent changes. macOS app bundle deployment includes a Qt WebEngine helper fix so `QtWebEngineProcess.app` can resolve bundled Qt frameworks.
 
 `AudioWaveformWidget` is a native QWidget renderer for sampled audio amplitudes. It exposes `sampleLevels`, `progress`, bar metrics, light/dark waveform colors, and click/drag signals so callers can use it as a seekable waveform display without WebEngine.
+
+`RealtimePlotWidget` is a native QWidget renderer for live line plots. It keeps bounded per-series buffers, draws dense data through pixel-column min/max aggregation, supports auto-scrolling, wheel zoom, drag pan, crosshair readout, and an in-plot checkbox legend for toggling series visibility.
 
 ## Layout
 
