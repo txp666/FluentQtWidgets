@@ -165,6 +165,30 @@ Supported classes:
 
 `IconWidget` paints a `QIcon` or `FluentIcon` inside a QWidget. `ImageLabel` paints rounded local images. `AvatarWidget` follows the Python constructor semantics where `QString` is an image path, supports `QPixmap` / `QImage` / GIF paths, remote `http(s)` URLs via `setImage()` / `setImageUrl()`, and still supports text fallback avatars through `setText()`. `CardWidget` emits `clicked()` on left-button release like the Python reference, while `HeaderCardWidget`, `CardGroupWidget`, and `GroupHeaderCardWidget` expose the same named child widgets/layouts for advanced composition. `HorizontalSeparator` and `VerticalSeparator` match the Python reference's 3px separator widgets with a theme-aware 1px line. `CycleListWidget` matches the Python picker-column behavior with repeated circular items, hidden smooth scrollbar, hover scroll buttons, and `setSelectedItem()` / `setScrollButtonRepeatEnabled()` helpers.
 
+## Charts
+
+```cpp
+QJsonObject option{
+    {"xAxis", QJsonObject{{"type", "category"}, {"data", QJsonArray{"Mon", "Tue"}}}},
+    {"yAxis", QJsonObject{{"type", "value"}}},
+    {"series", QJsonArray{QJsonObject{{"type", "bar"}, {"data", QJsonArray{120, 200}}}}}
+};
+auto *chart = new FluentQt::ChartWidget(option);
+
+auto *waveform = new FluentQt::AudioWaveformWidget;
+waveform->setSamples({0.1, 0.4, 0.9, 0.3});
+waveform->setProgress(0.5);
+```
+
+Supported classes:
+
+- `ChartWidget`
+- `AudioWaveformWidget`
+
+`ChartWidget` renders Apache ECharts options inside a FluentQtWidgets application using Qt WebEngine when `Qt6::WebEngineWidgets` is available. It stores the ECharts runtime in the Qt resource system, exposes `option`, `chartTheme`, `setOptionJson()`, and `reload()`, and automatically refreshes on theme/accent changes. macOS app bundle deployment includes a Qt WebEngine helper fix so `QtWebEngineProcess.app` can resolve bundled Qt frameworks.
+
+`AudioWaveformWidget` is a native QWidget renderer for sampled audio amplitudes. It exposes `sampleLevels`, `progress`, bar metrics, light/dark waveform colors, and click/drag signals so callers can use it as a seekable waveform display without WebEngine.
+
 ## Layout
 
 ```cpp
