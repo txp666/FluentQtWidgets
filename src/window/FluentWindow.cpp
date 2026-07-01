@@ -19,7 +19,6 @@
 #include <QtGui/QResizeEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QCursor>
-#include <QtGui/QRegion>
 #include <QtGui/QWindow>
 #include <QtGui/QGuiApplication>
 #include <QtWidgets/QHBoxLayout>
@@ -33,6 +32,10 @@
 #include <windowsx.h>
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
+#endif
+
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+#include <QtGui/QRegion>
 #endif
 
 namespace FluentQt {
@@ -53,13 +56,38 @@ namespace {
 
 constexpr int kWindowCornerRadius = 8;
 
+void configureRoundedWindowBackground(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+
+#if defined(Q_OS_MACOS)
+    widget->setAttribute(Qt::WA_TranslucentBackground, true);
+#endif
+}
+
+void configureContentBackground(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+
+#if defined(Q_OS_MACOS)
+    widget->setAttribute(Qt::WA_TranslucentBackground, true);
+    widget->setAttribute(Qt::WA_StyledBackground, false);
+#else
+    widget->setAttribute(Qt::WA_StyledBackground, true);
+#endif
+}
+
 void updateRoundedWindowMask(QWidget *widget)
 {
     if (!widget) {
         return;
     }
 
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     widget->clearMask();
 #else
     if (widget->isMaximized() || widget->isFullScreen() || widget->width() <= 0 || widget->height() <= 0) {
@@ -215,6 +243,7 @@ FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
 {
     setWindowFlag(Qt::FramelessWindowHint, true);
     setAutoFillBackground(false);
+    configureRoundedWindowBackground(this);
     FluentStyleSheet::setRole(this, QStringLiteral("FluentWidget"));
 
     m_frameless = new FramelessWindowHelper(this);
@@ -419,6 +448,7 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowFlag(Qt::FramelessWindowHint, true);
     setAutoFillBackground(false);
+    configureRoundedWindowBackground(this);
     setMinimumSize(900, 620);
     FluentStyleSheet::setRole(this, QStringLiteral("FluentWindow"));
 
@@ -430,7 +460,7 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
 
     m_container = new QWidget(this);
     m_container->setObjectName(QStringLiteral("FluentWindowContent"));
-    m_container->setAttribute(Qt::WA_StyledBackground, true);
+    configureContentBackground(m_container);
     auto *layout = new QVBoxLayout(m_container);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
@@ -791,6 +821,7 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowFlag(Qt::FramelessWindowHint, true);
     setAutoFillBackground(false);
+    configureRoundedWindowBackground(this);
     setMinimumSize(900, 620);
     FluentStyleSheet::setRole(this, QStringLiteral("MSFluentWindow"));
 
@@ -800,7 +831,7 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
 
     m_container = new QWidget(this);
     m_container->setObjectName(QStringLiteral("FluentWindowContent"));
-    m_container->setAttribute(Qt::WA_StyledBackground, true);
+    configureContentBackground(m_container);
 
     auto *layout = new QHBoxLayout(m_container);
     layout->setContentsMargins(0, 48, 0, 0);

@@ -430,7 +430,11 @@ class ShellTest : public QObject
     {
         FluentQt::FluentWidget widget;
         QVERIFY(widget.windowFlags() & Qt::FramelessWindowHint);
+#if defined(Q_OS_MACOS)
+        QVERIFY(widget.testAttribute(Qt::WA_TranslucentBackground));
+#else
         QVERIFY(!widget.testAttribute(Qt::WA_TranslucentBackground));
+#endif
         QCOMPARE(widget.property("fqw").toString(), QStringLiteral("FluentWidget"));
         QVERIFY(widget.titleBar() != nullptr);
         QCOMPARE(widget.titleBar()->height(), 48);
@@ -1034,6 +1038,25 @@ class ShellTest : public QObject
     {
 #if defined(Q_OS_WIN)
         QSKIP("Windows uses native rounded corners without a QWidget mask");
+#elif defined(Q_OS_MACOS)
+        FluentQt::FluentWindow window;
+        window.resize(480, 360);
+        auto *home = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QVERIFY(window.mask().isEmpty());
+
+        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        window.render(&image);
+
+        const QColor topLeft = image.pixelColor(0, 0);
+        const QColor inner = image.pixelColor(16, 16);
+        QVERIFY2(inner.alpha() > 0, "The rounded window body should be rendered");
+        QVERIFY2(topLeft.alpha() < inner.alpha(), "macOS rounded corners should use alpha instead of a hard QWidget mask");
 #else
         FluentQt::FluentWindow window;
         window.resize(480, 360);
