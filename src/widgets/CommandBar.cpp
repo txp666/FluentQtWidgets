@@ -5,6 +5,7 @@
 #include <FluentQtWidgets/Widgets/Button.h>
 
 #include <QtCore/QPointer>
+#include <QtCore/QVariant>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QResizeEvent>
@@ -281,7 +282,17 @@ void CommandBar::addAction(QAction *action)
     }
     m_actions.append(action);
     trackAction(action);
-    rebuild();
+
+    QWidget *widget = action->isSeparator() ? static_cast<QWidget *>(new CommandSeparator(this))
+                                            : static_cast<QWidget *>(createButtonForAction(action));
+    if (action->isSeparator()) {
+        widget->setProperty("_fqw_action", QVariant::fromValue<quintptr>(reinterpret_cast<quintptr>(action)));
+    }
+    m_widgets.append(widget);
+    widget->show();
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::addActions(const QList<QAction *> &actions)
@@ -308,7 +319,13 @@ QAction *CommandBar::insertSeparator(int index)
     index = qBound(0, index < 0 ? m_actions.size() : index, m_actions.size());
     m_actions.insert(index, action);
     trackAction(action);
-    rebuild();
+    auto *separator = new CommandSeparator(this);
+    separator->setProperty("_fqw_action", QVariant::fromValue<quintptr>(reinterpret_cast<quintptr>(action)));
+    m_widgets.insert(qBound(0, index, m_widgets.size()), separator);
+    separator->show();
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
     return action;
 }
 
@@ -320,7 +337,14 @@ void CommandBar::addWidget(QWidget *widget)
 
     widget->setParent(this);
     m_customWidgets.append(widget);
-    rebuild();
+    m_widgets.append(widget);
+    widget->show();
+    if (widget->size().isEmpty() && widget->sizeHint().isValid()) {
+        widget->resize(widget->sizeHint());
+    }
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::removeAction(QAction *action)
@@ -329,14 +353,38 @@ void CommandBar::removeAction(QAction *action)
         return;
     }
 
-    const bool removed = m_actions.removeAll(action) > 0 || m_hiddenActions.removeAll(action) > 0;
-    if (!removed) {
+    const bool removedVisible = m_actions.removeAll(action) > 0;
+    const bool removedHidden = m_hiddenActions.removeAll(action) > 0;
+    if (!removedVisible && !removedHidden) {
         return;
+    }
+    if (removedVisible && action->isSeparator()) {
+        for (int i = 0; i < m_widgets.size(); ++i) {
+            if (m_widgets.at(i)->property("_fqw_action").value<quintptr>() != reinterpret_cast<quintptr>(action)) {
+                continue;
+            }
+            QWidget *widget = m_widgets.takeAt(i);
+            widget->hide();
+            widget->deleteLater();
+            break;
+        }
+    } else if (removedVisible) {
+        for (int i = 0; i < m_widgets.size(); ++i) {
+            auto *button = qobject_cast<CommandButton *>(m_widgets.at(i));
+            if (button && button->action() == action) {
+                m_widgets.removeAt(i);
+                button->hide();
+                button->deleteLater();
+                break;
+            }
+        }
     }
     if (action->parent() == this) {
         action->deleteLater();
     }
-    rebuild();
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::removeWidget(QWidget *widget)
@@ -345,8 +393,11 @@ void CommandBar::removeWidget(QWidget *widget)
         return;
     }
     widget->hide();
+    m_widgets.removeOne(widget);
     widget->deleteLater();
-    rebuild();
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::addHiddenAction(QAction *action)
@@ -360,7 +411,9 @@ void CommandBar::addHiddenAction(QAction *action)
     }
     m_hiddenActions.append(action);
     trackAction(action);
-    rebuild();
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 QAction *CommandBar::addHiddenAction(const QIcon &icon, const QString &text)
@@ -392,7 +445,9 @@ void CommandBar::removeHiddenAction(QAction *action)
     if (action->parent() == this) {
         action->deleteLater();
     }
-    rebuild();
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 QList<QAction *> CommandBar::commandActions() const { return m_actions; }
@@ -402,14 +457,9 @@ QList<QAction *> CommandBar::hiddenActions() const { return m_hiddenActions; }
 QList<CommandButton *> CommandBar::commandButtons() const
 {
     QList<CommandButton *> buttons;
-    if (!m_layout) {
-        return buttons;
-    }
-
-    for (int i = 0; i < m_layout->count(); ++i) {
-        auto *item = m_layout->itemAt(i);
-        auto *button = item ? qobject_cast<CommandButton *>(item->widget()) : nullptr;
-        if (button && button != moreButton()) {
+    for (QWidget *widget : m_widgets) {
+        auto *button = qobject_cast<CommandButton *>(widget);
+        if (button) {
             buttons.append(button);
         }
     }
@@ -432,39 +482,23 @@ MoreActionsButton *CommandBar::moreButton() const { return m_overflowButton; }
 
 int CommandBar::suitableWidth() const
 {
-    int width = m_layout ? m_layout->contentsMargins().left() + m_layout->contentsMargins().right() : 0;
-    int visibleItems = 0;
-    for (QAction *action : m_actions) {
-        if (!action) {
+    QList<int> widths;
+    widths.reserve(m_widgets.size() + (m_hiddenActions.isEmpty() ? 0 : 1));
+    for (QWidget *widget : m_widgets) {
+        if (!widget) {
             continue;
         }
-        ++visibleItems;
-        if (action->isSeparator()) {
-            width += 9;
-        } else {
-            CommandButton button;
-            button.setAction(action);
-            button.setToolButtonStyle(m_toolButtonStyle);
-            button.setTight(m_buttonTight);
-            button.setIconSize(m_iconSize);
-            button.setFont(font());
-            width += button.sizeHint().width();
-        }
-    }
-    for (QWidget *widget : m_customWidgets) {
-        if (widget) {
-            ++visibleItems;
-            width += widget->sizeHint().width();
-        }
+        const QSize hint = widget->sizeHint().isValid() ? widget->sizeHint() : widget->minimumSizeHint();
+        widths.append(qMax(widget->width(), hint.width()));
     }
     if (!m_hiddenActions.isEmpty()) {
-        ++visibleItems;
-        width += MoreActionsButton().sizeHint().width();
+        widths.append(m_overflowButton ? m_overflowButton->width() : MoreActionsButton().sizeHint().width());
     }
-    if (visibleItems > 1) {
-        width += m_spacing * (visibleItems - 1);
+    int width = 0;
+    for (int itemWidth : widths) {
+        width += itemWidth;
     }
-    return width;
+    return width + m_spacing * qMax(widths.size() - 1, 0);
 }
 
 MenuAnimationType CommandBar::menuAnimation() const { return m_menuAnimation; }
@@ -481,7 +515,13 @@ void CommandBar::setToolButtonStyle(Qt::ToolButtonStyle style)
     }
 
     m_toolButtonStyle = style;
-    rebuild();
+    for (CommandButton *button : commandButtons()) {
+        button->setToolButtonStyle(style);
+        button->setFixedSize(button->sizeHint());
+    }
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::setButtonTight(bool tight)
@@ -491,7 +531,13 @@ void CommandBar::setButtonTight(bool tight)
     }
 
     m_buttonTight = tight;
-    rebuild();
+    for (CommandButton *button : commandButtons()) {
+        button->setTight(tight);
+        button->setFixedSize(button->sizeHint());
+    }
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::setIconSize(const QSize &size)
@@ -501,7 +547,13 @@ void CommandBar::setIconSize(const QSize &size)
     }
 
     m_iconSize = size;
-    rebuild();
+    for (CommandButton *button : commandButtons()) {
+        button->setIconSize(size);
+        button->setFixedSize(button->sizeHint());
+    }
+    syncHeight();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::setSpacing(int spacing)
@@ -512,10 +564,8 @@ void CommandBar::setSpacing(int spacing)
     }
 
     m_spacing = boundedSpacing;
-    if (m_layout) {
-        m_layout->setSpacing(m_spacing);
-    }
-    updateGeometry();
+    relayoutWidgets();
+    QWidget::updateGeometry();
 }
 
 void CommandBar::setSpaing(int spacing)
@@ -539,78 +589,118 @@ void CommandBar::clear()
     m_actions.clear();
     m_hiddenActions.clear();
     m_hiddenWidgets.clear();
-    qDeleteAll(m_customWidgets);
     m_customWidgets.clear();
     qDeleteAll(allActions);
-    rebuild();
+    clearWidgets();
+    syncHeight();
+    relayoutWidgets();
 }
 
 void CommandBar::resizeEvent(QResizeEvent *event)
 {
     QFrame::resizeEvent(event);
-    updateOverflowState();
+    relayoutWidgets();
 }
 
 void CommandBar::showEvent(QShowEvent *event)
 {
     QFrame::showEvent(event);
-    updateOverflowState();
+    relayoutWidgets();
 }
 
 void CommandBar::init()
 {
-    m_layout = new QHBoxLayout(this);
-    m_layout->setContentsMargins(4, 4, 4, 4);
-    m_layout->setSpacing(m_spacing);
-    m_layout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("CommandBar"));
+    m_overflowButton = new MoreActionsButton(this);
+    m_overflowButton->hide();
+    connect(m_overflowButton, &QToolButton::clicked, this, &CommandBar::showHiddenActionsMenu);
 }
 
-void CommandBar::rebuild()
+void CommandBar::clearWidgets()
 {
-    if (m_destroying || !m_layout) {
-        return;
-    }
-
-    while (QLayoutItem *item = m_layout->takeAt(0)) {
-        if (QWidget *widget = item->widget()) {
-            widget->hide();
-            if (!m_customWidgets.contains(widget)) {
-                widget->deleteLater();
-            }
-        }
-        delete item;
-    }
-
-    for (QAction *action : std::as_const(m_actions)) {
-        if (!action) {
-            continue;
-        }
-
-        if (action->isSeparator()) {
-            m_layout->addWidget(new CommandSeparator(this), 0, Qt::AlignVCenter);
-            continue;
-        }
-
-        m_layout->addWidget(createButtonForAction(action), 0, Qt::AlignVCenter);
-    }
-
-    for (QWidget *widget : std::as_const(m_customWidgets)) {
+    for (QWidget *widget : std::as_const(m_widgets)) {
         if (!widget) {
             continue;
         }
-        widget->show();
-        m_layout->addWidget(widget, 0, Qt::AlignVCenter);
+        widget->hide();
+        widget->deleteLater();
+    }
+    m_widgets.clear();
+    m_hiddenWidgets.clear();
+    if (m_overflowButton) {
+        m_overflowButton->hide();
+    }
+}
+
+void CommandBar::syncHeight()
+{
+    int height = 0;
+    for (QWidget *widget : std::as_const(m_widgets)) {
+        if (!widget) {
+            continue;
+        }
+        const QSize hint = widget->sizeHint().isValid() ? widget->sizeHint() : widget->minimumSizeHint();
+        height = qMax(height, qMax(widget->height(), hint.height()));
+    }
+    if (!m_hiddenActions.isEmpty() && m_overflowButton) {
+        height = qMax(height, m_overflowButton->height());
+    }
+    setFixedHeight(height);
+}
+
+void CommandBar::relayoutWidgets()
+{
+    m_hiddenWidgets.clear();
+    if (!m_overflowButton) {
+        return;
     }
 
-    m_overflowButton = new MoreActionsButton(this);
-    m_overflowButton->setVisible(!m_hiddenActions.isEmpty());
-    connect(m_overflowButton, &QToolButton::clicked, this, &CommandBar::showHiddenActionsMenu);
-    m_layout->addWidget(m_overflowButton, 0, Qt::AlignVCenter);
-    m_layout->addStretch();
-    updateOverflowState();
+    m_overflowButton->hide();
+    int visibleCount = m_widgets.size();
+    if (suitableWidth() > width()) {
+        int occupiedWidth = m_overflowButton->width();
+        visibleCount = 0;
+
+        for (int i = 0; i < m_widgets.size(); ++i) {
+            QWidget *widget = m_widgets.at(i);
+            const QSize hint = widget->sizeHint().isValid() ? widget->sizeHint() : widget->minimumSizeHint();
+            const int itemWidth = qMax(widget->width(), hint.width());
+            occupiedWidth += itemWidth;
+            if (i > 0) {
+                occupiedWidth += m_spacing;
+            }
+            if (occupiedWidth > width()) {
+                break;
+            }
+            visibleCount = i + 1;
+        }
+    }
+
+    int x = contentsMargins().left();
+    const int h = height();
+    for (int i = 0; i < m_widgets.size(); ++i) {
+        QWidget *widget = m_widgets.at(i);
+        const QSize hint = widget->sizeHint().isValid() ? widget->sizeHint() : widget->minimumSizeHint();
+        if (widget->size().isEmpty() && hint.isValid()) {
+            widget->resize(hint);
+        }
+
+        if (i < visibleCount) {
+            widget->show();
+            widget->move(x, (h - widget->height()) / 2);
+            x += widget->width() + m_spacing;
+        } else {
+            widget->hide();
+            m_hiddenWidgets.append(widget);
+        }
+    }
+
+    if (!m_hiddenActions.isEmpty() || visibleCount < m_widgets.size()) {
+        m_overflowButton->show();
+        m_overflowButton->move(x, (h - m_overflowButton->height()) / 2);
+    }
 }
 
 CommandButton *CommandBar::createButtonForAction(QAction *action)
@@ -663,53 +753,43 @@ void CommandBar::showHiddenActionsMenu()
 
 void CommandBar::updateOverflowState()
 {
-    m_hiddenWidgets.clear();
-    if (!m_layout || !m_overflowButton) {
-        return;
-    }
-
-    QList<QWidget *> widgets;
-    for (int i = 0; i < m_layout->count(); ++i) {
-        auto *item = m_layout->itemAt(i);
-        auto *widget = item ? item->widget() : nullptr;
-        if (!widget || widget == m_overflowButton) {
-            continue;
-        }
-        widgets.append(widget);
-    }
-
-    const bool hasConstrainedWidth = width() > 0 && suitableWidth() > width();
-    const QMargins margins = m_layout->contentsMargins();
-    int usedWidth = margins.left() + margins.right();
-    int visibleCount = 0;
-    const int reservedMoreWidth = hasConstrainedWidth || !m_hiddenActions.isEmpty() ? m_overflowButton->sizeHint().width() : 0;
-
-    for (QWidget *widget : std::as_const(widgets)) {
-        const QSize hint = widget->sizeHint().isValid() ? widget->sizeHint() : widget->minimumSizeHint();
-        const int itemWidth = qMax(widget->width(), hint.width());
-        const int nextWidth = usedWidth + (visibleCount > 0 ? m_spacing : 0) + itemWidth + reservedMoreWidth;
-        if (hasConstrainedWidth && nextWidth > width()) {
-            widget->hide();
-            m_hiddenWidgets.append(widget);
-            continue;
-        }
-
-        widget->show();
-        usedWidth += (visibleCount > 0 ? m_spacing : 0) + itemWidth;
-        ++visibleCount;
-    }
-
-    m_overflowButton->setVisible(!m_hiddenActions.isEmpty() || !m_hiddenWidgets.isEmpty());
+    relayoutWidgets();
 }
 
 void CommandBar::trackAction(QAction *action)
 {
-    connect(action, &QAction::changed, this, &CommandBar::rebuild, Qt::UniqueConnection);
+    connect(action, &QAction::changed, this, [this, action]() {
+        for (CommandButton *button : commandButtons()) {
+            if (button->action() != action) {
+                continue;
+            }
+            button->setFixedSize(button->sizeHint());
+            break;
+        }
+        syncHeight();
+        relayoutWidgets();
+        QWidget::updateGeometry();
+    });
     connect(action, &QObject::destroyed, this, [this, action]() {
+        for (int i = 0; i < m_widgets.size(); ++i) {
+            auto *button = qobject_cast<CommandButton *>(m_widgets.at(i));
+            const bool matchesButton = button && button->action() == action;
+            const bool matchesSeparator =
+                m_widgets.at(i)->property("_fqw_action").value<quintptr>() == reinterpret_cast<quintptr>(action);
+            if (!matchesButton && !matchesSeparator) {
+                continue;
+            }
+            QWidget *widget = m_widgets.takeAt(i);
+            widget->hide();
+            widget->deleteLater();
+            break;
+        }
         m_actions.removeAll(action);
         m_hiddenActions.removeAll(action);
         if (!m_destroying) {
-            rebuild();
+            syncHeight();
+            relayoutWidgets();
+            QWidget::updateGeometry();
         }
     });
 }
@@ -782,12 +862,25 @@ void CommandViewBar::showHiddenActionsMenu()
         return;
     }
 
+    moreButton()->clearState();
     auto *view = qobject_cast<CommandBarView *>(parentWidget());
     if (view) {
         view->setMenuVisible(true);
     }
 
-    CommandBar::showHiddenActionsMenu();
+    auto *menu = createMoreActionsMenu();
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+
+    const int x = -menu->width() + menu->layout()->contentsMargins().right() + moreButton()->width() + 18;
+    int y = moreButton()->height();
+    if (!isMenuDropDown()) {
+        y = -13;
+        menu->setShadowEffect(0, 0, 0);
+        menu->layout()->setContentsMargins(12, 20, 12, 8);
+        menu->adjustSize();
+    }
+
+    menu->exec(moreButton()->mapToGlobal(QPoint(x, y)), true, menuAnimation());
 }
 
 CommandBarView::CommandBarView(QWidget *parent) : FlyoutViewBase(parent)

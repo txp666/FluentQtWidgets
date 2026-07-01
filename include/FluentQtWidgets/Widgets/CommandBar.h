@@ -164,7 +164,7 @@ class FQW_API CommandBar : public QFrame
     virtual void showHiddenActionsMenu();
     void updateOverflowState();
 
-    QHBoxLayout *m_layout = nullptr;
+    QList<QWidget *> m_widgets;
     QList<QAction *> m_actions;
     QList<QAction *> m_hiddenActions;
     QList<QWidget *> m_customWidgets;
@@ -179,7 +179,9 @@ class FQW_API CommandBar : public QFrame
 
   private:
     void init();
-    void rebuild();
+    void clearWidgets();
+    void relayoutWidgets();
+    void syncHeight();
     void trackAction(QAction *action);
 };
 
