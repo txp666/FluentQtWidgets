@@ -5,7 +5,9 @@
 #include <QtCore/QLocale>
 #include <QtCore/QPointer>
 #include <QtTest/QtTest>
+#include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCompleter>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -19,6 +21,7 @@
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 #include <FluentQtWidgets/Widgets/InfoBar.h>
 #include <FluentQtWidgets/Widgets/Label.h>
+#include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
 #include <FluentQtWidgets/Widgets/PipsPager.h>
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
@@ -378,6 +381,95 @@ class GalleryTranslationTest : public QObject
         }
         QVERIFY(foundStarPlatinum);
         QVERIFY(foundD4C);
+    }
+
+    void textPageMatchesPythonGallery()
+    {
+        GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
+
+        GalleryWindow window;
+        window.resize(1040, 760);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(window.switchTo(QStringLiteral("textInterface")));
+
+        QWidget *page = window.currentInterface();
+        QVERIFY(page != nullptr);
+        QCOMPARE(page->objectName(), QStringLiteral("textInterface"));
+
+        bool foundSubtitle = false;
+        const auto labels = page->findChildren<QLabel *>();
+        for (QLabel *label : labels) {
+            if (label->text() == QStringLiteral("qfluentwidgets.components.widgets")) {
+                foundSubtitle = true;
+                break;
+            }
+        }
+        QVERIFY(foundSubtitle);
+
+        FluentQt::LineEdit *plainLineEdit = nullptr;
+        const auto lineEdits = page->findChildren<FluentQt::LineEdit *>();
+        for (FluentQt::LineEdit *edit : lineEdits) {
+            if (!qobject_cast<FluentQt::SearchLineEdit *>(edit)
+                && !qobject_cast<FluentQt::PasswordLineEdit *>(edit)
+                && edit->text() == QStringLiteral("ko no dio da！")) {
+                plainLineEdit = edit;
+                break;
+            }
+        }
+        QVERIFY(plainLineEdit != nullptr);
+        QVERIFY(plainLineEdit->isClearButtonEnabled());
+        QVERIFY(plainLineEdit->maximumWidth() > 260);
+
+        auto *searchEdit = page->findChild<FluentQt::SearchLineEdit *>();
+        QVERIFY(searchEdit != nullptr);
+        QCOMPARE(searchEdit->placeholderText(), QStringLiteral("Type a stand name"));
+        QVERIFY(searchEdit->isClearButtonEnabled());
+        QCOMPARE(searchEdit->minimumWidth(), 230);
+        QCOMPARE(searchEdit->maximumWidth(), 230);
+        QVERIFY(searchEdit->completer() != nullptr);
+        QCOMPARE(searchEdit->completer()->caseSensitivity(), Qt::CaseInsensitive);
+        QCOMPARE(searchEdit->completer()->maxVisibleItems(), 10);
+        auto *completionModel = searchEdit->completer()->model();
+        QVERIFY(completionModel != nullptr);
+        QCOMPARE(completionModel->rowCount(), 36);
+        QCOMPARE(completionModel->index(2, 0).data().toString(), QStringLiteral("Made in Haven"));
+        QCOMPARE(completionModel->index(5, 0).data().toString(), QStringLiteral("Crazy diamond"));
+        QCOMPARE(completionModel->index(26, 0).data().toString(), QStringLiteral("D4C • Love Train"));
+
+        auto *passwordEdit = page->findChild<FluentQt::PasswordLineEdit *>();
+        QVERIFY(passwordEdit != nullptr);
+        QCOMPARE(passwordEdit->placeholderText(), QStringLiteral("Enter your password"));
+        QCOMPARE(passwordEdit->minimumWidth(), 230);
+        QCOMPARE(passwordEdit->maximumWidth(), 230);
+
+        auto verifyInlineSpinBox = [](auto *spin, const QString &role) {
+            QVERIFY(spin != nullptr);
+            QCOMPARE(spin->property("fqw").toString(), role);
+            QCOMPARE(spin->buttonSymbols(), QAbstractSpinBox::NoButtons);
+            QCOMPARE(spin->property("transparent").toBool(), true);
+            QCOMPARE(spin->property("symbolVisible").toBool(), true);
+            QCOMPARE(spin->height(), 33);
+            QVERIFY(spin->upButton() != nullptr);
+            QVERIFY(spin->downButton() != nullptr);
+            QCOMPARE(spin->upButton()->property("fqw").toString(), QStringLiteral("SpinButton"));
+            QCOMPARE(spin->downButton()->property("fqw").toString(), QStringLiteral("SpinButton"));
+            QCOMPARE(spin->upButton()->size(), QSize(31, 23));
+            QCOMPARE(spin->downButton()->size(), QSize(31, 23));
+        };
+        verifyInlineSpinBox(page->findChild<FluentQt::SpinBox *>(), QStringLiteral("SpinBox"));
+        verifyInlineSpinBox(page->findChild<FluentQt::DoubleSpinBox *>(), QStringLiteral("DoubleSpinBox"));
+        verifyInlineSpinBox(page->findChild<FluentQt::DateEdit *>(), QStringLiteral("DateEdit"));
+        verifyInlineSpinBox(page->findChild<FluentQt::TimeEdit *>(), QStringLiteral("TimeEdit"));
+        verifyInlineSpinBox(page->findChild<FluentQt::DateTimeEdit *>(), QStringLiteral("DateTimeEdit"));
+
+        const auto textEdits = page->findChildren<FluentQt::TextEdit *>();
+        QCOMPARE(textEdits.size(), 1);
+        auto *textEdit = textEdits.constFirst();
+        QCOMPARE(textEdit->objectName(), QStringLiteral("galleryTextEdit"));
+        QTRY_COMPARE(textEdit->height(), 150);
+        QVERIFY(textEdit->toPlainText().contains(QStringLiteral("Johnny Joestar")));
+        QVERIFY(textEdit->toPlainText().contains(QStringLiteral("Gyro Zeppeli")));
     }
 
     void materialPageMatchesPythonGalleryAndUsesTranslations()

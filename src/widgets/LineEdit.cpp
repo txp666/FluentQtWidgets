@@ -478,7 +478,6 @@ SearchLineEdit::SearchLineEdit(QWidget *parent)
     : LineEdit(parent)
     , m_searchButton(new LineEditButton(FluentIcon::Search, this))
 {
-    m_searchButton->setFixedSize(30, 25);
     m_layout->addWidget(m_searchButton, 0, Qt::AlignRight);
     setClearButtonEnabled(true);
     setTextMargins(0, 0, 59, 0);

@@ -9,25 +9,21 @@ using namespace FluentQt;
 QWidget *GalleryWindow::createTextPage()
 {
     auto *page = new GalleryInterface(navTx("Text"),
-                                      tx("TextInterface", "LineEdit, SpinBox, TimeEdit and TextEdit"), this);
-    const QString lineEditSource =
-        QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/text/line_edit/main.cpp");
-    const QString spinBoxSource =
-        QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/text/spin_box/main.cpp");
-    const QString textBrowserSource =
-        QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/text/text_browser/main.cpp");
+                                      QStringLiteral("qfluentwidgets.components.widgets"), this);
+    page->setObjectName(QStringLiteral("textInterface"));
+    const QString lineEditSource = exampleSourceUrl("text/line_edit");
+    const QString spinBoxSource = exampleSourceUrl("text/spin_box");
 
     auto *lineEdit = new LineEdit(page);
     lineEdit->setText(tx("TextInterface", "ko no dio da！"));
     lineEdit->setClearButtonEnabled(true);
-    lineEdit->setFixedWidth(260);
     page->addExampleCard(tx("TextInterface", "A LineEdit with a clear button"), lineEdit, lineEditSource);
 
     auto *searchEdit = new SearchLineEdit(page);
     const QStringList stands = {
         QStringLiteral("Star Platinum"), QStringLiteral("Hierophant Green"),
-        QStringLiteral("Made in Heaven"), QStringLiteral("King Crimson"),
-        QStringLiteral("Silver Chariot"), QStringLiteral("Crazy Diamond"),
+        QStringLiteral("Made in Haven"), QStringLiteral("King Crimson"),
+        QStringLiteral("Silver Chariot"), QStringLiteral("Crazy diamond"),
         QStringLiteral("Metallica"), QStringLiteral("Another One Bites The Dust"),
         QStringLiteral("Heaven's Door"), QStringLiteral("Killer Queen"),
         QStringLiteral("The Grateful Dead"), QStringLiteral("Stone Free"),
@@ -38,7 +34,7 @@ QWidget *GalleryWindow::createTextPage()
         QStringLiteral("Scary Monster"), QStringLiteral("Mandom"),
         QStringLiteral("20th Century Boy"), QStringLiteral("Tusk Act 4"),
         QStringLiteral("Ball Breaker"), QStringLiteral("Sex Pistols"),
-        QStringLiteral("D4C Love Train"), QStringLiteral("Born This Way"),
+        QStringLiteral("D4C • Love Train"), QStringLiteral("Born This Way"),
         QStringLiteral("SOFT & WET"), QStringLiteral("Paisley Park"),
         QStringLiteral("Wonder of U"), QStringLiteral("Walking Heart"),
         QStringLiteral("Cream Starter"), QStringLiteral("November Rain"),
@@ -73,9 +69,13 @@ QWidget *GalleryWindow::createTextPage()
     page->addExampleCard(tx("TextInterface", "A DateTimeEdit with a spin button"), dateTimeEdit, spinBoxSource);
 
     auto *textEdit = new TextEdit(page);
+    textEdit->setObjectName(QStringLiteral("galleryTextEdit"));
+    const QString textEditHeightQss =
+        QStringLiteral("QTextEdit#galleryTextEdit[fqw=\"TextEdit\"] { min-height: 144px; max-height: 144px; }");
+    FluentStyleSheet::setCustomStyleSheet(textEdit, textEditHeightQss, textEditHeightQss);
     textEdit->setMarkdown(QStringLiteral("## Steel Ball Run \n * Johnny Joestar 🦄 \n * Gyro Zeppeli 🐴 "));
     textEdit->setFixedHeight(150);
-    page->addExampleCard(tx("TextInterface", "A simple TextEdit"), textEdit, textBrowserSource, 1);
+    page->addExampleCard(tx("TextInterface", "A simple TextEdit"), textEdit, lineEditSource, 1);
 
     return page;
 }

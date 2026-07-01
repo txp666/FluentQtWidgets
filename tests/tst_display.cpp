@@ -1704,6 +1704,7 @@ class DisplayTest : public QObject
 
         FluentQt::SearchLineEdit searchEditor;
         QVERIFY(searchEditor.searchButton());
+        QCOMPARE(searchEditor.searchButton()->size(), QSize(31, 23));
         QCOMPARE(searchEditor.textMargins().right(), 59);
         searchEditor.setClearButtonEnabled(true);
         QCOMPARE(searchEditor.textMargins().right(), 58);
