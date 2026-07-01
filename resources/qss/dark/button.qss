@@ -447,3 +447,157 @@ QToolButton[fqw="FolderRemoveButton"] {
     max-height: 27px;
     padding: 0;
 }
+
+QPushButton[fqw="FilledPushButton"],
+QToolButton[fqw="FilledToolButton"] {
+    color: black;
+    background-color: @accentColor;
+    border: 1px solid --ThemeColorLight1;
+    border-bottom: 1px solid --ThemeColorLight2;
+    border-radius: 5px;
+    padding: 5px 12px 6px 12px;
+}
+
+QPushButton[fqw="FilledPushButton"][hasIcon="true"] {
+    padding-left: 36px;
+}
+
+QPushButton[fqw="FilledPushButton"][severity="success"],
+QToolButton[fqw="FilledToolButton"][severity="success"] {
+    background-color: #6ccb5f;
+    border-color: #6ccb5f;
+}
+
+QPushButton[fqw="FilledPushButton"][severity="warning"],
+QToolButton[fqw="FilledToolButton"][severity="warning"] {
+    background-color: #fce100;
+    border-color: #fce100;
+}
+
+QPushButton[fqw="FilledPushButton"][severity="error"],
+QToolButton[fqw="FilledToolButton"][severity="error"] {
+    background-color: #ff99a4;
+    border-color: #ff99a4;
+}
+
+QPushButton[fqw="LuminaPushButton"] {
+    color: white;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 5px 12px 6px 12px;
+}
+
+QPushButton[fqw="LuminaPushButton"][hasIcon="true"] {
+    padding-left: 36px;
+}
+
+QPushButton[fqw="TextPushButton"],
+QToolButton[fqw="TextToolButton"],
+QToolButton[fqw="HyperlinkToolButton"] {
+    color: @accentColor;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 5px 12px 6px 12px;
+}
+
+QPushButton[fqw="TextPushButton"][hasIcon="true"] {
+    padding-left: 36px;
+}
+
+QPushButton[fqw="TextPushButton"]:hover,
+QToolButton[fqw="TextToolButton"]:hover,
+QToolButton[fqw="HyperlinkToolButton"]:hover {
+    background: rgba(255, 255, 255, 0.0837);
+}
+
+QPushButton[fqw="TextPushButton"][severity="success"],
+QToolButton[fqw="TextToolButton"][severity="success"] {
+    color: #6ccb5f;
+}
+
+QPushButton[fqw="TextPushButton"][severity="warning"],
+QToolButton[fqw="TextToolButton"][severity="warning"] {
+    color: #fce100;
+}
+
+QPushButton[fqw="TextPushButton"][severity="error"],
+QToolButton[fqw="TextToolButton"][severity="error"] {
+    color: #ff99a4;
+}
+
+QPushButton[fqw="OutlinedPushButton"],
+QPushButton[fqw="Tag"],
+QToolButton[fqw="OutlinedToolButton"] {
+    color: @accentColor;
+    background: transparent;
+    border: 1px solid @accentColor;
+    border-radius: 5px;
+    padding: 5px 12px 6px 12px;
+}
+
+QPushButton[fqw="OutlinedPushButton"][hasIcon="true"],
+QPushButton[fqw="Tag"][hasIcon="true"] {
+    padding-left: 36px;
+}
+
+QPushButton[fqw="OutlinedPushButton"]:hover,
+QPushButton[fqw="Tag"]:hover,
+QToolButton[fqw="OutlinedToolButton"]:hover,
+QPushButton[fqw="OutlinedPushButton"]:checked,
+QToolButton[fqw="OutlinedToolButton"]:checked {
+    background: rgba(96, 205, 255, 0.1);
+}
+
+QPushButton[fqw="OutlinedPushButton"][severity="success"],
+QPushButton[fqw="Tag"][severity="success"],
+QToolButton[fqw="OutlinedToolButton"][severity="success"] {
+    color: #6ccb5f;
+    border-color: #6ccb5f;
+}
+
+QPushButton[fqw="OutlinedPushButton"][severity="warning"],
+QPushButton[fqw="Tag"][severity="warning"],
+QToolButton[fqw="OutlinedToolButton"][severity="warning"] {
+    color: #fce100;
+    border-color: #fce100;
+}
+
+QPushButton[fqw="OutlinedPushButton"][severity="error"],
+QPushButton[fqw="Tag"][severity="error"],
+QToolButton[fqw="OutlinedToolButton"][severity="error"] {
+    color: #ff99a4;
+    border-color: #ff99a4;
+}
+
+QPushButton[fqw="RoundPushButton"],
+QPushButton[fqw="Chip"],
+QToolButton[fqw="RoundToolButton"] {
+    color: white;
+    background: rgba(255, 255, 255, 0.0605);
+    border: 1px solid rgba(255, 255, 255, 0.053);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 5px 14px 6px 14px;
+}
+
+QPushButton[fqw="RoundPushButton"][hasIcon="true"],
+QPushButton[fqw="Chip"][hasIcon="true"] {
+    padding-left: 36px;
+}
+
+QPushButton[fqw="Chip"] {
+    padding-right: 34px;
+}
+
+QToolButton[fqw="RoundToolButton"] {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 5px 8px 6px 8px;
+}
+
+QToolButton[fqw="OutlinedToolButton"] {
+    min-width: 48px;
+    min-height: 48px;
+}

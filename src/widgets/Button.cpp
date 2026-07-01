@@ -17,6 +17,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPen>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QStyle>
 
@@ -106,6 +107,247 @@ QIcon primaryButtonIcon(const QIcon &source)
         return {};
     }
     return QIcon(new PrimaryButtonIconEngine(source));
+}
+
+QString statusName(ButtonStatus status)
+{
+    switch (status) {
+    case ButtonStatus::Success:
+        return QStringLiteral("success");
+    case ButtonStatus::Attention:
+        return QStringLiteral("attention");
+    case ButtonStatus::Warning:
+        return QStringLiteral("warning");
+    case ButtonStatus::Error:
+        return QStringLiteral("error");
+    case ButtonStatus::Information:
+        break;
+    }
+    return QStringLiteral("information");
+}
+
+ButtonStatus statusFromSeverity(InfoBarSeverity severity)
+{
+    switch (severity) {
+    case InfoBarSeverity::Success:
+        return ButtonStatus::Success;
+    case InfoBarSeverity::Warning:
+        return ButtonStatus::Warning;
+    case InfoBarSeverity::Error:
+        return ButtonStatus::Error;
+    case InfoBarSeverity::Info:
+        break;
+    }
+    return ButtonStatus::Information;
+}
+
+InfoBarSeverity severityFromStatus(ButtonStatus status)
+{
+    switch (status) {
+    case ButtonStatus::Success:
+        return InfoBarSeverity::Success;
+    case ButtonStatus::Warning:
+        return InfoBarSeverity::Warning;
+    case ButtonStatus::Error:
+        return InfoBarSeverity::Error;
+    case ButtonStatus::Information:
+    case ButtonStatus::Attention:
+        break;
+    }
+    return InfoBarSeverity::Info;
+}
+
+QColor statusColor(ButtonStatus status)
+{
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    switch (status) {
+    case ButtonStatus::Success:
+        return color(FluentSystemColor::SuccessForeground);
+    case ButtonStatus::Attention:
+        return QColor(dark ? QStringLiteral("#00d7ff") : QStringLiteral("#00a2b7"));
+    case ButtonStatus::Warning:
+        return color(FluentSystemColor::CautionForeground);
+    case ButtonStatus::Error:
+        return color(FluentSystemColor::CriticalForeground);
+    case ButtonStatus::Information:
+        break;
+    }
+    return dark ? QColor(138, 138, 138) : QColor(128, 128, 128);
+}
+
+void polishStatusWidget(QWidget *widget, ButtonStatus status)
+{
+    if (!widget) {
+        return;
+    }
+    widget->setProperty("severity", statusName(status));
+    widget->style()->unpolish(widget);
+    widget->style()->polish(widget);
+    widget->update();
+}
+
+void paintTintedIcon(QPainter *painter, const QIcon &icon, const QRectF &rect, const QColor &color, QIcon::Mode mode,
+                     QIcon::State state = QIcon::Off)
+{
+    if (!painter || icon.isNull() || !rect.isValid()) {
+        return;
+    }
+
+    const QSize size = rect.size().toSize();
+    const qreal dpr = painterDevicePixelRatio(painter);
+    QPixmap source = icon.pixmap(size, dpr, mode, state);
+    if (source.isNull()) {
+        return;
+    }
+
+    QPixmap tinted(source.size());
+    tinted.setDevicePixelRatio(source.devicePixelRatioF());
+    tinted.fill(Qt::transparent);
+
+    QPainter iconPainter(&tinted);
+    iconPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    iconPainter.drawPixmap(QRectF(QPointF(0, 0), QSizeF(size)), source, QRectF(source.rect()));
+    iconPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    iconPainter.fillRect(QRectF(QPointF(0, 0), QSizeF(size)), color);
+    iconPainter.end();
+
+    painter->drawPixmap(rect, tinted, QRectF(tinted.rect()));
+}
+
+QColor statusIconColor(ButtonStatus status, bool filled, bool enabled, bool pressed)
+{
+    QColor foreground = filled ? (ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::black)
+                                                                                            : QColor(Qt::white))
+                               : statusColor(status);
+    if (!filled && status == ButtonStatus::Information) {
+        foreground = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
+    }
+    if (!enabled) {
+        foreground.setAlphaF(0.43);
+    } else if (pressed) {
+        foreground.setAlphaF(0.63);
+    }
+    return foreground;
+}
+
+QColor neutralButtonBackground(bool enabled, bool hover, bool pressed)
+{
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    if (!enabled) {
+        return dark ? QColor(255, 255, 255, 11) : QColor(249, 249, 249, 75);
+    }
+    if (pressed) {
+        return dark ? QColor(255, 255, 255, 8) : QColor(249, 249, 249, 77);
+    }
+    if (hover) {
+        return dark ? QColor(255, 255, 255, 21) : QColor(249, 249, 249, 128);
+    }
+    return dark ? QColor(255, 255, 255, 15) : QColor(255, 255, 255, 179);
+}
+
+QColor neutralButtonBorder(bool enabled, bool pressed)
+{
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    if (!enabled) {
+        return dark ? QColor(255, 255, 255, 13) : QColor(0, 0, 0, 15);
+    }
+    if (pressed) {
+        return dark ? QColor(255, 255, 255, 13) : QColor(0, 0, 0, 18);
+    }
+    return dark ? QColor(255, 255, 255, 14) : QColor(0, 0, 0, 19);
+}
+
+QColor stateAdjustedColor(const QColor &color, bool enabled, bool hover, bool pressed)
+{
+    if (!enabled) {
+        return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(52, 52, 52) : QColor(205, 205, 205);
+    }
+    if (pressed) {
+        return derivedThemeColor(color, -28);
+    }
+    if (hover) {
+        return derivedThemeColor(color, 16);
+    }
+    return color;
+}
+
+void paintRoundedButtonFrame(QPainter *painter, const QRectF &rect, const QColor &background, const QColor &border,
+                             qreal radius)
+{
+    painter->setPen(border);
+    painter->setBrush(background);
+    painter->drawRoundedRect(rect, radius, radius);
+}
+
+void paintPushButtonContent(QPainter *painter, const QPushButton *button, const QIcon &icon, const QColor &textColor,
+                            const QColor &iconColor)
+{
+    if (!painter || !button) {
+        return;
+    }
+
+    const QRect contentRect = button->rect().adjusted(12, 0, -12, 0);
+    const QString text = button->text();
+    const QSize iconSz = icon.isNull() ? QSize() : (button->iconSize().isValid() ? button->iconSize() : QSize(16, 16));
+    const int gap = !icon.isNull() && !text.isEmpty() ? 8 : 0;
+    const int textWidth = text.isEmpty() ? 0 : painter->fontMetrics().horizontalAdvance(text);
+    const int preferredWidth = iconSz.width() + gap + textWidth;
+    const int actualWidth = qMin(contentRect.width(), preferredWidth);
+    int x = contentRect.left() + qMax(0, (contentRect.width() - preferredWidth) / 2);
+    if (!icon.isNull()) {
+        if (preferredWidth > contentRect.width()) {
+            x = contentRect.left();
+        }
+        const int iconX = button->isRightToLeft() && !text.isEmpty() ? x + actualWidth - iconSz.width() : x;
+        const QRect iconRect(iconX, (button->height() - iconSz.height()) / 2, iconSz.width(), iconSz.height());
+        paintTintedIcon(painter, icon, iconRect, iconColor, button->isEnabled() ? QIcon::Normal : QIcon::Disabled,
+                        button->isChecked() ? QIcon::On : QIcon::Off);
+    }
+
+    QRect textRect = contentRect;
+    if (!text.isEmpty()) {
+        if (icon.isNull()) {
+            textRect = contentRect;
+        } else if (button->isRightToLeft()) {
+            textRect = QRect(x, contentRect.top(), qMax(0, actualWidth - iconSz.width() - gap), contentRect.height());
+        } else {
+            textRect = QRect(x + iconSz.width() + gap, contentRect.top(),
+                             qMax(0, contentRect.right() - x - iconSz.width() - gap + 1), contentRect.height());
+        }
+    }
+    painter->setPen(textColor);
+    const QString elided = painter->fontMetrics().elidedText(text, Qt::ElideRight, qMax(0, textRect.width()));
+    const Qt::Alignment alignment = icon.isNull()
+                                        ? Qt::AlignCenter
+                                        : (Qt::AlignVCenter | (button->isRightToLeft() ? Qt::AlignRight : Qt::AlignLeft));
+    painter->drawText(textRect, alignment, elided);
+}
+
+void paintToolButtonContent(QPainter *painter, const QToolButton *button, const QIcon &icon, const QColor &iconColor)
+{
+    if (!painter || !button || icon.isNull()) {
+        return;
+    }
+
+    const QSize iconSz = button->iconSize().isValid() ? button->iconSize() : QSize(16, 16);
+    const QRectF iconRect((button->width() - iconSz.width()) / 2.0, (button->height() - iconSz.height()) / 2.0,
+                          iconSz.width(), iconSz.height());
+    paintTintedIcon(painter, icon, iconRect, iconColor, button->isEnabled() ? QIcon::Normal : QIcon::Disabled,
+                    button->isChecked() ? QIcon::On : QIcon::Off);
+}
+
+void paintTextButtonBackground(QPainter *painter, const QWidget *button)
+{
+    if (!painter || !button) {
+        return;
+    }
+
+    QColor background = Qt::transparent;
+    if (button->isEnabled() && button->underMouse()) {
+        background = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(255, 255, 255, 21)
+                                                                               : QColor(0, 0, 0, 10);
+    }
+    paintRoundedButtonFrame(painter, button->rect().adjusted(0, 0, -1, -1), background, Qt::transparent, 5);
 }
 
 void paintDropDownArrow(QPainter *painter, const QRectF &rect, bool primary)
@@ -208,6 +450,23 @@ QIcon PushButton::icon() const { return m_storedIcon; }
 bool PushButton::isPressed() const { return m_isPressed; }
 
 bool PushButton::isHover() const { return m_isHover; }
+
+QSize PushButton::sizeHint() const
+{
+    QSize hint = QPushButton::sizeHint();
+    const QSize iconSz = iconSize().isValid() ? iconSize() : QSize(16, 16);
+    int width = 24 + fontMetrics().horizontalAdvance(text());
+    if (!m_storedIcon.isNull()) {
+        width += iconSz.width() + 8;
+    }
+    const int height = qMax(32, qMax(hint.height(), iconSz.height() + 12));
+    return hint.expandedTo(QSize(width, height));
+}
+
+QSize PushButton::minimumSizeHint() const
+{
+    return sizeHint();
+}
 
 void PushButton::initFluentButton(const QString &role)
 {
@@ -1088,6 +1347,756 @@ void HyperlinkButton::onLinkClicked()
     if (m_url.isValid()) {
         QDesktopServices::openUrl(m_url);
     }
+}
+
+// ============================================================================
+// HyperlinkToolButton
+// ============================================================================
+
+HyperlinkToolButton::HyperlinkToolButton(QWidget *parent) : ToolButton(parent)
+{
+    initFluentToolButton(QStringLiteral("HyperlinkToolButton"));
+    connect(this, &QToolButton::clicked, this, &HyperlinkToolButton::onLinkClicked);
+}
+
+HyperlinkToolButton::HyperlinkToolButton(const QIcon &icon, const QString &url, QWidget *parent)
+    : HyperlinkToolButton(parent)
+{
+    setIcon(icon);
+    setUrl(url);
+}
+
+HyperlinkToolButton::HyperlinkToolButton(const QString &iconPath, const QString &url, QWidget *parent)
+    : HyperlinkToolButton(QIcon(iconPath), url, parent)
+{
+}
+
+QUrl HyperlinkToolButton::url() const { return m_url; }
+
+void HyperlinkToolButton::setUrl(const QUrl &url) { m_url = url; }
+
+void HyperlinkToolButton::setUrl(const QString &url) { setUrl(QUrl(url)); }
+
+void HyperlinkToolButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    paintTextButtonBackground(&painter, this);
+
+    QColor color = themeColor();
+    if (!isEnabled()) {
+        color.setAlphaF(0.43);
+    } else if (isDown()) {
+        color.setAlphaF(0.63);
+    }
+    paintToolButtonContent(&painter, this, m_storedIcon, color);
+}
+
+void HyperlinkToolButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    QColor color = themeColor();
+    if (!isEnabled()) {
+        color.setAlphaF(0.43);
+    } else if (isPressed()) {
+        color.setAlphaF(0.63);
+    }
+    paintTintedIcon(painter, m_storedIcon, rect, color, isEnabled() ? QIcon::Normal : QIcon::Disabled);
+}
+
+void HyperlinkToolButton::onLinkClicked()
+{
+    if (m_url.isValid()) {
+        QDesktopServices::openUrl(m_url);
+    }
+}
+
+// ============================================================================
+// Pro-style colored buttons
+// ============================================================================
+
+FilledPushButton::FilledPushButton(QWidget *parent) : PrimaryPushButton(parent)
+{
+    initFluentButton(QStringLiteral("FilledPushButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+FilledPushButton::FilledPushButton(const QString &text, QWidget *parent) : PrimaryPushButton(text, parent)
+{
+    initFluentButton(QStringLiteral("FilledPushButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+FilledPushButton::FilledPushButton(const QIcon &icon, const QString &text, QWidget *parent)
+    : PrimaryPushButton(icon, text, parent)
+{
+    initFluentButton(QStringLiteral("FilledPushButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+InfoBarSeverity FilledPushButton::severity() const { return severityFromStatus(m_status); }
+
+ButtonStatus FilledPushButton::status() const { return m_status; }
+
+void FilledPushButton::setSeverity(InfoBarSeverity severity)
+{
+    setStatus(statusFromSeverity(severity));
+}
+
+void FilledPushButton::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+void FilledPushButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const QColor base = statusColor(m_status);
+    const QColor background = stateAdjustedColor(base, isEnabled(), underMouse(), isDown());
+    const QColor foreground = statusIconColor(m_status, true, isEnabled(), isDown());
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, background, 5);
+    paintPushButtonContent(&painter, this, m_storedIcon, foreground, foreground);
+}
+
+void FilledPushButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    paintTintedIcon(painter, m_storedIcon, rect,
+                    statusIconColor(m_status, true, isEnabled(), isPressed()),
+                    isEnabled() ? QIcon::Normal : QIcon::Disabled);
+}
+
+FilledToolButton::FilledToolButton(QWidget *parent) : PrimaryToolButton(parent)
+{
+    initFluentToolButton(QStringLiteral("FilledToolButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+FilledToolButton::FilledToolButton(const QIcon &icon, QWidget *parent) : PrimaryToolButton(icon, parent)
+{
+    initFluentToolButton(QStringLiteral("FilledToolButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+FilledToolButton::FilledToolButton(const QString &iconPath, QWidget *parent)
+    : FilledToolButton(QIcon(iconPath), parent)
+{
+}
+
+InfoBarSeverity FilledToolButton::severity() const { return severityFromStatus(m_status); }
+
+ButtonStatus FilledToolButton::status() const { return m_status; }
+
+void FilledToolButton::setSeverity(InfoBarSeverity severity)
+{
+    setStatus(statusFromSeverity(severity));
+}
+
+void FilledToolButton::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+void FilledToolButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const QColor base = statusColor(m_status);
+    const QColor background = stateAdjustedColor(base, isEnabled(), underMouse(), isDown());
+    const QColor foreground = statusIconColor(m_status, true, isEnabled(), isDown());
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, background, 5);
+    paintToolButtonContent(&painter, this, m_storedIcon, foreground);
+}
+
+void FilledToolButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    paintTintedIcon(painter, m_storedIcon, rect,
+                    statusIconColor(m_status, true, isEnabled(), isPressed()),
+                    isEnabled() ? QIcon::Normal : QIcon::Disabled);
+}
+
+TextPushButton::TextPushButton(QWidget *parent) : PushButton(parent)
+{
+    initFluentButton(QStringLiteral("TextPushButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+TextPushButton::TextPushButton(const QString &text, QWidget *parent) : PushButton(text, parent)
+{
+    initFluentButton(QStringLiteral("TextPushButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+TextPushButton::TextPushButton(const QIcon &icon, const QString &text, QWidget *parent)
+    : PushButton(icon, text, parent)
+{
+    initFluentButton(QStringLiteral("TextPushButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+InfoBarSeverity TextPushButton::severity() const { return severityFromStatus(m_status); }
+
+ButtonStatus TextPushButton::status() const { return m_status; }
+
+void TextPushButton::setSeverity(InfoBarSeverity severity)
+{
+    setStatus(statusFromSeverity(severity));
+}
+
+void TextPushButton::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+void TextPushButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QColor foreground = statusIconColor(m_status, false, isEnabled(), isDown());
+    paintTextButtonBackground(&painter, this);
+    paintPushButtonContent(&painter, this, m_storedIcon, foreground, foreground);
+}
+
+void TextPushButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    paintTintedIcon(painter, m_storedIcon, rect,
+                    statusIconColor(m_status, false, isEnabled(), isPressed()),
+                    isEnabled() ? QIcon::Normal : QIcon::Disabled);
+}
+
+TextToolButton::TextToolButton(QWidget *parent) : ToolButton(parent)
+{
+    initFluentToolButton(QStringLiteral("TextToolButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+TextToolButton::TextToolButton(const QIcon &icon, QWidget *parent) : ToolButton(icon, parent)
+{
+    initFluentToolButton(QStringLiteral("TextToolButton"));
+    setStatus(ButtonStatus::Information);
+}
+
+TextToolButton::TextToolButton(const QString &iconPath, QWidget *parent)
+    : TextToolButton(QIcon(iconPath), parent)
+{
+}
+
+InfoBarSeverity TextToolButton::severity() const { return severityFromStatus(m_status); }
+
+ButtonStatus TextToolButton::status() const { return m_status; }
+
+void TextToolButton::setSeverity(InfoBarSeverity severity)
+{
+    setStatus(statusFromSeverity(severity));
+}
+
+void TextToolButton::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+void TextToolButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QColor foreground = statusIconColor(m_status, false, isEnabled(), isDown());
+    paintTextButtonBackground(&painter, this);
+    paintToolButtonContent(&painter, this, m_storedIcon, foreground);
+}
+
+void TextToolButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    paintTintedIcon(painter, m_storedIcon, rect,
+                    statusIconColor(m_status, false, isEnabled(), isPressed()),
+                    isEnabled() ? QIcon::Normal : QIcon::Disabled);
+}
+
+LuminaPushButton::LuminaPushButton(QWidget *parent) : FilledPushButton(parent)
+{
+    initFluentButton(QStringLiteral("LuminaPushButton"));
+    updateGlow();
+}
+
+LuminaPushButton::LuminaPushButton(const QString &text, QWidget *parent) : FilledPushButton(text, parent)
+{
+    initFluentButton(QStringLiteral("LuminaPushButton"));
+    updateGlow();
+}
+
+LuminaPushButton::LuminaPushButton(const QIcon &icon, const QString &text, QWidget *parent)
+    : FilledPushButton(icon, text, parent)
+{
+    initFluentButton(QStringLiteral("LuminaPushButton"));
+    updateGlow();
+}
+
+void LuminaPushButton::setSeverity(InfoBarSeverity severity)
+{
+    FilledPushButton::setSeverity(severity);
+    updateGlow();
+}
+
+void LuminaPushButton::setStatus(ButtonStatus status)
+{
+    FilledPushButton::setStatus(status);
+    updateGlow();
+}
+
+void LuminaPushButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const ButtonStatus currentStatus = status();
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    QColor accent = statusColor(currentStatus);
+    QColor background = currentStatus == ButtonStatus::Information
+                            ? neutralButtonBackground(isEnabled(), underMouse(), isDown())
+                            : accent;
+    if (currentStatus != ButtonStatus::Information) {
+        background.setAlpha(dark ? 28 : 14);
+        if (underMouse()) {
+            background.setAlpha(dark ? 36 : 22);
+        }
+        if (isDown()) {
+            background.setAlpha(dark ? 22 : 10);
+        }
+    }
+
+    QColor border = currentStatus == ButtonStatus::Information ? neutralButtonBorder(isEnabled(), isDown()) : accent;
+    if (currentStatus != ButtonStatus::Information) {
+        border.setAlpha(dark ? 96 : 80);
+    }
+
+    QColor textColor = dark ? QColor(Qt::white) : QColor(Qt::black);
+    QColor iconColor = accent;
+    if (!isEnabled()) {
+        textColor.setAlphaF(0.36);
+        iconColor.setAlphaF(0.43);
+        border.setAlphaF(0.24);
+    } else if (isDown()) {
+        textColor.setAlphaF(0.63);
+        iconColor.setAlphaF(0.63);
+    }
+
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border, 7);
+    paintPushButtonContent(&painter, this, m_storedIcon, textColor, iconColor);
+}
+
+void LuminaPushButton::updateGlow()
+{
+    auto *shadow = qobject_cast<QGraphicsDropShadowEffect *>(graphicsEffect());
+    if (!shadow) {
+        shadow = new QGraphicsDropShadowEffect(this);
+        shadow->setBlurRadius(20);
+        shadow->setOffset(0, 0);
+        setGraphicsEffect(shadow);
+    }
+    QColor glow = statusColor(status());
+    glow.setAlpha(120);
+    shadow->setColor(glow);
+}
+
+OutlinedPushButton::OutlinedPushButton(QWidget *parent) : PushButton(parent)
+{
+    setCheckable(true);
+    initFluentButton(QStringLiteral("OutlinedPushButton"));
+    setStatus(ButtonStatus::Attention);
+}
+
+OutlinedPushButton::OutlinedPushButton(const QString &text, QWidget *parent) : PushButton(text, parent)
+{
+    setCheckable(true);
+    initFluentButton(QStringLiteral("OutlinedPushButton"));
+    setStatus(ButtonStatus::Attention);
+}
+
+OutlinedPushButton::OutlinedPushButton(const QIcon &icon, const QString &text, QWidget *parent)
+    : PushButton(icon, text, parent)
+{
+    setCheckable(true);
+    initFluentButton(QStringLiteral("OutlinedPushButton"));
+    setStatus(ButtonStatus::Attention);
+}
+
+InfoBarSeverity OutlinedPushButton::severity() const { return severityFromStatus(m_status); }
+
+ButtonStatus OutlinedPushButton::status() const { return m_status; }
+
+void OutlinedPushButton::setSeverity(InfoBarSeverity severity)
+{
+    setStatus(statusFromSeverity(severity));
+}
+
+void OutlinedPushButton::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+void OutlinedPushButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const ButtonStatus visualStatus = m_status == ButtonStatus::Information ? ButtonStatus::Attention : m_status;
+    QColor accent = statusIconColor(visualStatus, false, isEnabled(), isDown());
+    QColor foreground = isChecked() ? accent
+                                    : (ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white)
+                                                                                                 : QColor(Qt::black));
+    QColor background = Qt::transparent;
+    if (isEnabled() && isChecked()) {
+        background = accent;
+        background.setAlpha(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 34 : 22);
+    } else if (isEnabled() && underMouse()) {
+        background = neutralButtonBackground(isEnabled(), underMouse(), isDown());
+    }
+    QColor border = isChecked() ? accent : neutralButtonBorder(isEnabled(), isDown());
+    if (!isEnabled()) {
+        foreground.setAlphaF(0.36);
+        border.setAlphaF(0.36);
+    }
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border, height() / 2.0);
+    paintPushButtonContent(&painter, this, m_storedIcon, foreground, foreground);
+}
+
+void OutlinedPushButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    paintTintedIcon(painter, m_storedIcon, rect,
+                    statusIconColor(m_status, false, isEnabled(), isPressed()),
+                    isEnabled() ? QIcon::Normal : QIcon::Disabled,
+                    isChecked() ? QIcon::On : QIcon::Off);
+}
+
+OutlinedToolButton::OutlinedToolButton(QWidget *parent) : ToolButton(parent)
+{
+    setCheckable(true);
+    initFluentToolButton(QStringLiteral("OutlinedToolButton"));
+    setMinimumSize(QSize(48, 48));
+    setStatus(ButtonStatus::Attention);
+}
+
+OutlinedToolButton::OutlinedToolButton(const QIcon &icon, QWidget *parent) : ToolButton(icon, parent)
+{
+    setCheckable(true);
+    initFluentToolButton(QStringLiteral("OutlinedToolButton"));
+    setMinimumSize(QSize(48, 48));
+    setStatus(ButtonStatus::Attention);
+}
+
+OutlinedToolButton::OutlinedToolButton(const QString &iconPath, QWidget *parent)
+    : OutlinedToolButton(QIcon(iconPath), parent)
+{
+}
+
+InfoBarSeverity OutlinedToolButton::severity() const { return severityFromStatus(m_status); }
+
+ButtonStatus OutlinedToolButton::status() const { return m_status; }
+
+void OutlinedToolButton::setSeverity(InfoBarSeverity severity)
+{
+    setStatus(statusFromSeverity(severity));
+}
+
+void OutlinedToolButton::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+void OutlinedToolButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const ButtonStatus visualStatus = m_status == ButtonStatus::Information ? ButtonStatus::Attention : m_status;
+    QColor accent = statusIconColor(visualStatus, false, isEnabled(), isDown());
+    QColor foreground = isChecked() ? accent
+                                    : (ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white)
+                                                                                                 : QColor(Qt::black));
+    QColor background = Qt::transparent;
+    if (isEnabled() && isChecked()) {
+        background = accent;
+        background.setAlpha(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 34 : 22);
+    } else if (isEnabled() && underMouse()) {
+        background = neutralButtonBackground(isEnabled(), underMouse(), isDown());
+    }
+    QColor border = isChecked() ? accent : neutralButtonBorder(isEnabled(), isDown());
+    if (!isEnabled()) {
+        foreground.setAlphaF(0.36);
+        border.setAlphaF(0.36);
+    }
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border,
+                            qMin(width(), height()) / 2.0);
+    paintToolButtonContent(&painter, this, m_storedIcon, foreground);
+}
+
+void OutlinedToolButton::drawIcon(QPainter *painter, const QRectF &rect)
+{
+    paintTintedIcon(painter, m_storedIcon, rect,
+                    statusIconColor(m_status, false, isEnabled(), isPressed()),
+                    isEnabled() ? QIcon::Normal : QIcon::Disabled,
+                    isChecked() ? QIcon::On : QIcon::Off);
+}
+
+RoundPushButton::RoundPushButton(QWidget *parent) : PushButton(parent)
+{
+    initFluentButton(QStringLiteral("RoundPushButton"));
+}
+
+RoundPushButton::RoundPushButton(const QString &text, QWidget *parent) : PushButton(text, parent)
+{
+    initFluentButton(QStringLiteral("RoundPushButton"));
+}
+
+RoundPushButton::RoundPushButton(const QIcon &icon, const QString &text, QWidget *parent)
+    : PushButton(icon, text, parent)
+{
+    initFluentButton(QStringLiteral("RoundPushButton"));
+}
+
+void RoundPushButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QColor textColor = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
+    if (!isEnabled()) {
+        textColor.setAlphaF(0.36);
+    } else if (isDown()) {
+        textColor.setAlphaF(0.63);
+    }
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1),
+                            neutralButtonBackground(isEnabled(), underMouse(), isDown()),
+                            neutralButtonBorder(isEnabled(), isDown()), height() / 2.0);
+    paintPushButtonContent(&painter, this, m_storedIcon, textColor, textColor);
+}
+
+RoundToolButton::RoundToolButton(QWidget *parent) : ToolButton(parent)
+{
+    initFluentToolButton(QStringLiteral("RoundToolButton"));
+    setMinimumSize(QSize(48, 48));
+}
+
+RoundToolButton::RoundToolButton(const QIcon &icon, QWidget *parent) : ToolButton(icon, parent)
+{
+    initFluentToolButton(QStringLiteral("RoundToolButton"));
+    setMinimumSize(QSize(48, 48));
+}
+
+RoundToolButton::RoundToolButton(const QString &iconPath, QWidget *parent)
+    : RoundToolButton(QIcon(iconPath), parent)
+{
+}
+
+void RoundToolButton::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QColor iconColor = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
+    if (!isEnabled()) {
+        iconColor.setAlphaF(0.36);
+    } else if (isDown()) {
+        iconColor.setAlphaF(0.63);
+    }
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1),
+                            neutralButtonBackground(isEnabled(), underMouse(), isDown()),
+                            neutralButtonBorder(isEnabled(), isDown()), height() / 2.0);
+    paintToolButtonContent(&painter, this, m_storedIcon, iconColor);
+}
+
+Chip::Chip(QWidget *parent) : PushButton(parent)
+{
+    setCheckable(true);
+    initFluentButton(QStringLiteral("Chip"));
+}
+
+Chip::Chip(const QString &text, QWidget *parent) : PushButton(text, parent)
+{
+    setCheckable(true);
+    initFluentButton(QStringLiteral("Chip"));
+}
+
+Chip::Chip(const QIcon &icon, const QString &text, QWidget *parent) : PushButton(icon, text, parent)
+{
+    setCheckable(true);
+    initFluentButton(QStringLiteral("Chip"));
+}
+
+bool Chip::isClosable() const { return m_closable; }
+
+ButtonStatus Chip::status() const { return m_status; }
+
+void Chip::setClosable(bool closable)
+{
+    if (m_closable == closable) {
+        return;
+    }
+    m_closable = closable;
+    updateGeometry();
+    update();
+}
+
+void Chip::setStatus(ButtonStatus status)
+{
+    m_status = status;
+    polishStatusWidget(this, status);
+}
+
+QSize Chip::sizeHint() const
+{
+    QSize hint = PushButton::sizeHint();
+    if (m_closable) {
+        hint.rwidth() += 18;
+    }
+    return hint;
+}
+
+void Chip::mousePressEvent(QMouseEvent *event)
+{
+    if (m_closable && event && closeButtonRect().contains(event->pos())) {
+        m_closePressed = true;
+        update();
+        return;
+    }
+    PushButton::mousePressEvent(event);
+}
+
+void Chip::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (m_closePressed) {
+        m_closePressed = false;
+        update();
+        if (event && closeButtonRect().contains(event->pos())) {
+            emit closedSignal();
+            hide();
+        }
+        return;
+    }
+    PushButton::mouseReleaseEvent(event);
+}
+
+void Chip::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const bool filled = m_status != ButtonStatus::Information;
+    QColor textColor = filled ? statusIconColor(m_status, true, isEnabled(), isDown() || m_closePressed)
+                              : (ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white)
+                                                                                           : QColor(Qt::black));
+    if (!isEnabled()) {
+        textColor.setAlphaF(0.36);
+    } else if (!filled && (isDown() || m_closePressed)) {
+        textColor.setAlphaF(0.63);
+    }
+    const QColor background = filled ? stateAdjustedColor(statusColor(m_status), isEnabled(), underMouse(),
+                                                          isDown() || m_closePressed)
+                                     : neutralButtonBackground(isEnabled(), underMouse(),
+                                                               isDown() || m_closePressed);
+    const QColor border = filled ? background : neutralButtonBorder(isEnabled(), isDown() || m_closePressed);
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1),
+                            background, border, 5);
+
+    QColor closeColor = textColor;
+    if (isEnabled()) {
+        closeColor.setAlphaF(m_closePressed ? 0.55 : 0.72);
+    }
+
+    const QRect contentRect = rect().adjusted(12, 0, m_closable ? -34 : -12, 0);
+    QRect textRect = contentRect;
+    if (!m_storedIcon.isNull()) {
+        const QSize iconSz = iconSize().isValid() ? iconSize() : QSize(16, 16);
+        const QRect iconRect(contentRect.left(), (height() - iconSz.height()) / 2, iconSz.width(), iconSz.height());
+        paintTintedIcon(&painter, m_storedIcon, iconRect, textColor, isEnabled() ? QIcon::Normal : QIcon::Disabled,
+                        isChecked() ? QIcon::On : QIcon::Off);
+        textRect.setLeft(iconRect.right() + 8);
+    }
+    painter.setPen(textColor);
+    painter.drawText(textRect, m_storedIcon.isNull() ? Qt::AlignCenter : (Qt::AlignVCenter | Qt::AlignLeft),
+                     painter.fontMetrics().elidedText(text(), Qt::ElideRight, qMax(0, textRect.width())));
+
+    if (m_closable) {
+        paintTintedIcon(&painter, FluentQt::icon(FluentIcon::Close), closeButtonRect(), closeColor,
+                        isEnabled() ? QIcon::Normal : QIcon::Disabled);
+    }
+}
+
+QRect Chip::closeButtonRect() const
+{
+    const int side = qMin(14, qMax(10, height() - 18));
+    const int x = isRightToLeft() ? 10 : width() - side - 12;
+    return QRect(x, (height() - side) / 2, side, side);
+}
+
+Tag::Tag(QWidget *parent) : OutlinedPushButton(parent)
+{
+    setCheckable(false);
+    initFluentButton(QStringLiteral("Tag"));
+    setStatus(ButtonStatus::Information);
+}
+
+Tag::Tag(const QString &text, QWidget *parent) : OutlinedPushButton(text, parent)
+{
+    setCheckable(false);
+    initFluentButton(QStringLiteral("Tag"));
+    setStatus(ButtonStatus::Information);
+}
+
+Tag::Tag(const QIcon &icon, const QString &text, QWidget *parent) : OutlinedPushButton(icon, text, parent)
+{
+    setCheckable(false);
+    initFluentButton(QStringLiteral("Tag"));
+    setStatus(ButtonStatus::Information);
+}
+
+void Tag::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    const ButtonStatus currentStatus = status();
+    const bool neutral = currentStatus == ButtonStatus::Information;
+    QColor foreground = statusIconColor(currentStatus, false, isEnabled(), isDown());
+    QColor border = neutral ? neutralButtonBorder(isEnabled(), isDown()) : foreground;
+    QColor background = neutral ? neutralButtonBackground(isEnabled(), underMouse(), isDown()) : statusColor(currentStatus);
+    if (!neutral) {
+        background.setAlpha(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 38 : 24);
+        if (underMouse()) {
+            background.setAlpha(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 48 : 32);
+        }
+        if (isDown()) {
+            background.setAlpha(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 30 : 18);
+        }
+    }
+    if (!isEnabled()) {
+        foreground.setAlphaF(0.36);
+        border.setAlphaF(0.24);
+    }
+
+    paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border, 5);
+    paintPushButtonContent(&painter, this, icon(), foreground, foreground);
 }
 
 // ============================================================================

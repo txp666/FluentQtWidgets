@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FluentQtWidgets/Global.h>
+#include <FluentQtWidgets/Widgets/InfoBar.h>
 
 #include <QtCore/QEasingCurve>
 #include <QtCore/QPoint>
@@ -26,6 +27,15 @@ namespace FluentQt {
 
 class RoundMenu;
 
+enum class ButtonStatus
+{
+    Information,
+    Success,
+    Attention,
+    Warning,
+    Error
+};
+
 // --- Base Buttons ---
 
 class FQW_API PushButton : public QPushButton
@@ -42,6 +52,8 @@ class FQW_API PushButton : public QPushButton
     QIcon icon() const;
     bool isPressed() const;
     bool isHover() const;
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
 
   public slots:
     virtual void setIcon(const QIcon &icon);
@@ -350,6 +362,267 @@ class FQW_API HyperlinkButton : public PushButton
     QUrl m_url;
 };
 
+class FQW_API HyperlinkToolButton : public ToolButton
+{
+    Q_OBJECT
+    Q_PROPERTY(QUrl url READ url WRITE setUrl)
+
+  public:
+    explicit HyperlinkToolButton(QWidget *parent = nullptr);
+    HyperlinkToolButton(const QIcon &icon, const QString &url, QWidget *parent = nullptr);
+    HyperlinkToolButton(const QString &iconPath, const QString &url, QWidget *parent = nullptr);
+
+    QUrl url() const;
+
+  public slots:
+    void setUrl(const QUrl &url);
+    void setUrl(const QString &url);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    void onLinkClicked();
+    QUrl m_url;
+};
+
+class FQW_API FilledPushButton : public PrimaryPushButton
+{
+    Q_OBJECT
+
+  public:
+    explicit FilledPushButton(QWidget *parent = nullptr);
+    explicit FilledPushButton(const QString &text, QWidget *parent = nullptr);
+    FilledPushButton(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+    InfoBarSeverity severity() const;
+    ButtonStatus status() const;
+
+  public slots:
+    virtual void setSeverity(InfoBarSeverity severity);
+    virtual void setStatus(ButtonStatus status);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API FilledToolButton : public PrimaryToolButton
+{
+    Q_OBJECT
+
+  public:
+    explicit FilledToolButton(QWidget *parent = nullptr);
+    explicit FilledToolButton(const QIcon &icon, QWidget *parent = nullptr);
+    explicit FilledToolButton(const QString &iconPath, QWidget *parent = nullptr);
+
+    InfoBarSeverity severity() const;
+    ButtonStatus status() const;
+
+  public slots:
+    virtual void setSeverity(InfoBarSeverity severity);
+    virtual void setStatus(ButtonStatus status);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API TextPushButton : public PushButton
+{
+    Q_OBJECT
+
+  public:
+    explicit TextPushButton(QWidget *parent = nullptr);
+    explicit TextPushButton(const QString &text, QWidget *parent = nullptr);
+    TextPushButton(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+    InfoBarSeverity severity() const;
+    ButtonStatus status() const;
+
+  public slots:
+    virtual void setSeverity(InfoBarSeverity severity);
+    virtual void setStatus(ButtonStatus status);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API TextToolButton : public ToolButton
+{
+    Q_OBJECT
+
+  public:
+    explicit TextToolButton(QWidget *parent = nullptr);
+    explicit TextToolButton(const QIcon &icon, QWidget *parent = nullptr);
+    explicit TextToolButton(const QString &iconPath, QWidget *parent = nullptr);
+
+    InfoBarSeverity severity() const;
+    ButtonStatus status() const;
+
+  public slots:
+    virtual void setSeverity(InfoBarSeverity severity);
+    virtual void setStatus(ButtonStatus status);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API LuminaPushButton : public FilledPushButton
+{
+    Q_OBJECT
+
+  public:
+    explicit LuminaPushButton(QWidget *parent = nullptr);
+    explicit LuminaPushButton(const QString &text, QWidget *parent = nullptr);
+    LuminaPushButton(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+  public slots:
+    void setSeverity(InfoBarSeverity severity) override;
+    void setStatus(ButtonStatus status) override;
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+
+  private:
+    void updateGlow();
+};
+
+class FQW_API OutlinedPushButton : public PushButton
+{
+    Q_OBJECT
+
+  public:
+    explicit OutlinedPushButton(QWidget *parent = nullptr);
+    explicit OutlinedPushButton(const QString &text, QWidget *parent = nullptr);
+    OutlinedPushButton(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+    InfoBarSeverity severity() const;
+    ButtonStatus status() const;
+
+  public slots:
+    virtual void setSeverity(InfoBarSeverity severity);
+    virtual void setStatus(ButtonStatus status);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API OutlinedToolButton : public ToolButton
+{
+    Q_OBJECT
+
+  public:
+    explicit OutlinedToolButton(QWidget *parent = nullptr);
+    explicit OutlinedToolButton(const QIcon &icon, QWidget *parent = nullptr);
+    explicit OutlinedToolButton(const QString &iconPath, QWidget *parent = nullptr);
+
+    InfoBarSeverity severity() const;
+    ButtonStatus status() const;
+
+  public slots:
+    virtual void setSeverity(InfoBarSeverity severity);
+    virtual void setStatus(ButtonStatus status);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void drawIcon(QPainter *painter, const QRectF &rect) override;
+
+  private:
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API RoundPushButton : public PushButton
+{
+    Q_OBJECT
+
+  public:
+    explicit RoundPushButton(QWidget *parent = nullptr);
+    explicit RoundPushButton(const QString &text, QWidget *parent = nullptr);
+    RoundPushButton(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+};
+
+class FQW_API RoundToolButton : public ToolButton
+{
+    Q_OBJECT
+
+  public:
+    explicit RoundToolButton(QWidget *parent = nullptr);
+    explicit RoundToolButton(const QIcon &icon, QWidget *parent = nullptr);
+    explicit RoundToolButton(const QString &iconPath, QWidget *parent = nullptr);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+};
+
+class FQW_API Chip : public PushButton
+{
+    Q_OBJECT
+    Q_PROPERTY(bool closable READ isClosable WRITE setClosable)
+
+  public:
+    explicit Chip(QWidget *parent = nullptr);
+    explicit Chip(const QString &text, QWidget *parent = nullptr);
+    Chip(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+    bool isClosable() const;
+    ButtonStatus status() const;
+    QSize sizeHint() const override;
+
+  public slots:
+    void setClosable(bool closable);
+    void setStatus(ButtonStatus status);
+
+  signals:
+    void closedSignal();
+
+  protected:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+
+  private:
+    QRect closeButtonRect() const;
+    bool m_closable = true;
+    bool m_closePressed = false;
+    ButtonStatus m_status = ButtonStatus::Information;
+};
+
+class FQW_API Tag : public OutlinedPushButton
+{
+    Q_OBJECT
+
+  public:
+    explicit Tag(QWidget *parent = nullptr);
+    explicit Tag(const QString &text, QWidget *parent = nullptr);
+    Tag(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+};
+
 class FQW_API RadioButton : public QRadioButton
 {
     Q_OBJECT
@@ -623,3 +896,5 @@ class FQW_API PrimarySplitToolButton : public SplitWidgetBase
 };
 
 } // namespace FluentQt
+
+Q_DECLARE_METATYPE(FluentQt::ButtonStatus)

@@ -19,6 +19,256 @@
         <translation>导航到一个超链接的按钮</translation>
     </message>
     <message>
+        <location filename="../../view/basic_input_interface.py" line="187"/>
+        <source>Hyperlink tool buttons that navigate to a URI</source>
+        <translation>导航到 URI 的超链接工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="187"/>
+        <source>A hyperlink tool button that navigates to a URI</source>
+        <translation>导航到 URI 的超链接工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="188"/>
+        <source>Success</source>
+        <translation>成功</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="189"/>
+        <source>Error text</source>
+        <translation>错误文本</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="190"/>
+        <source>Filled and text buttons with status colors</source>
+        <translation>带状态色的填充和文本按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="190"/>
+        <source>A filled push button with a status color</source>
+        <translation>带状态色的填充按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="190"/>
+        <source>A filled tool button with a status color</source>
+        <translation>带状态色的填充工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="190"/>
+        <source>A text push button with a status color</source>
+        <translation>带状态色的文本按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="190"/>
+        <source>A text tool button with a status color</source>
+        <translation>带状态色的文本工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="191"/>
+        <source>Lumina</source>
+        <translation>发光</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="192"/>
+        <source>Outlined</source>
+        <translation>描边</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="193"/>
+        <source>Round</source>
+        <translation>圆角</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="194"/>
+        <source>Lumina, outlined and round buttons</source>
+        <translation>发光、描边和圆角按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="194"/>
+        <source>A lumina push button with glow</source>
+        <translation>带辉光的发光按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="194"/>
+        <source>An outlined push button</source>
+        <translation>描边按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="194"/>
+        <source>An outlined tool button</source>
+        <translation>描边工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="194"/>
+        <source>A round push button</source>
+        <translation>圆角按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="194"/>
+        <source>A round tool button</source>
+        <translation>圆形工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="195"/>
+        <source>Closable chip</source>
+        <translation>可关闭标签</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="196"/>
+        <source>Warning tag</source>
+        <translation>警告标签</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="197"/>
+        <source>Chip and Tag controls</source>
+        <translation>Chip 和 Tag 控件</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="197"/>
+        <source>A closable chip</source>
+        <translation>可关闭的 Chip</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="197"/>
+        <source>A tag with a status color</source>
+        <translation>带状态色的 Tag</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="198"/>
+        <source>Filled push buttons with status colors</source>
+        <translation>带状态色的填充按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="199"/>
+        <source>Filled tool buttons with status colors</source>
+        <translation>带状态色的填充工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="200"/>
+        <source>Text push buttons with status colors</source>
+        <translation>带状态色的文本按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="201"/>
+        <source>Text tool buttons with status colors</source>
+        <translation>带状态色的文本工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="202"/>
+        <source>Information</source>
+        <translation>信息</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="203"/>
+        <source>Attention</source>
+        <translation>注意</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="204"/>
+        <source>Warning</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="205"/>
+        <source>Error</source>
+        <translation>错误</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="206"/>
+        <source>Free games</source>
+        <translation>免费的游戏</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="207"/>
+        <source>Shooter</source>
+        <translation>射击</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="208"/>
+        <source>Simulation</source>
+        <translation>模拟</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="209"/>
+        <source>Role play</source>
+        <translation>角色扮演</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="210"/>
+        <source>Lumina push buttons with glow</source>
+        <translation>带辉光的发光按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="211"/>
+        <source>Applications</source>
+        <translation>应用</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="212"/>
+        <source>Games</source>
+        <translation>游戏</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="213"/>
+        <source>Movies &amp;&amp; TV</source>
+        <translation>电影和电视</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="214"/>
+        <source>Device attached</source>
+        <translation>设备附带</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="215"/>
+        <source>Outlined push buttons in a button group</source>
+        <translation>按钮组中的描边按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="216"/>
+        <source>Utilities &amp;&amp; tools</source>
+        <translation>实用程序与工具</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="217"/>
+        <source>Round tool buttons</source>
+        <translation>圆形工具按钮</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="218"/>
+        <source>Attach camera</source>
+        <translation>附加相机</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="219"/>
+        <source>Add friend</source>
+        <translation>添加好友</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="220"/>
+        <source>Closable chip controls</source>
+        <translation>可关闭的 Chip 控件</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="221"/>
+        <source>Phone</source>
+        <translation>电话</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="222"/>
+        <source>Network</source>
+        <translation>网络</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="223"/>
+        <source>Progress</source>
+        <translation>进度</translation>
+    </message>
+    <message>
+        <location filename="../../view/basic_input_interface.py" line="224"/>
+        <source>Tag controls with status colors</source>
+        <translation>带状态色的 Tag 控件</translation>
+    </message>
+    <message>
         <location filename="../../view/basic_input_interface.py" line="88"/>
         <source>A 2-state CheckBox</source>
         <translation>双态复选框</translation>

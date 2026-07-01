@@ -18,6 +18,18 @@ Supported classes:
 - `PillPushButton`
 - `PillToolButton`
 - `HyperlinkButton`
+- `HyperlinkToolButton`
+- `FilledPushButton`
+- `FilledToolButton`
+- `TextPushButton`
+- `TextToolButton`
+- `LuminaPushButton`
+- `OutlinedPushButton`
+- `OutlinedToolButton`
+- `RoundPushButton`
+- `RoundToolButton`
+- `Chip`
+- `Tag`
 - `SplitDropButton`
 - `PrimarySplitDropButton`
 - `SplitWidgetBase`
@@ -40,7 +52,7 @@ Supported classes:
 
 Drop-down button variants include an arrow rotation animation when the menu opens or closes. `PushButton`, `ToolButton`, and `HyperlinkButton` expose Python-style `isPressed` and `isHover` state properties for low-level styling and tests. Button icons follow the Python `_icon` model: Fluent buttons keep the icon in the widget and paint it themselves, while the Qt base-class icon is kept empty so the platform style cannot draw a second icon or reserve a conflicting label rect. Split buttons expose the same low-level structure as the Python reference: a `SplitWidgetBase` with a content widget and a replaceable `SplitDropButton` / `PrimarySplitDropButton`, direct accessors for the main button and drop button, and wrapper-level `icon` / `iconSize` forwarding to the main button. Split drop-button height is synchronized from the content widget's size hint/minimum height, matching the Python layout behavior instead of locking in a transient gallery row height.
 
-Transparent, primary, toggle, drop-down, and split button variants intentionally share the same Python spacing rules. Icon buttons are custom-painted instead of using Qt's default icon path, which prevents duplicate icons and keeps text, icon, and arrow spacing aligned with the Python gallery.
+Transparent, primary, toggle, drop-down, split, and Pro-style colored button variants intentionally share the same Python spacing rules. Icon buttons are custom-painted instead of using Qt's default icon path, which prevents duplicate icons and keeps text, icon, arrow, and status-color spacing aligned with the Python gallery. `Filled*`, `Text*`, `Outlined*`, `LuminaPushButton`, `Chip`, and `Tag` use `ButtonStatus` for information/success/attention/warning/error colors; `setSeverity(InfoBarSeverity)` remains available for code that only needs the original four severity levels. `Chip` exposes a closable tag-like button with `closedSignal()`.
 
 ## Inputs
 

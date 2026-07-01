@@ -3,6 +3,14 @@
 #include "GalleryViewHelpers.h"
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QStringList>
+#include <QtCore/QVector>
+#include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QSizePolicy>
+
+#include <tuple>
 
 using namespace FluentQt;
 
@@ -24,6 +32,46 @@ QWidget *GalleryWindow::createBasicInputPage()
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/basic_input/slider/main.cpp");
     const QString switchButtonSource =
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/basic_input/switch_button/main.cpp");
+    struct ButtonRow
+    {
+        QScrollArea *view = nullptr;
+        QWidget *content = nullptr;
+        QHBoxLayout *layout = nullptr;
+    };
+    auto fitButtonText = [](QAbstractButton *button) {
+        if (!button) {
+            return;
+        }
+        button->ensurePolished();
+        button->setMinimumWidth(qMax(button->minimumWidth(), button->sizeHint().width()));
+        button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    };
+    auto makeButtonRow = [](int spacing = 36) {
+        ButtonRow row;
+        row.view = new QScrollArea;
+        row.view->setFrameShape(QFrame::NoFrame);
+        row.view->setWidgetResizable(true);
+        row.view->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        row.view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        row.view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+        row.view->setMinimumHeight(48);
+        row.view->viewport()->setAutoFillBackground(false);
+
+        row.content = new QWidget(row.view);
+        row.content->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        row.layout = new QHBoxLayout(row.content);
+        row.layout->setSizeConstraint(QLayout::SetMinimumSize);
+        row.layout->setContentsMargins(0, 0, 0, 0);
+        row.layout->setSpacing(spacing);
+        row.layout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        row.view->setWidget(row.content);
+        return row;
+    };
+    auto addButtonToRow = [fitButtonText](ButtonRow &row, QAbstractButton *button) {
+        fitButtonText(button);
+        row.layout->addWidget(button);
+        row.content->setMinimumWidth(row.layout->sizeHint().width());
+    };
 
     // -- Push buttons --
     page->addExampleCard(B_TR("A simple button with text content"),
@@ -119,6 +167,147 @@ QWidget *GalleryWindow::createBasicInputPage()
                                              QStringLiteral(FQW_REPOSITORY_URL),
                                              QStringLiteral("GitHub")),
                          buttonSource);
+
+    page->addExampleCard(B_TR("A hyperlink tool button that navigates to a URI"),
+                         new HyperlinkToolButton(icon(FluentIcon::GitHub),
+                                                 QStringLiteral(FQW_REPOSITORY_URL)),
+                         buttonSource);
+
+    {
+        auto row = makeButtonRow();
+        const QVector<QPair<ButtonStatus, QString>> items = {
+            {ButtonStatus::Information, B_TR("Information")},
+            {ButtonStatus::Success, B_TR("Success")},
+            {ButtonStatus::Attention, B_TR("Attention")},
+            {ButtonStatus::Warning, B_TR("Warning")},
+            {ButtonStatus::Error, B_TR("Error")},
+        };
+        for (const auto &item : items) {
+            auto *button = new FilledPushButton(icon(FluentIcon::Delete), item.second, row.content);
+            button->setStatus(item.first);
+            addButtonToRow(row, button);
+        }
+        page->addExampleCard(B_TR("Filled push buttons with status colors"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        const QVector<ButtonStatus> items = {ButtonStatus::Information, ButtonStatus::Success,
+                                             ButtonStatus::Attention, ButtonStatus::Warning, ButtonStatus::Error};
+        for (ButtonStatus status : items) {
+            auto *button = new FilledToolButton(icon(FluentIcon::Delete), row.content);
+            button->setStatus(status);
+            addButtonToRow(row, button);
+        }
+        page->addExampleCard(B_TR("Filled tool buttons with status colors"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        const QVector<QPair<ButtonStatus, QString>> items = {
+            {ButtonStatus::Information, B_TR("Information")},
+            {ButtonStatus::Success, B_TR("Success")},
+            {ButtonStatus::Attention, B_TR("Attention")},
+            {ButtonStatus::Warning, B_TR("Warning")},
+            {ButtonStatus::Error, B_TR("Error")},
+        };
+        for (const auto &item : items) {
+            auto *button = new TextPushButton(icon(FluentIcon::Delete), item.second, row.content);
+            button->setStatus(item.first);
+            addButtonToRow(row, button);
+        }
+        page->addExampleCard(B_TR("Text push buttons with status colors"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        const QVector<ButtonStatus> items = {ButtonStatus::Information, ButtonStatus::Success,
+                                             ButtonStatus::Attention, ButtonStatus::Warning, ButtonStatus::Error};
+        for (ButtonStatus status : items) {
+            auto *button = new TextToolButton(icon(FluentIcon::Delete), row.content);
+            button->setStatus(status);
+            addButtonToRow(row, button);
+        }
+        page->addExampleCard(B_TR("Text tool buttons with status colors"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        const QVector<std::tuple<ButtonStatus, FluentIcon, QString>> items = {
+            {ButtonStatus::Attention, FluentIcon::Game, B_TR("Free games")},
+            {ButtonStatus::Information, FluentIcon::Photo, B_TR("Shooter")},
+            {ButtonStatus::Warning, FluentIcon::Search, B_TR("Simulation")},
+            {ButtonStatus::Error, FluentIcon::Brush, B_TR("Role play")},
+        };
+        for (const auto &item : items) {
+            auto *button = new LuminaPushButton(icon(std::get<1>(item)), std::get<2>(item), row.content);
+            button->setStatus(std::get<0>(item));
+            addButtonToRow(row, button);
+        }
+        page->addExampleCard(B_TR("Lumina push buttons with glow"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        auto *group = new QButtonGroup(row.content);
+        group->setExclusive(true);
+        const QStringList labels = {B_TR("Applications"), B_TR("Games"), B_TR("Movies && TV"),
+                                    B_TR("Device attached")};
+        for (int i = 0; i < labels.size(); ++i) {
+            auto *button = new OutlinedPushButton(labels.at(i), row.content);
+            button->setStatus(i == 0 ? ButtonStatus::Attention : ButtonStatus::Information);
+            button->setChecked(i == 0);
+            group->addButton(button);
+            addButtonToRow(row, button);
+        }
+        page->addExampleCard(B_TR("Outlined push buttons in a button group"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto *button = new OutlinedToolButton(icon(FluentIcon::Add));
+        button->setStatus(ButtonStatus::Attention);
+        button->setChecked(true);
+        button->setFixedSize(48, 48);
+        page->addExampleCard(B_TR("An outlined tool button"), button, buttonSource);
+    }
+
+    page->addExampleCard(B_TR("A round push button"),
+                         new RoundPushButton(B_TR("Utilities && tools")), buttonSource);
+
+    {
+        auto row = makeButtonRow(24);
+        addButtonToRow(row, new RoundToolButton(icon(FluentIcon::Brush), row.content));
+        addButtonToRow(row, new RoundToolButton(icon(FluentIcon::Bluetooth), row.content));
+        addButtonToRow(row, new RoundToolButton(icon(FluentIcon::Heart), row.content));
+        page->addExampleCard(B_TR("Round tool buttons"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        auto *camera = new Chip(icon(FluentIcon::Camera), B_TR("Attach camera"), row.content);
+        auto *friendChip = new Chip(icon(FluentIcon::People), B_TR("Add friend"), row.content);
+        friendChip->setStatus(ButtonStatus::Attention);
+        addButtonToRow(row, camera);
+        addButtonToRow(row, friendChip);
+        page->addExampleCard(B_TR("Closable chip controls"), row.view, buttonSource, 1);
+    }
+
+    {
+        auto row = makeButtonRow();
+        const QVector<std::tuple<ButtonStatus, FluentIcon, QString>> items = {
+            {ButtonStatus::Information, FluentIcon::Camera, B_TR("Attach camera")},
+            {ButtonStatus::Success, FluentIcon::People, B_TR("Add friend")},
+            {ButtonStatus::Warning, FluentIcon::Phone, B_TR("Phone")},
+            {ButtonStatus::Error, FluentIcon::Share, B_TR("Network")},
+            {ButtonStatus::Attention, FluentIcon::Sync, B_TR("Progress")},
+        };
+        for (const auto &item : items) {
+            auto *tag = new Tag(icon(std::get<1>(item)), std::get<2>(item), row.content);
+            tag->setStatus(std::get<0>(item));
+            addButtonToRow(row, tag);
+        }
+        page->addExampleCard(B_TR("Tag controls with status colors"), row.view, buttonSource, 1);
+    }
 
     // -- Radio button group --
     {

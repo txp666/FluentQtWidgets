@@ -6,6 +6,7 @@
 #include <QtGui/QPixmap>
 #include <QtTest/QtTest>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QWidget>
@@ -42,11 +43,17 @@ private slots:
         QVERIFY(!button.icon().isNull());
         QVERIFY(static_cast<QPushButton *>(&button)->icon().isNull());
         QCOMPARE(button.property("hasIcon").toBool(), true);
+        QVERIFY(button.sizeHint().width() >= button.fontMetrics().horizontalAdvance(button.text())
+                                             + button.iconSize().width() + 32);
+        QCOMPARE(button.minimumSizeHint(), button.sizeHint());
 
         PrimaryPushButton primary(icon(FluentIcon::Update), QStringLiteral("Accent style button with icon"));
         QVERIFY(!primary.icon().isNull());
         QVERIFY(static_cast<QPushButton *>(&primary)->icon().isNull());
         QCOMPARE(primary.property("hasIcon").toBool(), true);
+        QVERIFY(primary.sizeHint().width() >= primary.fontMetrics().horizontalAdvance(primary.text())
+                                              + primary.iconSize().width() + 32);
+        QCOMPARE(primary.minimumSizeHint(), primary.sizeHint());
     }
 
     void pushButtonIconAndTextKeepPythonSpacing()
@@ -203,6 +210,72 @@ private slots:
             QVERIFY2(control->sizeHint().width() > 0, qPrintable(control->metaObject()->className()));
             QVERIFY2(control->sizeHint().height() > 0, qPrintable(control->metaObject()->className()));
         }
+    }
+
+    void proButtonVariantsExposeRolesAndSeverity()
+    {
+        HyperlinkToolButton hyperlink(icon(FluentIcon::GitHub), QStringLiteral("https://example.com"));
+        QCOMPARE(hyperlink.property("fqw").toString(), QStringLiteral("HyperlinkToolButton"));
+        QCOMPARE(hyperlink.url(), QUrl(QStringLiteral("https://example.com")));
+
+        FilledPushButton filled(icon(FluentIcon::Accept), QStringLiteral("Success"));
+        filled.setSeverity(InfoBarSeverity::Success);
+        QCOMPARE(filled.property("fqw").toString(), QStringLiteral("FilledPushButton"));
+        QCOMPARE(filled.property("severity").toString(), QStringLiteral("success"));
+        QCOMPARE(filled.severity(), InfoBarSeverity::Success);
+        QVERIFY(static_cast<QPushButton *>(&filled)->icon().isNull());
+
+        FilledToolButton filledTool(icon(FluentIcon::Info));
+        filledTool.setSeverity(InfoBarSeverity::Warning);
+        QCOMPARE(filledTool.property("fqw").toString(), QStringLiteral("FilledToolButton"));
+        QCOMPARE(filledTool.property("severity").toString(), QStringLiteral("warning"));
+        QVERIFY(static_cast<QToolButton *>(&filledTool)->icon().isNull());
+
+        TextPushButton text(icon(FluentIcon::Cancel), QStringLiteral("Error"));
+        text.setSeverity(InfoBarSeverity::Error);
+        QCOMPARE(text.property("fqw").toString(), QStringLiteral("TextPushButton"));
+        QCOMPARE(text.property("severity").toString(), QStringLiteral("error"));
+
+        TextToolButton textTool(icon(FluentIcon::Link));
+        QCOMPARE(textTool.property("fqw").toString(), QStringLiteral("TextToolButton"));
+        textTool.setStatus(ButtonStatus::Attention);
+        QCOMPARE(textTool.property("severity").toString(), QStringLiteral("attention"));
+        QCOMPARE(textTool.status(), ButtonStatus::Attention);
+
+        LuminaPushButton lumina(icon(FluentIcon::Completed), QStringLiteral("Lumina"));
+        QVERIFY(qobject_cast<QGraphicsDropShadowEffect *>(lumina.graphicsEffect()));
+        QCOMPARE(lumina.property("fqw").toString(), QStringLiteral("LuminaPushButton"));
+
+        OutlinedPushButton outlined(icon(FluentIcon::Tag), QStringLiteral("Outlined"));
+        OutlinedToolButton outlinedTool(icon(FluentIcon::Flag));
+        QVERIFY(outlined.isCheckable());
+        QVERIFY(outlinedTool.isCheckable());
+        QVERIFY(outlinedTool.minimumSize().width() >= 48);
+        QVERIFY(outlinedTool.minimumSize().height() >= 48);
+        QCOMPARE(outlined.property("fqw").toString(), QStringLiteral("OutlinedPushButton"));
+        QCOMPARE(outlinedTool.property("fqw").toString(), QStringLiteral("OutlinedToolButton"));
+
+        RoundPushButton round(icon(FluentIcon::Tag), QStringLiteral("Round"));
+        RoundToolButton roundTool(icon(FluentIcon::Basketball));
+        QVERIFY(roundTool.minimumSize().width() >= 48);
+        QVERIFY(roundTool.minimumSize().height() >= 48);
+        QCOMPARE(round.property("fqw").toString(), QStringLiteral("RoundPushButton"));
+        QCOMPARE(roundTool.property("fqw").toString(), QStringLiteral("RoundToolButton"));
+
+        Chip chip(icon(FluentIcon::Tag), QStringLiteral("Chip"));
+        chip.setStatus(ButtonStatus::Attention);
+        QCOMPARE(chip.property("severity").toString(), QStringLiteral("attention"));
+        QSignalSpy closedSpy(&chip, &Chip::closedSignal);
+        chip.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&chip));
+        QTest::mouseClick(&chip, Qt::LeftButton, Qt::NoModifier, QPoint(chip.width() - 19, chip.height() / 2));
+        QCOMPARE(closedSpy.count(), 1);
+
+        Tag tag(icon(FluentIcon::Label), QStringLiteral("Tag"));
+        tag.setSeverity(InfoBarSeverity::Warning);
+        QVERIFY(!tag.isCheckable());
+        QCOMPARE(tag.property("fqw").toString(), QStringLiteral("Tag"));
+        QCOMPARE(tag.property("severity").toString(), QStringLiteral("warning"));
     }
 
     void folderListSettingCardMatchesPythonExpandStructure()
