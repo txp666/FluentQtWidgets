@@ -925,8 +925,8 @@ class ShellTest : public QObject
 
     void fluentWindowClipsChildBackgroundToWindowRadius()
     {
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
-        QSKIP("Windows and macOS use native or painted rounded corners without a QWidget mask");
+#if defined(Q_OS_WIN)
+        QSKIP("Windows uses native rounded corners without a QWidget mask");
 #else
         FluentQt::FluentWindow window;
         window.resize(480, 360);
