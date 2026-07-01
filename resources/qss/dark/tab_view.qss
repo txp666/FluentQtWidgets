@@ -51,16 +51,6 @@ QToolButton[fqw="TabAddButton"] {
     background: transparent;
 }
 
-QToolButton[fqw="TabAddButton"]:hover,
-QToolButton[fqw="TabScrollButton"]:hover {
+QToolButton[fqw="TabAddButton"]:hover {
     background: #3b3b3b;
-}
-
-QToolButton[fqw="TabScrollButton"] {
-    min-width: 28px;
-    min-height: 28px;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
 }

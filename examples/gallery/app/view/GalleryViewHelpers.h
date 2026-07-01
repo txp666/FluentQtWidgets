@@ -9,6 +9,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
+#include <QtCore/QFile>
 #include <QtCore/QPoint>
 #include <QtCore/QPointer>
 #include <QtCore/QStandardPaths>
@@ -55,6 +56,26 @@ inline QString exampleSourceUrl(const char *examplePath)
 {
     return QStringLiteral(FQW_REPOSITORY_URL "/blob/main/examples/%1/main.cpp")
         .arg(QString::fromLatin1(examplePath));
+}
+
+inline QString galleryViewStyleContent(const QString &styleName, FluentQt::Theme theme)
+{
+    const QString themeFolder = theme == FluentQt::Theme::Dark ? QStringLiteral("dark") : QStringLiteral("light");
+    QFile styleFile(QStringLiteral(":/gallery/qss/%1/%2.qss").arg(themeFolder, styleName));
+    if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return QString::fromUtf8(styleFile.readAll());
+    }
+    return {};
+}
+
+inline void applyGalleryViewStyle(QWidget *widget, const QString &styleName)
+{
+    if (!widget) {
+        return;
+    }
+    FluentQt::FluentStyleSheet::setCustomStyleSheet(
+        widget, galleryViewStyleContent(styleName, FluentQt::Theme::Light),
+        galleryViewStyleContent(styleName, FluentQt::Theme::Dark));
 }
 
 class ProfileCard : public QWidget

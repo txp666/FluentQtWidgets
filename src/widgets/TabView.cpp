@@ -17,6 +17,7 @@
 #include <QtGui/QDragMoveEvent>
 #include <QtGui/QDropEvent>
 #include <QtGui/QMouseEvent>
+#include <QtGui/QWheelEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
@@ -48,6 +49,7 @@ QString closeButtonModeName(TabCloseButtonDisplayMode mode)
 QString generatedRouteKey() { return QUuid::createUuid().toString(QUuid::WithoutBraces); }
 
 const char *kTabMimeType = "application/x-fluent-tab-index";
+constexpr int kTabMinimumWidth = 64;
 } // namespace
 
 TabItem::TabItem(QWidget *parent) : QPushButton(parent) { init(); }
@@ -270,6 +272,7 @@ int TabBar::insertTab(int index, const QString &routeKey, const QString &text, c
 
     const int boundedIndex = qBound(0, index, count());
     auto *item = new TabItem(key, text, icon, this);
+    item->setMinimumWidth(m_scrollable ? m_tabMaximumWidth : kTabMinimumWidth);
     item->setMaximumWidth(m_tabMaximumWidth);
     item->setCloseButtonDisplayMode(m_closeButtonDisplayMode);
     item->setShadowEnabled(m_tabShadowEnabled);
@@ -278,7 +281,7 @@ int TabBar::insertTab(int index, const QString &routeKey, const QString &text, c
 
     m_items.insert(boundedIndex, item);
     m_itemMap.insert(key, item);
-    m_itemLayout->insertWidget(boundedIndex, item, 0, Qt::AlignVCenter);
+    m_itemLayout->insertWidget(boundedIndex, item, 1, Qt::AlignVCenter);
 
     if (boundedIndex <= m_currentIndex) {
         ++m_currentIndex;
@@ -463,6 +466,9 @@ void TabBar::setTabMaximumWidth(int width)
     m_tabMaximumWidth = boundedWidth;
     for (TabItem *item : m_items) {
         item->setMaximumWidth(m_tabMaximumWidth);
+        if (m_scrollable) {
+            item->setMinimumWidth(m_tabMaximumWidth);
+        }
     }
     updateOverflowButtons();
 }
@@ -506,7 +512,7 @@ void TabBar::setScrollable(bool scrollable)
     }
 
     m_scrollable = scrollable;
-    const int minWidth = scrollable ? 240 : 64;
+    const int minWidth = scrollable ? m_tabMaximumWidth : kTabMinimumWidth;
     for (TabItem *item : m_items) {
         item->setMinimumWidth(minWidth);
     }
@@ -525,26 +531,29 @@ void TabBar::setTabShadowEnabled(bool enabled)
     }
 }
 
-void TabBar::scrollPrevious()
-{
-    if (m_scrollArea && m_scrollArea->horizontalScrollBar()) {
-        auto *bar = m_scrollArea->horizontalScrollBar();
-        bar->setValue(bar->value() - 120);
-    }
-}
-
-void TabBar::scrollNext()
-{
-    if (m_scrollArea && m_scrollArea->horizontalScrollBar()) {
-        auto *bar = m_scrollArea->horizontalScrollBar();
-        bar->setValue(bar->value() + 120);
-    }
-}
-
 void TabBar::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     updateOverflowButtons();
+}
+
+void TabBar::wheelEvent(QWheelEvent *event)
+{
+    if (!m_scrollable || !m_scrollArea || !m_scrollArea->horizontalScrollBar()) {
+        QWidget::wheelEvent(event);
+        return;
+    }
+
+    const QPoint delta = event->angleDelta();
+    const int step = delta.x() != 0 ? delta.x() : delta.y();
+    if (step == 0) {
+        QWidget::wheelEvent(event);
+        return;
+    }
+
+    auto *bar = m_scrollArea->horizontalScrollBar();
+    bar->setValue(bar->value() - step);
+    event->accept();
 }
 
 void TabBar::dragEnterEvent(QDragEnterEvent *event)
@@ -599,21 +608,9 @@ void TabBar::init()
     setAcceptDrops(true);
 
     m_layout = new QHBoxLayout(this);
-    m_layout->setContentsMargins(5, 5, 5, 5);
-    m_layout->setSpacing(2);
+    m_layout->setContentsMargins(0, 0, 0, 0);
+    m_layout->setSpacing(0);
     m_layout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-
-    m_previousButton = new TransparentToolButton(FluentQt::icon(FluentIcon::LeftArrow), this);
-    m_previousButton->setFixedSize(24, 28);
-    m_previousButton->setIconSize(QSize(10, 10));
-    m_previousButton->setToolTip(tr("Scroll tabs left"));
-    connect(m_previousButton, &QToolButton::clicked, this, &TabBar::scrollPrevious);
-
-    m_nextButton = new TransparentToolButton(FluentQt::icon(FluentIcon::RightArrow), this);
-    m_nextButton->setFixedSize(24, 28);
-    m_nextButton->setIconSize(QSize(10, 10));
-    m_nextButton->setToolTip(tr("Scroll tabs right"));
-    connect(m_nextButton, &QToolButton::clicked, this, &TabBar::scrollNext);
 
     m_scrollArea = new QScrollArea(this);
     m_scrollArea->setFrameShape(QFrame::NoFrame);
@@ -624,9 +621,10 @@ void TabBar::init()
             [this]() { updateOverflowButtons(); });
 
     m_tabStrip = new QWidget(m_scrollArea);
+    m_tabStrip->setObjectName(QStringLiteral("view"));
     m_itemLayout = new QHBoxLayout(m_tabStrip);
-    m_itemLayout->setContentsMargins(0, 0, 0, 0);
-    m_itemLayout->setSpacing(2);
+    m_itemLayout->setContentsMargins(5, 5, 5, 5);
+    m_itemLayout->setSpacing(0);
     m_itemLayout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     m_scrollArea->setWidget(m_tabStrip);
 
@@ -636,15 +634,12 @@ void TabBar::init()
     m_addButton->setToolTip(tr("New tab"));
     connect(m_addButton, &QToolButton::clicked, this, &TabBar::tabAddRequested);
 
-    m_layout->addWidget(m_previousButton, 0, Qt::AlignVCenter);
     m_layout->addWidget(m_scrollArea, 1);
-    m_layout->addWidget(m_nextButton, 0, Qt::AlignVCenter);
+    m_layout->addSpacing(3);
     m_layout->addWidget(m_addButton, 0, Qt::AlignVCenter);
 
     FluentStyleSheet::setRole(this, QStringLiteral("TabBar"));
     FluentStyleSheet::setRole(m_addButton, QStringLiteral("TabAddButton"));
-    FluentStyleSheet::setRole(m_previousButton, QStringLiteral("TabScrollButton"));
-    FluentStyleSheet::setRole(m_nextButton, QStringLiteral("TabScrollButton"));
     updateOverflowButtons();
 }
 
@@ -663,7 +658,7 @@ void TabBar::moveTab(int from, int to)
         delete child;
     }
     for (TabItem *tabItem : std::as_const(m_items)) {
-        m_itemLayout->addWidget(tabItem, 0, Qt::AlignVCenter);
+        m_itemLayout->addWidget(tabItem, 1, Qt::AlignVCenter);
     }
 
     if (m_currentIndex == from) {
@@ -681,24 +676,23 @@ void TabBar::moveTab(int from, int to)
 
 void TabBar::updateOverflowButtons()
 {
-    if (!m_scrollArea || !m_tabStrip || !m_previousButton || !m_nextButton) {
+    if (!m_scrollArea || !m_tabStrip) {
         return;
     }
 
     m_tabStrip->adjustSize();
     int totalWidth = 0;
     for (TabItem *item : std::as_const(m_items)) {
-        totalWidth += item->sizeHint().width() + m_itemLayout->spacing();
+        totalWidth += qMax(item->minimumWidth(), item->sizeHint().width()) + m_itemLayout->spacing();
     }
     if (!m_items.isEmpty()) {
         totalWidth -= m_itemLayout->spacing();
     }
+    const QMargins margins = m_itemLayout->contentsMargins();
+    totalWidth += margins.left() + margins.right();
     m_tabStrip->setMinimumWidth(totalWidth);
 
-    const bool overflow = m_scrollArea->viewport()->width() < m_tabStrip->minimumWidth();
-    const bool showButtons = m_scrollable && overflow;
-    m_previousButton->setVisible(showButtons);
-    m_nextButton->setVisible(showButtons);
+    updateGeometry();
 }
 
 QString TabBar::normalizeRouteKey(const QString &routeKey) const

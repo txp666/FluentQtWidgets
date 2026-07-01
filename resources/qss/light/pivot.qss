@@ -1,32 +1,115 @@
-QWidget[fqw="Pivot"],
-QWidget[fqw="SegmentedWidget"],
-QWidget[fqw="BreadcrumbBar"] {
-    background: transparent;
-}
-
-QPushButton[fqw="PivotItem"],
-QPushButton[fqw="SegmentedItem"],
-QPushButton[fqw="BreadcrumbItem"] {
-    min-height: 32px;
-    padding: 5px 12px;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
+QPushButton[fqw="PivotItem"] {
+    padding: 10px 12px;
     color: black;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    margin: 0;
 }
 
-QPushButton[fqw="PivotItem"]:hover,
-QPushButton[fqw="SegmentedItem"]:hover,
-QPushButton[fqw="BreadcrumbItem"]:hover {
-    background: #f3f3f3;
+QPushButton[fqw="PivotItem"][isSelected="true"]:hover {
+    color: rgba(0, 0, 0, 0.63);
 }
 
-QPushButton[fqw="PivotItem"]:checked,
-QPushButton[fqw="SegmentedItem"]:checked {
-    background: #e8f1fb;
-    border-bottom: 2px solid @accentColor;
+QPushButton[fqw="PivotItem"][isSelected="true"]:pressed {
+    color: rgba(0, 0, 0, 0.53);
 }
 
-QPushButton[fqw="SegmentedItem"] {
-    border: 1px solid #d1d1d1;
+QPushButton[fqw="PivotItem"][isSelected="false"]:pressed {
+    color: rgba(0, 0, 0, 0.75);
+}
+
+QPushButton[fqw="PivotItem"][hasIcon="false"] {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+QPushButton[fqw="PivotItem"][hasIcon="true"] {
+    padding-left: 36px;
+    padding-right: 12px;
+}
+
+QWidget[fqw="Pivot"] {
+    border: none;
+    background-color: transparent;
+}
+
+QWidget[fqw="BreadcrumbBar"] {
+    background-color: transparent;
+}
+
+QPushButton[fqw="BreadcrumbItem"] {
+    padding: 0;
+    color: rgba(0, 0, 0, 0.61);
+    background-color: transparent;
+    border: none;
+    outline: none;
+    margin: 0;
+}
+
+QPushButton[fqw="BreadcrumbItem"]:hover,
+QPushButton[fqw="BreadcrumbItem"][selected="true"] {
+    color: black;
+    background-color: transparent;
+}
+
+QPushButton[fqw="BreadcrumbItem"]:pressed {
+    color: rgba(0, 0, 0, 0.45);
+    background-color: transparent;
+}
+
+QLabel[fqw="BreadcrumbSeparator"] {
+    color: rgba(0, 0, 0, 0.61);
+    background-color: transparent;
+    font: 14px --FontFamilies;
+}
+
+#view {
+    background-color: transparent;
+}
+
+QToolButton[fqw="SegmentedToolItem"] {
+    padding: 5px 9px 6px 8px;
+}
+
+QWidget[fqw="SegmentedWidget"],
+QWidget[fqw="SegmentedToolWidget"] {
+    background-color: rgba(0, 0, 0, 0.0241);
+    border: 1px solid rgba(0, 0, 0, 0.0578);
+    border-radius: 6px;
+}
+
+QPushButton[fqw="SegmentedItem"][isSelected="false"],
+QToolButton[fqw="SegmentedToolItem"][isSelected="false"] {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    margin: 3px 0px;
+}
+
+QPushButton[fqw="SegmentedItem"][isSelected="false"]:hover,
+QToolButton[fqw="SegmentedToolItem"][isSelected="false"]:hover {
+    background-color: rgba(0, 0, 0, 9);
+}
+
+QPushButton[fqw="SegmentedItem"][isSelected="false"]:pressed,
+QToolButton[fqw="SegmentedToolItem"][isSelected="false"]:pressed {
+    background-color: rgba(0, 0, 0, 6);
+}
+
+QPushButton[fqw="SegmentedItem"][isSelected="true"],
+QToolButton[fqw="SegmentedToolItem"][isSelected="true"] {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin: 0px;
+    background-color: transparent;
+}
+
+QPushButton[fqw="SegmentedItem"][isSelected="true"]:hover,
+QPushButton[fqw="SegmentedItem"][isSelected="true"]:pressed,
+QToolButton[fqw="SegmentedToolItem"][isSelected="true"]:hover,
+QToolButton[fqw="SegmentedToolItem"][isSelected="true"]:pressed {
+    color: black;
 }

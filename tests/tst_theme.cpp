@@ -132,6 +132,8 @@ class ThemeTest : public QObject
                                                                    FluentQt::Theme::Light);
         QVERIFY(qss.contains(QStringLiteral("QPushButton[fqw=\"PivotItem\"]")));
         QVERIFY(qss.contains(QStringLiteral("QPushButton[fqw=\"SegmentedItem\"]")));
+        QVERIFY(qss.contains(QStringLiteral("QToolButton[fqw=\"SegmentedToolItem\"]")));
+        QVERIFY(qss.contains(QStringLiteral("QWidget[fqw=\"SegmentedToolWidget\"]")));
         QVERIFY(qss.contains(QStringLiteral("QPushButton[fqw=\"BreadcrumbItem\"]")));
         QVERIFY(qss.contains(QStringLiteral("color: black;")));
     }
@@ -500,6 +502,11 @@ class ThemeTest : public QObject
 
     void buttonQssKeepsPythonParityStates()
     {
+        QCOMPARE(FluentQt::styleSheetSourceForRole(QStringLiteral("CommandButton")),
+                 FluentQt::FluentStyleSheetSource::Button);
+        QCOMPARE(FluentQt::styleSheetSourceForRole(QStringLiteral("MoreActionsButton")),
+                 FluentQt::FluentStyleSheetSource::Button);
+
         const QStringList paths = {
             QStringLiteral(":/qfluentwidgets/qss/light/button.qss"),
             QStringLiteral(":/qfluentwidgets/qss/dark/button.qss"),
@@ -519,6 +526,12 @@ class ThemeTest : public QObject
             QVERIFY2(qss.contains(QStringLiteral("QPushButton[fqw=\"TransparentDropDownPushButton\"]")),
                      qPrintable(path));
             QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"TransparentDropDownToolButton\"]")),
+                     qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"CommandButton\"]")),
+                     qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"MoreActionsButton\"]")),
+                     qPrintable(path));
+            QVERIFY2(qss.contains(QStringLiteral("QToolButton[fqw=\"CommandButton\"]:checked")),
                      qPrintable(path));
             QVERIFY2(qss.contains(QStringLiteral("QPushButton[fqw=\"TransparentTogglePushButton\"]:checked")),
                      qPrintable(path));
@@ -574,6 +587,8 @@ class ThemeTest : public QObject
         segmented.addItem(QStringLiteral("week"), QStringLiteral("Week"));
         segmented.setCurrentItem(QStringLiteral("week"));
         QCOMPARE(segmented.currentItem(), QStringLiteral("week"));
+        QCOMPARE(segmented.item(QStringLiteral("day"))->font().pixelSize(), 14);
+        QCOMPARE(segmented.item(QStringLiteral("week"))->property("isSelected").toBool(), true);
 
         FluentQt::BreadcrumbBar breadcrumb;
         QSignalSpy breadcrumbItemSpy(&breadcrumb, &FluentQt::BreadcrumbBar::currentItemChanged);
@@ -1448,6 +1463,14 @@ class ThemeTest : public QObject
         bar.setTabMaximumWidth(180);
         QCOMPARE(bar.tabMaximumWidth(), 180);
         QCOMPARE(bar.tabItem(0)->maximumWidth(), 180);
+        QVERIFY(bar.tabItem(0)->minimumWidth() < bar.tabMaximumWidth());
+        bar.setScrollable(true);
+        QVERIFY(bar.isScrollable());
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 180);
+        QCOMPARE(bar.tabItem(1)->minimumWidth(), 180);
+        bar.setTabMaximumWidth(200);
+        QCOMPARE(bar.tabItem(0)->maximumWidth(), 200);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 200);
 
         QSignalSpy currentSpy(&bar, &FluentQt::TabBar::currentChanged);
         bar.setCurrentTab(QStringLiteral("settings"));
@@ -1512,15 +1535,21 @@ class ThemeTest : public QObject
 
         QVERIFY(first != nullptr);
         QVERIFY(second != nullptr);
+        QVERIFY(tools.styleSheet().contains(QStringLiteral("SegmentedToolWidget")));
+        QVERIFY(first->styleSheet().contains(QStringLiteral("SegmentedToolItem")));
+        QCOMPARE(first->size(), QSize(50, 32));
+        QCOMPARE(second->size(), QSize(50, 32));
         QCOMPARE(tools.routeKeys(), QList<QString>({QStringLiteral("first"), QStringLiteral("second")}));
         QCOMPARE(tools.currentItem(), QStringLiteral("first"));
         QVERIFY(first->isChecked());
+        QTRY_COMPARE(tools.selectionGeometry(), first->geometry());
 
         QSignalSpy currentSpy(&tools, &FluentQt::SegmentedToggleToolWidget::currentItemChanged);
         tools.setCurrentItem(QStringLiteral("second"));
         QCOMPARE(tools.currentItem(), QStringLiteral("second"));
         QVERIFY(second->isChecked());
         QCOMPARE(currentSpy.count(), 1);
+        QTRY_COMPARE(tools.selectionGeometry(), second->geometry());
 
         tools.removeItem(QStringLiteral("second"));
         QCOMPARE(tools.currentItem(), QStringLiteral("first"));

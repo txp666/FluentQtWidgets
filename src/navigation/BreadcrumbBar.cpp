@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 
+#include <QtGui/QFont>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 
@@ -16,7 +17,10 @@ BreadcrumbBar::BreadcrumbBar(QWidget *parent) : QWidget(parent)
 {
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    m_layout->setSpacing(m_spacing);
+    m_layout->setSpacing(0);
+    QFont barFont = font();
+    barFont.setPixelSize(14);
+    setFont(barFont);
     FluentStyleSheet::setRole(this, QStringLiteral("BreadcrumbBar"));
 }
 
@@ -171,7 +175,8 @@ void BreadcrumbBar::setSpacing(int spacing)
 
     m_spacing = spacing;
     if (m_layout) {
-        m_layout->setSpacing(m_spacing);
+        m_layout->setSpacing(0);
+        rebuild();
     }
 }
 
@@ -187,7 +192,9 @@ void BreadcrumbBar::rebuild()
     for (int i = 0; i < m_items.size(); ++i) {
         const BreadcrumbItem breadcrumb = m_items.at(i);
         auto *button = new TransparentPushButton(breadcrumb.text, this);
+        button->setFont(font());
         button->setProperty("breadcrumbKey", breadcrumb.key);
+        button->setProperty("selected", i == m_currentIndex);
         FluentStyleSheet::setRole(button, QStringLiteral("BreadcrumbItem"));
         m_layout->addWidget(button);
 
@@ -197,8 +204,9 @@ void BreadcrumbBar::rebuild()
         });
 
         if (i != m_items.size() - 1) {
-            auto *separator = new QLabel(QStringLiteral(">"), this);
+            auto *separator = new QLabel(QStringLiteral("›"), this);
             separator->setAlignment(Qt::AlignCenter);
+            separator->setFixedWidth(m_spacing * 2);
             FluentStyleSheet::setRole(separator, QStringLiteral("BreadcrumbSeparator"));
             m_layout->addWidget(separator);
         }

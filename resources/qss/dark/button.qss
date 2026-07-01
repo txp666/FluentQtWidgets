@@ -151,7 +151,8 @@ QToolButton[fqw="PrimarySplitDropButton"],
 QPushButton[fqw="TogglePushButton"]:checked,
 QPushButton[fqw="TransparentTogglePushButton"]:checked,
 QToolButton[fqw="ToggleToolButton"]:checked,
-QToolButton[fqw="TransparentToggleToolButton"]:checked {
+QToolButton[fqw="TransparentToggleToolButton"]:checked,
+QToolButton[fqw="CommandButton"]:checked {
     color: black;
     background-color: @accentColor;
     border: 1px solid --ThemeColorLight1;
@@ -169,7 +170,8 @@ QToolButton[fqw="PrimarySplitDropButton"]:hover,
 QPushButton[fqw="TogglePushButton"]:checked:hover,
 QPushButton[fqw="TransparentTogglePushButton"]:checked:hover,
 QToolButton[fqw="ToggleToolButton"]:checked:hover,
-QToolButton[fqw="TransparentToggleToolButton"]:checked:hover {
+QToolButton[fqw="TransparentToggleToolButton"]:checked:hover,
+QToolButton[fqw="CommandButton"]:checked:hover {
     background-color: --ThemeColorDark1;
     border: 1px solid --ThemeColorLight1;
     border-bottom: 1px solid --ThemeColorLight2;
@@ -183,7 +185,8 @@ QToolButton[fqw="PrimarySplitDropButton"]:pressed,
 QPushButton[fqw="TogglePushButton"]:checked:pressed,
 QPushButton[fqw="TransparentTogglePushButton"]:checked:pressed,
 QToolButton[fqw="ToggleToolButton"]:checked:pressed,
-QToolButton[fqw="TransparentToggleToolButton"]:checked:pressed {
+QToolButton[fqw="TransparentToggleToolButton"]:checked:pressed,
+QToolButton[fqw="CommandButton"]:checked:pressed {
     color: rgba(0, 0, 0, 0.63);
     background-color: --ThemeColorDark2;
     border: 1px solid --ThemeColorDark2;
@@ -197,7 +200,8 @@ QToolButton[fqw="PrimarySplitDropButton"]:disabled,
 QPushButton[fqw="TogglePushButton"]:checked:disabled,
 QPushButton[fqw="TransparentTogglePushButton"]:checked:disabled,
 QToolButton[fqw="ToggleToolButton"]:checked:disabled,
-QToolButton[fqw="TransparentToggleToolButton"]:checked:disabled {
+QToolButton[fqw="TransparentToggleToolButton"]:checked:disabled,
+QToolButton[fqw="CommandButton"]:checked:disabled {
     color: rgba(255, 255, 255, 0.43);
     background-color: rgb(52, 52, 52);
     border: 1px solid rgb(52, 52, 52);
@@ -280,7 +284,9 @@ QPushButton[fqw="TransparentDropDownPushButton"],
 QPushButton[fqw="TransparentTogglePushButton"],
 QToolButton[fqw="TransparentToolButton"],
 QToolButton[fqw="TransparentToggleToolButton"],
-QToolButton[fqw="TransparentDropDownToolButton"] {
+QToolButton[fqw="TransparentDropDownToolButton"],
+QToolButton[fqw="CommandButton"],
+QToolButton[fqw="MoreActionsButton"] {
     background-color: transparent;
     border: none;
     border-radius: 4px;
@@ -292,7 +298,9 @@ QPushButton[fqw="TransparentDropDownPushButton"]:hover,
 QPushButton[fqw="TransparentTogglePushButton"]:hover,
 QToolButton[fqw="TransparentToolButton"]:hover,
 QToolButton[fqw="TransparentToggleToolButton"]:hover,
-QToolButton[fqw="TransparentDropDownToolButton"]:hover {
+QToolButton[fqw="TransparentDropDownToolButton"]:hover,
+QToolButton[fqw="CommandButton"]:hover,
+QToolButton[fqw="MoreActionsButton"]:hover {
     background-color: rgba(255, 255, 255, 9);
     border: none;
 }
@@ -302,7 +310,9 @@ QPushButton[fqw="TransparentDropDownPushButton"]:pressed,
 QPushButton[fqw="TransparentTogglePushButton"]:pressed,
 QToolButton[fqw="TransparentToolButton"]:pressed,
 QToolButton[fqw="TransparentToggleToolButton"]:pressed,
-QToolButton[fqw="TransparentDropDownToolButton"]:pressed {
+QToolButton[fqw="TransparentDropDownToolButton"]:pressed,
+QToolButton[fqw="CommandButton"]:pressed,
+QToolButton[fqw="MoreActionsButton"]:pressed {
     background-color: rgba(255, 255, 255, 6);
     border: none;
 }
@@ -312,7 +322,9 @@ QPushButton[fqw="TransparentDropDownPushButton"]:disabled,
 QPushButton[fqw="TransparentTogglePushButton"]:disabled,
 QToolButton[fqw="TransparentToolButton"]:disabled,
 QToolButton[fqw="TransparentToggleToolButton"]:disabled,
-QToolButton[fqw="TransparentDropDownToolButton"]:disabled {
+QToolButton[fqw="TransparentDropDownToolButton"]:disabled,
+QToolButton[fqw="CommandButton"]:disabled,
+QToolButton[fqw="MoreActionsButton"]:disabled {
     color: rgba(255, 255, 255, 0.3628);
     background-color: transparent;
     border: none;

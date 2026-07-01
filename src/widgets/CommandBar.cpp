@@ -20,9 +20,38 @@ namespace FluentQt {
 
 namespace {
 
+constexpr auto kCommandBarActionProperty = "_fqw_action";
+
 bool commandBarDarkTheme()
 {
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+}
+
+quintptr commandActionKey(const QAction *action)
+{
+    return reinterpret_cast<quintptr>(action);
+}
+
+void tagCommandWidget(QWidget *widget, QAction *action)
+{
+    if (!widget || !action) {
+        return;
+    }
+
+    widget->setProperty(kCommandBarActionProperty, QVariant::fromValue<quintptr>(commandActionKey(action)));
+}
+
+bool commandWidgetMatchesAction(QWidget *widget, QAction *action)
+{
+    return widget && action && widget->property(kCommandBarActionProperty).value<quintptr>() == commandActionKey(action);
+}
+
+void detachCommandWidget(QWidget *widget)
+{
+    auto *button = qobject_cast<CommandButton *>(widget);
+    if (button) {
+        button->setAction(nullptr);
+    }
 }
 
 } // namespace
@@ -32,7 +61,7 @@ CommandButton::CommandButton(QWidget *parent) : TransparentToggleToolButton(pare
     setCheckable(false);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     setIconSize(QSize(16, 16));
-    setProperty("fqw", QStringLiteral("CommandButton"));
+    FluentStyleSheet::setRole(this, QStringLiteral("CommandButton"));
     installEventFilter(new CommandToolTipFilter(this));
 }
 
@@ -94,11 +123,13 @@ void CommandButton::setAction(QAction *action)
 
     if (m_action) {
         disconnect(m_action, nullptr, this, nullptr);
+        disconnect(this, nullptr, m_action, nullptr);
     }
 
     m_action = action;
-    setDefaultAction(action);
     if (m_action) {
+        connect(this, &QToolButton::clicked, m_action, &QAction::trigger);
+        connect(m_action, &QAction::toggled, this, &QToolButton::setChecked);
         connect(m_action, &QAction::changed, this, &CommandButton::syncActionState);
     }
     syncActionState();
@@ -107,6 +138,14 @@ void CommandButton::setAction(QAction *action)
 void CommandButton::syncActionState()
 {
     if (!m_action) {
+        setIcon(QIcon());
+        setText(QString());
+        setToolTip(QString());
+        setEnabled(true);
+        setCheckable(false);
+        setChecked(false);
+        updateGeometry();
+        update();
         return;
     }
 
@@ -179,7 +218,7 @@ bool CommandToolTipFilter::canShowToolTip(QWidget *widget) const
 
 MoreActionsButton::MoreActionsButton(QWidget *parent) : CommandButton(parent)
 {
-    setProperty("fqw", QStringLiteral("MoreActionsButton"));
+    FluentStyleSheet::setRole(this, QStringLiteral("MoreActionsButton"));
     setToolTip(tr("More"));
     setFixedSize(sizeHint());
 }
@@ -244,6 +283,9 @@ CommandBar::CommandBar(QWidget *parent) : QFrame(parent) { init(); }
 CommandBar::~CommandBar()
 {
     m_destroying = true;
+    for (QWidget *widget : std::as_const(m_widgets)) {
+        detachCommandWidget(widget);
+    }
     const QList<QAction *> actions = m_actions + m_hiddenActions;
     for (QAction *action : actions) {
         if (action) {
@@ -285,9 +327,7 @@ void CommandBar::addAction(QAction *action)
 
     QWidget *widget = action->isSeparator() ? static_cast<QWidget *>(new CommandSeparator(this))
                                             : static_cast<QWidget *>(createButtonForAction(action));
-    if (action->isSeparator()) {
-        widget->setProperty("_fqw_action", QVariant::fromValue<quintptr>(reinterpret_cast<quintptr>(action)));
-    }
+    tagCommandWidget(widget, action);
     m_widgets.append(widget);
     widget->show();
     syncHeight();
@@ -320,7 +360,7 @@ QAction *CommandBar::insertSeparator(int index)
     m_actions.insert(index, action);
     trackAction(action);
     auto *separator = new CommandSeparator(this);
-    separator->setProperty("_fqw_action", QVariant::fromValue<quintptr>(reinterpret_cast<quintptr>(action)));
+    tagCommandWidget(separator, action);
     m_widgets.insert(qBound(0, index, m_widgets.size()), separator);
     separator->show();
     syncHeight();
@@ -358,29 +398,19 @@ void CommandBar::removeAction(QAction *action)
     if (!removedVisible && !removedHidden) {
         return;
     }
-    if (removedVisible && action->isSeparator()) {
+    disconnect(action, nullptr, this, nullptr);
+    if (removedVisible) {
         for (int i = 0; i < m_widgets.size(); ++i) {
-            if (m_widgets.at(i)->property("_fqw_action").value<quintptr>() != reinterpret_cast<quintptr>(action)) {
+            QWidget *widget = m_widgets.at(i);
+            if (!commandWidgetMatchesAction(widget, action)) {
                 continue;
             }
-            QWidget *widget = m_widgets.takeAt(i);
+            m_widgets.removeAt(i);
+            detachCommandWidget(widget);
             widget->hide();
             widget->deleteLater();
             break;
         }
-    } else if (removedVisible) {
-        for (int i = 0; i < m_widgets.size(); ++i) {
-            auto *button = qobject_cast<CommandButton *>(m_widgets.at(i));
-            if (button && button->action() == action) {
-                m_widgets.removeAt(i);
-                button->hide();
-                button->deleteLater();
-                break;
-            }
-        }
-    }
-    if (action->parent() == this) {
-        action->deleteLater();
     }
     syncHeight();
     relayoutWidgets();
@@ -442,9 +472,7 @@ void CommandBar::removeHiddenAction(QAction *action)
     if (!action || !m_hiddenActions.removeOne(action)) {
         return;
     }
-    if (action->parent() == this) {
-        action->deleteLater();
-    }
+    disconnect(action, nullptr, this, nullptr);
     syncHeight();
     relayoutWidgets();
     QWidget::updateGeometry();
@@ -590,6 +618,14 @@ void CommandBar::clear()
     m_hiddenActions.clear();
     m_hiddenWidgets.clear();
     m_customWidgets.clear();
+    for (QWidget *widget : std::as_const(m_widgets)) {
+        detachCommandWidget(widget);
+    }
+    for (QAction *action : allActions) {
+        if (action) {
+            disconnect(action, nullptr, this, nullptr);
+        }
+    }
     qDeleteAll(allActions);
     clearWidgets();
     syncHeight();
@@ -624,6 +660,7 @@ void CommandBar::clearWidgets()
         if (!widget) {
             continue;
         }
+        detachCommandWidget(widget);
         widget->hide();
         widget->deleteLater();
     }
@@ -772,14 +809,12 @@ void CommandBar::trackAction(QAction *action)
     });
     connect(action, &QObject::destroyed, this, [this, action]() {
         for (int i = 0; i < m_widgets.size(); ++i) {
-            auto *button = qobject_cast<CommandButton *>(m_widgets.at(i));
-            const bool matchesButton = button && button->action() == action;
-            const bool matchesSeparator =
-                m_widgets.at(i)->property("_fqw_action").value<quintptr>() == reinterpret_cast<quintptr>(action);
-            if (!matchesButton && !matchesSeparator) {
+            QWidget *widget = m_widgets.at(i);
+            if (!commandWidgetMatchesAction(widget, action)) {
                 continue;
             }
-            QWidget *widget = m_widgets.takeAt(i);
+            m_widgets.removeAt(i);
+            detachCommandWidget(widget);
             widget->hide();
             widget->deleteLater();
             break;

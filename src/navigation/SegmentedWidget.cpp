@@ -1,14 +1,26 @@
 #include <FluentQtWidgets/Navigation/SegmentedWidget.h>
 
 #include <FluentQtWidgets/StyleSheet.h>
+#include <FluentQtWidgets/Theme.h>
 
+#include <QtCore/QPropertyAnimation>
+#include <QtGui/QFont>
+#include <QtGui/QPainter>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QResizeEvent>
+#include <QtGui/QShowEvent>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QSizePolicy>
 
 namespace FluentQt {
 
 SegmentedItem::SegmentedItem(QWidget *parent) : PivotItem(parent)
 {
+    QFont itemFont = font();
+    itemFont.setPixelSize(14);
+    setFont(itemFont);
     FluentStyleSheet::setRole(this, QStringLiteral("SegmentedItem"));
 }
 
@@ -21,11 +33,45 @@ SegmentedItem::SegmentedItem(const QString &routeKey, const QString &text, QWidg
 SegmentedWidget::SegmentedWidget(QWidget *parent) : Pivot(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("SegmentedWidget"));
+    setAttribute(Qt::WA_StyledBackground);
 }
 
 PivotItem *SegmentedWidget::createItem(const QString &routeKey, const QString &text)
 {
     return new SegmentedItem(routeKey, text, this);
+}
+
+void SegmentedWidget::paintEvent(QPaintEvent *event)
+{
+    QWidget::paintEvent(event);
+
+    auto *current = item(currentItem());
+    if (!current) {
+        return;
+    }
+
+    const QRect indicator = indicatorGeometry();
+    const int animatedX = indicator.isNull() ? current->x() : indicator.x() - (current->width() - 16) / 2;
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    if (dark) {
+        painter.setPen(QColor(255, 255, 255, 14));
+        painter.setBrush(QColor(255, 255, 255, 15));
+    } else {
+        painter.setPen(QColor(0, 0, 0, 19));
+        painter.setBrush(QColor(255, 255, 255, 179));
+    }
+
+    painter.drawRoundedRect(QRectF(animatedX + 1, current->y() + 1, current->width() - 2, current->height() - 2), 5,
+                            5);
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.drawRoundedRect(QRectF(animatedX + current->width() / 2.0 - 8.0, height() - 3.5, 16, 3), 1.5,
+                            1.5);
 }
 
 SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(parent)
@@ -34,11 +80,19 @@ SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(
     m_buttonGroup->setExclusive(true);
 
     m_layout = new QHBoxLayout(this);
-    m_layout->setContentsMargins(2, 2, 2, 2);
+    m_layout->setContentsMargins(0, 0, 0, 0);
     m_layout->setSpacing(0);
     m_layout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    m_layout->setSizeConstraint(QLayout::SetMinimumSize);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-    FluentStyleSheet::setRole(this, QStringLiteral("SegmentedWidget"));
+    FluentStyleSheet::setRole(this, QStringLiteral("SegmentedToolWidget"));
+    setAttribute(Qt::WA_StyledBackground);
+
+    m_selectionAnimation = new QPropertyAnimation(this, "selectionGeometry", this);
+    m_selectionAnimation->setEasingCurve(QEasingCurve::OutQuad);
+    m_selectionAnimation->setDuration(100);
+    connect(m_selectionAnimation, &QPropertyAnimation::valueChanged, this, qOverload<>(&QWidget::update));
 }
 
 TransparentToggleToolButton *SegmentedToggleToolWidget::addItem(const QString &routeKey, const QIcon &icon)
@@ -54,8 +108,10 @@ TransparentToggleToolButton *SegmentedToggleToolWidget::insertItem(int index, co
     }
 
     auto *button = new TransparentToggleToolButton(icon, this);
-    button->setFixedSize(36, 32);
+    FluentStyleSheet::setRole(button, QStringLiteral("SegmentedToolItem"));
+    button->setFixedSize(50, 32);
     button->setIconSize(QSize(16, 16));
+    button->setProperty("isSelected", false);
     button->setProperty("routeKey", routeKey);
     button->setToolTip(routeKey);
 
@@ -96,6 +152,8 @@ void SegmentedToggleToolWidget::removeItem(const QString &routeKey)
         if (!m_items.isEmpty()) {
             setCurrentItem(m_items.first()->property("routeKey").toString());
         } else {
+            setSelectionGeometry(QRect());
+            update();
             emit currentItemChanged(QString());
         }
     }
@@ -128,14 +186,73 @@ void SegmentedToggleToolWidget::setCurrentItem(const QString &routeKey)
 
     m_currentItem = routeKey;
     updateCheckedButton();
+    const QRect targetGeometry = computeSelectionGeometry();
+    if (targetGeometry.isNull()) {
+        setSelectionGeometry(targetGeometry);
+        update();
+    } else if (m_selectionAnimation && !m_selectionGeometry.isNull()) {
+        m_selectionAnimation->stop();
+        m_selectionAnimation->setStartValue(m_selectionGeometry);
+        m_selectionAnimation->setEndValue(targetGeometry);
+        m_selectionAnimation->start();
+    } else {
+        setSelectionGeometry(targetGeometry);
+        update();
+    }
     emit currentItemChanged(routeKey);
+}
+
+QRect SegmentedToggleToolWidget::selectionGeometry() const { return m_selectionGeometry; }
+
+void SegmentedToggleToolWidget::setSelectionGeometry(const QRect &geometry)
+{
+    if (m_selectionGeometry != geometry) {
+        m_selectionGeometry = geometry;
+    }
 }
 
 void SegmentedToggleToolWidget::updateCheckedButton()
 {
     for (auto *button : m_items) {
-        button->setChecked(button->property("routeKey").toString() == m_currentItem);
+        const bool selected = button->property("routeKey").toString() == m_currentItem;
+        button->setChecked(selected);
+        button->setProperty("isSelected", selected);
+        FluentStyleSheet::polish(button);
     }
+}
+
+QRect SegmentedToggleToolWidget::computeSelectionGeometry() const
+{
+    auto *button = m_itemMap.value(m_currentItem, nullptr);
+    return button ? button->geometry() : QRect();
+}
+
+void SegmentedToggleToolWidget::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    setSelectionGeometry(computeSelectionGeometry());
+}
+
+void SegmentedToggleToolWidget::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    setSelectionGeometry(computeSelectionGeometry());
+}
+
+void SegmentedToggleToolWidget::paintEvent(QPaintEvent *event)
+{
+    QWidget::paintEvent(event);
+
+    const QRect selection = m_selectionGeometry.isNull() ? computeSelectionGeometry() : m_selectionGeometry;
+    if (selection.isNull()) {
+        return;
+    }
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.drawRoundedRect(QRectF(selection), 4, 4);
 }
 
 } // namespace FluentQt

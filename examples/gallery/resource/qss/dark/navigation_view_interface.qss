@@ -1,11 +1,14 @@
 PivotInterface QLabel,
-TabInterface QLabel {
+TabInterface QLabel,
+QWidget#pivotInterface QLabel,
+QWidget#tabInterface QLabel {
     padding-left: 10px;
     font: 14px --FontFamilies;
     color: white;
 }
 
-#controlPanel BodyLabel {
+#controlPanel BodyLabel,
+QFrame#controlPanel QLabel[fqw="BodyLabel"] {
     padding-left: 0px;
 }
 

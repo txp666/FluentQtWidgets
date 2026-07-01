@@ -4,17 +4,24 @@
 #include <FluentQtWidgets/Theme.h>
 
 #include <QtCore/QPropertyAnimation>
+#include <QtGui/QFont>
 #include <QtGui/QPainter>
 #include <QtGui/QResizeEvent>
 #include <QtGui/QShowEvent>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QSizePolicy>
 
 namespace FluentQt {
 
 PivotItem::PivotItem(QWidget *parent) : PushButton(parent)
 {
     setCheckable(true);
+    setProperty("isSelected", false);
+    QFont itemFont = font();
+    itemFont.setPixelSize(18);
+    setFont(itemFont);
     FluentStyleSheet::setRole(this, QStringLiteral("PivotItem"));
 }
 
@@ -32,7 +39,10 @@ Pivot::Pivot(QWidget *parent) : QWidget(parent), m_indicatorGeometry(0, 0, 0, 0)
 {
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    m_layout->setSpacing(4);
+    m_layout->setSpacing(0);
+    m_layout->setAlignment(Qt::AlignLeft);
+    m_layout->setSizeConstraint(QLayout::SetMinimumSize);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     m_buttonGroup = new QButtonGroup(this);
     m_buttonGroup->setExclusive(true);
@@ -59,7 +69,7 @@ PivotItem *Pivot::insertItem(int index, const QString &routeKey, const QString &
     PivotItem *newItem = createItem(routeKey, text);
     m_items.insert(routeKey, newItem);
     m_buttonGroup->addButton(newItem);
-    m_layout->insertWidget(qBound(0, index, m_layout->count()), newItem);
+    m_layout->insertWidget(qBound(0, index, m_layout->count()), newItem, 1);
 
     connect(newItem, &QPushButton::clicked, this, [this, routeKey]() {
         setCurrentItem(routeKey);
@@ -110,7 +120,12 @@ void Pivot::setCurrentItem(const QString &routeKey)
     }
 
     m_currentItem = routeKey;
-    targetItem->setChecked(true);
+    for (PivotItem *pivotItem : std::as_const(m_items)) {
+        const bool selected = pivotItem == targetItem;
+        pivotItem->setChecked(selected);
+        pivotItem->setProperty("isSelected", selected);
+        FluentStyleSheet::polish(pivotItem);
+    }
 
     if (m_slideAnimation) {
         const QRect targetGeometry = computeIndicatorGeometry();
@@ -146,10 +161,10 @@ QRect Pivot::computeIndicatorGeometry() const
         return QRect();
     }
 
-    const int indicatorWidth = 36;
+    const int indicatorWidth = 16;
     const int indicatorHeight = 3;
     const int x = cur->x() + (cur->width() - indicatorWidth) / 2;
-    const int y = height() - indicatorHeight - 3;
+    const int y = height() - indicatorHeight;
     return QRect(x, y, indicatorWidth, indicatorHeight);
 }
 
@@ -173,8 +188,7 @@ void Pivot::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
 
-    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    painter.setBrush(dark ? QColor(130, 130, 130) : QColor(80, 80, 80));
+    painter.setBrush(ThemeManager::instance()->accentColor());
     painter.drawRoundedRect(m_indicatorGeometry, 1.5, 1.5);
 }
 

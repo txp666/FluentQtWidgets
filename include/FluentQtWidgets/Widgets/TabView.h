@@ -28,6 +28,7 @@ class QScrollArea;
 class QStackedWidget;
 class QToolButton;
 class QVBoxLayout;
+class QWheelEvent;
 
 namespace FluentQt {
 
@@ -156,8 +157,6 @@ class FQW_API TabBar : public QWidget
     void setMovable(bool movable);
     void setScrollable(bool scrollable);
     void setTabShadowEnabled(bool enabled);
-    void scrollPrevious();
-    void scrollNext();
 
   signals:
     void currentChanged(int index);
@@ -169,6 +168,7 @@ class FQW_API TabBar : public QWidget
 
   protected:
     void resizeEvent(QResizeEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
@@ -196,8 +196,6 @@ class FQW_API TabBar : public QWidget
     QHBoxLayout *m_itemLayout = nullptr;
     QScrollArea *m_scrollArea = nullptr;
     QToolButton *m_addButton = nullptr;
-    QToolButton *m_previousButton = nullptr;
-    QToolButton *m_nextButton = nullptr;
     QWidget *m_tabStrip = nullptr;
 };
 

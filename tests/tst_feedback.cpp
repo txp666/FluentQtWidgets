@@ -298,6 +298,7 @@ class FeedbackTest : public QObject
         commandButton.setAction(&commandAction);
         QCOMPARE(commandButton.property("fqw").toString(), QStringLiteral("CommandButton"));
         QCOMPARE(commandButton.action(), &commandAction);
+        QVERIFY(commandButton.defaultAction() == nullptr);
         QCOMPARE(commandButton.text(), QStringLiteral("Add"));
         QCOMPARE(commandButton.toolTip(), QStringLiteral("Create item"));
         QCOMPARE(commandButton.iconSize(), QSize(16, 16));
@@ -305,6 +306,9 @@ class FeedbackTest : public QObject
         QVERIFY(commandButton.isIconOnly());
         QVERIFY(commandButton.metaObject()->indexOfProperty("tight") >= 0);
         QVERIFY(commandButton.metaObject()->indexOfProperty("action") >= 0);
+        QSignalSpy commandTriggeredSpy(&commandAction, &QAction::triggered);
+        commandButton.click();
+        QCOMPARE(commandTriggeredSpy.count(), 1);
 
         commandButton.setTight(true);
         QCOMPARE(commandButton.sizeHint(), QSize(36, 34));
