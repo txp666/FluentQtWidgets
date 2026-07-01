@@ -457,6 +457,51 @@ class ShellTest : public QObject
         QCOMPARE(widget.titleBar(), replacementTitleBar);
     }
 
+    void audioWaveformWidgetTracksSamplesAndProgress()
+    {
+        FluentQt::AudioWaveformWidget waveform;
+        QVector<qreal> samples{0.0, 0.2, 0.8, 1.4, -0.5};
+        QSignalSpy samplesSpy(&waveform, &FluentQt::AudioWaveformWidget::samplesChanged);
+        QSignalSpy progressSpy(&waveform, &FluentQt::AudioWaveformWidget::progressChanged);
+        QSignalSpy clickSpy(&waveform, &FluentQt::AudioWaveformWidget::waveformClicked);
+
+        waveform.setSamples(samples);
+        QCOMPARE(samplesSpy.count(), 1);
+        QCOMPARE(waveform.samples().size(), 5);
+        QCOMPARE(waveform.samples().at(3), 1.0);
+        QCOMPARE(waveform.samples().at(4), 0.5);
+        QCOMPARE(waveform.sampleLevels().size(), 5);
+
+        waveform.setProgress(1.8);
+        QCOMPARE(waveform.progress(), 1.0);
+        waveform.setProgress(-0.4);
+        QCOMPARE(waveform.progress(), 0.0);
+        QVERIFY(progressSpy.count() >= 2);
+
+        waveform.resize(360, 120);
+        waveform.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&waveform));
+        QTest::mouseClick(&waveform, Qt::LeftButton, Qt::NoModifier, QPoint(180, 60));
+        QCOMPARE(clickSpy.count(), 1);
+        QVERIFY(waveform.progress() > 0.40);
+        QVERIFY(waveform.progress() < 0.60);
+
+        QImage rendered(waveform.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        waveform.render(&rendered);
+        bool hasPlayedWaveformPixel = false;
+        for (int y = 0; y < rendered.height() && !hasPlayedWaveformPixel; ++y) {
+            for (int x = 0; x < rendered.width(); ++x) {
+                const QColor pixel = QColor::fromRgba(rendered.pixel(x, y));
+                if (pixel.alpha() > 0 && pixel.red() < 180 && pixel.green() < 180 && pixel.blue() < 180) {
+                    hasPlayedWaveformPixel = true;
+                    break;
+                }
+            }
+        }
+        QVERIFY(hasPlayedWaveformPixel);
+    }
+
     void chartWidgetLoadsBundledEcharts()
     {
         QJsonObject option{

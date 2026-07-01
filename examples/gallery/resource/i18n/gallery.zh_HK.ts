@@ -2425,6 +2425,16 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     </message>
     <message>
         <location filename="../../app/view/home_interface.cpp"/>
+        <source>AudioWaveformWidget</source>
+        <translation>AudioWaveformWidget</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
+        <source>A widget that renders sampled audio amplitudes as an interactive waveform.</source>
+        <translation>將採樣後的音頻振幅渲染為可交互波形的控件。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/home_interface.cpp"/>
         <source>ChartWidget</source>
         <translation>ChartWidget</translation>
     </message>
@@ -2476,6 +2486,11 @@ In that case, I would accept it no matter which side the ball falls on.</source>
 </context>
 <context>
     <name>ChartInterface</name>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Audio waveform widget</source>
+        <translation>音頻波形控件</translation>
+    </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
         <source>Bar chart powered by ECharts</source>

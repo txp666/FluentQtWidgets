@@ -110,6 +110,7 @@ set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/Settings/SettingCard.h
     include/FluentQtWidgets/Views/ItemViews.h
     include/FluentQtWidgets/Widgets/AcrylicLabel.h
+    include/FluentQtWidgets/Widgets/AudioWaveformWidget.h
     include/FluentQtWidgets/Widgets/Button.h
     include/FluentQtWidgets/Widgets/CardWidget.h
     include/FluentQtWidgets/Widgets/ChartWidget.h
@@ -177,6 +178,7 @@ set(FQW_SOURCES
     src/settings/SettingCard.cpp
     src/views/ItemViews.cpp
     src/widgets/AcrylicLabel.cpp
+    src/widgets/AudioWaveformWidget.cpp
     src/widgets/Button.cpp
     src/widgets/CardWidget.cpp
     src/widgets/ChartWidget.cpp

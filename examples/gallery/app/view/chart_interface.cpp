@@ -4,10 +4,47 @@
 
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
+#include <QtCore/QVector>
+
+#include <cmath>
 
 using namespace FluentQt;
 
 namespace {
+
+QVector<qreal> waveformSamples()
+{
+    QVector<qreal> samples;
+    samples.reserve(260);
+    for (int i = 0; i < 260; ++i) {
+        const qreal t = static_cast<qreal>(i) / 259.0;
+        qreal envelope = 0.0;
+        if (t < 0.07) {
+            envelope = 0.05;
+        } else if (t < 0.52) {
+            envelope = 0.46 + 0.12 * std::sin(t * 72.0);
+        } else if (t < 0.74) {
+            envelope = 0.72 + 0.24 * std::sin(t * 58.0);
+        } else {
+            envelope = 0.52 * std::exp(-(t - 0.74) * 16.0);
+        }
+
+        const qreal carrier = 0.55 + 0.35 * std::sin(i * 1.37) + 0.25 * std::sin(i * 2.91);
+        samples.append(qBound<qreal>(0.02, envelope * qAbs(carrier), 1.0));
+    }
+    return samples;
+}
+
+AudioWaveformWidget *createAudioWaveform(QWidget *parent)
+{
+    auto *waveform = new AudioWaveformWidget(parent);
+    waveform->setSamples(waveformSamples());
+    waveform->setProgress(0.53);
+    waveform->setMinimumHeight(220);
+    waveform->setBarWidth(2.0);
+    waveform->setBarGap(3.0);
+    return waveform;
+}
 
 QJsonObject axisChartOption(const QString &title, const QStringList &categories, const QJsonArray &values,
                             const QString &seriesName, const QString &seriesType)
@@ -295,7 +332,10 @@ QWidget *GalleryWindow::createChartPage()
     auto *page = new GalleryInterface(navTx("Charts"), QStringLiteral("qfluentwidgets.components.widgets"), this);
     page->setObjectName(QStringLiteral("chartInterface"));
     const QString chartSource = QStringLiteral(FQW_REPOSITORY_URL "/blob/main/include/FluentQtWidgets/Widgets/ChartWidget.h");
+    const QString waveformSource =
+        QStringLiteral(FQW_REPOSITORY_URL "/blob/main/include/FluentQtWidgets/Widgets/AudioWaveformWidget.h");
 
+    page->addExampleCard(tx("ChartInterface", "Audio waveform widget"), createAudioWaveform(page), waveformSource, 1);
     page->addExampleCard(tx("ChartInterface", "Bar chart powered by ECharts"), createChart(barOption(), page),
                          chartSource, 1);
     page->addExampleCard(tx("ChartInterface", "Line chart powered by ECharts"), createChart(lineOption(), page),
