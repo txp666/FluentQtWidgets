@@ -40,6 +40,7 @@ project(
 option(FQW_BUILD_SHARED "Build FluentQtWidgets as a shared library" ON)
 option(FQW_BUILD_EXAMPLES "Build examples" ON)
 option(FQW_BUILD_TESTS "Build tests" OFF)
+option(FQW_REQUIRE_WEBENGINE_WIDGETS "Fail configuration when Qt WebEngineWidgets is unavailable" OFF)
 set(FQW_QT_MAJOR_VERSION "6" CACHE STRING "Qt major version to use")
 set_property(CACHE FQW_QT_MAJOR_VERSION PROPERTY STRINGS 6 5)
 
@@ -75,6 +76,9 @@ if(FQW_QT_MAJOR_VERSION STREQUAL "6" AND TARGET Qt6::WebEngineWidgets)
     set(FQW_HAS_WEBENGINE_WIDGETS ON)
 endif()
 set(FQW_HAS_WEBENGINE_WIDGETS "${FQW_HAS_WEBENGINE_WIDGETS}" CACHE BOOL "Whether Qt WebEngineWidgets support is available" FORCE)
+if(FQW_REQUIRE_WEBENGINE_WIDGETS AND NOT FQW_HAS_WEBENGINE_WIDGETS)
+    message(FATAL_ERROR "FQW_REQUIRE_WEBENGINE_WIDGETS is ON, but Qt WebEngineWidgets was not found.")
+endif()
 
 set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/FluentQtWidgets.h

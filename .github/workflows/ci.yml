@@ -24,9 +24,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.0"
+          modules: "qtmultimedia qtwebengine"
 
       - name: Configure
-        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
+        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON -DFQW_REQUIRE_WEBENGINE_WIDGETS=ON
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
@@ -57,9 +58,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.0"
+          modules: "qtmultimedia qtwebengine"
 
       - name: Configure
-        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=OFF
+        run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=OFF -DFQW_REQUIRE_WEBENGINE_WIDGETS=ON
 
       - name: Build Gallery
         run: cmake --build build --config Release --parallel 2 --target FluentQtWidgets FluentQtWidgetsGallery
