@@ -24,7 +24,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.0"
-          modules: "qtmultimedia qtwebengine"
+          modules: "qtmultimedia qtwebchannel qtwebengine"
 
       - name: Configure
         run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON -DFQW_REQUIRE_WEBENGINE_WIDGETS=ON
@@ -58,7 +58,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.0"
-          modules: "qtmultimedia qtwebengine"
+          modules: "qtmultimedia qtwebchannel qtwebengine"
 
       - name: Configure
         run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=OFF -DFQW_REQUIRE_WEBENGINE_WIDGETS=ON
