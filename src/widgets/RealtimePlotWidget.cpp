@@ -10,6 +10,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QtMath>
 #include <QtCore/QTextStream>
+#include <QtCore/QTimer>
 #include <QtGui/QAction>
 #include <QtGui/QActionGroup>
 #include <QtGui/QContextMenuEvent>
@@ -83,8 +84,12 @@ QString csvNumber(qreal value)
 
 } // namespace
 
-RealtimePlotWidget::RealtimePlotWidget(QWidget *parent) : QWidget(parent)
+RealtimePlotWidget::RealtimePlotWidget(QWidget *parent) : QWidget(parent), m_refreshTimer(new QTimer(this))
 {
+    m_refreshTimer->setSingleShot(true);
+    m_refreshTimer->setTimerType(Qt::PreciseTimer);
+    connect(m_refreshTimer, &QTimer::timeout, this, &RealtimePlotWidget::flushScheduledDataUpdate);
+
     addSeries(QStringLiteral("Series 1"));
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
@@ -157,6 +162,8 @@ bool RealtimePlotWidget::isLegendVisible() const { return m_legendVisible; }
 
 QColor RealtimePlotWidget::curveColor() const { return effectiveSeriesColor(0); }
 
+int RealtimePlotWidget::refreshRate() const { return m_refreshRate; }
+
 QString RealtimePlotWidget::seriesName(int seriesIndex) const
 {
     return hasSeries(seriesIndex) ? m_series.at(seriesIndex).name : QString();
@@ -177,7 +184,9 @@ int RealtimePlotWidget::addSeries(const QString &name, const QColor &color)
     PlotSeries series;
     series.name = name.trimmed().isEmpty() ? QStringLiteral("Series %1").arg(m_series.size() + 1) : name;
     series.color = color;
-    series.buffer.resize(m_capacity);
+    if (m_capacity > 0) {
+        series.buffer.resize(m_capacity);
+    }
     resizeYRangeBlocks(&series);
     m_series.append(series);
     m_legendToggleRects.resize(m_series.size());
@@ -254,7 +263,7 @@ void RealtimePlotWidget::setSeriesVisible(int seriesIndex, bool visible)
 
 void RealtimePlotWidget::setCapacity(int capacity)
 {
-    const int boundedCapacity = qMax(2, capacity);
+    const int boundedCapacity = capacity == 0 ? 0 : qMax(2, capacity);
     if (m_capacity == boundedCapacity) {
         return;
     }
@@ -263,7 +272,7 @@ void RealtimePlotWidget::setCapacity(int capacity)
     currentPoints.reserve(m_series.size());
     for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
         QVector<QPointF> seriesPoints = points(seriesIndex);
-        if (seriesPoints.size() > boundedCapacity) {
+        if (boundedCapacity > 0 && seriesPoints.size() > boundedCapacity) {
             seriesPoints = seriesPoints.mid(seriesPoints.size() - boundedCapacity);
         }
         currentPoints.append(seriesPoints);
@@ -273,11 +282,16 @@ void RealtimePlotWidget::setCapacity(int capacity)
     for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
         PlotSeries &series = m_series[seriesIndex];
         series.buffer.clear();
-        series.buffer.resize(m_capacity);
+        if (m_capacity > 0) {
+            series.buffer.resize(m_capacity);
+        } else {
+            series.buffer.reserve(currentPoints.at(seriesIndex).size());
+        }
         resizeYRangeBlocks(&series);
         series.start = 0;
         series.count = 0;
         series.xMonotonic = true;
+        markSeriesRenderCacheDirty(&series);
         for (const QPointF &point : currentPoints.at(seriesIndex)) {
             appendPointInternal(seriesIndex, point.x(), point.y());
         }
@@ -481,6 +495,25 @@ void RealtimePlotWidget::setCurveColor(const QColor &color)
     emit appearanceChanged();
 }
 
+void RealtimePlotWidget::setRefreshRate(int framesPerSecond)
+{
+    const int boundedRate = qMax(0, framesPerSecond);
+    if (m_refreshRate == boundedRate) {
+        return;
+    }
+
+    m_refreshRate = boundedRate;
+    if (m_refreshRate == 0) {
+        if (m_refreshTimer->isActive()) {
+            m_refreshTimer->stop();
+        }
+        flushScheduledDataUpdate();
+    } else if (m_dataUpdatePending) {
+        m_refreshTimer->start(refreshInterval());
+    }
+    emit refreshRateChanged(m_refreshRate);
+}
+
 void RealtimePlotWidget::appendSample(qreal y)
 {
     appendSample(0, y);
@@ -500,7 +533,7 @@ void RealtimePlotWidget::appendSample(int seriesIndex, qreal y)
         return;
     }
     m_series[seriesIndex].nextX = x + 1;
-    update();
+    scheduleDataUpdate();
     emit samplesChanged();
 }
 
@@ -530,7 +563,39 @@ void RealtimePlotWidget::appendSamples(int seriesIndex, const QVector<qreal> &sa
     if (!changed) {
         return;
     }
-    update();
+    scheduleDataUpdate();
+    emit samplesChanged();
+}
+
+void RealtimePlotWidget::appendSamples(const QVector<QVector<qreal>> &seriesSamples)
+{
+    if (seriesSamples.isEmpty()) {
+        return;
+    }
+
+    while (m_series.size() < seriesSamples.size()) {
+        addSeries(QStringLiteral("Series %1").arg(m_series.size() + 1));
+    }
+
+    bool changed = false;
+    for (int seriesIndex = 0; seriesIndex < seriesSamples.size(); ++seriesIndex) {
+        if (!hasSeries(seriesIndex)) {
+            continue;
+        }
+
+        for (qreal sample : seriesSamples.at(seriesIndex)) {
+            const qreal x = m_series.at(seriesIndex).nextX;
+            if (appendPointInternal(seriesIndex, x, sample)) {
+                m_series[seriesIndex].nextX = x + 1;
+                changed = true;
+            }
+        }
+    }
+
+    if (!changed) {
+        return;
+    }
+    scheduleDataUpdate();
     emit samplesChanged();
 }
 
@@ -550,7 +615,7 @@ void RealtimePlotWidget::appendPoint(int seriesIndex, qreal x, qreal y)
     if (x >= m_series.at(seriesIndex).nextX) {
         m_series[seriesIndex].nextX = x + 1;
     }
-    update();
+    scheduleDataUpdate();
     emit samplesChanged();
 }
 
@@ -569,16 +634,23 @@ void RealtimePlotWidget::setSamples(int seriesIndex, const QVector<qreal> &sampl
     }
 
     PlotSeries &series = m_series[seriesIndex];
+    series.buffer.clear();
+    if (m_capacity > 0) {
+        series.buffer.resize(m_capacity);
+    } else {
+        series.buffer.reserve(samples.size());
+    }
     series.start = 0;
     series.count = 0;
     series.nextX = 0;
     series.xMonotonic = true;
     resizeYRangeBlocks(&series);
+    markSeriesRenderCacheDirty(&series);
     for (int i = 0; i < samples.size(); ++i) {
         appendPointInternal(seriesIndex, i, samples.at(i));
     }
     series.nextX = samples.size();
-    update();
+    scheduleDataUpdate();
     emit samplesChanged();
 }
 
@@ -589,18 +661,23 @@ void RealtimePlotWidget::clear()
         if (series.count > 0) {
             changed = true;
         }
+        series.buffer.clear();
+        if (m_capacity > 0) {
+            series.buffer.resize(m_capacity);
+        }
         series.start = 0;
         series.count = 0;
         series.nextX = 0;
         series.xMonotonic = true;
         resizeYRangeBlocks(&series);
+        markSeriesRenderCacheDirty(&series);
     }
 
     if (!changed) {
         return;
     }
     m_hasHover = false;
-    update();
+    scheduleDataUpdate();
     emit samplesChanged();
 }
 
@@ -979,9 +1056,79 @@ bool RealtimePlotWidget::hasSeries(int seriesIndex) const
     return seriesIndex >= 0 && seriesIndex < m_series.size();
 }
 
+void RealtimePlotWidget::scheduleDataUpdate()
+{
+    if (m_refreshRate == 0 || !shouldThrottleDataUpdates()) {
+        m_dataUpdatePending = false;
+        if (m_refreshTimer->isActive()) {
+            m_refreshTimer->stop();
+        }
+        update();
+        return;
+    }
+
+    m_dataUpdatePending = true;
+    if (!m_refreshTimer->isActive()) {
+        m_refreshTimer->start(refreshInterval());
+    }
+}
+
+void RealtimePlotWidget::flushScheduledDataUpdate()
+{
+    if (!m_dataUpdatePending) {
+        return;
+    }
+
+    m_dataUpdatePending = false;
+    update();
+}
+
+int RealtimePlotWidget::refreshInterval() const
+{
+    return qMax(1, qRound(1000.0 / qMax(1, m_refreshRate)));
+}
+
+bool RealtimePlotWidget::shouldThrottleDataUpdates() const
+{
+    const int threshold = qMax(2000, width() * 4);
+    int visibleSamples = 0;
+    const qreal xMin = viewXMinimum();
+    const qreal xMax = viewXMaximum();
+
+    for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+        const PlotSeries &series = m_series.at(seriesIndex);
+        if (!series.visible || series.count == 0) {
+            continue;
+        }
+
+        int first = 0;
+        int last = 0;
+        visibleIndexRange(seriesIndex, xMin, xMax, &first, &last, false);
+        visibleSamples += qMax(0, last - first);
+        if (visibleSamples > threshold) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void RealtimePlotWidget::markSeriesRenderCacheDirty(PlotSeries *series)
+{
+    if (!series) {
+        return;
+    }
+
+    ++series->dataRevision;
+    series->renderCacheFirst = -1;
+    series->renderCacheLast = -1;
+    series->renderCachePoints.clear();
+    series->renderCacheFillPoints.clear();
+}
+
 bool RealtimePlotWidget::appendPointInternal(int seriesIndex, qreal x, qreal y)
 {
-    if (!hasSeries(seriesIndex) || !isFinite(x) || !isFinite(y) || m_capacity < 2) {
+    if (!hasSeries(seriesIndex) || !isFinite(x) || !isFinite(y) || m_capacity < 0) {
         return false;
     }
 
@@ -989,23 +1136,87 @@ bool RealtimePlotWidget::appendPointInternal(int seriesIndex, qreal x, qreal y)
     if (series.count > 0 && x < pointAt(seriesIndex, series.count - 1).x()) {
         series.xMonotonic = false;
     }
-    const bool overwrote = series.count >= m_capacity;
-    const int index = overwrote ? series.start : (series.start + series.count) % m_capacity;
-    const qreal previousY = overwrote ? series.buffer.at(index).y() : 0;
-    series.buffer[index] = QPointF(x, y);
-    if (series.count < m_capacity) {
+
+    bool overwrote = false;
+    int index = 0;
+    qreal previousY = 0;
+    if (m_capacity == 0) {
+        index = series.buffer.size();
+        series.buffer.append(QPointF(x, y));
         ++series.count;
     } else {
-        series.start = (series.start + 1) % m_capacity;
+        overwrote = series.count >= m_capacity;
+        index = overwrote ? series.start : (series.start + series.count) % m_capacity;
+        previousY = overwrote ? series.buffer.at(index).y() : 0;
+        series.buffer[index] = QPointF(x, y);
+        if (series.count < m_capacity) {
+            ++series.count;
+        } else {
+            series.start = (series.start + 1) % m_capacity;
+        }
     }
+
     updateYRangeBlockAfterWrite(&series, index, previousY, overwrote);
+    markSeriesRenderCacheDirty(&series);
     return true;
 }
 
 QPointF RealtimePlotWidget::pointAt(int seriesIndex, int index) const
 {
     const PlotSeries &series = m_series.at(seriesIndex);
+    if (m_capacity == 0) {
+        return series.buffer.at(index);
+    }
     return series.buffer.at((series.start + index) % m_capacity);
+}
+
+int RealtimePlotWidget::nearestDataIndex(int seriesIndex, qreal x, int first, int last) const
+{
+    if (!hasSeries(seriesIndex) || first >= last) {
+        return -1;
+    }
+
+    const PlotSeries &series = m_series.at(seriesIndex);
+    first = qBound(0, first, series.count);
+    last = qBound(first, last, series.count);
+    if (first >= last) {
+        return -1;
+    }
+
+    if (!series.xMonotonic) {
+        int bestIndex = first;
+        qreal bestDistance = std::numeric_limits<qreal>::max();
+        for (int i = first; i < last; ++i) {
+            const qreal distance = qAbs(pointAt(seriesIndex, i).x() - x);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
+    }
+
+    int low = first;
+    int high = last;
+    while (low < high) {
+        const int mid = low + (high - low) / 2;
+        if (pointAt(seriesIndex, mid).x() < x) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    if (low <= first) {
+        return first;
+    }
+    if (low >= last) {
+        return last - 1;
+    }
+
+    const qreal leftDistance = qAbs(pointAt(seriesIndex, low - 1).x() - x);
+    const qreal rightDistance = qAbs(pointAt(seriesIndex, low).x() - x);
+    return leftDistance <= rightDistance ? low - 1 : low;
 }
 
 void RealtimePlotWidget::resizeYRangeBlocks(PlotSeries *series)
@@ -1013,15 +1224,36 @@ void RealtimePlotWidget::resizeYRangeBlocks(PlotSeries *series)
     if (!series) {
         return;
     }
-    const int blockCount = qMax(1, (m_capacity + kYRangeBlockSize - 1) / kYRangeBlockSize);
+    const int storageSize = m_capacity == 0 ? series->buffer.size() : m_capacity;
+    const int blockCount = qMax(1, (storageSize + kYRangeBlockSize - 1) / kYRangeBlockSize);
     series->yBlockMinimums.fill(std::numeric_limits<qreal>::max(), blockCount);
     series->yBlockMaximums.fill(std::numeric_limits<qreal>::lowest(), blockCount);
 }
 
+void RealtimePlotWidget::ensureYRangeBlockCount(PlotSeries *series, int blockIndex)
+{
+    if (!series || blockIndex < 0 || blockIndex < series->yBlockMinimums.size()) {
+        return;
+    }
+
+    const int oldSize = series->yBlockMinimums.size();
+    const int newSize = blockIndex + 1;
+    series->yBlockMinimums.resize(newSize);
+    series->yBlockMaximums.resize(newSize);
+    for (int i = oldSize; i < newSize; ++i) {
+        series->yBlockMinimums[i] = std::numeric_limits<qreal>::max();
+        series->yBlockMaximums[i] = std::numeric_limits<qreal>::lowest();
+    }
+}
+
 bool RealtimePlotWidget::isPhysicalIndexValid(const PlotSeries &series, int physicalIndex) const
 {
-    if (physicalIndex < 0 || physicalIndex >= m_capacity || series.count <= 0) {
+    const int storageSize = m_capacity == 0 ? series.buffer.size() : m_capacity;
+    if (physicalIndex < 0 || physicalIndex >= storageSize || series.count <= 0) {
         return false;
+    }
+    if (m_capacity == 0) {
+        return physicalIndex < series.count;
     }
     if (series.count >= m_capacity) {
         return true;
@@ -1043,7 +1275,8 @@ void RealtimePlotWidget::rebuildYRangeBlock(PlotSeries *series, int blockIndex) 
     qreal yMin = std::numeric_limits<qreal>::max();
     qreal yMax = std::numeric_limits<qreal>::lowest();
     const int first = blockIndex * kYRangeBlockSize;
-    const int last = qMin(m_capacity, first + kYRangeBlockSize);
+    const int storageSize = m_capacity == 0 ? series->buffer.size() : m_capacity;
+    const int last = qMin(storageSize, first + kYRangeBlockSize);
     for (int i = first; i < last; ++i) {
         if (!isPhysicalIndexValid(*series, i)) {
             continue;
@@ -1060,14 +1293,16 @@ void RealtimePlotWidget::rebuildYRangeBlock(PlotSeries *series, int blockIndex) 
 void RealtimePlotWidget::updateYRangeBlockAfterWrite(PlotSeries *series, int physicalIndex, qreal previousY,
                                                      bool overwrote)
 {
-    if (!series || physicalIndex < 0 || physicalIndex >= m_capacity) {
+    const int storageSize = series ? (m_capacity == 0 ? series->buffer.size() : m_capacity) : 0;
+    if (!series || physicalIndex < 0 || physicalIndex >= storageSize) {
         return;
     }
 
     const int blockIndex = physicalIndex / kYRangeBlockSize;
-    if (blockIndex < 0 || blockIndex >= series->yBlockMinimums.size()) {
+    if (blockIndex < 0) {
         return;
     }
+    ensureYRangeBlockCount(series, blockIndex);
 
     const qreal y = series->buffer.at(physicalIndex).y();
     qreal &blockMinimum = series->yBlockMinimums[blockIndex];
@@ -1121,6 +1356,11 @@ void RealtimePlotWidget::seriesYRange(int seriesIndex, int first, int last, qrea
     }
 
     const PlotSeries &series = m_series.at(seriesIndex);
+    if (m_capacity == 0) {
+        accumulatePhysicalYRange(series, first, last, minimum, maximum);
+        return;
+    }
+
     const int physicalFirst = (series.start + first) % m_capacity;
     const int length = last - first;
     if (physicalFirst + length <= m_capacity) {

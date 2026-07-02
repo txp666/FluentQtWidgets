@@ -14,6 +14,7 @@ class QContextMenuEvent;
 class QMouseEvent;
 class QPainter;
 class QPaintEvent;
+class QTimer;
 class QWheelEvent;
 
 namespace FluentQt {
@@ -38,6 +39,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     Q_PROPERTY(bool crosshairVisible READ isCrosshairVisible WRITE setCrosshairVisible NOTIFY appearanceChanged)
     Q_PROPERTY(bool legendVisible READ isLegendVisible WRITE setLegendVisible NOTIFY appearanceChanged)
     Q_PROPERTY(QColor curveColor READ curveColor WRITE setCurveColor NOTIFY appearanceChanged)
+    Q_PROPERTY(int refreshRate READ refreshRate WRITE setRefreshRate NOTIFY refreshRateChanged)
 
   public:
     explicit RealtimePlotWidget(QWidget *parent = nullptr);
@@ -64,6 +66,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool isCrosshairVisible() const;
     bool isLegendVisible() const;
     QColor curveColor() const;
+    int refreshRate() const;
     QString seriesName(int seriesIndex) const;
     QColor seriesColor(int seriesIndex) const;
     bool isSeriesVisible(int seriesIndex) const;
@@ -92,10 +95,12 @@ class FQW_API RealtimePlotWidget : public QWidget
     void setCrosshairVisible(bool visible);
     void setLegendVisible(bool visible);
     void setCurveColor(const QColor &color);
+    void setRefreshRate(int framesPerSecond);
     void appendSample(qreal y);
     void appendSample(int seriesIndex, qreal y);
     void appendSamples(const QVector<qreal> &samples);
     void appendSamples(int seriesIndex, const QVector<qreal> &samples);
+    void appendSamples(const QVector<QVector<qreal>> &seriesSamples);
     void appendPoint(qreal x, qreal y);
     void appendPoint(int seriesIndex, qreal x, qreal y);
     void setSamples(const QVector<qreal> &samples);
@@ -110,6 +115,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     void rangeChanged();
     void appearanceChanged();
     void interactionChanged();
+    void refreshRateChanged(int refreshRate);
     void crosshairMoved(const QPointF &point);
 
   protected:
@@ -130,19 +136,42 @@ class FQW_API RealtimePlotWidget : public QWidget
         QVector<QPointF> buffer;
         QVector<qreal> yBlockMinimums;
         QVector<qreal> yBlockMaximums;
+        QVector<QPointF> renderCachePoints;
+        QVector<QPointF> renderCacheFillPoints;
         int start = 0;
         int count = 0;
         qreal nextX = 0;
+        quint64 dataRevision = 0;
+        quint64 renderCacheRevision = 0;
+        QRectF renderCachePlot;
+        qreal renderCacheXMinimum = 0;
+        qreal renderCacheXMaximum = 0;
+        qreal renderCacheYMinimum = 0;
+        qreal renderCacheYMaximum = 0;
+        int renderCacheFirst = -1;
+        int renderCacheLast = -1;
+        int renderCachePixelWidth = 0;
+        bool renderCachePerformanceMode = false;
         bool visible = true;
         bool xMonotonic = true;
     };
 
     bool hasSeries(int seriesIndex) const;
+    void scheduleDataUpdate();
+    void flushScheduledDataUpdate();
+    int refreshInterval() const;
+    bool shouldThrottleDataUpdates() const;
+    void markSeriesRenderCacheDirty(PlotSeries *series);
     bool appendPointInternal(int seriesIndex, qreal x, qreal y);
     QPointF pointAt(int seriesIndex, int index) const;
+    int nearestDataIndex(int seriesIndex, qreal x, int first, int last) const;
+    void rebuildRenderCache(int seriesIndex, int first, int last, const QRectF &plot, qreal xMinimum,
+                            qreal xMaximum, qreal yMinimum, qreal yMaximum, int pixelWidth,
+                            bool performanceMode);
     void visibleIndexRange(int seriesIndex, qreal xMinimum, qreal xMaximum, int *first, int *last,
                            bool includeAdjacent) const;
     void resizeYRangeBlocks(PlotSeries *series);
+    void ensureYRangeBlockCount(PlotSeries *series, int blockIndex);
     void rebuildYRangeBlock(PlotSeries *series, int blockIndex) const;
     void updateYRangeBlockAfterWrite(PlotSeries *series, int physicalIndex, qreal previousY, bool overwrote);
     bool isPhysicalIndexValid(const PlotSeries &series, int physicalIndex) const;
@@ -174,7 +203,9 @@ class FQW_API RealtimePlotWidget : public QWidget
 
     QVector<PlotSeries> m_series;
     QVector<QRectF> m_legendToggleRects;
+    QTimer *m_refreshTimer = nullptr;
     int m_capacity = 120000;
+    int m_refreshRate = 60;
     int m_maximumVisiblePoints = 10000;
     qreal m_visibleSpan = 9999;
     qreal m_xMinimum = 0;
@@ -188,6 +219,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool m_pointsVisible = false;
     bool m_crosshairVisible = true;
     bool m_legendVisible = true;
+    bool m_dataUpdatePending = false;
     QColor m_curveColor;
     bool m_dragging = false;
     bool m_rightDragPending = false;

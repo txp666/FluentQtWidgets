@@ -735,6 +735,108 @@ class ShellTest : public QObject
         QVERIFY((plot.yMaximum() - plot.yMinimum()) > previousYSpan);
     }
 
+    void realtimePlotWidgetSupportsUnlimitedHistory()
+    {
+        FluentQt::RealtimePlotWidget plot;
+        plot.setCapacity(4);
+        plot.appendSamples(QVector<qreal>{1, 2, 3, 4, 5});
+        QCOMPARE(plot.points().size(), 4);
+        QCOMPARE(plot.points().first().y(), 2.0);
+
+        plot.setCapacity(0);
+        QCOMPARE(plot.capacity(), 0);
+        plot.appendSamples(QVector<qreal>{6, 7, 8, 9, 10});
+        QCOMPARE(plot.points().size(), 9);
+        QCOMPARE(plot.points().first().y(), 2.0);
+        QCOMPARE(plot.points().last().y(), 10.0);
+
+        plot.setCapacity(4);
+        QCOMPARE(plot.capacity(), 4);
+        QCOMPARE(plot.points().size(), 4);
+        QCOMPARE(plot.points().first().y(), 7.0);
+        QCOMPARE(plot.points().last().y(), 10.0);
+    }
+
+    void realtimePlotWidgetBatchesMultiSeriesSamples()
+    {
+        FluentQt::RealtimePlotWidget plot;
+        QCOMPARE(plot.refreshRate(), 60);
+
+        QSignalSpy refreshSpy(&plot, &FluentQt::RealtimePlotWidget::refreshRateChanged);
+        plot.setRefreshRate(30);
+        QCOMPARE(plot.refreshRate(), 30);
+        QCOMPARE(refreshSpy.count(), 1);
+        QCOMPARE(refreshSpy.takeFirst().at(0).toInt(), 30);
+
+        plot.setRefreshRate(-1);
+        QCOMPARE(plot.refreshRate(), 0);
+        QCOMPARE(refreshSpy.count(), 1);
+        QCOMPARE(refreshSpy.takeFirst().at(0).toInt(), 0);
+
+        QSignalSpy samplesSpy(&plot, &FluentQt::RealtimePlotWidget::samplesChanged);
+        plot.appendSamples(QVector<QVector<qreal>>{QVector<qreal>{1, 2, 3}, QVector<qreal>{4, 5, 6}});
+        QCOMPARE(samplesSpy.count(), 1);
+        QCOMPARE(plot.seriesCount(), 2);
+        QCOMPARE(plot.sampleCount(), 3);
+        QCOMPARE(plot.points(0).last().y(), 3.0);
+        QCOMPARE(plot.points(1).last().y(), 6.0);
+    }
+
+    void realtimePlotWidgetRendersLargeMultiSeriesData()
+    {
+        FluentQt::RealtimePlotWidget plot;
+        plot.setCapacity(60000);
+        plot.setMaximumVisiblePoints(50000);
+        plot.setLegendVisible(false);
+        plot.setPointsVisible(false);
+        plot.setSeriesName(0, QStringLiteral("CPU"));
+        plot.setSeriesColor(0, QColor(0, 159, 170));
+        const int memorySeries = plot.addSeries(QStringLiteral("Memory"), QColor(22, 163, 74));
+        const int ioSeries = plot.addSeries(QStringLiteral("I/O"), QColor(245, 158, 11));
+
+        constexpr int sampleCount = 50000;
+        QVector<qreal> cpu;
+        QVector<qreal> memory;
+        QVector<qreal> io;
+        cpu.reserve(sampleCount);
+        memory.reserve(sampleCount);
+        io.reserve(sampleCount);
+        for (int i = 0; i < sampleCount; ++i) {
+            const qreal ramp = static_cast<qreal>(i % 400) / 4.0;
+            const qreal folded = i % 800 < 400 ? ramp : 100.0 - ramp;
+            const qreal pulse = i % 997 < 18 ? 42.0 : 0.0;
+            cpu.append(30.0 + folded * 0.45 + pulse);
+            memory.append(42.0 + static_cast<qreal>((i * 17) % 300) / 7.0);
+            io.append(20.0 + static_cast<qreal>((i * 31) % 500) / 8.0 + (i % 1409 < 12 ? 55.0 : 0.0));
+        }
+        plot.setSamples(0, cpu);
+        plot.setSamples(memorySeries, memory);
+        plot.setSamples(ioSeries, io);
+
+        plot.resize(900, 360);
+        plot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&plot));
+
+        QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        plot.render(&rendered);
+
+        bool hasCurvePixel = false;
+        for (int y = 0; y < rendered.height() && !hasCurvePixel; ++y) {
+            for (int x = 0; x < rendered.width(); ++x) {
+                const QColor pixel = QColor::fromRgba(rendered.pixel(x, y));
+                const bool tealPixel = pixel.red() < 90 && pixel.green() > 95 && pixel.blue() > 95;
+                const bool greenPixel = pixel.red() < 100 && pixel.green() > 100 && pixel.blue() < 150;
+                const bool orangePixel = pixel.red() > 170 && pixel.green() > 90 && pixel.blue() < 90;
+                if (pixel.alpha() > 0 && (tealPixel || greenPixel || orangePixel)) {
+                    hasCurvePixel = true;
+                    break;
+                }
+            }
+        }
+        QVERIFY(hasCurvePixel);
+    }
+
     void chartWidgetRendersNativeChart()
     {
         QJsonObject option{
