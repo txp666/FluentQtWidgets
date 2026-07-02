@@ -180,6 +180,84 @@ constexpr int kDwmWindowCornerRound = []() constexpr
 #endif
 }();
 
+constexpr int kAccentDisabled = 0;
+constexpr int kAccentEnableHostBackdrop = 5;
+constexpr DWORD kWindowCompositionAttributeAccentPolicy = 19;
+constexpr DWORD kWindowCompositionAttributeUseDarkModeColors = 26;
+
+struct AccentPolicy {
+    int accentState = kAccentDisabled;
+    int accentFlags = 0;
+    DWORD gradientColor = 0;
+    int animationId = 0;
+};
+
+struct WindowCompositionAttributeData {
+    DWORD attribute = 0;
+    PVOID data = nullptr;
+    SIZE_T sizeOfData = 0;
+};
+
+using SetWindowCompositionAttributeProc = BOOL(WINAPI *)(HWND, WindowCompositionAttributeData *);
+
+SetWindowCompositionAttributeProc setWindowCompositionAttributeProc()
+{
+    static const auto proc = reinterpret_cast<SetWindowCompositionAttributeProc>(
+        GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute"));
+    return proc;
+}
+
+void setWindowAccentPolicy(HWND hwnd, int accentState)
+{
+    if (!hwnd) {
+        return;
+    }
+
+    auto proc = setWindowCompositionAttributeProc();
+    if (!proc) {
+        return;
+    }
+
+    AccentPolicy accent;
+    accent.accentState = accentState;
+
+    WindowCompositionAttributeData data;
+    data.attribute = kWindowCompositionAttributeAccentPolicy;
+    data.data = &accent;
+    data.sizeOfData = sizeof(accent);
+    proc(hwnd, &data);
+}
+
+void setWindowCompositionDarkMode(HWND hwnd, bool darkMode)
+{
+    if (!hwnd) {
+        return;
+    }
+
+    auto proc = setWindowCompositionAttributeProc();
+    if (!proc) {
+        return;
+    }
+
+    BOOL enabled = darkMode ? TRUE : FALSE;
+
+    WindowCompositionAttributeData data;
+    data.attribute = kWindowCompositionAttributeUseDarkModeColors;
+    data.data = &enabled;
+    data.sizeOfData = sizeof(enabled);
+    proc(hwnd, &data);
+}
+
+void extendFrameIntoClientArea(HWND hwnd, bool enabled)
+{
+    if (!hwnd) {
+        return;
+    }
+
+    MARGINS margins = enabled ? MARGINS{16777215, 16777215, 0, 0} : MARGINS{0, 0, 0, 0};
+    DwmExtendFrameIntoClientArea(hwnd, &margins);
+}
+
 void syncDwmWindowAttributes(QWidget *widget, bool micaEnabled, bool refreshMicaBackdrop = false)
 {
     if (!widget) {
@@ -196,10 +274,14 @@ void syncDwmWindowAttributes(QWidget *widget, bool micaEnabled, bool refreshMica
     }
 
     const BOOL darkMode = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? TRUE : FALSE;
+    setWindowCompositionDarkMode(hwnd, darkMode == TRUE);
     DwmSetWindowAttribute(hwnd, kDwmUseImmersiveDarkModeAttribute, &darkMode, sizeof(darkMode));
 
     const int cornerPreference = kDwmWindowCornerRound;
     DwmSetWindowAttribute(hwnd, kDwmWindowCornerPreferenceAttribute, &cornerPreference, sizeof(cornerPreference));
+
+    setWindowAccentPolicy(hwnd, micaEnabled ? kAccentEnableHostBackdrop : kAccentDisabled);
+    extendFrameIntoClientArea(hwnd, micaEnabled);
 
     const int backdrop = micaEnabled ? kDwmBackdropMainWindow : kDwmBackdropNone;
     DwmSetWindowAttribute(hwnd, kDwmSystemBackdropTypeAttribute, &backdrop, sizeof(backdrop));
