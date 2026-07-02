@@ -108,6 +108,18 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Audio waveform widget"), QStringLiteral("音频波形控件"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Realtime multi-series plot"),
                  QStringLiteral("实时多曲线图"));
+        QCOMPARE(QCoreApplication::translate(
+                     "ChartInterface",
+                     "RealtimePlotWidget is optimized for streaming telemetry and dense multi-series data."),
+                 QStringLiteral("RealtimePlotWidget 针对流式遥测和高密度多曲线数据进行了优化。"));
+        QCOMPARE(QCoreApplication::translate(
+                     "ChartInterface",
+                     "Pixel peak downsampling and cached range blocks keep tens of thousands of points smooth."),
+                 QStringLiteral("像素峰值降采样和范围块缓存让几万点数据依然流畅。"));
+        QCOMPARE(QCoreApplication::translate(
+                     "ChartInterface",
+                     "Use capacity(0) for unlimited chunked history, with CSV and PNG export built in."),
+                 QStringLiteral("可用 capacity(0) 启用无限分块历史，并内置 CSV 与 PNG 导出。"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Memory"), QStringLiteral("内存"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Native mixed bar and line chart"),
                  QStringLiteral("原生柱状折线混合图"));
@@ -197,6 +209,18 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Audio waveform widget"), QStringLiteral("音頻波形控件"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Realtime multi-series plot"),
                  QStringLiteral("實時多曲線圖"));
+        QCOMPARE(QCoreApplication::translate(
+                     "ChartInterface",
+                     "RealtimePlotWidget is optimized for streaming telemetry and dense multi-series data."),
+                 QStringLiteral("RealtimePlotWidget 針對串流遙測和高密度多曲線資料進行了最佳化。"));
+        QCOMPARE(QCoreApplication::translate(
+                     "ChartInterface",
+                     "Pixel peak downsampling and cached range blocks keep tens of thousands of points smooth."),
+                 QStringLiteral("像素峰值降採樣和範圍區塊快取讓幾萬點資料依然流暢。"));
+        QCOMPARE(QCoreApplication::translate(
+                     "ChartInterface",
+                     "Use capacity(0) for unlimited chunked history, with CSV and PNG export built in."),
+                 QStringLiteral("可用 capacity(0) 啟用無限分塊歷史，並內建 CSV 與 PNG 匯出。"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Memory"), QStringLiteral("記憶體"));
         QCOMPARE(QCoreApplication::translate("ChartInterface", "Native mixed bar and line chart"),
                  QStringLiteral("原生柱狀折線混合圖"));

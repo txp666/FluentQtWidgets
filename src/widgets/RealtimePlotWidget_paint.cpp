@@ -85,8 +85,11 @@ struct PeakBucket
     {
         if (!isValid()) {
             firstIndex = index;
+            lastIndex = index;
+        } else {
+            firstIndex = qMin(firstIndex, index);
+            lastIndex = qMax(lastIndex, index);
         }
-        lastIndex = index;
         if (value < minimum) {
             minimum = value;
             minimumIndex = index;
@@ -152,37 +155,42 @@ void RealtimePlotWidget::rebuildRenderCache(int seriesIndex, int first, int last
                 }
             };
 
+            const bool useBlockSummary = (m_capacity == 0 || series.start == 0) &&
+                                         visibleDataCount > pixelWidth * 32;
             for (int i = first; i < last;) {
-                if (m_capacity == 0) {
+                if (useBlockSummary) {
                     const int blockIndex = i / kRenderBlockSize;
                     const int blockFirst = blockIndex * kRenderBlockSize;
                     const int blockLast = blockFirst + kRenderBlockSize;
                     const bool fullBlock = i == blockFirst && blockLast <= last &&
                                            blockIndex >= 0 && blockIndex < series.yBlockMinimumIndices.size();
                     if (fullBlock) {
-                        const QPointF firstPoint = series.buffer.at(blockFirst);
-                        const QPointF lastPoint = series.buffer.at(blockLast - 1);
                         int firstColumn = -1;
                         int lastColumn = -1;
-                        if (screenColumn(firstPoint, &firstColumn) && screenColumn(lastPoint, &lastColumn) &&
-                            firstColumn == lastColumn) {
-                            PeakBucket &bucket = buckets[firstColumn];
-                            bucket.add(blockFirst, firstPoint.y());
-
-                            const int minimumIndex = series.yBlockMinimumIndices.at(blockIndex);
-                            if (minimumIndex >= blockFirst && minimumIndex < blockLast) {
-                                bucket.add(minimumIndex, series.buffer.at(minimumIndex).y());
-                            }
-
-                            const int maximumIndex = series.yBlockMaximumIndices.at(blockIndex);
-                            if (maximumIndex >= blockFirst && maximumIndex < blockLast) {
-                                bucket.add(maximumIndex, series.buffer.at(maximumIndex).y());
-                            }
-
-                            bucket.add(blockLast - 1, lastPoint.y());
-                            i = blockLast;
+                        const bool compactBlock = screenColumn(pointAt(seriesIndex, blockFirst), &firstColumn) &&
+                                                  screenColumn(pointAt(seriesIndex, blockLast - 1), &lastColumn) &&
+                                                  firstColumn == lastColumn;
+                        if (!compactBlock) {
+                            addRawIndex(i);
+                            ++i;
                             continue;
                         }
+
+                        addRawIndex(blockFirst);
+
+                        const int minimumIndex = series.yBlockMinimumIndices.at(blockIndex);
+                        if (minimumIndex >= blockFirst && minimumIndex < blockLast) {
+                            addRawIndex(minimumIndex);
+                        }
+
+                        const int maximumIndex = series.yBlockMaximumIndices.at(blockIndex);
+                        if (maximumIndex >= blockFirst && maximumIndex < blockLast) {
+                            addRawIndex(maximumIndex);
+                        }
+
+                        addRawIndex(blockLast - 1);
+                        i = blockLast;
+                        continue;
                     }
                 }
 
@@ -192,7 +200,7 @@ void RealtimePlotWidget::rebuildRenderCache(int seriesIndex, int first, int last
 
             int lastAppendedIndex = -1;
             const auto appendIndex = [&](int index) {
-                if (index < first || index >= last || index == lastAppendedIndex) {
+                if (index < first || index >= last || index <= lastAppendedIndex) {
                     return;
                 }
                 screenPoints.append(mapPoint(pointAt(seriesIndex, index)));

@@ -2758,6 +2758,26 @@ In that case, I would accept it no matter which side the ball falls on.</source>
     </message>
     <message>
         <location filename="../../app/view/chart_interface.cpp"/>
+        <source>RealtimePlotWidget is optimized for streaming telemetry and dense multi-series data.</source>
+        <translation>RealtimePlotWidget 针对流式遥测和高密度多曲线数据进行了优化。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Multiple selectable series with legend, crosshair, auto-scroll and auto Y range.</source>
+        <translation>支持多条可选择曲线、图例、十字光标、自动滚动和自动 Y 轴范围。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Pixel peak downsampling and cached range blocks keep tens of thousands of points smooth.</source>
+        <translation>像素峰值降采样和范围块缓存让几万点数据依然流畅。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
+        <source>Use capacity(0) for unlimited chunked history, with CSV and PNG export built in.</source>
+        <translation>可用 capacity(0) 启用无限分块历史，并内置 CSV 与 PNG 导出。</translation>
+    </message>
+    <message>
+        <location filename="../../app/view/chart_interface.cpp"/>
         <source>CPU</source>
         <translation>CPU</translation>
     </message>

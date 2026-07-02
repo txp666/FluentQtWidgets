@@ -9,6 +9,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
 #include <QtCore/QVector>
+#include <QtWidgets/QFrame>
 #if defined(FQW_HAS_MULTIMEDIA) && FQW_HAS_MULTIMEDIA
 #include <QtMultimedia/QAudioOutput>
 #include <QtMultimedia/QMediaPlayer>
@@ -325,6 +326,48 @@ RealtimePlotWidget *createRealtimePlot(QWidget *parent)
     return plot;
 }
 
+CaptionLabel *createFeatureLabel(const QString &text, QWidget *parent)
+{
+    auto *label = new CaptionLabel(QStringLiteral("- %1").arg(text), parent);
+    label->setWordWrap(true);
+    label->setTextColor(QColor(96, 96, 96), QColor(206, 206, 206));
+    return label;
+}
+
+QWidget *createRealtimePlotSample(QWidget *parent)
+{
+    auto *view = new QWidget(parent);
+    auto *layout = new QVBoxLayout(view);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(12);
+
+    auto *descriptionFrame = new QFrame(view);
+    descriptionFrame->setFrameShape(QFrame::NoFrame);
+    auto *descriptionLayout = new QVBoxLayout(descriptionFrame);
+    descriptionLayout->setContentsMargins(4, 0, 4, 0);
+    descriptionLayout->setSpacing(6);
+
+    auto *summaryLabel =
+        new BodyLabel(tx("ChartInterface",
+                         "RealtimePlotWidget is optimized for streaming telemetry and dense multi-series data."),
+                      descriptionFrame);
+    summaryLabel->setWordWrap(true);
+    descriptionLayout->addWidget(summaryLabel);
+    descriptionLayout->addWidget(createFeatureLabel(
+        tx("ChartInterface", "Multiple selectable series with legend, crosshair, auto-scroll and auto Y range."),
+        descriptionFrame));
+    descriptionLayout->addWidget(createFeatureLabel(
+        tx("ChartInterface", "Pixel peak downsampling and cached range blocks keep tens of thousands of points smooth."),
+        descriptionFrame));
+    descriptionLayout->addWidget(createFeatureLabel(
+        tx("ChartInterface", "Use capacity(0) for unlimited chunked history, with CSV and PNG export built in."),
+        descriptionFrame));
+
+    layout->addWidget(descriptionFrame);
+    layout->addWidget(createRealtimePlot(view));
+    return view;
+}
+
 QJsonObject axisChartOption(const QString &title, const QStringList &categories, const QJsonArray &values,
                             const QString &seriesName, const QString &seriesType)
 {
@@ -619,7 +662,8 @@ QWidget *GalleryWindow::createChartPage()
         QStringLiteral(FQW_REPOSITORY_URL "/blob/main/include/FluentQtWidgets/Widgets/RealtimePlotWidget.h");
 
     page->addExampleCard(tx("ChartInterface", "Audio waveform widget"), createAudioWaveform(page), waveformSource, 1);
-    page->addExampleCard(tx("ChartInterface", "Realtime multi-series plot"), createRealtimePlot(page), realtimeSource, 1);
+    page->addExampleCard(tx("ChartInterface", "Realtime multi-series plot"), createRealtimePlotSample(page),
+                         realtimeSource, 1);
     page->addExampleCard(tx("ChartInterface", "Native bar chart"), createChart(barOption(), page),
                          chartSource, 1);
     page->addExampleCard(tx("ChartInterface", "Native line chart"), createChart(lineOption(), page),

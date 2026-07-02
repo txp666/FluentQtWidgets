@@ -134,6 +134,7 @@ class FQW_API RealtimePlotWidget : public QWidget
         QString name;
         QColor color;
         QVector<QPointF> buffer;
+        QVector<QVector<QPointF>> chunks;
         QVector<qreal> yBlockMinimums;
         QVector<qreal> yBlockMaximums;
         QVector<int> yBlockMinimumIndices;
@@ -164,8 +165,12 @@ class FQW_API RealtimePlotWidget : public QWidget
     int refreshInterval() const;
     bool shouldThrottleDataUpdates() const;
     void markSeriesRenderCacheDirty(PlotSeries *series);
-    bool appendPointInternal(int seriesIndex, qreal x, qreal y);
-    QPointF pointAt(int seriesIndex, int index) const;
+    bool appendPointInternal(int seriesIndex, qreal x, qreal y, bool markDirty = true);
+    void clearStorage(PlotSeries *series);
+    void reserveUnlimitedStorage(PlotSeries *series, int pointCount);
+    int appendUnlimitedPoint(PlotSeries *series, const QPointF &point);
+    const QPointF &storedPointAt(const PlotSeries &series, int physicalIndex) const;
+    const QPointF &pointAt(int seriesIndex, int index) const;
     int nearestDataIndex(int seriesIndex, qreal x, int first, int last) const;
     void rebuildRenderCache(int seriesIndex, int first, int last, const QRectF &plot, qreal xMinimum,
                             qreal xMaximum, qreal yMinimum, qreal yMaximum, int pixelWidth,

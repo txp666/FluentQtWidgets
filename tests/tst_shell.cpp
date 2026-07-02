@@ -19,6 +19,8 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
+#include <limits>
+
 #if defined(Q_OS_WIN)
 #include <windows.h>
 #include <windowsx.h>
@@ -760,11 +762,54 @@ class ShellTest : public QObject
         QCOMPARE(plot.points().first().y(), 2.0);
         QCOMPARE(plot.points().last().y(), 10.0);
 
+        QVector<qreal> chunkedSamples;
+        constexpr int chunkBoundarySampleCount = 5000;
+        chunkedSamples.reserve(chunkBoundarySampleCount);
+        for (int i = 0; i < chunkBoundarySampleCount; ++i) {
+            chunkedSamples.append(1000.0 + i);
+        }
+        plot.setSamples(chunkedSamples);
+        QCOMPARE(plot.points().size(), chunkBoundarySampleCount);
+        QCOMPARE(plot.points().at(4095).y(), 5095.0);
+        QCOMPARE(plot.points().at(4096).y(), 5096.0);
+        QCOMPARE(plot.points().last().y(), 5999.0);
+
         plot.setCapacity(4);
         QCOMPARE(plot.capacity(), 4);
         QCOMPARE(plot.points().size(), 4);
-        QCOMPARE(plot.points().first().y(), 7.0);
-        QCOMPARE(plot.points().last().y(), 10.0);
+        QCOMPARE(plot.points().first().y(), 5996.0);
+        QCOMPARE(plot.points().last().y(), 5999.0);
+    }
+
+    void realtimePlotWidgetSetSamplesFiltersInvalidValues()
+    {
+        const qreal nan = std::numeric_limits<qreal>::quiet_NaN();
+        const qreal infinity = std::numeric_limits<qreal>::infinity();
+
+        FluentQt::RealtimePlotWidget plot;
+        plot.setCapacity(4);
+        plot.setSamples(QVector<qreal>{1.0, nan, 2.0, infinity, 3.0, 4.0, 5.0});
+        QCOMPARE(plot.points().size(), 4);
+        QCOMPARE(plot.points().first().x(), 2.0);
+        QCOMPARE(plot.points().first().y(), 2.0);
+        QCOMPARE(plot.points().last().x(), 6.0);
+        QCOMPARE(plot.points().last().y(), 5.0);
+
+        plot.appendSample(6.0);
+        QCOMPARE(plot.points().last().x(), 7.0);
+        QCOMPARE(plot.points().last().y(), 6.0);
+
+        plot.setCapacity(0);
+        plot.setSamples(QVector<qreal>{nan, 1.0, infinity, 2.0});
+        QCOMPARE(plot.points().size(), 2);
+        QCOMPARE(plot.points().first().x(), 1.0);
+        QCOMPARE(plot.points().first().y(), 1.0);
+        QCOMPARE(plot.points().last().x(), 3.0);
+        QCOMPARE(plot.points().last().y(), 2.0);
+
+        plot.appendSample(3.0);
+        QCOMPARE(plot.points().last().x(), 4.0);
+        QCOMPARE(plot.points().last().y(), 3.0);
     }
 
     void realtimePlotWidgetBatchesMultiSeriesSamples()
