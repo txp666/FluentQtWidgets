@@ -17,6 +17,7 @@ namespace FluentQt {
 namespace {
 
 constexpr qreal kPaintMinimumRange = 1.0e-6;
+constexpr int kRenderBlockSize = 256;
 
 QColor withAlpha(QColor color, int alpha)
 {
@@ -24,16 +25,25 @@ QColor withAlpha(QColor color, int alpha)
     return color;
 }
 
-QString tickText(qreal value)
+int tickPrecision(qreal step)
 {
-    const qreal absolute = qAbs(value);
-    int precision = 2;
-    if (absolute >= 100.0) {
-        precision = 0;
-    } else if (absolute >= 10.0) {
-        precision = 1;
+    const qreal absoluteStep = qAbs(step);
+    if (!std::isfinite(absoluteStep) || absoluteStep <= kPaintMinimumRange) {
+        return 8;
     }
 
+    if (absoluteStep >= 2.0) {
+        return 0;
+    }
+    if (absoluteStep >= 1.0) {
+        return 1;
+    }
+    return qBound(0, qCeil(-std::log10(absoluteStep)) + 1, 8);
+}
+
+QString tickText(qreal value, qreal step)
+{
+    const int precision = tickPrecision(step);
     QString text = QString::number(value, 'f', precision);
     while (text.contains(QLatin1Char('.')) && text.endsWith(QLatin1Char('0'))) {
         text.chop(1);
@@ -124,16 +134,60 @@ void RealtimePlotWidget::rebuildRenderCache(int seriesIndex, int first, int last
             QVector<PeakBucket> buckets(qMax(1, pixelWidth));
             screenPoints.reserve(qMin(visibleDataCount, pixelWidth * 4 + 2));
 
-            for (int i = first; i < last; ++i) {
-                const QPointF dataPoint = pointAt(seriesIndex, i);
+            const auto screenColumn = [&](const QPointF &dataPoint, int *column) {
                 const qreal screenX = plot.left() + (dataPoint.x() - xMinimum) * xScale;
                 if (screenX < plot.left() || screenX > plot.right()) {
-                    continue;
+                    return false;
                 }
 
-                const int column =
-                    qBound(0, static_cast<int>(std::floor(screenX - plot.left())), buckets.size() - 1);
-                buckets[column].add(i, dataPoint.y());
+                *column = qBound(0, static_cast<int>(std::floor(screenX - plot.left())), buckets.size() - 1);
+                return true;
+            };
+
+            const auto addRawIndex = [&](int index) {
+                const QPointF dataPoint = pointAt(seriesIndex, index);
+                int column = -1;
+                if (screenColumn(dataPoint, &column)) {
+                    buckets[column].add(index, dataPoint.y());
+                }
+            };
+
+            for (int i = first; i < last;) {
+                if (m_capacity == 0) {
+                    const int blockIndex = i / kRenderBlockSize;
+                    const int blockFirst = blockIndex * kRenderBlockSize;
+                    const int blockLast = blockFirst + kRenderBlockSize;
+                    const bool fullBlock = i == blockFirst && blockLast <= last &&
+                                           blockIndex >= 0 && blockIndex < series.yBlockMinimumIndices.size();
+                    if (fullBlock) {
+                        const QPointF firstPoint = series.buffer.at(blockFirst);
+                        const QPointF lastPoint = series.buffer.at(blockLast - 1);
+                        int firstColumn = -1;
+                        int lastColumn = -1;
+                        if (screenColumn(firstPoint, &firstColumn) && screenColumn(lastPoint, &lastColumn) &&
+                            firstColumn == lastColumn) {
+                            PeakBucket &bucket = buckets[firstColumn];
+                            bucket.add(blockFirst, firstPoint.y());
+
+                            const int minimumIndex = series.yBlockMinimumIndices.at(blockIndex);
+                            if (minimumIndex >= blockFirst && minimumIndex < blockLast) {
+                                bucket.add(minimumIndex, series.buffer.at(minimumIndex).y());
+                            }
+
+                            const int maximumIndex = series.yBlockMaximumIndices.at(blockIndex);
+                            if (maximumIndex >= blockFirst && maximumIndex < blockLast) {
+                                bucket.add(maximumIndex, series.buffer.at(maximumIndex).y());
+                            }
+
+                            bucket.add(blockLast - 1, lastPoint.y());
+                            i = blockLast;
+                            continue;
+                        }
+                    }
+                }
+
+                addRawIndex(i);
+                ++i;
             }
 
             int lastAppendedIndex = -1;
@@ -276,6 +330,8 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
 
         constexpr int xTicks = 6;
         constexpr int yTicks = 5;
+        const qreal xTickStep = (xMax - xMin) / xTicks;
+        const qreal yTickStep = (yMax - yMin) / yTicks;
         for (int i = 0; i <= xTicks; ++i) {
             const qreal ratio = static_cast<qreal>(i) / xTicks;
             const qreal x = plot.left() + ratio * plot.width();
@@ -294,14 +350,14 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
             const qreal value = yMin + ratio * (yMax - yMin);
             const qreal y = plot.bottom() - ratio * plot.height();
             painter.drawText(QRectF(4, y - metrics.height() / 2.0, plot.left() - 10, metrics.height()),
-                             Qt::AlignRight | Qt::AlignVCenter, tickText(value));
+                             Qt::AlignRight | Qt::AlignVCenter, tickText(value, yTickStep));
         }
         for (int i = 0; i <= xTicks; ++i) {
             const qreal ratio = static_cast<qreal>(i) / xTicks;
             const qreal value = xMin + ratio * (xMax - xMin);
             const qreal x = plot.left() + ratio * plot.width();
             painter.drawText(QRectF(x - 36, plot.bottom() + 7, 72, metrics.height()),
-                             Qt::AlignHCenter | Qt::AlignVCenter, tickText(value));
+                             Qt::AlignHCenter | Qt::AlignVCenter, tickText(value, xTickStep));
         }
     }
 
@@ -423,7 +479,9 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
         painter.drawLine(QPointF(m_hoverPosition.x(), plot.top()), QPointF(m_hoverPosition.x(), plot.bottom()));
         painter.drawLine(QPointF(plot.left(), m_hoverPosition.y()), QPointF(plot.right(), m_hoverPosition.y()));
 
-        QStringList labelLines{QStringLiteral("x=%1").arg(tickText(hoverDataPoint.x()))};
+        const qreal hoverXStep = (xMax - xMin) / 6.0;
+        const qreal hoverYStep = (yMax - yMin) / 5.0;
+        QStringList labelLines{QStringLiteral("x=%1").arg(tickText(hoverDataPoint.x(), hoverXStep))};
         for (const HoverSample &sample : hoverSamples) {
             const PlotSeries &series = m_series.at(sample.seriesIndex);
             const QColor color = effectiveSeriesColor(sample.seriesIndex);
@@ -432,7 +490,7 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
             painter.drawEllipse(sample.plotPoint, 4.5, 4.5);
             const QString name =
                 series.name.isEmpty() ? QStringLiteral("Series %1").arg(sample.seriesIndex + 1) : series.name;
-            labelLines.append(QStringLiteral("%1  %2").arg(name, tickText(sample.dataPoint.y())));
+            labelLines.append(QStringLiteral("%1  %2").arg(name, tickText(sample.dataPoint.y(), hoverYStep)));
         }
 
         qreal labelWidth = 0;
@@ -469,7 +527,8 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
             continue;
         }
         const QColor color = effectiveSeriesColor(seriesIndex);
-        const QString value = tickText(mapFromPlot(plotPoint, plot, xMin, xMax, yMin, yMax).y());
+        const QString value = tickText(mapFromPlot(plotPoint, plot, xMin, xMax, yMin, yMax).y(),
+                                       (yMax - yMin) / 5.0);
         const QRectF tagRect(plot.right() + 6, plotPoint.y() - metrics.height() / 2.0 - 3,
                              qMin<qreal>(44, rect().right() - plot.right() - 8), metrics.height() + 6);
         if (tagRect.width() <= 12) {

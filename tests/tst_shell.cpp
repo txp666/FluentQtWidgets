@@ -726,6 +726,16 @@ class ShellTest : public QObject
 
         plot.setXRange(0.0, 4.0);
         plot.setYRange(4.0, 10.0);
+        const qreal previousPanXMinimum = plot.xMinimum();
+        const qreal previousPanYMinimum = plot.yMinimum();
+        QTest::mousePress(&plot, Qt::LeftButton, Qt::NoModifier, QPoint(220, 140));
+        QTest::mouseMove(&plot, QPoint(260, 180));
+        QTest::mouseRelease(&plot, Qt::LeftButton, Qt::NoModifier, QPoint(260, 180));
+        QVERIFY(plot.xMinimum() < previousPanXMinimum);
+        QVERIFY(plot.yMinimum() > previousPanYMinimum);
+
+        plot.setXRange(0.0, 4.0);
+        plot.setYRange(4.0, 10.0);
         const qreal previousXSpan = plot.xMaximum() - plot.xMinimum();
         const qreal previousYSpan = plot.yMaximum() - plot.yMinimum();
         QTest::mousePress(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
@@ -829,6 +839,49 @@ class ShellTest : public QObject
                 const bool greenPixel = pixel.red() < 100 && pixel.green() > 100 && pixel.blue() < 150;
                 const bool orangePixel = pixel.red() > 170 && pixel.green() > 90 && pixel.blue() < 90;
                 if (pixel.alpha() > 0 && (tealPixel || greenPixel || orangePixel)) {
+                    hasCurvePixel = true;
+                    break;
+                }
+            }
+        }
+        QVERIFY(hasCurvePixel);
+    }
+
+    void realtimePlotWidgetRendersUnlimitedLargeData()
+    {
+        FluentQt::RealtimePlotWidget plot;
+        plot.setCapacity(0);
+        plot.setMaximumVisiblePoints(160000);
+        plot.setLegendVisible(false);
+        plot.setPointsVisible(false);
+        plot.setSeriesName(0, QStringLiteral("Unlimited"));
+        plot.setSeriesColor(0, QColor(0, 159, 170));
+
+        constexpr int sampleCount = 160000;
+        QVector<qreal> samples;
+        samples.reserve(sampleCount);
+        for (int i = 0; i < sampleCount; ++i) {
+            const qreal ramp = static_cast<qreal>(i % 1200) / 12.0;
+            const qreal folded = i % 2400 < 1200 ? ramp : 100.0 - ramp;
+            samples.append(20.0 + folded * 0.6 + (i % 5003 < 16 ? 55.0 : 0.0));
+        }
+        plot.setSamples(samples);
+        QCOMPARE(plot.capacity(), 0);
+        QCOMPARE(plot.sampleCount(), sampleCount);
+
+        plot.resize(520, 260);
+        plot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&plot));
+
+        QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        plot.render(&rendered);
+
+        bool hasCurvePixel = false;
+        for (int y = 0; y < rendered.height() && !hasCurvePixel; ++y) {
+            for (int x = 0; x < rendered.width(); ++x) {
+                const QColor pixel = QColor::fromRgba(rendered.pixel(x, y));
+                if (pixel.alpha() > 0 && pixel.red() < 90 && pixel.green() > 95 && pixel.blue() > 95) {
                     hasCurvePixel = true;
                     break;
                 }

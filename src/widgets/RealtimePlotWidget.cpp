@@ -732,6 +732,9 @@ void RealtimePlotWidget::mousePressEvent(QMouseEvent *event)
     m_dragStartPosition = position;
     m_dragStartXMinimum = viewXMinimum();
     m_dragStartXMaximum = viewXMaximum();
+    m_dragStartYMinimum = m_yMinimum;
+    m_dragStartYMaximum = m_yMaximum;
+    visibleYRange(m_dragStartXMinimum, m_dragStartXMaximum, &m_dragStartYMinimum, &m_dragStartYMaximum);
     event->accept();
 }
 
@@ -766,9 +769,12 @@ void RealtimePlotWidget::mouseMoveEvent(QMouseEvent *event)
     }
 
     if (m_dragging) {
-        const qreal span = qMax<qreal>(kMinimumRange, m_dragStartXMaximum - m_dragStartXMinimum);
-        const qreal delta = -(position.x() - m_dragStartPosition.x()) / qMax<qreal>(1, plot.width()) * span;
-        setXRange(m_dragStartXMinimum + delta, m_dragStartXMaximum + delta);
+        const qreal xSpan = qMax<qreal>(kMinimumRange, m_dragStartXMaximum - m_dragStartXMinimum);
+        const qreal ySpan = qMax<qreal>(kMinimumRange, m_dragStartYMaximum - m_dragStartYMinimum);
+        const qreal xDelta = -(position.x() - m_dragStartPosition.x()) / qMax<qreal>(1, plot.width()) * xSpan;
+        const qreal yDelta = (position.y() - m_dragStartPosition.y()) / qMax<qreal>(1, plot.height()) * ySpan;
+        setXRange(m_dragStartXMinimum + xDelta, m_dragStartXMaximum + xDelta);
+        setYRange(m_dragStartYMinimum + yDelta, m_dragStartYMaximum + yDelta);
         event->accept();
         return;
     }
@@ -1228,6 +1234,8 @@ void RealtimePlotWidget::resizeYRangeBlocks(PlotSeries *series)
     const int blockCount = qMax(1, (storageSize + kYRangeBlockSize - 1) / kYRangeBlockSize);
     series->yBlockMinimums.fill(std::numeric_limits<qreal>::max(), blockCount);
     series->yBlockMaximums.fill(std::numeric_limits<qreal>::lowest(), blockCount);
+    series->yBlockMinimumIndices.fill(-1, blockCount);
+    series->yBlockMaximumIndices.fill(-1, blockCount);
 }
 
 void RealtimePlotWidget::ensureYRangeBlockCount(PlotSeries *series, int blockIndex)
@@ -1240,9 +1248,13 @@ void RealtimePlotWidget::ensureYRangeBlockCount(PlotSeries *series, int blockInd
     const int newSize = blockIndex + 1;
     series->yBlockMinimums.resize(newSize);
     series->yBlockMaximums.resize(newSize);
+    series->yBlockMinimumIndices.resize(newSize);
+    series->yBlockMaximumIndices.resize(newSize);
     for (int i = oldSize; i < newSize; ++i) {
         series->yBlockMinimums[i] = std::numeric_limits<qreal>::max();
         series->yBlockMaximums[i] = std::numeric_limits<qreal>::lowest();
+        series->yBlockMinimumIndices[i] = -1;
+        series->yBlockMaximumIndices[i] = -1;
     }
 }
 
@@ -1274,6 +1286,8 @@ void RealtimePlotWidget::rebuildYRangeBlock(PlotSeries *series, int blockIndex) 
 
     qreal yMin = std::numeric_limits<qreal>::max();
     qreal yMax = std::numeric_limits<qreal>::lowest();
+    int yMinIndex = -1;
+    int yMaxIndex = -1;
     const int first = blockIndex * kYRangeBlockSize;
     const int storageSize = m_capacity == 0 ? series->buffer.size() : m_capacity;
     const int last = qMin(storageSize, first + kYRangeBlockSize);
@@ -1282,12 +1296,20 @@ void RealtimePlotWidget::rebuildYRangeBlock(PlotSeries *series, int blockIndex) 
             continue;
         }
         const qreal y = series->buffer.at(i).y();
-        yMin = qMin(yMin, y);
-        yMax = qMax(yMax, y);
+        if (y < yMin) {
+            yMin = y;
+            yMinIndex = i;
+        }
+        if (y > yMax) {
+            yMax = y;
+            yMaxIndex = i;
+        }
     }
 
     series->yBlockMinimums[blockIndex] = yMin;
     series->yBlockMaximums[blockIndex] = yMax;
+    series->yBlockMinimumIndices[blockIndex] = yMinIndex;
+    series->yBlockMaximumIndices[blockIndex] = yMaxIndex;
 }
 
 void RealtimePlotWidget::updateYRangeBlockAfterWrite(PlotSeries *series, int physicalIndex, qreal previousY,
@@ -1307,14 +1329,24 @@ void RealtimePlotWidget::updateYRangeBlockAfterWrite(PlotSeries *series, int phy
     const qreal y = series->buffer.at(physicalIndex).y();
     qreal &blockMinimum = series->yBlockMinimums[blockIndex];
     qreal &blockMaximum = series->yBlockMaximums[blockIndex];
+    int &blockMinimumIndex = series->yBlockMinimumIndices[blockIndex];
+    int &blockMaximumIndex = series->yBlockMaximumIndices[blockIndex];
     if (overwrote &&
-        (qFuzzyCompare(previousY + 1, blockMinimum + 1) || qFuzzyCompare(previousY + 1, blockMaximum + 1))) {
+        (physicalIndex == blockMinimumIndex || physicalIndex == blockMaximumIndex ||
+         qFuzzyCompare(previousY + 1, blockMinimum + 1) ||
+         qFuzzyCompare(previousY + 1, blockMaximum + 1))) {
         rebuildYRangeBlock(series, blockIndex);
         return;
     }
 
-    blockMinimum = qMin(blockMinimum, y);
-    blockMaximum = qMax(blockMaximum, y);
+    if (blockMinimumIndex < 0 || y < blockMinimum) {
+        blockMinimum = y;
+        blockMinimumIndex = physicalIndex;
+    }
+    if (blockMaximumIndex < 0 || y > blockMaximum) {
+        blockMaximum = y;
+        blockMaximumIndex = physicalIndex;
+    }
 }
 
 void RealtimePlotWidget::accumulatePhysicalYRange(const PlotSeries &series, int firstPhysical, int lastPhysical,

@@ -136,6 +136,8 @@ class FQW_API RealtimePlotWidget : public QWidget
         QVector<QPointF> buffer;
         QVector<qreal> yBlockMinimums;
         QVector<qreal> yBlockMaximums;
+        QVector<int> yBlockMinimumIndices;
+        QVector<int> yBlockMaximumIndices;
         QVector<QPointF> renderCachePoints;
         QVector<QPointF> renderCacheFillPoints;
         int start = 0;
@@ -230,6 +232,8 @@ class FQW_API RealtimePlotWidget : public QWidget
     QPointF m_dragStartPosition;
     qreal m_dragStartXMinimum = 0;
     qreal m_dragStartXMaximum = 0;
+    qreal m_dragStartYMinimum = 0;
+    qreal m_dragStartYMaximum = 0;
     QPointF m_rightDragStartPosition;
     QPointF m_rightDragAnchor;
     qreal m_rightDragStartXMinimum = 0;
