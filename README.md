@@ -10,6 +10,9 @@ This repository is a **C++/Qt Widgets port of the Python project** [PyQt-Fluent-
 
 Current release line: **0.1.6**. Local reference checkouts, build trees, and development-agent metadata are intentionally excluded from the source distribution.
 
+## Gallery screenshots
+
+![FluentQtWidgets Gallery](docs/images/gallery/PixPin_2026-07-02_11-23-30.gif)
 
 ## Requirements
 
