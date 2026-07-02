@@ -95,6 +95,11 @@ jobs:
             -name 'libFluentQtWidgets*.dylib' \
           \) -exec cp -P {} "$package_root/" \; || true
 
+          if [ "${{ runner.os }}" = "Windows" ] && [ ! -f "$package_root/Qt6MultimediaWidgets.dll" ]; then
+            echo "Missing Qt6MultimediaWidgets.dll from Windows Gallery package."
+            exit 1
+          fi
+
           cp README.md CHANGELOG.md LICENSE THIRD_PARTY_NOTICES.md "$package_root/"
 
           if [ "${{ runner.os }}" = "Windows" ] && command -v 7z >/dev/null 2>&1; then

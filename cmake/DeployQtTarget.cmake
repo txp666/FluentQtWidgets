@@ -17,6 +17,25 @@ function(fqw_deploy_qt_executable target)
     endif()
 
     if(WIN32)
+        set(_fqw_qt_runtime_modules Core Gui Widgets Svg Network)
+        if(FQW_HAS_MULTIMEDIA)
+            list(APPEND _fqw_qt_runtime_modules Multimedia MultimediaWidgets)
+        endif()
+
+        foreach(_fqw_qt_module IN LISTS _fqw_qt_runtime_modules)
+            if(TARGET ${FQW_QT_PACKAGE}::${_fqw_qt_module})
+                add_custom_command(
+                    TARGET ${target}
+                    POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            "$<TARGET_FILE:${FQW_QT_PACKAGE}::${_fqw_qt_module}>"
+                            "$<TARGET_FILE_DIR:${target}>"
+                    COMMENT "Copy Qt ${_fqw_qt_module} runtime next to ${target}"
+                    VERBATIM
+                )
+            endif()
+        endforeach()
+
         find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
 
         if(WINDEPLOYQT_EXECUTABLE)

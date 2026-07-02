@@ -4,6 +4,7 @@
 
 ### Native chart widgets and macOS fixes
 
+- Rebuilt the Windows Gallery release packaging to include the Qt MultimediaWidgets runtime used by the shared FluentQtWidgets library.
 - Added `ChartWidget`, a native QWidget chart renderer for common bar, line, area, mixed, donut, scatter, radar, gauge, and heatmap displays with ECharts-style staggered reveal animation, data labels, and hover feedback.
 - Added `AudioWaveformWidget`, an interactive QWidget-based waveform renderer for sampled audio amplitudes with progress, color, and metric customization.
 - Added `RealtimePlotWidget`, a native QWidget live plot with bounded multi-series buffers, dense-data aggregation, pyqtgraph-style crosshair readouts, right-click view controls, and line legend toggles.
