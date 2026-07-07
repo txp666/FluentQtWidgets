@@ -137,6 +137,7 @@ class FQW_API ComboBox : public QPushButton
     bool m_isPlaceholderText = false;
     bool m_isHover = false;
     bool m_isPressed = false;
+    bool m_ignoreNextToggle = false;
     ArrowAnimation *m_arrowAni = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };
@@ -233,6 +234,7 @@ class FQW_API EditableComboBox : public LineEdit
     bool m_isPlaceholderText = false;
     bool m_isHover = false;
     bool m_isPressed = false;
+    bool m_ignoreNextToggle = false;
     LineEditButton *m_dropButton = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };
@@ -333,6 +335,7 @@ class FQW_API ModelComboBox : public QPushButton
     bool m_isIconVisible = true;
     bool m_isHover = false;
     bool m_isPressed = false;
+    bool m_ignoreNextToggle = false;
     ArrowAnimation *m_arrowAni = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };
@@ -430,6 +433,7 @@ class FQW_API EditableModelComboBox : public LineEdit
     bool m_isPlaceholderText = false;
     bool m_isHover = false;
     bool m_isPressed = false;
+    bool m_ignoreNextToggle = false;
     LineEditButton *m_dropButton = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };

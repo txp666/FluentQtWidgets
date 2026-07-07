@@ -556,10 +556,15 @@ void ComboBox::closeComboMenu()
 
     m_dropMenu->close();
     m_dropMenu = nullptr;
+    m_ignoreNextToggle = false;
 }
 
 void ComboBox::toggleComboMenu()
 {
+    if (m_ignoreNextToggle) {
+        m_ignoreNextToggle = false;
+        return;
+    }
     if (m_dropMenu) {
         closeComboMenu();
     } else {
@@ -589,9 +594,8 @@ void ComboBox::onDropMenuClosed()
     m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
     m_arrowAni->setDirection(QAbstractAnimation::Backward);
     m_arrowAni->start();
-    if (shouldClearClosedDropMenu(this)) {
-        m_dropMenu = nullptr;
-    }
+    m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenu = nullptr;
 }
 
 // ============================================================================
@@ -982,10 +986,15 @@ void EditableComboBox::closeComboMenu()
     }
     m_dropMenu->close();
     m_dropMenu = nullptr;
+    m_ignoreNextToggle = false;
 }
 
 void EditableComboBox::toggleComboMenu()
 {
+    if (m_ignoreNextToggle) {
+        m_ignoreNextToggle = false;
+        return;
+    }
     if (m_dropMenu) {
         closeComboMenu();
     } else {
@@ -1006,9 +1015,8 @@ void EditableComboBox::onItemClicked(int index)
 
 void EditableComboBox::onDropMenuClosed()
 {
-    if (shouldClearClosedDropMenu(this)) {
-        m_dropMenu = nullptr;
-    }
+    m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenu = nullptr;
 }
 
 void EditableComboBox::onComboTextChanged(const QString &text)
@@ -1467,10 +1475,15 @@ void ModelComboBox::closeComboMenu()
     m_arrowAni->start();
     m_dropMenu->close();
     m_dropMenu = nullptr;
+    m_ignoreNextToggle = false;
 }
 
 void ModelComboBox::toggleComboMenu()
 {
+    if (m_ignoreNextToggle) {
+        m_ignoreNextToggle = false;
+        return;
+    }
     if (m_dropMenu) {
         closeComboMenu();
     } else {
@@ -1500,9 +1513,8 @@ void ModelComboBox::onDropMenuClosed()
     m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
     m_arrowAni->setDirection(QAbstractAnimation::Backward);
     m_arrowAni->start();
-    if (shouldClearClosedDropMenu(this)) {
-        m_dropMenu = nullptr;
-    }
+    m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenu = nullptr;
 }
 
 void ModelComboBox::onModelRowsInserted(const QModelIndex &, int first, int last)
@@ -1895,10 +1907,15 @@ void EditableModelComboBox::closeComboMenu()
     }
     m_dropMenu->close();
     m_dropMenu = nullptr;
+    m_ignoreNextToggle = false;
 }
 
 void EditableModelComboBox::toggleComboMenu()
 {
+    if (m_ignoreNextToggle) {
+        m_ignoreNextToggle = false;
+        return;
+    }
     if (m_dropMenu) {
         closeComboMenu();
     } else {
@@ -1919,9 +1936,8 @@ void EditableModelComboBox::onItemClicked(int index)
 
 void EditableModelComboBox::onDropMenuClosed()
 {
-    if (shouldClearClosedDropMenu(this)) {
-        m_dropMenu = nullptr;
-    }
+    m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenu = nullptr;
 }
 
 void EditableModelComboBox::onComboTextChanged(const QString &text)
