@@ -37,6 +37,10 @@ project(
     LANGUAGES CXX
 )
 
+if(APPLE)
+    enable_language(OBJCXX)
+endif()
+
 option(FQW_BUILD_SHARED "Build FluentQtWidgets as a shared library" ON)
 option(FQW_BUILD_EXAMPLES "Build examples" ON)
 option(FQW_BUILD_TESTS "Build tests" OFF)
@@ -218,6 +222,10 @@ set(FQW_SOURCES
     resources/fluentqtwidgets.qrc
 )
 
+if(APPLE)
+    list(APPEND FQW_SOURCES src/window/NativeWindowEffects_mac.mm)
+endif()
+
 if(NOT FQW_HAS_MULTIMEDIA)
     list(REMOVE_ITEM FQW_PUBLIC_HEADERS include/FluentQtWidgets/Multimedia/MediaPlayer.h)
     list(REMOVE_ITEM FQW_SOURCES src/multimedia/MediaPlayer.cpp)
@@ -258,6 +266,9 @@ target_link_libraries(
 )
 if(WIN32)
     target_link_libraries(FluentQtWidgets PUBLIC dwmapi)
+endif()
+if(APPLE)
+    target_link_libraries(FluentQtWidgets PUBLIC "-framework AppKit" "-framework QuartzCore")
 endif()
 if(FQW_HAS_MULTIMEDIA)
     target_link_libraries(

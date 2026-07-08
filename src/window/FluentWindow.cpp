@@ -52,6 +52,12 @@ static QPoint eventGlobalPos(const QMouseEvent *event)
 }
 #endif
 
+#if defined(Q_OS_MACOS)
+namespace Private {
+void updateMacOSWindowCorner(QWidget *widget, int radius);
+}
+#endif
+
 namespace {
 
 constexpr int kWindowCornerRadius = 8;
@@ -87,8 +93,12 @@ void updateRoundedWindowMask(QWidget *widget)
         return;
     }
 
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+#if defined(Q_OS_WIN)
     widget->clearMask();
+#elif defined(Q_OS_MACOS)
+    widget->clearMask();
+    const bool rounded = !widget->isMaximized() && !widget->isFullScreen() && widget->width() > 0 && widget->height() > 0;
+    Private::updateMacOSWindowCorner(widget, rounded ? kWindowCornerRadius : 0);
 #else
     if (widget->isMaximized() || widget->isFullScreen() || widget->width() <= 0 || widget->height() <= 0) {
         widget->clearMask();
@@ -451,7 +461,7 @@ void FluentWidget::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
     painter.setBrush(backgroundColor());
 
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
@@ -780,7 +790,7 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
@@ -1136,7 +1146,7 @@ void MSFluentWindow::paintEvent(QPaintEvent *event)
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
