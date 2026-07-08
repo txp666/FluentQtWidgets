@@ -6,12 +6,19 @@ QPushButton[fqw="PivotItem"] {
     outline: none;
 }
 
+QPushButton[fqw="PivotItem"]:checked {
+    background-color: transparent;
+    border: none;
+}
+
 QPushButton[fqw="PivotItem"][isSelected="true"]:hover {
     color: rgba(255, 255, 255, 0.63);
+    background-color: transparent;
 }
 
 QPushButton[fqw="PivotItem"][isSelected="true"]:pressed {
     color: rgba(255, 255, 255, 0.53);
+    background-color: transparent;
 }
 
 QPushButton[fqw="PivotItem"][isSelected="false"]:pressed {
@@ -105,4 +112,15 @@ QToolButton[fqw="SegmentedToolItem"][isSelected="true"] {
     margin: 0px;
     color: white;
     background-color: transparent;
+    border: none;
+}
+
+QPushButton[fqw="SegmentedItem"]:checked,
+QPushButton[fqw="SegmentedItem"]:checked:hover,
+QPushButton[fqw="SegmentedItem"]:checked:pressed,
+QToolButton[fqw="SegmentedToolItem"]:checked,
+QToolButton[fqw="SegmentedToolItem"]:checked:hover,
+QToolButton[fqw="SegmentedToolItem"]:checked:pressed {
+    background-color: transparent;
+    border: none;
 }

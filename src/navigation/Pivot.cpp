@@ -18,6 +18,7 @@ namespace FluentQt {
 PivotItem::PivotItem(QWidget *parent) : PushButton(parent)
 {
     setCheckable(true);
+    setFlat(true);
     setProperty("isSelected", false);
     QFont itemFont = font();
     itemFont.setPixelSize(18);
