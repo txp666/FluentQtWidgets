@@ -14,6 +14,10 @@ Current release line: **0.1.6**. Local reference checkouts, build trees, and dev
 
 ![FluentQtWidgets Gallery](docs/images/gallery/PixPin_2026-07-02_11-23-30.gif)
 
+## Application cases / 应用案例
+
+- [Fluent Serial Assistant / Fluent 串口助手](https://github.com/txp666/FluentSerialAssistant) - a Qt 6 serial debugging assistant built with FluentQtWidgets, covering serial connection, RX/TX terminal display, export, theme switching, and release packaging.
+
 ## Requirements
 
 - CMake 3.21+
