@@ -134,16 +134,6 @@ Gallery 使用 CMake 项目版本号 `project(... VERSION ...)` 做版本展示�
 - 表格、树、列表和滚动区域
 - 基础 Material 辅助组件
 
-## GitHub About / Topics
-
-推荐 About：
-
-> Fluent Design 风格的 C++/Qt Widgets 控件库，包含可复用控件、示例、Gallery 和发布 OTA 支持。
-
-推荐 Topics：
-
-`cpp` `cplusplus` `cpp17` `qt` `qt6` `qt-widgets` `qtwidgets` `widgets` `fluent-design` `fluent-ui` `desktop-app` `gui` `gallery` `cmake` `pyqt-fluent-widgets`
-
 ## 许可
 
 本项目以 **GPL-3.0-or-later** 发布。上游来源与资源授权见 [Third Party Notices](THIRD_PARTY_NOTICES.md)。
