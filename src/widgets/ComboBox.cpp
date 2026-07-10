@@ -607,7 +607,7 @@ ComboBoxMenu::ComboBoxMenu(QWidget *parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxMenu"));
     view()->setViewportPadding(0, 2, 0, 6);
-    view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setObjectName(QStringLiteral("comboListWidget"));
     setItemHeight(33);
@@ -624,7 +624,7 @@ AcrylicComboBoxMenu::AcrylicComboBoxMenu(QWidget *parent) : ComboBoxMenu(parent)
     auto *listWidget = new AcrylicMenuActionListWidget(this);
     listWidget->setViewportPadding(0, 2, 0, 6);
     setMenuView(listWidget);
-    view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setObjectName(QStringLiteral("comboListWidget"));
     setItemHeight(33);
