@@ -713,7 +713,9 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
     if (!m_compacted && !m_text.isEmpty()) {
         painter.setPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
         const int textLeft = m_icon.isNull() ? 16 : 44;
-        painter.drawText(QRect(textLeft, 0, width() - textLeft - 8, height()), Qt::AlignVCenter, m_text);
+        const int arrowReserve = m_children.isEmpty() ? 8 : 28;
+        painter.drawText(QRect(textLeft, 0, width() - textLeft - arrowReserve, kItemHeight), Qt::AlignVCenter,
+                         m_text);
     }
 
     if (!m_compacted && !m_children.isEmpty()) {
