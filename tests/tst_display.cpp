@@ -925,7 +925,7 @@ class DisplayTest : public QObject
         QCOMPARE(menu->property("fqw").toString(), QStringLiteral("ComboBoxMenu"));
         QCOMPARE(view->objectName(), QStringLiteral("comboListWidget"));
         QCOMPARE(view->viewportPadding(), QMargins(0, 2, 0, 6));
-        QCOMPARE(view->verticalScrollBarPolicy(), Qt::ScrollBarAsNeeded);
+        QCOMPARE(view->verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
         QVERIFY(qobject_cast<FluentQt::IndicatorMenuItemDelegate *>(view->itemDelegate()) != nullptr);
         QVERIFY(qobject_cast<FluentQt::ShortcutMenuItemDelegate *>(view->itemDelegate()) == nullptr);
         QCOMPARE(menu->itemHeight(), 33);
