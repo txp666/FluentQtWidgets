@@ -19,6 +19,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
+#include <array>
 #include <limits>
 
 #if defined(Q_OS_WIN)
@@ -177,41 +178,79 @@ class ShellTest : public QObject
     {
         auto *theme = FluentQt::ThemeManager::instance();
         const FluentQt::Theme previousTheme = theme->theme();
-        theme->setTheme(FluentQt::Theme::Light);
 
-        const QIcon darkResourceIcon = FluentQt::icon(FluentQt::FluentIcon::Menu, FluentQt::Theme::Dark);
-        FluentQt::NavigationTreeWidget item(darkResourceIcon, QStringLiteral("Menu"));
+        FluentQt::NavigationTreeWidget item(FluentQt::icon(FluentQt::FluentIcon::Menu), QStringLiteral("Menu"));
         item.setAttribute(Qt::WA_TranslucentBackground, true);
         item.setAutoFillBackground(false);
         item.resize(40, 36);
 
-        QImage image(item.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        item.render(&image);
+        auto renderedChannels = [&item, theme](FluentQt::Theme value) {
+            theme->setTheme(value);
+            QImage image(item.size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            item.render(&image);
 
-        int paintedPixels = 0;
-        int maxChannel = 0;
-        for (int y = 0; y < image.height(); ++y) {
-            for (int x = 0; x < image.width(); ++x) {
-                const QColor pixel = image.pixelColor(x, y);
-                if (pixel.alpha() <= 32) {
-                    continue;
+            int paintedPixels = 0;
+            int channelTotal = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor pixel = image.pixelColor(x, y);
+                    if (pixel.alpha() <= 32) {
+                        continue;
+                    }
+                    ++paintedPixels;
+                    channelTotal += pixel.red();
                 }
-                const QColor background = image.pixelColor(0, 0);
-                if (background.alpha() > 32 && qAbs(pixel.red() - background.red()) < 8
-                    && qAbs(pixel.green() - background.green()) < 8
-                    && qAbs(pixel.blue() - background.blue()) < 8) {
-                    continue;
-                }
-                ++paintedPixels;
-                maxChannel = qMax(maxChannel, qMax(pixel.red(), qMax(pixel.green(), pixel.blue())));
             }
-        }
+            return qMakePair(paintedPixels, channelTotal);
+        };
+
+        const auto lightChannels = renderedChannels(FluentQt::Theme::Light);
+        const auto darkChannels = renderedChannels(FluentQt::Theme::Dark);
 
         theme->setTheme(previousTheme);
 
-        QVERIFY(paintedPixels > 0);
-        QVERIFY(maxChannel < 96);
+        QVERIFY(lightChannels.first > 0);
+        QVERIFY(darkChannels.first > 0);
+        QVERIFY(lightChannels.second / lightChannels.first < 96);
+        QVERIFY(darkChannels.second / darkChannels.first > 159);
+    }
+
+    void navigationIconsRemainCompleteAtFractionalDeviceScale()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Light);
+
+        constexpr qreal dpr = 1.25;
+        constexpr std::array icons{FluentQt::FluentIcon::Home, FluentQt::FluentIcon::Setting,
+                                   FluentQt::FluentIcon::Folder, FluentQt::FluentIcon::Update};
+
+        for (const FluentQt::FluentIcon iconType : icons) {
+            const QIcon icon = FluentQt::icon(iconType, FluentQt::Theme::Light);
+            FluentQt::NavigationTreeWidget item(icon, QStringLiteral("Item"));
+            item.setAttribute(Qt::WA_TranslucentBackground, true);
+            item.setAutoFillBackground(false);
+            item.resize(40, 36);
+
+            const QSize deviceSize(qCeil(item.width() * dpr), qCeil(item.height() * dpr));
+            QImage actual(deviceSize, QImage::Format_ARGB32_Premultiplied);
+            actual.setDevicePixelRatio(dpr);
+            actual.fill(Qt::transparent);
+            item.render(&actual);
+
+            QImage vectorReference(deviceSize, QImage::Format_ARGB32_Premultiplied);
+            vectorReference.setDevicePixelRatio(dpr);
+            vectorReference.fill(Qt::transparent);
+            QPainter referencePainter(&vectorReference);
+            referencePainter.setRenderHint(QPainter::Antialiasing);
+            icon.paint(&referencePainter, QRect(11, 10, 16, 16));
+            referencePainter.end();
+
+            QCOMPARE(actual, vectorReference);
+        }
+
+        theme->setTheme(previousTheme);
     }
 
     void navigationToolButtonClicksWhenNotSelectable()

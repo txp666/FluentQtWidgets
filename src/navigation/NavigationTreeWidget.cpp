@@ -21,38 +21,19 @@ namespace FluentQt {
 
 namespace {
 
-QColor navigationIconColor()
-{
-    return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(255, 255, 255) : QColor(0, 0, 0);
-}
-
 void paintNavigationIcon(QPainter *painter, const QIcon &icon, const QRectF &target, QIcon::Mode mode = QIcon::Normal)
 {
     if (!painter || icon.isNull() || target.isEmpty()) {
         return;
     }
 
-    QPaintDevice *device = painter->device();
-    const qreal dpr = device ? device->devicePixelRatioF() : qreal(1);
-    const QSize pixmapSize(qMax(1, qRound(target.width() * dpr)), qMax(1, qRound(target.height() * dpr)));
-
-    QPixmap pixmap = icon.pixmap(pixmapSize, mode);
-    if (pixmap.isNull()) {
-        return;
-    }
-
-    QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32_Premultiplied);
-    QPainter tintPainter(&image);
-    tintPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    tintPainter.fillRect(image.rect(), navigationIconColor());
-    tintPainter.end();
-
-    QPixmap tinted = QPixmap::fromImage(image);
-    tinted.setDevicePixelRatio(dpr);
-    painter->drawPixmap(target, tinted,
-                        QRectF(QPointF(0, 0),
-                               QSizeF(tinted.width() / tinted.devicePixelRatioF(),
-                                      tinted.height() / tinted.devicePixelRatioF())));
+    // Keep Fluent SVG icons in the vector paint path.  Round-tripping them
+    // through QImage/QPixmap corrupts thin contours at fractional device
+    // scales such as Windows 125% (DPR 1.25).
+    painter->save();
+    painter->translate(target.topLeft());
+    icon.paint(painter, QRect(QPoint(0, 0), target.size().toSize()), Qt::AlignCenter, mode, QIcon::Off);
+    painter->restore();
 }
 
 } // namespace
