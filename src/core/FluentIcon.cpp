@@ -1,11 +1,13 @@
 #include <FluentQtWidgets/FluentIcon.h>
 
 #include <QtCore/QFile>
+#include <QtCore/QSize>
 #include <QtCore/QtMath>
 #include <QtGui/QGuiApplication>
-#include <QtCore/QSize>
 #include <QtGui/QIconEngine>
+#include <QtGui/QImage>
 #include <QtGui/QPainter>
+#include <QtGui/QPixmapCache>
 #include <QtGui/QScreen>
 #include <QtSvg/QSvgRenderer>
 
@@ -24,20 +26,6 @@ class FluentIconEngine final : public QIconEngine
         Q_UNUSED(state)
 
         if (!painter || !rect.isValid()) {
-            return;
-        }
-
-        const QString resourcePath = iconPath(m_icon, m_theme);
-        if (!QFile::exists(resourcePath)) {
-            return;
-        }
-
-        if (!m_tint.isValid()) {
-            painter->save();
-            painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
-            QSvgRenderer renderer(resourcePath);
-            renderer.render(painter, QRectF(rect));
-            painter->restore();
             return;
         }
 
@@ -89,21 +77,58 @@ class FluentIconEngine final : public QIconEngine
         }
 
         const qreal dpr = normalizedDevicePixelRatio(devicePixelRatio);
-        const QSize deviceSize(qMax(1, qCeil(logicalSize.width() * dpr)),
-                               qMax(1, qCeil(logicalSize.height() * dpr)));
-        QPixmap result(deviceSize);
-        result.setDevicePixelRatio(dpr);
-        result.fill(Qt::transparent);
+        const QSize deviceSize(qMax(1, qCeil(logicalSize.width() * dpr)), qMax(1, qCeil(logicalSize.height() * dpr)));
+        const QString cacheKey =
+            QStringLiteral("FluentQt.FluentIcon/%1/%2x%3/%4/%5")
+                .arg(resourcePath)
+                .arg(deviceSize.width())
+                .arg(deviceSize.height())
+                .arg(qRound64(dpr * 1000.0))
+                .arg(m_tint.isValid() ? QString::number(m_tint.rgba(), 16) : QStringLiteral("original"));
+        QPixmap cached;
+        if (QPixmapCache::find(cacheKey, &cached)) {
+            return cached;
+        }
 
-        QPainter painter(&result);
+        QImage source(deviceSize, QImage::Format_ARGB32_Premultiplied);
+        source.fill(Qt::transparent);
+
+        QPainter painter(&source);
         painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
         QSvgRenderer renderer(resourcePath);
-        renderer.render(&painter, QRectF(QPointF(0, 0), QSizeF(logicalSize)));
+        renderer.render(&painter, QRectF(QPointF(0, 0), QSizeF(deviceSize)));
 
         if (m_tint.isValid()) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-            painter.fillRect(QRectF(QPointF(0, 0), QSizeF(logicalSize)), m_tint);
+            painter.fillRect(source.rect(), m_tint);
         }
+        painter.end();
+
+        QRect visibleBounds;
+        for (int y = 0; y < source.height(); ++y) {
+            const QRgb *line = reinterpret_cast<const QRgb *>(source.constScanLine(y));
+            for (int x = 0; x < source.width(); ++x) {
+                if (qAlpha(line[x]) > 8) {
+                    visibleBounds |= QRect(x, y, 1, 1);
+                }
+            }
+        }
+
+        QImage aligned(deviceSize, QImage::Format_ARGB32_Premultiplied);
+        aligned.fill(Qt::transparent);
+        if (visibleBounds.isValid()) {
+            const int desiredX = qRound((deviceSize.width() - 1 - visibleBounds.left() - visibleBounds.right()) / 2.0);
+            const int desiredY = qRound((deviceSize.height() - 1 - visibleBounds.top() - visibleBounds.bottom()) / 2.0);
+            const int offsetX = qBound(-visibleBounds.left(), desiredX, deviceSize.width() - 1 - visibleBounds.right());
+            const int offsetY =
+                qBound(-visibleBounds.top(), desiredY, deviceSize.height() - 1 - visibleBounds.bottom());
+            QPainter alignedPainter(&aligned);
+            alignedPainter.drawImage(QPoint(offsetX, offsetY), source);
+        }
+
+        QPixmap result = QPixmap::fromImage(aligned);
+        result.setDevicePixelRatio(dpr);
+        QPixmapCache::insert(cacheKey, result);
 
         return result;
     }
@@ -836,14 +861,8 @@ QString iconPath(FluentIcon icon, Theme theme)
 
 QIcon icon(FluentIcon icon, Theme theme) { return QIcon(new FluentIconEngine(icon, theme)); }
 
-QIcon icon(FluentIcon icon, Theme theme, const QColor &tint)
-{
-    return QIcon(new FluentIconEngine(icon, theme, tint));
-}
+QIcon icon(FluentIcon icon, Theme theme, const QColor &tint) { return QIcon(new FluentIconEngine(icon, theme, tint)); }
 
-QIcon icon(FluentIcon fluentIcon, const QColor &tint)
-{
-    return icon(fluentIcon, Theme::Auto, tint);
-}
+QIcon icon(FluentIcon fluentIcon, const QColor &tint) { return icon(fluentIcon, Theme::Auto, tint); }
 
 } // namespace FluentQt
