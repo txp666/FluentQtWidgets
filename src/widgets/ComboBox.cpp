@@ -176,6 +176,7 @@ ComboBox::ComboBox(QWidget *parent)
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBox"));
 
     connect(m_arrowAni, &ArrowAnimation::yChanged, this, [this](qreal) { update(); });
+    connect(this, &QPushButton::clicked, this, &ComboBox::toggleComboMenu);
 }
 
 void ComboBox::addItem(const QString &text, const QIcon &icon, const QVariant &userData)
@@ -428,7 +429,6 @@ QList<ComboItem> &ComboBox::items() { return m_items; }
 void ComboBox::mouseReleaseEvent(QMouseEvent *e)
 {
     QPushButton::mouseReleaseEvent(e);
-    toggleComboMenu();
 }
 
 bool ComboBox::event(QEvent *e)
@@ -1095,6 +1095,7 @@ ModelComboBox::ModelComboBox(QWidget *parent)
     setModel(new QStandardItemModel(this));
 
     connect(m_arrowAni, &ArrowAnimation::yChanged, this, [this](qreal) { update(); });
+    connect(this, &QPushButton::clicked, this, &ModelComboBox::toggleComboMenu);
 }
 
 void ModelComboBox::setModel(QAbstractItemModel *model)
@@ -1383,7 +1384,6 @@ void ModelComboBox::updateCurrentIcon()
 void ModelComboBox::mouseReleaseEvent(QMouseEvent *event)
 {
     QPushButton::mouseReleaseEvent(event);
-    toggleComboMenu();
 }
 
 bool ModelComboBox::event(QEvent *event)

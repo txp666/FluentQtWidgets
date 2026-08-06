@@ -309,6 +309,7 @@ class FQW_API ScrollArea : public QScrollArea
     QMargins viewportMargins() const;
 
   public slots:
+    void setWidget(QWidget *widget);
     void enableTransparentBackground(bool enabled = true);
     void setViewportMargins(int left, int top, int right, int bottom);
     void setViewportMargins(const QMargins &margins);
@@ -322,6 +323,8 @@ class FQW_API ScrollArea : public QScrollArea
     ScrollBar *m_verticalScrollBar = nullptr;
     ScrollBar *m_horizontalScrollBar = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    bool m_transparentBackgroundConfigured = false;
+    bool m_transparentBackgroundEnabled = false;
 };
 
 class FQW_API SingleDirectionScrollArea : public ScrollArea

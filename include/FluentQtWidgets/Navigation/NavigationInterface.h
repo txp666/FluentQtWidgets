@@ -87,6 +87,7 @@ class FQW_API NavigationInterface : public QFrame
     QString ensureRouteKey(QWidget *page, const QString &routeKey) const;
     void onPanelItemClicked(const QString &routeKey);
     void onCustomNavigationItemClicked(const QString &routeKey);
+    void ensureNavigationPanelOnTop();
     void updatePanelGeometry();
     void updateNavigationSpacerWidth();
 

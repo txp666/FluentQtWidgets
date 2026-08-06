@@ -1422,6 +1422,16 @@ class ThemeTest : public QObject
         QCOMPARE(area.viewportMargins(), QMargins(5, 6, 7, 8));
         area.enableTransparentBackground();
         QCOMPARE(area.property("transparent").toBool(), true);
+        QCOMPARE(area.viewport()->property("transparent").toBool(), true);
+        auto *transparentContent = new QWidget;
+        area.setWidget(transparentContent);
+        QCOMPARE(transparentContent->property("transparent").toBool(), true);
+        QVERIFY(!transparentContent->autoFillBackground());
+        area.enableTransparentBackground(false);
+        auto *opaqueContent = new QWidget;
+        area.setWidget(opaqueContent);
+        QCOMPARE(opaqueContent->property("transparent").toBool(), false);
+        QVERIFY(opaqueContent->autoFillBackground());
         area.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         QVERIFY(area.verticalFluentScrollBar()->isForceHidden());
         area.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);

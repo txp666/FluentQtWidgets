@@ -125,6 +125,8 @@ int FlowLayout::horizontalSpacing() const { return m_horizontalSpacing; }
 
 int FlowLayout::verticalSpacing() const { return m_verticalSpacing; }
 
+Qt::Alignment FlowLayout::verticalAlignment() const { return m_verticalAlignment; }
+
 bool FlowLayout::isAnimationEnabled() const { return m_animationEnabled; }
 
 bool FlowLayout::isTight() const { return m_tight; }
@@ -204,6 +206,23 @@ void FlowLayout::setVerticalSpacing(int spacing)
     invalidate();
 }
 
+void FlowLayout::setVerticalAlignment(Qt::Alignment alignment)
+{
+    const Qt::Alignment vertical = alignment & Qt::AlignVertical_Mask;
+    Qt::Alignment normalized = Qt::AlignTop;
+    if (vertical.testFlag(Qt::AlignBottom)) {
+        normalized = Qt::AlignBottom;
+    } else if (vertical.testFlag(Qt::AlignVCenter)) {
+        normalized = Qt::AlignVCenter;
+    }
+
+    if (m_verticalAlignment == normalized) {
+        return;
+    }
+    m_verticalAlignment = normalized;
+    invalidate();
+}
+
 void FlowLayout::setAnimationEnabled(bool enabled)
 {
     if (m_animationEnabled == enabled) {
@@ -258,6 +277,14 @@ bool FlowLayout::eventFilter(QObject *watched, QEvent *event)
 
 int FlowLayout::doLayout(const QRect &rect, bool move)
 {
+    struct RowItem
+    {
+        QLayoutItem *item = nullptr;
+        int index = -1;
+        QSize size;
+        int x = 0;
+    };
+
     bool animationRestart = false;
     const QMargins margins = contentsMargins();
     int x = rect.x() + margins.left();
@@ -265,8 +292,28 @@ int FlowLayout::doLayout(const QRect &rect, bool move)
     int rowHeight = 0;
     const int spaceX = horizontalSpacing();
     const int spaceY = verticalSpacing();
+    QList<RowItem> rowItems;
 
-    int visibleIndex = 0;
+    const auto placeRow = [&](int rowY, int height) {
+        if (!move) {
+            return;
+        }
+        for (const RowItem &rowItem : std::as_const(rowItems)) {
+            const int itemY = alignedItemY(rowItem.item, rowY, height, rowItem.size.height());
+            const QRect target(QPoint(rowItem.x, itemY), rowItem.size);
+            if (!m_animationEnabled || rowItem.index >= m_animations.size() || !m_animations.at(rowItem.index)) {
+                rowItem.item->setGeometry(target);
+            } else {
+                QPropertyAnimation *animation = m_animations.at(rowItem.index);
+                if (animation->endValue().toRect() != target) {
+                    animation->stop();
+                    animation->setEndValue(target);
+                    animationRestart = true;
+                }
+            }
+        }
+    };
+
     for (int i = 0; i < m_items.size(); ++i) {
         QLayoutItem *item = m_items.at(i);
         if (shouldSkipItem(item)) {
@@ -275,33 +322,21 @@ int FlowLayout::doLayout(const QRect &rect, bool move)
 
         const QSize itemSize = itemLayoutSize(item);
         int nextX = x + itemSize.width() + spaceX;
-        if (nextX - spaceX > rect.right() - margins.right() && rowHeight > 0) {
+        if (nextX - spaceX > rect.right() - margins.right() && !rowItems.isEmpty()) {
+            placeRow(y, rowHeight);
             x = rect.x() + margins.left();
             y += rowHeight + spaceY;
             nextX = x + itemSize.width() + spaceX;
             rowHeight = 0;
+            rowItems.clear();
         }
 
-        if (move) {
-            const QRect target(QPoint(x, y), itemSize);
-            if (!m_animationEnabled || i >= m_animations.size() || !m_animations.at(i)) {
-                item->setGeometry(target);
-            } else {
-                QPropertyAnimation *animation = m_animations.at(i);
-                if (animation->endValue().toRect() != target) {
-                    animation->stop();
-                    animation->setEndValue(target);
-                    animationRestart = true;
-                }
-            }
-        }
-
+        rowItems.append({item, i, itemSize, x});
         x = nextX;
         rowHeight = qMax(rowHeight, itemSize.height());
-        ++visibleIndex;
     }
+    placeRow(y, rowHeight);
 
-    Q_UNUSED(visibleIndex)
     if (m_animationEnabled && animationRestart) {
         m_animationGroup->stop();
         m_animationGroup->start();
@@ -365,9 +400,22 @@ bool FlowLayout::shouldSkipItem(QLayoutItem *item) const
     return m_tight && widget && !widget->isVisible();
 }
 
-QSize FlowLayout::itemLayoutSize(QLayoutItem *item) const
+QSize FlowLayout::itemLayoutSize(QLayoutItem *item) const { return item->sizeHint().expandedTo(item->minimumSize()); }
+
+int FlowLayout::alignedItemY(QLayoutItem *item, int rowY, int rowHeight, int itemHeight) const
 {
-    return item->sizeHint().expandedTo(item->minimumSize());
+    Qt::Alignment alignment = item ? item->alignment() & Qt::AlignVertical_Mask : Qt::Alignment{};
+    if (!alignment) {
+        alignment = m_verticalAlignment;
+    }
+
+    if (alignment.testFlag(Qt::AlignBottom)) {
+        return rowY + rowHeight - itemHeight;
+    }
+    if (alignment.testFlag(Qt::AlignVCenter)) {
+        return rowY + (rowHeight - itemHeight) / 2;
+    }
+    return rowY;
 }
 
 // ==========================================
@@ -421,6 +469,14 @@ void AdaptiveFlowLayout::clearWidgetMaximumWidth()
 
 int AdaptiveFlowLayout::doLayout(const QRect &rect, bool move)
 {
+    struct RowItem
+    {
+        QLayoutItem *item = nullptr;
+        int index = -1;
+        QSize size;
+        int x = 0;
+    };
+
     bool animationRestart = false;
     const QMargins margins = contentsMargins();
     const int spaceX = horizontalSpacing();
@@ -445,6 +501,27 @@ int AdaptiveFlowLayout::doLayout(const QRect &rect, bool move)
     int y = rect.y() + margins.top();
     int rowHeight = 0;
     int columnIndex = 0;
+    QList<RowItem> rowItems;
+
+    const auto placeRow = [&](int rowY, int height) {
+        if (!move) {
+            return;
+        }
+        for (const RowItem &rowItem : std::as_const(rowItems)) {
+            const int itemY = alignedItemY(rowItem.item, rowY, height, rowItem.size.height());
+            const QRect target(QPoint(rowItem.x, itemY), rowItem.size);
+            if (!m_animationEnabled || rowItem.index >= m_animations.size() || !m_animations.at(rowItem.index)) {
+                rowItem.item->setGeometry(target);
+            } else {
+                QPropertyAnimation *animation = m_animations.at(rowItem.index);
+                if (animation->endValue().toRect() != target) {
+                    animation->stop();
+                    animation->setEndValue(target);
+                    animationRestart = true;
+                }
+            }
+        }
+    };
 
     for (int i = 0; i < m_items.size(); ++i) {
         QLayoutItem *item = m_items.at(i);
@@ -453,31 +530,21 @@ int AdaptiveFlowLayout::doLayout(const QRect &rect, bool move)
         }
 
         if (columnIndex >= cardsPerRow && cardsPerRow > 0) {
+            placeRow(y, rowHeight);
             x = rect.x() + margins.left();
             y += rowHeight + spaceY;
             rowHeight = 0;
             columnIndex = 0;
+            rowItems.clear();
         }
 
         const QSize itemSize(cardWidth, itemLayoutSize(item).height());
-        const QRect target(QPoint(x, y), itemSize);
-        if (move) {
-            if (!m_animationEnabled || i >= m_animations.size() || !m_animations.at(i)) {
-                item->setGeometry(target);
-            } else {
-                QPropertyAnimation *animation = m_animations.at(i);
-                if (animation->endValue().toRect() != target) {
-                    animation->stop();
-                    animation->setEndValue(target);
-                    animationRestart = true;
-                }
-            }
-        }
-
+        rowItems.append({item, i, itemSize, x});
         x += cardWidth + spaceX;
         rowHeight = qMax(rowHeight, itemSize.height());
         ++columnIndex;
     }
+    placeRow(y, rowHeight);
 
     if (m_animationEnabled && animationRestart) {
         m_animationGroup->stop();

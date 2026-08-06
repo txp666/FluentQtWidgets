@@ -1060,8 +1060,18 @@ SmoothScrollDelegate *ScrollArea::scrollDelagate() const { return m_scrollDelega
 
 QMargins ScrollArea::viewportMargins() const { return QScrollArea::viewportMargins(); }
 
+void ScrollArea::setWidget(QWidget *widget)
+{
+    QScrollArea::setWidget(widget);
+    if (m_transparentBackgroundConfigured) {
+        setTransparent(widget, m_transparentBackgroundEnabled);
+    }
+}
+
 void ScrollArea::enableTransparentBackground(bool enabled)
 {
+    m_transparentBackgroundConfigured = true;
+    m_transparentBackgroundEnabled = enabled;
     setTransparent(this, enabled);
     setTransparent(viewport(), enabled);
     setTransparent(widget(), enabled);

@@ -1436,6 +1436,42 @@ class ShellTest : public QObject
         QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
     }
 
+    void navigationInterfacePanelStaysAboveContent()
+    {
+        FluentQt::NavigationInterface navigation;
+        navigation.resize(960, 640);
+
+        auto *home = new QWidget;
+        auto *settings = new QWidget;
+        navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home"));
+        navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings"));
+
+        navigation.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&navigation));
+
+        auto *panel = navigation.navigationPanel();
+        panel->expand(false);
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
+        QVERIFY(panel->width() > FluentQt::NavigationPanel::kCompactWidth);
+
+        const QPoint overlayPoint(FluentQt::NavigationPanel::kCompactWidth + 20, 100);
+        auto isPanelHit = [&navigation, panel, overlayPoint]() {
+            QWidget *hit = navigation.childAt(overlayPoint);
+            return hit == panel || (hit && panel->isAncestorOf(hit));
+        };
+        QVERIFY(isPanelHit());
+
+        navigation.stackedWidget()->parentWidget()->raise();
+        QVERIFY(!isPanelHit());
+        navigation.stackedWidget()->setCurrentIndex(1);
+        QTRY_VERIFY(isPanelHit());
+
+        navigation.stackedWidget()->parentWidget()->raise();
+        QVERIFY(!isPanelHit());
+        navigation.setCurrentRouteKey(QStringLiteral("home"));
+        QTRY_VERIFY(isPanelHit());
+    }
+
     void fluentWindowTitleBarUsesNavigationBackground()
     {
         auto *theme = FluentQt::ThemeManager::instance();

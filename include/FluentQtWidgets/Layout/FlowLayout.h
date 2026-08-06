@@ -22,6 +22,7 @@ class FQW_API FlowLayout : public QLayout
     Q_OBJECT
     Q_PROPERTY(int horizontalSpacing READ horizontalSpacing WRITE setHorizontalSpacing)
     Q_PROPERTY(int verticalSpacing READ verticalSpacing WRITE setVerticalSpacing)
+    Q_PROPERTY(Qt::Alignment verticalAlignment READ verticalAlignment WRITE setVerticalAlignment)
     Q_PROPERTY(bool animationEnabled READ isAnimationEnabled WRITE setAnimationEnabled)
     Q_PROPERTY(bool tight READ isTight WRITE setTight)
 
@@ -42,6 +43,7 @@ class FQW_API FlowLayout : public QLayout
 
     int horizontalSpacing() const;
     int verticalSpacing() const;
+    Qt::Alignment verticalAlignment() const;
     bool isAnimationEnabled() const;
     bool isTight() const;
     int animationDuration() const;
@@ -60,6 +62,7 @@ class FQW_API FlowLayout : public QLayout
   public slots:
     void setHorizontalSpacing(int spacing);
     void setVerticalSpacing(int spacing);
+    void setVerticalAlignment(Qt::Alignment alignment);
     void setAnimationEnabled(bool enabled);
     void setTight(bool tight);
     void setAnimation(int durationMs, QEasingCurve::Type easing = QEasingCurve::Linear);
@@ -69,6 +72,7 @@ class FQW_API FlowLayout : public QLayout
     virtual int doLayout(const QRect &rect, bool move);
     bool shouldSkipItem(QLayoutItem *item) const;
     QSize itemLayoutSize(QLayoutItem *item) const;
+    int alignedItemY(QLayoutItem *item, int rowY, int rowHeight, int itemHeight) const;
     void setupAnimationForItem(QLayoutItem *item, int index = -1);
     void removeAnimationForWidget(QWidget *widget);
 
@@ -79,6 +83,7 @@ class FQW_API FlowLayout : public QLayout
     QWidget *m_parentWidget = nullptr;
     int m_horizontalSpacing = 10;
     int m_verticalSpacing = 10;
+    Qt::Alignment m_verticalAlignment = Qt::AlignTop;
     int m_duration = 300;
     QEasingCurve::Type m_easing = QEasingCurve::Linear;
     bool m_animationEnabled = false;

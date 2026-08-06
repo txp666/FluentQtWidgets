@@ -734,6 +734,42 @@ class DisplayTest : public QObject
         QCOMPARE(layout.count(), 0);
     }
 
+    void flowLayoutsSupportVerticalAlignment()
+    {
+        QWidget parent;
+        FluentQt::FlowLayout layout(&parent);
+        layout.setContentsMargins(0, 0, 0, 0);
+        layout.setHorizontalSpacing(10);
+        layout.setVerticalAlignment(Qt::AlignVCenter);
+
+        auto *shortWidget = new FixedHintWidget(QSize(50, 20), &parent);
+        auto *tallWidget = new FixedHintWidget(QSize(50, 30), &parent);
+        layout.addWidget(shortWidget);
+        layout.addWidget(tallWidget);
+        layout.setGeometry(QRect(0, 0, 120, 60));
+
+        QCOMPARE(layout.verticalAlignment(), Qt::Alignment(Qt::AlignVCenter));
+        QCOMPARE(shortWidget->geometry(), QRect(0, 5, 50, 20));
+        QCOMPARE(tallWidget->geometry(), QRect(60, 0, 50, 30));
+
+        QWidget adaptiveParent;
+        FluentQt::AdaptiveFlowLayout adaptiveLayout(&adaptiveParent);
+        adaptiveLayout.setContentsMargins(0, 0, 0, 0);
+        adaptiveLayout.setHorizontalSpacing(10);
+        adaptiveLayout.setWidgetMinimumWidth(90);
+        adaptiveLayout.setVerticalAlignment(Qt::AlignBottom);
+
+        auto *adaptiveShort = new FixedHintWidget(QSize(80, 20), &adaptiveParent);
+        auto *adaptiveTall = new FixedHintWidget(QSize(80, 30), &adaptiveParent);
+        adaptiveLayout.addWidget(adaptiveShort);
+        adaptiveLayout.addWidget(adaptiveTall);
+        adaptiveLayout.setGeometry(QRect(0, 0, 190, 60));
+
+        QCOMPARE(adaptiveLayout.verticalAlignment(), Qt::Alignment(Qt::AlignBottom));
+        QCOMPARE(adaptiveShort->geometry(), QRect(0, 10, 90, 20));
+        QCOMPARE(adaptiveTall->geometry(), QRect(100, 0, 90, 30));
+    }
+
     void adaptiveAndExpandLayoutsMatchPythonGeometry()
     {
         QWidget adaptiveParent;
@@ -911,6 +947,13 @@ class DisplayTest : public QObject
         combo.show();
         QVERIFY(QTest::qWaitForWindowExposed(&combo));
 
+        combo.click();
+        FluentQt::ComboBoxMenu *accessibleMenu = nullptr;
+        QTRY_VERIFY((accessibleMenu = findVisibleComboMenu()) != nullptr);
+        QCOMPARE(combo.dropMenu(), accessibleMenu);
+        accessibleMenu->close();
+        QTRY_VERIFY(combo.dropMenu() == nullptr);
+
         QTest::mousePress(&combo, Qt::LeftButton, Qt::NoModifier, combo.rect().center());
         QVERIFY(combo.isPressed());
         QVERIFY(combo.property("isPressed").toBool());
@@ -969,7 +1012,7 @@ class DisplayTest : public QObject
         modelCombo.resize(160, 32);
         modelCombo.show();
         QVERIFY(QTest::qWaitForWindowExposed(&modelCombo));
-        QTest::mouseRelease(&modelCombo, Qt::LeftButton, Qt::NoModifier, modelCombo.rect().center());
+        QTest::mouseClick(&modelCombo, Qt::LeftButton, Qt::NoModifier, modelCombo.rect().center());
         FluentQt::ComboBoxMenu *modelMenu = nullptr;
         QTRY_VERIFY((modelMenu = findVisibleComboMenu()) != nullptr);
         QCOMPARE(modelCombo.dropMenu(), modelMenu);
@@ -994,7 +1037,7 @@ class DisplayTest : public QObject
         acrylicCombo.resize(160, 32);
         acrylicCombo.show();
         QVERIFY(QTest::qWaitForWindowExposed(&acrylicCombo));
-        QTest::mouseRelease(&acrylicCombo, Qt::LeftButton, Qt::NoModifier, acrylicCombo.rect().center());
+        QTest::mouseClick(&acrylicCombo, Qt::LeftButton, Qt::NoModifier, acrylicCombo.rect().center());
 
         FluentQt::ComboBoxMenu *acrylicMenu = nullptr;
         QTRY_VERIFY((acrylicMenu = findVisibleComboMenu()) != nullptr);

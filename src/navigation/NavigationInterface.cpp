@@ -49,13 +49,17 @@ NavigationInterface::NavigationInterface(QWidget *parent, bool showReturnButton)
     m_panel->setReturnButtonVisible(showReturnButton);
     m_panel->installEventFilter(this);
     updatePanelGeometry();
-    m_panel->raise();
+    ensureNavigationPanelOnTop();
 
     connect(m_panel, &NavigationPanel::itemClicked, this, &NavigationInterface::onPanelItemClicked);
     connect(m_panel, &NavigationPanel::displayModeChanged, this, [this](NavigationDisplayMode) {
         updateNavigationSpacerWidth();
-        m_panel->raise();
+        ensureNavigationPanelOnTop();
     });
+    connect(m_stackedWidget, &PopUpAniStackedWidget::aniStart, this,
+            &NavigationInterface::ensureNavigationPanelOnTop);
+    connect(m_stackedWidget, &QStackedWidget::currentChanged, this,
+            &NavigationInterface::ensureNavigationPanelOnTop);
 }
 
 int NavigationInterface::addPage(QWidget *page, const QString &title, const QIcon &icon)
@@ -97,6 +101,7 @@ int NavigationInterface::addPage(QWidget *page, const QString &title, const QIco
         setCurrentIndex(0);
     }
 
+    ensureNavigationPanelOnTop();
     return index;
 }
 
@@ -252,6 +257,7 @@ void NavigationInterface::setCurrentIndex(int index)
         emit currentIndexChanged(index);
         emit currentRouteKeyChanged(key);
     }
+    ensureNavigationPanelOnTop();
 }
 
 void NavigationInterface::setCurrentRouteKey(const QString &routeKey) { setCurrentIndex(indexOf(routeKey)); }
@@ -291,6 +297,7 @@ void NavigationInterface::resizeEvent(QResizeEvent *event)
     QFrame::resizeEvent(event);
     updatePanelGeometry();
     updateNavigationSpacerWidth();
+    ensureNavigationPanelOnTop();
 }
 
 QString NavigationInterface::ensureRouteKey(QWidget *page, const QString &routeKey) const
@@ -316,6 +323,13 @@ void NavigationInterface::onPanelItemClicked(const QString &routeKey)
 
     setCurrentIndex(index);
     emit navigationItemClicked(index, routeKey);
+}
+
+void NavigationInterface::ensureNavigationPanelOnTop()
+{
+    if (m_panel) {
+        m_panel->raise();
+    }
 }
 
 void NavigationInterface::updatePanelGeometry()
