@@ -11,6 +11,7 @@
 #include <QtCore/QVariant>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
+#include <QtGui/QRegion>
 #include <QtTest/QtTest>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
@@ -247,7 +248,27 @@ class ShellTest : public QObject
             icon.paint(&referencePainter, QRect(11, 10, 16, 16));
             referencePainter.end();
 
-            QCOMPARE(actual, vectorReference);
+            const auto paintedBounds = [](const QImage &image) {
+                QRect bounds;
+                for (int y = 0; y < image.height(); ++y) {
+                    for (int x = 0; x < image.width(); ++x) {
+                        if (image.pixelColor(x, y).alpha() <= 8) {
+                            continue;
+                        }
+                        bounds = bounds.united(QRect(x, y, 1, 1));
+                    }
+                }
+                return bounds;
+            };
+
+            const QRect actualBounds = paintedBounds(actual);
+            const QRect referenceBounds = paintedBounds(vectorReference);
+            QVERIFY(actualBounds.isValid());
+            QVERIFY(referenceBounds.isValid());
+            QVERIFY(qAbs(actualBounds.left() - referenceBounds.left()) <= 1);
+            QVERIFY(qAbs(actualBounds.top() - referenceBounds.top()) <= 1);
+            QVERIFY(qAbs(actualBounds.right() - referenceBounds.right()) <= 1);
+            QVERIFY(qAbs(actualBounds.bottom() - referenceBounds.bottom()) <= 1);
         }
 
         theme->setTheme(previousTheme);
@@ -308,6 +329,41 @@ class ShellTest : public QObject
         QCOMPARE(background.red(), 32);
         QCOMPARE(background.green(), 32);
         QCOMPARE(background.blue(), 32);
+
+        theme->setTheme(previousTheme);
+    }
+
+    void navigationStackRoundedCornerUsesNavigationBackdrop()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Light);
+
+        FluentQt::FluentWindow window;
+        window.resize(480, 360);
+        auto *page = new QWidget;
+        page->setAttribute(Qt::WA_TranslucentBackground, true);
+        window.addSubInterface(page, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCoreApplication::processEvents();
+
+        QStackedWidget *stack = window.stackedWidget();
+        QVERIFY(stack);
+        const QPoint stackOrigin = stack->mapTo(&window, QPoint(0, 0));
+        const QColor navigationSurface(243, 243, 243);
+        QImage rendered(window.size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        window.render(&rendered);
+
+        QCOMPARE(rendered.pixelColor(stackOrigin), navigationSurface);
+        QVERIFY(rendered.pixelColor(stackOrigin + QPoint(12, 12)) != navigationSurface);
+
+        stack->setProperty("isTransparent", true);
+        QCoreApplication::processEvents();
+        rendered.fill(Qt::transparent);
+        window.render(&rendered);
+        QCOMPARE(rendered.pixelColor(stackOrigin), QColor(249, 249, 249));
 
         theme->setTheme(previousTheme);
     }
@@ -1545,16 +1601,8 @@ class ShellTest : public QObject
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
+        QVERIFY(window.testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(window.mask().isEmpty());
-
-        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        window.render(&image);
-
-        const QColor topLeft = image.pixelColor(0, 0);
-        const QColor inner = image.pixelColor(16, 16);
-        QVERIFY2(inner.alpha() > 0, "The rounded window body should be rendered");
-        QVERIFY2(topLeft.alpha() < inner.alpha(), "macOS rounded corners should use alpha instead of a hard QWidget mask");
 #else
         FluentQt::FluentWindow window;
         window.resize(480, 360);

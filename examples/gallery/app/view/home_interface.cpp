@@ -224,7 +224,6 @@ class BannerWidget : public QWidget
     explicit BannerWidget(QWidget *parent = nullptr) : QWidget(parent)
     {
         setFixedHeight(336);
-        setAttribute(Qt::WA_StyledBackground, true);
         m_banner = QPixmap(QStringLiteral(":/gallery/images/header1.png"));
 
         auto *layout = new QVBoxLayout(this);
@@ -311,6 +310,7 @@ HomeInterface::HomeInterface(QWidget *parent) : ScrollArea(parent)
     if (horizontalFluentScrollBar()) {
         horizontalFluentScrollBar()->setForceHidden(true);
     }
+    enableTransparentBackground(true);
 
     m_view = new QWidget(this);
     m_view->setObjectName(QStringLiteral("view"));

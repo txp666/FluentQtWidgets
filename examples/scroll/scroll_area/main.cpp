@@ -19,6 +19,7 @@ class Demo : public SmoothScrollArea
 
         setScrollAnimation(Qt::Vertical, 400, QEasingCurve::OutQuint);
         setScrollAnimation(Qt::Horizontal, 400, QEasingCurve::OutQuint);
+        enableTransparentBackground(true);
         horizontalScrollBar()->setValue(1900);
         setWidget(label);
         resize(1200, 800);

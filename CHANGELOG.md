@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.7
+
+### Layout, navigation, and scaling polish
+
+- Improved `FlowLayout` wrapping, spacing, animation stability, and per-row vertical alignment.
+- Made transparent `ScrollArea` state propagate correctly when content is attached after configuration.
+- Kept navigation panels above animated page stacks and refined navigation-tree text spacing.
+- Kept the native styled navigation-stack curve and matched the exposed corner backdrop to the compact navigation surface, removing the subtle light-theme square seam.
+- Aligned Gallery root-page transparency with the Python reference so page surfaces preserve the navigation stack's rounded corner.
+- Improved icon centering and fractional-scale rendering so Fluent icons retain their visible bounds.
+- Removed unnecessary vertical scroll bars from combo-box popup menus.
+- Refined native macOS window corner behavior and expanded regression coverage for layout, navigation, display scaling, and themes.
+- Updated the FlowLayout and ScrollArea examples for the new public behavior.
+
 ## 0.1.6
 
 ### Native chart widgets and macOS fixes

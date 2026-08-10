@@ -2,11 +2,15 @@
 
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/StyleSheet.h>
+#include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/StackedWidget.h>
 
 #include <QtCore/QEvent>
+#include <QtCore/QPointer>
 #include <QtCore/QSignalBlocker>
 #include <QtCore/QUuid>
+#include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QScrollBar>
@@ -15,6 +19,79 @@
 #include <QtWidgets/QWidget>
 
 namespace FluentQt {
+
+namespace {
+
+class NavigationCornerBackdrop final : public QWidget
+{
+  public:
+    NavigationCornerBackdrop(QWidget *parent, QStackedWidget *stack)
+        : QWidget(parent), m_stack(stack)
+    {
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        setAutoFillBackground(false);
+        setFixedSize(12, 12);
+        if (m_stack) {
+            m_stack->installEventFilter(this);
+        }
+        connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this,
+                [this](Theme) { update(); });
+        syncGeometry();
+        lower();
+    }
+
+  protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (watched == m_stack &&
+            (event->type() == QEvent::Move || event->type() == QEvent::Resize ||
+             event->type() == QEvent::Show || event->type() == QEvent::DynamicPropertyChange)) {
+            syncGeometry();
+            update();
+        }
+        return QWidget::eventFilter(watched, event);
+    }
+
+    void paintEvent(QPaintEvent *) override
+    {
+        if (!m_stack || m_stack->property("isTransparent").toBool()) {
+            return;
+        }
+
+        constexpr qreal radius = 10.0;
+        QPainterPath surface;
+        surface.moveTo(0.0, radius);
+        surface.arcTo(QRectF(0.0, 0.0, radius * 2.0, radius * 2.0), 180.0, -90.0);
+        surface.lineTo(width(), 0.0);
+        surface.lineTo(width(), height());
+        surface.lineTo(0.0, height());
+        surface.closeSubpath();
+
+        QPainterPath outside;
+        outside.setFillRule(Qt::OddEvenFill);
+        outside.addRect(QRectF(rect()));
+        outside.addPath(surface);
+
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setPen(Qt::NoPen);
+        painter.fillPath(outside, dark ? QColor(32, 32, 32) : QColor(243, 243, 243));
+    }
+
+  private:
+    void syncGeometry()
+    {
+        if (m_stack) {
+            move(m_stack->pos());
+        }
+    }
+
+    QPointer<QStackedWidget> m_stack;
+};
+
+} // namespace
 
 NavigationInterface::NavigationInterface(QWidget *parent, bool showReturnButton)
     : QFrame(parent)
@@ -43,6 +120,7 @@ NavigationInterface::NavigationInterface(QWidget *parent, bool showReturnButton)
     m_stackedWidget->setAttribute(Qt::WA_StyledBackground, true);
     FluentStyleSheet::setRole(m_stackedWidget, QStringLiteral("NavigationStack"));
     m_contentLayout->addWidget(m_stackedWidget);
+    new NavigationCornerBackdrop(m_contentWidget, m_stackedWidget);
     layout->addWidget(m_contentWidget, 1);
 
     m_panel = new NavigationPanel(this);

@@ -31,7 +31,7 @@ endif()
 
 project(
     FluentQtWidgets
-    VERSION 0.1.6
+    VERSION 0.1.7
     DESCRIPTION "A Fluent Design inspired QWidget library for C++/Qt"
     HOMEPAGE_URL "${FQW_REPOSITORY_URL}"
     LANGUAGES CXX

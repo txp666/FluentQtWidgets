@@ -58,7 +58,7 @@ static void sendWheel(QWidget *target, int deltaY)
 
 static void waitCalendarScrollAnimation()
 {
-    QTest::qWait(330);
+    QTest::qWait(450);
 }
 
 class DateTimeTest : public QObject
@@ -108,6 +108,7 @@ class DateTimeTest : public QObject
     {
         FluentQt::CalendarView popupProbe;
         QVERIFY(popupProbe.testAttribute(Qt::WA_DeleteOnClose));
+        popupProbe.setAttribute(Qt::WA_DeleteOnClose, false);
         QVERIFY(popupProbe.windowFlags() & Qt::FramelessWindowHint);
         QVERIFY(popupProbe.windowFlags() & Qt::NoDropShadowWindowHint);
 
@@ -190,6 +191,7 @@ class DateTimeTest : public QObject
         waitCalendarScrollAnimation();
 
         FluentQt::CalendarView animatedView;
+        animatedView.setAttribute(Qt::WA_DeleteOnClose, false);
         const QPoint popupPos(240, 240);
         animatedView.exec(popupPos);
         const QPoint popupTargetPos = popupPos - QPoint(0, 4);

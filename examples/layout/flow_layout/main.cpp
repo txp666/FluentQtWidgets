@@ -17,13 +17,16 @@ class Demo : public QWidget
         layout->setContentsMargins(30, 30, 30, 30);
         layout->setVerticalSpacing(20);
         layout->setHorizontalSpacing(10);
+        layout->setVerticalAlignment(Qt::AlignVCenter);
 
         layout->addWidget(new PushButton(QStringLiteral("aiko"), this));
         layout->addWidget(new PushButton(QStringLiteral("刘静爱"), this));
         layout->addWidget(new PushButton(QStringLiteral("柳井爱子"), this));
         layout->addWidget(new PushButton(QStringLiteral("aiko 赛高"), this));
         layout->addWidget(new PushButton(QStringLiteral("aiko 太爱啦😘"), this));
-        layout->insertWidget(1, new PrimaryPushButton(QStringLiteral("西宫硝子"), this));
+        auto *primaryButton = new PrimaryPushButton(QStringLiteral("西宫硝子"), this);
+        primaryButton->setFixedHeight(48);
+        layout->insertWidget(1, primaryButton);
 
         setStyleSheet(QStringLiteral("Demo{background:white} PushButton{padding:5px 10px; font:15px \"Microsoft YaHei\"}"));
         resize(250, 300);

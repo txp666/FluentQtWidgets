@@ -23,6 +23,7 @@ QWidget *GalleryWindow::createSettingsPage()
     if (page->horizontalFluentScrollBar()) {
         page->horizontalFluentScrollBar()->setForceHidden(true);
     }
+    page->enableTransparentBackground(true);
     page->setViewportMargins(0, 80, 0, 20);
     page->setWidgetResizable(true);
 

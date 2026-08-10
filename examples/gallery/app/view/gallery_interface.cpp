@@ -207,6 +207,7 @@ GalleryInterface::GalleryInterface(const QString &title, const QString &subtitle
     if (horizontalFluentScrollBar()) {
         horizontalFluentScrollBar()->setForceHidden(true);
     }
+    enableTransparentBackground(true);
 
     auto *toolBar = new GalleryToolBar(title, subtitle, this);
     m_toolBar = toolBar;

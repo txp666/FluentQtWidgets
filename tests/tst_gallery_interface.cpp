@@ -11,6 +11,40 @@ class GalleryInterfaceTest : public QObject
     Q_OBJECT
 
   private slots:
+    void galleryInterfaceUsesTransparentRootSurface()
+    {
+        GalleryInterface page(QStringLiteral("Title"), QStringLiteral("Subtitle"));
+
+        QCOMPARE(page.property("transparent").toBool(), true);
+        QCOMPARE(page.viewport()->property("transparent").toBool(), true);
+        QCOMPARE(page.contentWidget()->property("transparent").toBool(), true);
+    }
+
+    void homeInterfaceKeepsRoundedBannerBackgroundTransparent()
+    {
+        HomeInterface page;
+        page.resize(960, 780);
+        page.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&page));
+        QCoreApplication::processEvents();
+
+        QCOMPARE(page.property("transparent").toBool(), true);
+        QCOMPARE(page.viewport()->property("transparent").toBool(), true);
+        QCOMPARE(page.frameWidth(), 0);
+        QCOMPARE(page.viewport()->pos(), QPoint(0, 0));
+        QVERIFY(page.widget());
+        QCOMPARE(page.widget()->property("transparent").toBool(), true);
+        QCOMPARE(page.widget()->pos(), QPoint(0, 0));
+        QVERIFY(page.widget()->layout());
+
+        QWidget *banner = page.widget()->layout()->itemAt(0)->widget();
+        QVERIFY(banner);
+        QCOMPARE(banner->pos(), QPoint(0, 0));
+        QCOMPARE(banner->width(), page.viewport()->width());
+        QVERIFY(!banner->testAttribute(Qt::WA_StyledBackground));
+        QVERIFY(!banner->autoFillBackground());
+    }
+
     void scrollToCardMovesToRequestedExample()
     {
         GalleryInterface page(QStringLiteral("Title"), QStringLiteral("Subtitle"));
