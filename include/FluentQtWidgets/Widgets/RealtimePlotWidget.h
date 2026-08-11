@@ -9,6 +9,8 @@
 #include <QtGui/QColor>
 #include <QtWidgets/QWidget>
 
+#include <functional>
+
 class QEvent;
 class QContextMenuEvent;
 class QMouseEvent;
@@ -70,6 +72,8 @@ class FQW_API RealtimePlotWidget : public QWidget
     QString seriesName(int seriesIndex) const;
     QColor seriesColor(int seriesIndex) const;
     bool isSeriesVisible(int seriesIndex) const;
+    QString crosshairXText(qreal value) const;
+    void setCrosshairXValueFormatter(std::function<QString(qreal)> formatter);
 
   public slots:
     int addSeries(const QString &name = QString(), const QColor &color = QColor());
@@ -228,6 +232,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool m_legendVisible = true;
     bool m_dataUpdatePending = false;
     QColor m_curveColor;
+    std::function<QString(qreal)> m_crosshairXValueFormatter;
     bool m_dragging = false;
     bool m_rightDragPending = false;
     bool m_rightScaling = false;

@@ -489,7 +489,10 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
 
         const qreal hoverXStep = (xMax - xMin) / 6.0;
         const qreal hoverYStep = (yMax - yMin) / 5.0;
-        QStringList labelLines{QStringLiteral("x=%1").arg(tickText(hoverDataPoint.x(), hoverXStep))};
+        const QString hoverXText = m_crosshairXValueFormatter
+                                       ? m_crosshairXValueFormatter(hoverDataPoint.x())
+                                       : tickText(hoverDataPoint.x(), hoverXStep);
+        QStringList labelLines{QStringLiteral("x=%1").arg(hoverXText)};
         for (const HoverSample &sample : hoverSamples) {
             const PlotSeries &series = m_series.at(sample.seriesIndex);
             const QColor color = effectiveSeriesColor(sample.seriesIndex);

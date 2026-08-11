@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 namespace FluentQt {
 
@@ -185,6 +186,17 @@ QColor RealtimePlotWidget::seriesColor(int seriesIndex) const
 bool RealtimePlotWidget::isSeriesVisible(int seriesIndex) const
 {
     return hasSeries(seriesIndex) && m_series.at(seriesIndex).visible;
+}
+
+QString RealtimePlotWidget::crosshairXText(qreal value) const
+{
+    return m_crosshairXValueFormatter ? m_crosshairXValueFormatter(value) : QString::number(value);
+}
+
+void RealtimePlotWidget::setCrosshairXValueFormatter(std::function<QString(qreal)> formatter)
+{
+    m_crosshairXValueFormatter = std::move(formatter);
+    update();
 }
 
 int RealtimePlotWidget::addSeries(const QString &name, const QColor &color)
