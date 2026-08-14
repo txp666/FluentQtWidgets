@@ -313,7 +313,7 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->setClipping(true);
     painter->setClipRect(option.rect);
 
-    const bool selected = isRowSelected(index.row());
+    const bool selected = isRowSelected(index.row()) || option.state.testFlag(QStyle::State_Selected);
     const bool hovered = isRowHovered(index.row());
     const bool pressed = isRowPressed(index.row());
     const auto *view = dynamic_cast<const QAbstractItemView *>(parent());
@@ -338,6 +338,12 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         alpha = 17;
     }
 
+    // QAbstractItemView can paint the platform selection color before the
+    // delegate on macOS. Clear that opaque native layer first; the rounded
+    // Fluent selection fill below is intentionally translucent.
+    if (selected) {
+        painter->fillRect(option.rect, itemOption.palette.brush(QPalette::Base));
+    }
     const QVariant background = index.data(Qt::BackgroundRole);
     painter->setBrush(background.canConvert<QBrush>() ? background.value<QBrush>()
                                                       : QBrush(QColor(channel, channel, channel, alpha)));
@@ -355,6 +361,17 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     itemOption.state &= ~QStyle::State_Selected;
     itemOption.state &= ~QStyle::State_MouseOver;
+    // Some platform styles still resolve the selected palette while painting
+    // the text/background even after State_Selected has been cleared.  Keep
+    // the native highlight transparent so the Fluent row fill and accent
+    // indicator above remain the only selection visuals.
+    itemOption.palette.setColor(QPalette::Highlight, Qt::transparent);
+    itemOption.palette.setColor(QPalette::HighlightedText, itemOption.palette.color(QPalette::Text));
+    if (index.column() == 0) {
+        // Reserve space for the Fluent selection indicator so it never
+        // overlaps the first column's text.
+        itemOption.rect.adjust(10, 0, 0, 0);
+    }
     QStyledItemDelegate::paint(painter, itemOption, index);
 }
 
