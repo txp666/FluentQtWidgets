@@ -1193,6 +1193,18 @@ class ThemeTest : public QObject
         QCOMPARE(table.scrollDelagate(), table.scrollDelegate());
         QCOMPARE(table.property("delegate").value<FluentQt::TableItemDelegate *>(), table.delegate());
         QCOMPARE(table.property("scrollDelagate").value<FluentQt::SmoothScrollDelegate *>(), table.scrollDelegate());
+        table.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        table.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        QCOMPARE(table.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
+        QCOMPARE(table.horizontalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
+        QVERIFY(!table.scrollDelegate()->verticalScrollBar()->isForceHidden());
+        QVERIFY(!table.scrollDelegate()->horizontalScrollBar()->isForceHidden());
+        table.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        table.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        QVERIFY(table.scrollDelegate()->verticalScrollBar()->isForceHidden());
+        QVERIFY(table.scrollDelegate()->horizontalScrollBar()->isForceHidden());
+        table.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        table.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         QStyleOptionViewItem editorOption;
         editorOption.text = QStringLiteral("Component");
         QWidget *editor = table.delegate()->createEditor(&table, editorOption, table.model()->index(0, 0));
@@ -1217,6 +1229,9 @@ class ThemeTest : public QObject
         QCOMPARE(tree.scrollDelagate(), tree.scrollDelegate());
         QCOMPARE(tree.property("delegate").value<FluentQt::TreeItemDelegate *>(), tree.delegate());
         QCOMPARE(tree.property("scrollDelagate").value<FluentQt::SmoothScrollDelegate *>(), tree.scrollDelegate());
+        tree.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        QCOMPARE(tree.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
+        QVERIFY(!tree.scrollDelegate()->verticalScrollBar()->isForceHidden());
     }
 
     void treeHoverDoesNotBleedAcrossParents()

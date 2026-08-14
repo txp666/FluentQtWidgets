@@ -60,6 +60,32 @@ void setBorderProperty(QWidget *widget, bool visible)
     FluentStyleSheet::polish(widget);
 }
 
+void setFluentScrollBarPolicy(QAbstractScrollArea *view, SmoothScrollDelegate *delegate,
+                              Qt::Orientation orientation, Qt::ScrollBarPolicy policy)
+{
+    if (!view) {
+        return;
+    }
+
+    // The native QScrollBar is retained only as the range/value partner for
+    // the Fluent overlay. Never let a later ScrollBarAsNeeded call make the
+    // platform scrollbar visible again.
+    if (orientation == Qt::Vertical) {
+        view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    } else {
+        view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    }
+
+    if (!delegate) {
+        return;
+    }
+    SmoothScrollBar *bar = orientation == Qt::Vertical ? delegate->verticalScrollBar()
+                                                        : delegate->horizontalScrollBar();
+    if (bar) {
+        bar->setForceHidden(policy == Qt::ScrollBarAlwaysOff);
+    }
+}
+
 void initListLikeView(QListView *view, ListItemDelegate *delegate, const QString &role)
 {
     view->setMouseTracking(true);
@@ -541,6 +567,16 @@ ListItemDelegate *ListView::delegate() const { return m_delegate; }
 
 SmoothScrollDelegate *ListView::scrollDelegate() const { return m_scrollDelegate; }
 
+void ListView::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Vertical, policy);
+}
+
+void ListView::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Horizontal, policy);
+}
+
 void ListView::leaveEvent(QEvent *event)
 {
     QListView::leaveEvent(event);
@@ -624,6 +660,16 @@ ListItemDelegate *ListWidget::fluentItemDelegate() const { return m_delegate; }
 ListItemDelegate *ListWidget::delegate() const { return m_delegate; }
 
 SmoothScrollDelegate *ListWidget::scrollDelegate() const { return m_scrollDelegate; }
+
+void ListWidget::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Vertical, policy);
+}
+
+void ListWidget::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Horizontal, policy);
+}
 
 void ListWidget::leaveEvent(QEvent *event)
 {
@@ -717,6 +763,16 @@ SmoothScrollDelegate *TableView::scrollDelegate() const { return m_scrollDelegat
 
 SmoothScrollDelegate *TableView::scrollDelagate() const { return m_scrollDelegate; }
 
+void TableView::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Vertical, policy);
+}
+
+void TableView::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Horizontal, policy);
+}
+
 void TableView::leaveEvent(QEvent *event)
 {
     QTableView::leaveEvent(event);
@@ -792,6 +848,16 @@ SmoothScrollDelegate *TableWidget::scrollDelegate() const { return m_scrollDeleg
 
 SmoothScrollDelegate *TableWidget::scrollDelagate() const { return m_scrollDelegate; }
 
+void TableWidget::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Vertical, policy);
+}
+
+void TableWidget::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Horizontal, policy);
+}
+
 void TableWidget::leaveEvent(QEvent *event)
 {
     QTableWidget::leaveEvent(event);
@@ -863,6 +929,16 @@ SmoothScrollDelegate *TreeView::scrollDelegate() const { return m_scrollDelegate
 
 SmoothScrollDelegate *TreeView::scrollDelagate() const { return m_scrollDelegate; }
 
+void TreeView::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Vertical, policy);
+}
+
+void TreeView::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Horizontal, policy);
+}
+
 void TreeView::leaveEvent(QEvent *event)
 {
     QTreeView::leaveEvent(event);
@@ -933,6 +1009,16 @@ TreeItemDelegate *TreeWidget::delegate() const { return m_delegate; }
 SmoothScrollDelegate *TreeWidget::scrollDelegate() const { return m_scrollDelegate; }
 
 SmoothScrollDelegate *TreeWidget::scrollDelagate() const { return m_scrollDelegate; }
+
+void TreeWidget::setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Vertical, policy);
+}
+
+void TreeWidget::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy)
+{
+    setFluentScrollBarPolicy(this, m_scrollDelegate, Qt::Horizontal, policy);
+}
 
 void TreeWidget::leaveEvent(QEvent *event)
 {

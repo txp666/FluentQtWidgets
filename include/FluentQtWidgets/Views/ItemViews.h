@@ -125,6 +125,8 @@ class FQW_API ListView : public QListView
     ListItemDelegate *fluentItemDelegate() const;
     ListItemDelegate *delegate() const;
     SmoothScrollDelegate *scrollDelegate() const;
+    void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
+    void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
   protected:
     void leaveEvent(QEvent *event) override;
@@ -163,6 +165,8 @@ class FQW_API ListWidget : public QListWidget
     ListItemDelegate *fluentItemDelegate() const;
     ListItemDelegate *delegate() const;
     SmoothScrollDelegate *scrollDelegate() const;
+    void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
+    void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
   protected:
     void leaveEvent(QEvent *event) override;
@@ -202,6 +206,8 @@ class FQW_API TableView : public QTableView
     TableItemDelegate *delegate() const;
     SmoothScrollDelegate *scrollDelegate() const;
     SmoothScrollDelegate *scrollDelagate() const;
+    void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
+    void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
   protected:
     void leaveEvent(QEvent *event) override;
@@ -241,6 +247,8 @@ class FQW_API TableWidget : public QTableWidget
     TableItemDelegate *delegate() const;
     SmoothScrollDelegate *scrollDelegate() const;
     SmoothScrollDelegate *scrollDelagate() const;
+    void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
+    void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
   protected:
     void leaveEvent(QEvent *event) override;
@@ -277,6 +285,8 @@ class FQW_API TreeView : public QTreeView
     TreeItemDelegate *delegate() const;
     SmoothScrollDelegate *scrollDelegate() const;
     SmoothScrollDelegate *scrollDelagate() const;
+    void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
+    void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
   protected:
     void leaveEvent(QEvent *event) override;
@@ -308,6 +318,8 @@ class FQW_API TreeWidget : public QTreeWidget
     TreeItemDelegate *delegate() const;
     SmoothScrollDelegate *scrollDelegate() const;
     SmoothScrollDelegate *scrollDelagate() const;
+    void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy policy);
+    void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy policy);
 
   protected:
     void leaveEvent(QEvent *event) override;
