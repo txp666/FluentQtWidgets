@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.8
+
+### Realtime plot and item-view polish
+
+- Added custom X-value formatting for `RealtimePlotWidget` crosshair readouts.
+- Packaged Simplified Chinese and Traditional Chinese translations for realtime plot menus and controls.
+- Added horizontal and vertical scroll-bar policy setters to `ListView`, `ListWidget`, `TableView`, `TableWidget`, `TreeView`, and `TreeWidget`, keeping their Fluent scroll delegates in sync.
+- Fixed macOS table selection rendering so native selection highlights no longer cover the Fluent styling, and reserved space for the first-column selection indicator.
+- Added regression coverage for Fluent table and tree scroll-bar policies.
+
 ## 0.1.7
 
 ### Layout, navigation, and scaling polish
