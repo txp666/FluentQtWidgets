@@ -57,5 +57,10 @@ set_target_properties(
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Release archives place the shared FluentQtWidgets library beside the executable.
+    set_property(TARGET FluentQtWidgetsGallery APPEND PROPERTY BUILD_RPATH "$ORIGIN")
+endif()
+
 include(${CMAKE_SOURCE_DIR}/cmake/DeployQtTarget.cmake)
 fqw_deploy_qt_executable(FluentQtWidgetsGallery)

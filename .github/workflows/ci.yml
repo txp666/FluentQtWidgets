@@ -82,18 +82,22 @@ jobs:
           if [ -n "$app_target" ] && [ -d "$app_target" ]; then
             cp -R "$app_target" "$package_root/"
           elif [ -n "$binary_target" ] && [ -f "$binary_target" ]; then
-            cp -R "$(dirname "$binary_target")/." "$package_root/"
+            if [ "${{ runner.os }}" = "Linux" ]; then
+              cp "$binary_target" "$package_root/"
+            else
+              cp -R "$(dirname "$binary_target")/." "$package_root/"
+            fi
           else
             echo "Unable to locate FluentQtWidgetsGallery output."
             find build/examples/gallery -maxdepth 6 -print
             exit 1
           fi
 
-          find build -maxdepth 3 -type f \( \
+          find build -maxdepth 3 \( -type f -o -type l \) \( \
             -name 'FluentQtWidgets.dll' -o \
             -name 'libFluentQtWidgets*.so*' -o \
             -name 'libFluentQtWidgets*.dylib' \
-          \) -exec cp -P {} "$package_root/" \; || true
+          \) -exec cp -P {} "$package_root/" \;
 
           if [ "${{ runner.os }}" = "Windows" ] && [ ! -f "$package_root/Qt6MultimediaWidgets.dll" ]; then
             echo "Missing Qt6MultimediaWidgets.dll from Windows Gallery package."
@@ -106,6 +110,41 @@ jobs:
             7z a "artifacts/${release_name}.zip" "$package_root/."
           else
             tar -czf "artifacts/${release_name}.tar.gz" -C "${RUNNER_TEMP}" "${release_name}"
+          fi
+
+      - name: Verify relocated Linux archive
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_name="FluentQtWidgetsGallery-${{ matrix.os }}-${GITHUB_REF_NAME}"
+          verify_root="$(mktemp -d)"
+          trap 'rm -rf "$verify_root"' EXIT
+          tar -xzf "artifacts/${release_name}.tar.gz" -C "$verify_root"
+          package_root="$verify_root/$release_name"
+          gallery="$package_root/FluentQtWidgetsGallery"
+          test -x "$gallery"
+
+          dynamic_entries="$(readelf -d "$gallery")"
+          if ! grep -E '\((RUNPATH|RPATH)\)' <<< "$dynamic_entries" | grep -F '$ORIGIN'; then
+            echo 'The Linux Gallery executable must search $ORIGIN for its bundled library.'
+            exit 1
+          fi
+
+          library_name="$(awk '/\(NEEDED\).*libFluentQtWidgets/ { sub(/.*\[/, ""); sub(/\].*/, ""); print; exit }' <<< "$dynamic_entries")"
+          test -n "$library_name"
+          test -L "$package_root/$library_name"
+          test -e "$package_root/$library_name"
+
+          dependencies="$(env -u LD_LIBRARY_PATH ldd "$gallery")"
+          printf '%s\n' "$dependencies"
+          if grep -F 'not found' <<< "$dependencies"; then
+            exit 1
+          fi
+          resolved_library="$(awk -v name="$library_name" '$1 == name && $2 == "=>" { print $3; exit }' <<< "$dependencies")"
+          if [ "$resolved_library" != "$package_root/$library_name" ]; then
+            echo "FluentQtWidgets resolved outside the extracted archive: $resolved_library"
+            exit 1
           fi
 
       - name: Publish release assets

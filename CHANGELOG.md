@@ -9,6 +9,7 @@
 - Added horizontal and vertical scroll-bar policy setters to `ListView`, `ListWidget`, `TableView`, `TableWidget`, `TreeView`, and `TreeWidget`, keeping their Fluent scroll delegates in sync.
 - Fixed macOS table selection rendering so native selection highlights no longer cover the Fluent styling, and reserved space for the first-column selection indicator.
 - Added regression coverage for Fluent table and tree scroll-bar policies.
+- Fixed Linux Gallery archives to preserve the shared-library symbolic links and locate the bundled FluentQtWidgets library next to the executable.
 
 ## 0.1.7
 
