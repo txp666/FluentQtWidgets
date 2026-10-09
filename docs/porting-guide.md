@@ -66,6 +66,10 @@ The reference package exports `common`, `components`, `window`, and a separate `
   C++ so rounded corners, padding, and indicator spacing are applied reliably.
 - `ExpandSettingCard` ports keep the Python `QScrollArea + HeaderSettingCard + view/space/border widgets`
   structure. Adding action widgets goes through the header card, while expandable content goes through `viewLayout()`.
+  The C++ animation changes the visible content height and keeps the internal scroll position at zero to avoid
+  overlapping content during nested scroll-area layout changes. For a resizable outer `QScrollArea`, configure the
+  application's content layout with `QLayout::SetMinAndMaxSize` so the outer scroll range follows changing card
+  heights. This parent-layout constraint remains the application's responsibility.
 - QObject ownership follows Qt parent-child ownership. Avoid raw owning pointers without parents.
 - Python resource paths stay under `:/qfluentwidgets` unless all QSS and icon paths are migrated together.
 - Gallery route keys keep the Python object names (`basicInputInterface`, `dateTimeInterface`,

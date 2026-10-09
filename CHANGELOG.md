@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.9
+
+### Expandable cards and scroll-bar synchronization
+
+- Changed `ExpandSettingCard` expansion to animate the visible content height while keeping the internal scroll position at zero, preventing transient content overlap in scrolled containers.
+- Kept interrupted expand/collapse animations continuous from the current visible height and updated the parent layout before painting resized cards and their siblings.
+- Synchronized Fluent overlay scroll-bar ranges, page steps, and single steps after Qt completes layout, including initial display and content resizing.
+- Guarded deferred scroll-bar updates when the partner scroll area or native scroll bar has been destroyed.
+- Added regression coverage for animation frames, rapid direction changes, scrolled card layouts, scroll-bar synchronization, and partner lifetime.
+
 ## 0.1.8
 
 ### Realtime plot and item-view polish
