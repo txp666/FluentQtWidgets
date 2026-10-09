@@ -633,8 +633,20 @@ void ScrollBar::leaveEvent(QEvent *event)
 
 bool ScrollBar::eventFilter(QObject *watched, QEvent *event)
 {
-    if (m_overlayMode && watched == m_scrollArea && event->type() == QEvent::Resize) {
-        adjustOverlayGeometry(m_scrollArea->size());
+    if (m_overlayMode && m_scrollArea && (watched == m_scrollArea || watched == m_scrollArea->viewport())) {
+        switch (event->type()) {
+        case QEvent::Resize:
+            if (watched == m_scrollArea) {
+                adjustOverlayGeometry(m_scrollArea->size());
+            }
+            Q_FALLTHROUGH();
+        case QEvent::LayoutRequest:
+        case QEvent::Show:
+            schedulePartnerSync();
+            break;
+        default:
+            break;
+        }
     }
 
     return QWidget::eventFilter(watched, event);
@@ -694,8 +706,7 @@ void ScrollBar::initOverlay()
 
     connect(m_partnerBar, &QScrollBar::rangeChanged, this, [this](int minimum, int maximum) {
         setRange(minimum, maximum);
-        setPageStep(m_partnerBar->pageStep());
-        setSingleStep(m_partnerBar->singleStep());
+        schedulePartnerSync();
     });
     connect(m_partnerBar, &QScrollBar::valueChanged, this, &ScrollBar::syncFromPartner);
     connect(this, &ScrollBar::valueChanged, m_partnerBar, &QScrollBar::setValue);
@@ -706,8 +717,12 @@ void ScrollBar::initOverlay()
     syncFromPartner(m_partnerBar->value());
 
     m_scrollArea->installEventFilter(this);
+    if (m_scrollArea->viewport()) {
+        m_scrollArea->viewport()->installEventFilter(this);
+    }
     updateVisibility();
     adjustOverlayGeometry(m_scrollArea->size());
+    schedulePartnerSync();
 }
 
 void ScrollBar::updateExpanded(bool expanded)
@@ -754,9 +769,29 @@ void ScrollBar::adjustOverlayGeometry(const QSize &size)
 void ScrollBar::syncFromPartner(int value)
 {
     setValue(value);
-    if (m_overlayMode) {
+    if (m_overlayMode && m_scrollArea) {
         adjustOverlayGeometry(m_scrollArea->size());
     }
+}
+
+void ScrollBar::schedulePartnerSync()
+{
+    if (m_partnerSyncPending || !m_scrollArea || !m_partnerBar) {
+        return;
+    }
+
+    m_partnerSyncPending = true;
+    // Qt can update the page step after emitting rangeChanged during layout.
+    QTimer::singleShot(0, this, [this]() {
+        m_partnerSyncPending = false;
+        if (!m_scrollArea || !m_partnerBar) {
+            return;
+        }
+        setRange(m_partnerBar->minimum(), m_partnerBar->maximum());
+        setPageStep(m_partnerBar->pageStep());
+        setSingleStep(m_partnerBar->singleStep());
+        syncFromPartner(m_partnerBar->value());
+    });
 }
 
 void ScrollBar::fadeTo(qreal opacity)

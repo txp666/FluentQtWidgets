@@ -28,6 +28,7 @@ class QPropertyAnimation;
 class QPushButton;
 class QResizeEvent;
 class QSpacerItem;
+class QVariantAnimation;
 class QVBoxLayout;
 class QWheelEvent;
 
@@ -433,8 +434,8 @@ class FQW_API ExpandSettingCard : public QScrollArea
     virtual int expandedContentHeight() const;
 
   private:
-    void adjustViewSize();
-    void onExpandValueChanged();
+    void adjustViewSize(bool updateHeight = true);
+    void onExpandValueChanged(int visibleHeight);
 
     QWidget *m_scrollWidget = nullptr;
     QWidget *m_view = nullptr;
@@ -444,7 +445,7 @@ class FQW_API ExpandSettingCard : public QScrollArea
     QVBoxLayout *m_scrollLayout = nullptr;
     QVBoxLayout *m_viewLayout = nullptr;
     ExpandButton *m_expandButton = nullptr;
-    QPropertyAnimation *m_expandAnimation = nullptr;
+    QVariantAnimation *m_expandAnimation = nullptr;
     bool m_expanded = false;
 };
 

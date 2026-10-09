@@ -22,6 +22,7 @@
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QSignalBlocker>
+#include <QtCore/QVariantAnimation>
 #include <QtGui/QEnterEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
@@ -963,7 +964,8 @@ ExpandSettingCard::ExpandSettingCard(const QIcon &icon, const QString &title, co
     m_borderWidget = new ExpandBorderWidget(this);
     m_borderWidget->raise();
 
-    m_expandAnimation = new QPropertyAnimation(verticalScrollBar(), "value", this);
+    m_expandAnimation = new QVariantAnimation(this);
+    m_expandAnimation->setObjectName(QStringLiteral("expandSettingCardAnimation"));
     m_expandAnimation->setEasingCurve(QEasingCurve::OutQuad);
     m_expandAnimation->setDuration(200);
 
@@ -971,7 +973,9 @@ ExpandSettingCard::ExpandSettingCard(const QIcon &icon, const QString &title, co
     FluentStyleSheet::setRole(this, QStringLiteral("ExpandSettingCard"));
     FluentStyleSheet::apply(m_card, FluentStyleSheetSource::ExpandSettingCard);
 
-    connect(m_expandAnimation, &QVariantAnimation::valueChanged, this, [this]() { onExpandValueChanged(); });
+    connect(m_expandAnimation, &QVariantAnimation::valueChanged, this,
+            [this](const QVariant &value) { onExpandValueChanged(value.toInt()); });
+    connect(m_expandAnimation, &QVariantAnimation::finished, this, [this]() { adjustViewSize(); });
     connect(m_expandButton, &QToolButton::clicked, this, [this]() { toggleExpanded(); });
 
     refreshExpandedGeometry();
@@ -1020,7 +1024,11 @@ void ExpandSettingCard::setExpanded(bool expanded)
         return;
     }
 
-    adjustViewSize();
+    const int visibleHeight = m_card ? qMax(0, height() - m_card->height()) : 0;
+    if (m_expandAnimation) {
+        m_expandAnimation->stop();
+    }
+    adjustViewSize(false);
     m_expanded = expanded;
     setProperty("isExpand", m_expanded);
     FluentStyleSheet::polish(this);
@@ -1036,17 +1044,19 @@ void ExpandSettingCard::setExpanded(bool expanded)
     }
 
     if (m_expandAnimation) {
-        m_expandAnimation->stop();
-        const int height = expandedContentHeight();
-        if (m_expanded) {
-            verticalScrollBar()->setValue(height);
-            m_expandAnimation->setStartValue(height);
-            m_expandAnimation->setEndValue(0);
-        } else {
-            m_expandAnimation->setStartValue(0);
-            m_expandAnimation->setEndValue(verticalScrollBar()->maximum());
+        const int targetHeight = m_expanded ? qMax(0, expandedContentHeight()) : 0;
+        {
+            const QSignalBlocker blocker(m_expandAnimation);
+            m_expandAnimation->setStartValue(visibleHeight);
+            m_expandAnimation->setEndValue(targetHeight);
+            m_expandAnimation->setCurrentTime(0);
         }
-        m_expandAnimation->start();
+        onExpandValueChanged(visibleHeight);
+        if (visibleHeight == targetHeight) {
+            onExpandValueChanged(targetHeight);
+        } else {
+            m_expandAnimation->start();
+        }
     } else {
         refreshExpandedGeometry();
     }
@@ -1087,7 +1097,7 @@ int ExpandSettingCard::expandedContentHeight() const
     return m_viewLayout ? m_viewLayout->sizeHint().height() : 0;
 }
 
-void ExpandSettingCard::adjustViewSize()
+void ExpandSettingCard::adjustViewSize(bool updateHeight)
 {
     if (!m_card || !m_viewLayout || !m_spaceWidget) {
         return;
@@ -1096,11 +1106,17 @@ void ExpandSettingCard::adjustViewSize()
     m_viewLayout->activate();
     const int headerHeight = m_card->height();
     const int viewHeight = qMax(0, expandedContentHeight());
-    m_spaceWidget->setFixedHeight(viewHeight);
-    if (m_expanded) {
-        setFixedHeight(headerHeight + viewHeight);
-    } else if (!m_expandAnimation || m_expandAnimation->state() != QAbstractAnimation::Running) {
-        setFixedHeight(headerHeight);
+    // Reveal the content by clipping its full-size view, rather than scrolling
+    // a second transparent surface while the containing layout is changing.
+    m_spaceWidget->setFixedHeight(0);
+    m_view->setFixedHeight(viewHeight);
+    verticalScrollBar()->setValue(0);
+    if (updateHeight) {
+        if (m_expandAnimation && m_expandAnimation->state() != QAbstractAnimation::Stopped) {
+            m_expandAnimation->setEndValue(m_expanded ? viewHeight : 0);
+        } else {
+            setFixedHeight(headerHeight + (m_expanded ? viewHeight : 0));
+        }
     }
 
     if (layout()) {
@@ -1115,19 +1131,30 @@ void ExpandSettingCard::adjustViewSize()
     }
 }
 
-void ExpandSettingCard::onExpandValueChanged()
+void ExpandSettingCard::onExpandValueChanged(int visibleHeight)
 {
     if (!m_card) {
         return;
     }
 
-    const int viewHeight = qMax(0, expandedContentHeight());
     const int headerHeight = m_card->height();
-    setFixedHeight(qMax(headerHeight + viewHeight - verticalScrollBar()->value(), headerHeight));
+    setFixedHeight(headerHeight + qMax(0, visibleHeight));
+    verticalScrollBar()->setValue(0);
+    // QScrollArea must receive the parent's new minimum size before painting
+    // the resized card and its siblings in an already scrolled viewport.
+    if (QWidget *p = parentWidget()) {
+        if (p->layout()) {
+            p->layout()->activate();
+        }
+        p->update();
+    }
+    if (viewport()) {
+        viewport()->update();
+    }
     if (m_borderWidget) {
         m_borderWidget->update();
     }
-    updateGeometry();
+    update();
 }
 
 GroupSeparator::GroupSeparator(QWidget *parent) : QWidget(parent)

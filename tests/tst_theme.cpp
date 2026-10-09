@@ -3,6 +3,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QPointer>
+#include <QtCore/QScopedPointer>
 #include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
@@ -11,8 +12,10 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
+#include <QtGui/QStandardItemModel>
 #include <QtTest/QtTest>
 #include <QtWidgets/QAbstractItemView>
+#include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QColorDialog>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFileDialog>
@@ -1363,6 +1366,125 @@ class ThemeTest : public QObject
 
         listView.scrollDelegate()->verticalScrollBar()->setValue(24);
         QCOMPARE(listView.verticalScrollBar()->value(), 24);
+    }
+
+    void overlayScrollBarsFollowNativeLayout_data()
+    {
+        QTest::addColumn<int>("consumer");
+        QTest::newRow("scroll-area") << 0;
+        QTest::newRow("plain-text-edit") << 1;
+        QTest::newRow("table-view") << 2;
+    }
+
+    void overlayScrollBarsFollowNativeLayout()
+    {
+        QFETCH(int, consumer);
+        QAbstractScrollArea *area = nullptr;
+        FluentQt::SmoothScrollDelegate *delegate = nullptr;
+        if (consumer == 0) {
+            auto *scroll = new FluentQt::ScrollArea;
+            auto *content = new QWidget;
+            content->setMinimumSize(780, 780);
+            scroll->setWidget(content);
+            area = scroll;
+            delegate = scroll->scrollDelegate();
+        } else if (consumer == 1) {
+            auto *editor = new FluentQt::PlainTextEdit;
+            editor->setLineWrapMode(QPlainTextEdit::NoWrap);
+            QStringList lines;
+            for (int i = 0; i < 80; ++i) {
+                lines.append(QString::number(i) + QString(200, QLatin1Char('x')));
+            }
+            editor->setPlainText(lines.join(QLatin1Char('\n')));
+            area = editor;
+            delegate = editor->scrollDelegate();
+        } else {
+            auto *table = new FluentQt::TableView;
+            table->setModel(new QStandardItemModel(80, 1, table));
+            table->setColumnWidth(0, 1200);
+            area = table;
+            delegate = table->scrollDelegate();
+        }
+        QScopedPointer<QAbstractScrollArea> owner(area);
+        area->resize(370, 650);
+        area->show();
+        QVERIFY(QTest::qWaitForWindowExposed(area));
+
+        for (int height : {650, 550, 700}) {
+            area->resize(370, height);
+            const QList<QScrollBar *> nativeBars = {area->verticalScrollBar(), area->horizontalScrollBar()};
+            const QList<FluentQt::ScrollBar *> overlayBars = {delegate->verticalScrollBar(),
+                                                            delegate->horizontalScrollBar()};
+            for (int i = 0; i < nativeBars.size(); ++i) {
+                auto *native = nativeBars.at(i);
+                auto *overlay = overlayBars.at(i);
+                QTRY_VERIFY(native->maximum() > native->minimum());
+                QTRY_COMPARE(overlay->minimum(), native->minimum());
+                QTRY_COMPARE(overlay->maximum(), native->maximum());
+                QTRY_COMPARE(overlay->pageStep(), native->pageStep());
+                QTRY_COMPARE(overlay->singleStep(), native->singleStep());
+                native->setValue(qMin(40, native->maximum()));
+                QCOMPARE(overlay->value(), native->value());
+                overlay->setValue(0);
+                QCOMPARE(native->value(), 0);
+            }
+        }
+    }
+
+    void overlayScrollBarReadsStepsAfterRangeAndViewportChanges()
+    {
+        QAbstractScrollArea area;
+        FluentQt::SmoothScrollDelegate delegate(&area, false);
+        area.resize(370, 250);
+        area.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&area));
+
+        auto *native = area.verticalScrollBar();
+        auto *overlay = delegate.verticalScrollBar();
+        native->setRange(0, 1000);
+        native->setPageStep(180);
+        native->setSingleStep(37);
+        native->setValue(700);
+        QTRY_COMPARE(overlay->pageStep(), 180);
+        QCOMPARE(overlay->singleStep(), 37);
+        QCOMPARE(overlay->maximum(), 1000);
+        QCOMPARE(overlay->value(), 700);
+
+        // The range can stay unchanged when only the viewport's page step changes.
+        native->setPageStep(210);
+        native->setSingleStep(45);
+        area.resize(370, 300);
+        QTRY_COMPARE(overlay->pageStep(), 210);
+        QCOMPARE(overlay->singleStep(), 45);
+        QCOMPARE(overlay->maximum(), 1000);
+        QCOMPARE(overlay->value(), 700);
+    }
+
+    void overlayPendingSyncSurvivesPartnerAndAreaDestruction()
+    {
+        auto *area = new QAbstractScrollArea;
+        auto *delegate = new FluentQt::SmoothScrollDelegate(area, false);
+        QPointer<FluentQt::ScrollBar> overlay = delegate->verticalScrollBar();
+        QPointer<QScrollBar> partner = area->verticalScrollBar();
+        partner->setRange(0, 1000);
+        auto *replacement = new QScrollBar(Qt::Vertical, area);
+        area->setVerticalScrollBar(replacement);
+        QTRY_VERIFY(partner.isNull());
+        area->resize(370, 250);
+        QCoreApplication::processEvents();
+        QCOMPARE(area->verticalScrollBar(), replacement);
+        QVERIFY(!overlay.isNull());
+        delete area;
+        QVERIFY(overlay.isNull());
+        QCoreApplication::processEvents();
+
+        area = new QAbstractScrollArea;
+        delegate = new FluentQt::SmoothScrollDelegate(area, false);
+        overlay = delegate->verticalScrollBar();
+        area->verticalScrollBar()->setRange(0, 1000);
+        delete area;
+        QVERIFY(overlay.isNull());
+        QCoreApplication::processEvents();
     }
 
     void scrollAreasExposeFluentPolicies()

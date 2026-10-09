@@ -7,6 +7,7 @@
 #include <QtCore/QEasingCurve>
 #include <QtCore/QMargins>
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtCore/QtGlobal>
 #include <QtGui/QColor>
 #include <QtWidgets/QScrollArea>
@@ -214,6 +215,7 @@ class FQW_API ScrollBar : public QWidget
     void updateExpanded(bool expanded);
     void adjustOverlayGeometry(const QSize &size);
     void syncFromPartner(int value);
+    void schedulePartnerSync();
     void fadeTo(qreal opacity);
     void updateCustomStyleSheet();
     void updateVisibility();
@@ -239,6 +241,7 @@ class FQW_API ScrollBar : public QWidget
     ScrollBarHandleDisplayMode m_handleDisplayMode = ScrollBarHandleDisplayMode::Always;
     bool m_forceHidden = false;
     bool m_overlayMode = false;
+    bool m_partnerSyncPending = false;
     bool m_isEnter = false;
     qreal m_paintOpacity = 1.0;
     QColor m_lightHandleColor = QColor(0, 0, 0, 114);
@@ -249,8 +252,8 @@ class FQW_API ScrollBar : public QWidget
     QColor m_darkGrooveColor = QColor(44, 44, 44, 245);
     ScrollBarGroove *m_groove = nullptr;
     ScrollBarHandle *m_handle = nullptr;
-    QAbstractScrollArea *m_scrollArea = nullptr;
-    QScrollBar *m_partnerBar = nullptr;
+    QPointer<QAbstractScrollArea> m_scrollArea;
+    QPointer<QScrollBar> m_partnerBar;
     QPropertyAnimation *m_opacityAnimation = nullptr;
 };
 

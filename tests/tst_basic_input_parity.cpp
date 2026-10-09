@@ -1,6 +1,8 @@
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
+#include <QtCore/QScopedPointer>
+#include <QtCore/QVariantAnimation>
 #include <QtGui/QImage>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmap>
@@ -8,7 +10,9 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QScrollArea>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 using namespace FluentQt;
@@ -301,6 +305,215 @@ private slots:
         card.setExpanded(true);
         QTest::qWait(250);
         QCOMPARE(card.height(), card.card()->height() + card.viewLayout()->sizeHint().height());
+    }
+
+    void nestedExpandCardsKeepHeadersAnchoredDuringAnimation_data()
+    {
+        QTest::addColumn<int>("outerOffset");
+        QTest::addColumn<bool>("headerNearBottom");
+        QTest::newRow("at-top") << 0 << false;
+        QTest::newRow("scrolled") << 100 << false;
+        QTest::newRow("lower-header-at-bottom") << 0 << true;
+        QTest::newRow("scrolled-lower-header-at-bottom") << 100 << true;
+    }
+
+    void nestedExpandCardsKeepHeadersAnchoredDuringAnimation()
+    {
+        QFETCH(int, outerOffset);
+        QFETCH(bool, headerNearBottom);
+
+        ScrollArea area;
+        auto *panel = new QWidget;
+        auto *layout = new QVBoxLayout(panel);
+        layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(10);
+        auto *upper = new ExpandSettingCard(FluentIcon::Connect, QStringLiteral("Connection"), {}, panel);
+        auto *lower = new ExpandSettingCard(FluentIcon::Send, QStringLiteral("Send settings"), {}, panel);
+        auto *following = new ExpandSettingCard(FluentIcon::Folder, QStringLiteral("File send"), {}, panel);
+        auto *upperBody = new QWidget(upper->view());
+        upperBody->setFixedHeight(300);
+        upper->viewLayout()->addWidget(upperBody);
+        auto *lowerBody = new QWidget(lower->view());
+        lowerBody->setFixedHeight(400);
+        lower->viewLayout()->addWidget(lowerBody);
+        layout->addWidget(upper);
+        layout->addWidget(lower);
+        layout->addWidget(following);
+        for (int i = 0; i < 6; ++i) {
+            auto *card = new ExpandSettingCard(FluentIcon::Setting, QString::number(i), {}, panel);
+            layout->addWidget(card);
+        }
+        layout->addStretch();
+        area.setWidget(panel);
+        area.setWidgetResizable(true);
+        area.resize(324, 500);
+        area.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&area));
+        upper->setExpanded(true);
+        QTest::qWait(250);
+        if (headerNearBottom) {
+            area.resize(area.width(), lower->y() + lower->card()->height() - outerOffset + 4);
+            QTest::qWait(30);
+        }
+        QVERIFY(area.verticalScrollBar()->maximum() >= outerOffset);
+        area.verticalScrollBar()->setValue(outerOffset);
+        QTest::qWait(30);
+        const int lowerTop = lower->y();
+        const int upperTop = upper->y();
+        const int upperHeight = upper->height();
+        const int naturalHeight = lower->card()->height() + lower->viewLayout()->sizeHint().height();
+        lower->setExpanded(true);
+        auto *animation = lower->findChild<QVariantAnimation *>(QStringLiteral("expandSettingCardAnimation"));
+        QVERIFY(animation);
+        animation->pause();
+        const int viewTop = lower->view()->mapTo(lower, QPoint()).y();
+        int previousHeight = lower->height();
+        for (int time : {16, 32, 48, 80, 128, 176, 200}) {
+            animation->setCurrentTime(time);
+            // Inspect the geometry before a render/grab or extra event-loop pass can repair it.
+            QCOMPARE(upper->y(), upperTop);
+            QCOMPARE(upper->height(), upperHeight);
+            QCOMPARE(lower->y(), lowerTop);
+            QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
+            QCOMPARE(lower->verticalScrollBar()->value(), 0);
+            QCOMPARE(lower->view()->mapTo(lower, QPoint()).y(), viewTop);
+            QCOMPARE(area.verticalScrollBar()->value(), outerOffset);
+            QVERIFY(lower->height() >= previousHeight);
+            QVERIFY(lower->height() <= naturalHeight);
+            previousHeight = lower->height();
+            QTest::qWait(1);
+            QCOMPARE(lower->y(), lowerTop);
+            QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
+        }
+        QCOMPARE(lower->height(), naturalHeight);
+        lower->setExpanded(false);
+        QTest::qWait(250);
+        QCOMPARE(lower->height(), lower->card()->height());
+        QCOMPARE(lower->y(), lowerTop);
+        QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
+    }
+
+    void expandCardCanReverseFromItsCurrentHeight()
+    {
+        ExpandSettingCard card(FluentIcon::Setting, QStringLiteral("Settings"));
+        auto *body = new QWidget(card.view());
+        body->setFixedHeight(400);
+        card.viewLayout()->addWidget(body);
+        card.resize(324, card.height());
+        card.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&card));
+        QSignalSpy changed(&card, &ExpandSettingCard::expandedChanged);
+        const int headerHeight = card.card()->height();
+        const int naturalHeight = headerHeight + card.viewLayout()->sizeHint().height();
+        auto *animation = card.findChild<QVariantAnimation *>(QStringLiteral("expandSettingCardAnimation"));
+        QVERIFY(animation);
+
+        card.setExpanded(true);
+        animation->pause();
+        animation->setCurrentTime(80);
+        const int partiallyExpanded = card.height();
+        QVERIFY(partiallyExpanded > headerHeight);
+        QVERIFY(partiallyExpanded < naturalHeight);
+        card.setExpanded(false);
+        QCOMPARE(card.height(), partiallyExpanded);
+        animation->pause();
+        animation->setCurrentTime(64);
+        const int partiallyCollapsed = card.height();
+        QVERIFY(partiallyCollapsed < partiallyExpanded);
+        QVERIFY(partiallyCollapsed > headerHeight);
+        card.setExpanded(true);
+        QCOMPARE(card.height(), partiallyCollapsed);
+        animation->pause();
+        animation->setCurrentTime(animation->duration());
+        QCOMPARE(card.height(), naturalHeight);
+        QCOMPARE(card.verticalScrollBar()->value(), 0);
+        QCOMPARE(changed.count(), 3);
+        card.setExpanded(false);
+        QTest::qWait(250);
+        QCOMPARE(card.height(), headerHeight);
+    }
+
+    void expandedGroupContentTracksChangesAndWidth_data()
+    {
+        QTest::addColumn<bool>("simpleGroup");
+        QTest::newRow("expand-group") << false;
+        QTest::newRow("simple-expand-group") << true;
+    }
+
+    void expandedGroupContentTracksChangesAndWidth()
+    {
+        QFETCH(bool, simpleGroup);
+        QScopedPointer<ExpandGroupSettingCard> card(
+            simpleGroup ? new SimpleExpandGroupSettingCard(FluentIcon::Setting, QStringLiteral("Group"))
+                        : new ExpandGroupSettingCard(FluentIcon::Setting, QStringLiteral("Group")));
+        const auto createRow = [](QWidget *parent) {
+            auto *row = new QWidget(parent);
+            auto *layout = new QVBoxLayout(row);
+            layout->setContentsMargins(8, 8, 8, 8);
+            layout->addWidget(new CaptionLabel(QStringLiteral("Editable field"), row));
+            auto *edit = new LineEdit(row);
+            edit->setFixedHeight(32);
+            layout->addWidget(edit);
+            return row;
+        };
+        auto *first = createRow(card->view());
+        card->addGroupWidget(first);
+        card->resize(640, card->height());
+        card->show();
+        QVERIFY(QTest::qWaitForWindowExposed(card.data()));
+        card->setExpanded(true);
+        QTest::qWait(250);
+        const int firstHeight = card->height();
+        QVERIFY(first->geometry().bottom() < card->view()->height());
+
+        auto *second = createRow(card->view());
+        // The caller exposes dynamic content before requesting the synchronous height refresh.
+        second->show();
+        card->addGroupWidget(second);
+        QTest::qWait(30);
+        if (simpleGroup) {
+            // This variant measures the layout after its deferred separator becomes visible.
+            card->setExpanded(false);
+            QTest::qWait(250);
+            card->setExpanded(true);
+            QTest::qWait(250);
+        }
+        QCOMPARE(card->groupCount(), 2);
+        QVERIFY(card->height() > firstHeight);
+        QVERIFY(second->geometry().bottom() < card->view()->height());
+        QCOMPARE(card->verticalScrollBar()->value(), 0);
+        const int wideWidth = second->width();
+        const int twoRowsHeight = card->height();
+        card->resize(324, card->height());
+        QTest::qWait(30);
+        QVERIFY(second->width() < wideWidth);
+        QCOMPARE(card->height(), twoRowsHeight);
+        QVERIFY(second->geometry().bottom() < card->view()->height());
+        card->resize(800, card->height());
+        QTest::qWait(30);
+        QVERIFY(second->width() > wideWidth);
+        QVERIFY(second->geometry().bottom() < card->view()->height());
+
+        card->removeGroupWidget(first);
+        delete first;
+        QTest::qWait(30);
+        QCOMPARE(card->groupCount(), 1);
+        QVERIFY(card->height() < twoRowsHeight);
+        QVERIFY(second->geometry().bottom() < card->view()->height());
+        QCOMPARE(card->verticalScrollBar()->value(), 0);
+        card->setExpanded(false);
+        QTest::qWait(250);
+        QCOMPARE(card->height(), card->card()->height());
+        card->removeGroupWidget(second);
+        delete second;
+        auto *replacement = createRow(card->view());
+        replacement->show();
+        card->addGroupWidget(replacement);
+        card->setExpanded(true);
+        QTest::qWait(250);
+        QVERIFY(replacement->geometry().bottom() < card->view()->height());
+        QCOMPARE(card->verticalScrollBar()->value(), 0);
     }
 };
 
