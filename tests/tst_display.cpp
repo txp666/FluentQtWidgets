@@ -23,6 +23,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStyleOptionSlider>
 #include <QtTest/QtTest>
 
@@ -2466,6 +2467,47 @@ class DisplayTest : public QObject
 
         FluentQt::TextBrowser textBrowser;
         verifyEditor(textBrowser, QStringLiteral("TextBrowser"));
+    }
+
+    void multilineFocusLineStaysPutWhileScrolling()
+    {
+        auto verifyEditor = [](auto &editor) {
+            QStringList lines;
+            for (int index = 0; index < 40; ++index) {
+                lines.append(QStringLiteral("line %1").arg(index));
+            }
+            editor.setPlainText(lines.join(QLatin1Char('\n')));
+            editor.resize(240, 90);
+            editor.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&editor));
+            auto *layer = editor.layer();
+            QVERIFY(layer != nullptr);
+            // Compare where both sit inside the editor, whatever their parents.
+            const auto inEditor = [&editor](const QWidget *widget) {
+                return QRect(widget->mapTo(&editor, QPoint()), widget->size());
+            };
+            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+
+            // Scrolling moves the viewport's children with the content, so the
+            // underline must not be one of them.
+            QVERIFY(editor.verticalScrollBar()->maximum() > 0);
+            editor.verticalScrollBar()->setValue(editor.verticalScrollBar()->maximum());
+            QCoreApplication::processEvents();
+            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+
+            editor.resize(300, 120);
+            QCoreApplication::processEvents();
+            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+        };
+
+        FluentQt::TextEdit textEdit;
+        verifyEditor(textEdit);
+
+        FluentQt::PlainTextEdit plainTextEdit;
+        verifyEditor(plainTextEdit);
+
+        FluentQt::TextBrowser textBrowser;
+        verifyEditor(textBrowser);
     }
 
     void slidersTrackPythonParityGeometryAndClicking()

@@ -8,6 +8,7 @@
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 
+#include <QtCore/QPointer>
 #include <QtCore/QTimer>
 #include <QtGui/QClipboard>
 #include <QtGui/QFocusEvent>
@@ -36,27 +37,35 @@ QAction *addMenuAction(RoundMenu *menu, FluentIcon iconType, const QString &text
     return action;
 }
 
+// Draws the focus underline over the editor's viewport. It is a child of the
+// editor rather than the viewport: scrolling moves the viewport's children
+// with the content, which would carry the underline up with the text.
 class EditLayer : public QWidget
 {
   public:
     explicit EditLayer(QAbstractScrollArea *editor)
-        : QWidget(editor->viewport())
+        : QWidget(editor)
         , m_editor(editor)
+        , m_viewport(editor->viewport())
     {
         setObjectName(QStringLiteral("editLayer"));
         setProperty("fqw", QStringLiteral("EditLayer"));
         setAttribute(Qt::WA_TransparentForMouseEvents);
         setAttribute(Qt::WA_NoSystemBackground);
-        resize(editor->viewport()->size());
+        setGeometry(m_viewport->geometry());
+        raise();
         editor->installEventFilter(this);
-        editor->viewport()->installEventFilter(this);
+        m_viewport->installEventFilter(this);
     }
 
   protected:
     bool eventFilter(QObject *obj, QEvent *event) override
     {
-        if ((obj == m_editor || obj == parentWidget()) && event->type() == QEvent::Resize && parentWidget()) {
-            setGeometry(parentWidget()->rect());
+        const QEvent::Type type = event->type();
+        if (m_viewport && obj == m_viewport && (type == QEvent::Resize || type == QEvent::Move)) {
+            setGeometry(m_viewport->geometry());
+        } else if (obj == m_editor && (type == QEvent::FocusIn || type == QEvent::FocusOut)) {
+            update();
         }
         return QWidget::eventFilter(obj, event);
     }
@@ -88,6 +97,7 @@ class EditLayer : public QWidget
 
   private:
     QAbstractScrollArea *m_editor = nullptr;
+    QPointer<QWidget> m_viewport;
 };
 
 template <typename Editor>
