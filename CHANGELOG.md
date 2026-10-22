@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.10
 
 ### Object lifetime fixes
 
@@ -22,6 +22,7 @@
 - Combo boxes: the clear button of the editable combos clears the text; model combos no longer block the model's signals for other views and proxies, follow model resets and the removal of the current row, show the first item of a model set with `setModel()` (they kept the old model's text when row 0 was current before), and no longer take ownership of the caller's model; `clear()` and `setCurrentIndex(-1)` emit and bring the placeholder back; `insertItem()` into an empty combo selects the item; moving rows no longer emits spurious text changes.
 - Scrolling: scroll bar handle maths no longer overflows on large item views; `SmoothScrollArea` no longer leaves the replaced delegate's scroll bars behind; `ExpandSettingCard` passes the wheel on to the page; zero-delta wheel events no longer flip `FlipView` or `CycleListWidget`.
 - Item views: selection highlights follow inserted, removed, sorted and filtered rows; the pressed look ends on release; typed values get Qt's matching editor.
+- Text editors: the focus underline of `TextEdit`, `PlainTextEdit` and `TextBrowser` stays at the bottom when the content scrolls instead of moving up with the text.
 - Dialogs and popups: `MaskDialogBase` finishes once however often it is accepted or rejected during the fade-out; text wrapping in dialogs, info bars and flyouts is shared and never cuts a surrogate pair or an emoji sequence; on Wayland mask dialogs overlay the parent window as a child; info bar and state tooltip timers no longer pile up or run while hidden; `ToolTip::showText()` tooltips delete themselves once hidden; the compact spin box flyout no longer grabs the keyboard.
 - Menus and tabs: `RoundMenu::clear()` removes separators, `setMenuView()` rebuilds existing rows, shortcuts are no longer cut to one character, and the new `execAndWait()` offers `QMenu::exec()` semantics; tabs dragged in from another `TabBar` are ignored and moving a tab keeps the current page.
 - Navigation: `Pivot` keeps items in display order and follows item resizes; `NavigationHistory` back navigation emits through the interface and no longer keeps duplicate entries; the panel's window filter follows reparenting; tooltips are translatable; long item texts are elided.
@@ -30,6 +31,12 @@
 - Others: `CommandBar::clear()` keeps actions it does not own; `ConfigItemRegistry` reports a change once; option and colour config items correct their defaults; `OrchidLight` is `#C239B3`; `OptionsSettingCard` unchecks every option for an unknown value; `OpacityAniStackedWidget` applies its opacity effect only during transitions; charts handle negative values; `RealtimePlotWidget` stops dragging when the button is gone, exports every sample to CSV, shows negative x while auto-scrolling, fits all data on "View All", recovers its fast path once out-of-order samples age out, gains `setXAxisValueFormatter()`, and starts plot exports in an existing folder (the user's download folder by default) instead of creating `app/download`; `FlowLayout` and `VBoxLayout` follow widgets deleted from outside.
 - Builds: on Windows, tests and examples load the rebuilt `FluentQtWidgets.dll` after a change inside the library (the copy beside them only followed relinks); Qt 5 builds no longer use Qt 6-only event signatures or APIs; the library compiles without warnings under `-Wall -Wextra -Wshadow -Wconversion -Woverloaded-virtual`.
 - Added regression tests for these fixes.
+
+### Additions
+
+- `themedIcon(lightPath, darkPath)` returns an icon that paints the file for the current theme, for custom icons that come as one file per theme. The Gallery's navigation icons use it; they kept the colour of the theme they were created in.
+- `AcrylicBrush::setScreenCaptureEnabled()` and `isScreenCaptureEnabled()` switch the screen capture behind acrylic surfaces for the whole application, and `isScreenCaptureAvailable()` tells whether a capture can be taken without side effects.
+- `RoundMenu::execAndWait()` shows the menu and returns the triggered action once it is hidden, as `QMenu::exec()` does, also when the menu is deleted while open. `RealtimePlotWidget::setXAxisValueFormatter()` sets the x-axis tick labels.
 
 ### Tests
 
