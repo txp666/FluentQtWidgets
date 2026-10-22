@@ -42,6 +42,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QProxyStyle>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStyle>
@@ -159,6 +160,53 @@ class ThemeTest : public QObject
         FluentQt::ThemeManager::instance()->setAccentColor(QColor(QStringLiteral("#112233")));
         FluentQt::FluentStyleSheet::updateAll();
         QVERIFY(widget.styleSheet().contains(QStringLiteral("#112233")));
+    }
+
+    void styleSheetManagerSurvivesStylesThatSetProperties()
+    {
+        // Qt 6.8's Windows 11 style sets dynamic properties on a widget as it polishes and
+        // unpolishes it; repolishing on each of them recursed until the stack overflowed.
+        class PropertySettingStyle : public QProxyStyle
+        {
+          public:
+            using QProxyStyle::polish;
+            using QProxyStyle::unpolish;
+            void polish(QWidget *widget) override
+            {
+                ++polished;
+                if (active) {
+                    widget->setProperty("styleState", polished);
+                    widget->setProperty("_q_styleState", polished);
+                }
+                QProxyStyle::polish(widget);
+            }
+            void unpolish(QWidget *widget) override
+            {
+                if (active) {
+                    widget->setProperty("styleState", QVariant());
+                    widget->setProperty("_q_styleState", QVariant());
+                }
+                QProxyStyle::unpolish(widget);
+            }
+            int polished = 0;
+            bool active = true;
+        };
+
+        PropertySettingStyle style;
+        QWidget widget;
+        widget.setStyle(&style);
+        FluentQt::FluentStyleSheet::setRole(&widget, QStringLiteral("UnitTestWidget"));
+
+        // A property the application sets repolishes once, whatever the style sets meanwhile.
+        int before = style.polished;
+        widget.setProperty("state", QStringLiteral("hover"));
+        QCOMPARE(style.polished - before, 1);
+
+        // Qt's own properties do not change how a widget looks.
+        before = style.polished;
+        widget.setProperty("_q_internal", 1);
+        QCOMPARE(style.polished, before);
+        style.active = false;
     }
 
     void fluentTranslatorOnlyLoadsMatchingLanguages()

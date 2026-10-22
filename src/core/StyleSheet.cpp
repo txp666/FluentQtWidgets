@@ -10,6 +10,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QHash>
 #include <QtCore/QMetaObject>
+#include <QtCore/QSet>
 #include <QtCore/QVariant>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QWidget>
@@ -27,8 +28,8 @@ constexpr const char *kStyleSourceProperty = "fqw-style-source";
 constexpr const char *kAppliedQssProperty = "fqw-applied-qss";
 
 // The manager's own bookkeeping (and the "fqw" role) never changes how a widget looks, so
-// setting it must not repolish.
-bool isInternalProperty(const QByteArray &name) { return name.startsWith("fqw"); }
+// setting it must not repolish; neither do Qt's own ("_q_"), which styles set as they polish.
+bool isInternalProperty(const QByteArray &name) { return name.startsWith("fqw") || name.startsWith("_q_"); }
 
 bool containsWidget(const QList<QPointer<QWidget>> &widgets, QWidget *widget)
 {
@@ -625,8 +626,16 @@ void FluentStyleSheet::polish(QWidget *widget)
         return;
     }
 
+    // A style may set properties on the widget as it (un)polishes it, as Qt 6.8's Windows 11 style
+    // does. Each change would repolish the widget again, until the stack overflowed.
+    static QSet<const QWidget *> polishing;
+    if (polishing.contains(widget)) {
+        return;
+    }
+    polishing.insert(widget);
     widget->style()->unpolish(widget);
     widget->style()->polish(widget);
+    polishing.remove(widget);
     widget->update();
 }
 
