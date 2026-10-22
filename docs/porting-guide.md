@@ -87,13 +87,14 @@ python3 scripts/verify_example_parity.py
 cmake --preset ninja-debug -DFQW_BUILD_TESTS=ON
 cmake --build build/debug --parallel
 ctest --test-dir build/debug --output-on-failure
-ctest --test-dir build/debug --output-on-failure -R tst_basic_input_parity
+ctest --test-dir build/debug --output-on-failure -R tst_basic_input
 ```
 
 `verify_example_parity.py` compares the C++ example directory set with `PyQt-Fluent-Widgets/examples`. The CTest suite
-covers the base widget behavior, gallery route/translation behavior, and representative demo/gallery integration points.
-`tst_basic_input_parity` specifically guards the Python-style button icon paint path, combo popup role/delegate setup,
-the `FolderListSettingCard` expandable structure, and representative basic input controls used by the standalone demos.
+has one test per area of the Gallery (`tst_basic_input`, `tst_combo_box`, `tst_text`, `tst_navigation`,
+`tst_window`, ...), plus `tst_gallery_pages` and `tst_gallery_translation` for the Gallery itself. `tst_basic_input`
+guards the Python-style button icon paint path; `tst_combo_box` the combo popup role and delegate setup;
+`tst_settings` the `FolderListSettingCard` expandable structure.
 
 Gallery parity is checked against the Python pages after every broad UI pass. The current gallery keeps the
 Python startup sequence: show the splash first, construct pages/navigation, then finish the splash. Menus, Flyout,

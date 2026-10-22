@@ -14,7 +14,7 @@
 - Cleared a submenu's parent links when `RoundMenu::removeMenu()` removes it or its parent menu is deleted, and dropped a submenu's row when the submenu is deleted.
 - Tracked `FluentWindow`'s splash screen and `LineEdit`'s completer and completer menu with `QPointer`. `LineEdit` now frees its parentless completer menu, and `CompleterMenu` frees the actions it creates for each completion list.
 - Built the child widgets in `FlyoutView(QWidget *)` and `AcrylicFlyoutView(QWidget *)`, which previously crashed on `show()`.
-- Added `tst_lifetime` regression coverage for each of these cases.
+- Added regression tests for each of these cases.
 
 ### Behaviour fixes
 
@@ -29,7 +29,12 @@
 - Style sheets: `apply()` honours its theme, the manager's own properties no longer repolish, registration is constant-time, clearing a custom style sheet takes effect, and lazy refreshes run on show instead of inside paint events.
 - Others: `CommandBar::clear()` keeps actions it does not own; `ConfigItemRegistry` reports a change once; option and colour config items correct their defaults; `OrchidLight` is `#C239B3`; `OptionsSettingCard` unchecks every option for an unknown value; `OpacityAniStackedWidget` applies its opacity effect only during transitions; charts handle negative values; `RealtimePlotWidget` stops dragging when the button is gone, exports every sample to CSV, shows negative x while auto-scrolling, fits all data on "View All", recovers its fast path once out-of-order samples age out, gains `setXAxisValueFormatter()`, and starts plot exports in an existing folder (the user's download folder by default) instead of creating `app/download`; `FlowLayout` and `VBoxLayout` follow widgets deleted from outside.
 - Builds: on Windows, tests and examples load the rebuilt `FluentQtWidgets.dll` after a change inside the library (the copy beside them only followed relinks); Qt 5 builds no longer use Qt 6-only event signatures or APIs; the library compiles without warnings under `-Wall -Wextra -Wshadow -Wconversion -Woverloaded-virtual`.
-- Added `tst_regressions` coverage for these fixes.
+- Added regression tests for these fixes.
+
+### Tests
+
+- Grouped the widget tests into one suite per Gallery area (`tst_basic_input`, `tst_combo_box`, `tst_text`, `tst_status_info`, `tst_dialog_flyout`, `tst_menu`, `tst_navigation`, `tst_view`, `tst_layout`, `tst_settings`, `tst_window`, `tst_material`, `tst_charts`, `tst_datetime`), with `tst_theme`, `tst_qss` and `tst_config` for the shared parts and `tst_gallery_pages` and `tst_gallery_translation` for the Gallery. Overlapping tests were merged.
+- Every test now starts from the same theme, accent colour and configuration, whatever an earlier test changed, and the suites share their helpers (`tests/TestSupport.h`).
 
 ## 0.1.9
 
