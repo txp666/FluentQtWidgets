@@ -1196,8 +1196,10 @@ void ModelComboBox::setModel(QAbstractItemModel *model)
     }
     bindModelSignals();
 
+    // A new list: its first item even when the old current index was 0 too, where
+    // setCurrentIndex(0) would keep the old item's text.
     if (m_model->rowCount() > 0) {
-        setCurrentIndex(0);
+        reselectCurrentIndex(0);
     } else {
         setCurrentIndex(-1);
     }
@@ -1744,8 +1746,20 @@ void EditableModelComboBox::setModel(QAbstractItemModel *model)
     }
     bindModelSignals();
 
-    if (count() > 0 && text().isEmpty()) {
-        setCurrentIndex(0);
+    // A new list: an item of the old one gives way to its first item, even when the old current
+    // index was 0 too. Typed text stays, and is selected where the new list has it.
+    if (m_currentIndex >= 0 || text().isEmpty()) {
+        if (count() > 0) {
+            reselectCurrentIndex(0);
+        } else {
+            setCurrentIndex(-1);
+        }
+    } else {
+        const int index = findText(text());
+        if (index != m_currentIndex) {
+            m_currentIndex = index;
+            emit currentIndexChanged(index);
+        }
     }
 }
 

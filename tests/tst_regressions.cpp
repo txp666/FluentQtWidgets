@@ -199,7 +199,8 @@ class RegressionsTest : public QObject
         bar.setValue(100);
         bar.resize(200, 4);
         // grab() paints the window background under the bar; count the columns in the bar's colour,
-        // which the first column always has once anything is filled.
+        // which the first column always has once anything is filled. grab() works in device pixels,
+        // so compare the filled share of the width: half of it for 100 in 50..150.
         const QImage image = bar.grab().toImage();
         const QColor fill = image.pixelColor(2, 1);
         int filled = 0;
@@ -210,7 +211,8 @@ class RegressionsTest : public QObject
                 ++filled;
             }
         }
-        QVERIFY2(qAbs(filled - 100) <= 6, qPrintable(QString::number(filled)));
+        const qreal share = qreal(filled) / image.width();
+        QVERIFY2(qAbs(share - 0.5) <= 0.03, qPrintable(QString::number(share)));
     }
 
     void scrollBarHandleStaysInsideForHugeRanges()
@@ -337,6 +339,42 @@ class RegressionsTest : public QObject
         QCOMPARE(combo.currentText(), QStringLiteral("b"));
         QCOMPARE(textSpy.count(), 0);
         QCOMPARE(indexSpy.count(), 1);
+    }
+
+    void modelCombosShowTheFirstItemOfAReplacedModel()
+    {
+        // The current index is 0 before and after, which setCurrentIndex(0) took for no change.
+        ModelComboBox combo;
+        combo.addItems({QStringLiteral("old"), QStringLiteral("older")});
+        QCOMPARE(combo.currentIndex(), 0);
+        QStandardItemModel model;
+        model.appendRow(new QStandardItem(QStringLiteral("new")));
+        QSignalSpy textSpy(&combo, &ModelComboBox::currentTextChanged);
+        combo.setModel(&model);
+        QCOMPARE(combo.currentIndex(), 0);
+        QCOMPARE(combo.currentText(), QStringLiteral("new"));
+        QCOMPARE(combo.text(), QStringLiteral("new"));
+        QCOMPARE(textSpy.count(), 1);
+
+        EditableModelComboBox editable;
+        editable.addItems({QStringLiteral("old"), QStringLiteral("older")});
+        QCOMPARE(editable.currentIndex(), 0);
+        QStandardItemModel editableModel;
+        editableModel.appendRow(new QStandardItem(QStringLiteral("new")));
+        editable.setModel(&editableModel);
+        QCOMPARE(editable.currentIndex(), 0);
+        QCOMPARE(editable.text(), QStringLiteral("new"));
+
+        // Typed text is not an item of the old list and stays.
+        EditableModelComboBox typed;
+        typed.addItems({QStringLiteral("old")});
+        typed.setText(QStringLiteral("typed"));
+        QCOMPARE(typed.currentIndex(), -1);
+        QStandardItemModel typedModel;
+        typedModel.appendRow(new QStandardItem(QStringLiteral("new")));
+        typed.setModel(&typedModel);
+        QCOMPARE(typed.currentIndex(), -1);
+        QCOMPARE(typed.text(), QStringLiteral("typed"));
     }
 
     // --- Item views, dialogs, command bar, config ----------------------------------------------

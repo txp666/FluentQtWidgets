@@ -324,7 +324,7 @@ void RealtimePlotWidget::setCapacity(int capacity)
         series.start = 0;
         series.count = 0;
         series.xMonotonic = true;
-    series.xDescents = 0;
+        series.xDescents = 0;
         for (const QPointF &point : currentPoints.at(seriesIndex)) {
             appendPointInternal(seriesIndex, point.x(), point.y(), false);
         }
@@ -718,7 +718,7 @@ void RealtimePlotWidget::clear()
         series.count = 0;
         series.nextX = 0;
         series.xMonotonic = true;
-    series.xDescents = 0;
+        series.xDescents = 0;
         resizeYRangeBlocks(&series);
         markSeriesRenderCacheDirty(&series);
     }
