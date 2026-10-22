@@ -47,6 +47,25 @@ jobs:
         if: runner.os == 'Windows'
         run: ctest --test-dir build --build-config Release --output-on-failure
 
+      # ctest captures none of the Windows tests' output here. Run the failed suites again with QTest
+      # writing its log to a file, which also keeps what a crashing suite wrote before it crashed.
+      - name: Failed test logs (Windows)
+        if: failure() && runner.os == 'Windows'
+        run: |
+          $failed = Get-Content build/Testing/Temporary/LastTestsFailed.log -ErrorAction SilentlyContinue
+          foreach ($entry in $failed) {
+            $name = $entry.Split(':', 2)[1]
+            $exe = Join-Path $PWD "build/tests/Release/$name.exe"
+            if (!(Test-Path $exe)) { continue }
+            $log = Join-Path $env:RUNNER_TEMP "$name.txt"
+            $process = Start-Process -FilePath $exe -ArgumentList '-o', "$log,txt" -WorkingDirectory (Split-Path $exe) -NoNewWindow -PassThru
+            $null = $process.Handle
+            if (!$process.WaitForExit(300000)) { $process.Kill() }
+            "::group::$name (exit code $($process.ExitCode))"
+            Get-Content $log -ErrorAction SilentlyContinue
+            '::endgroup::'
+          }
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
