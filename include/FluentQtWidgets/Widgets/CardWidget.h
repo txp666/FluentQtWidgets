@@ -97,6 +97,7 @@ protected:
 #endif
     void leaveEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
 
     QColor hoverBackgroundColor() const override;
     QColor pressedBackgroundColor() const override;

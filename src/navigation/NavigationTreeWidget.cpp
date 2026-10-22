@@ -138,7 +138,10 @@ void NavigationWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_pressed = false;
-    emit clicked(true);
+    // Like a button: a press dragged off the item and released elsewhere is no click.
+    if (rect().contains(event->pos())) {
+        emit clicked(true);
+    }
     update();
 }
 
@@ -266,7 +269,9 @@ void NavigationAvatarWidget::paintEvent(QPaintEvent *event)
     if (!m_compacted && !m_name.isEmpty()) {
         painter.setPen(textColor());
         painter.setFont(font());
-        painter.drawText(QRect(44, 0, width() - 52, height()), Qt::AlignVCenter, m_name);
+        const QRect textRect(44, 0, width() - 52, height());
+        painter.drawText(textRect, Qt::AlignVCenter,
+                         painter.fontMetrics().elidedText(m_name, Qt::ElideRight, textRect.width()));
     }
 }
 
@@ -370,7 +375,8 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
     titleFont.setBold(true);
     painter.setFont(titleFont);
     painter.setPen(textColor());
-    painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom, m_title);
+    painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom,
+                     painter.fontMetrics().elidedText(m_title, Qt::ElideRight, textWidth));
 
     if (!m_subtitle.isEmpty()) {
         QFont subtitleFont = font();
@@ -378,7 +384,8 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
         painter.setFont(subtitleFont);
         painter.setPen(textColor(150));
         painter.drawText(QRectF(textX, height() / 2.0 + 2.0, textWidth, height() / 2.0 - 2.0),
-                         Qt::AlignLeft | Qt::AlignTop, m_subtitle);
+                         Qt::AlignLeft | Qt::AlignTop,
+                         painter.fontMetrics().elidedText(m_subtitle, Qt::ElideRight, textWidth));
     }
 }
 
@@ -445,7 +452,8 @@ void NavigationItemHeader::paintEvent(QPaintEvent *event)
     painter.setFont(font());
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     painter.setPen(dark ? QColor(160, 160, 160) : QColor(96, 96, 96));
-    painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter, m_text);
+    painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter,
+                     painter.fontMetrics().elidedText(m_text, Qt::ElideRight, width() - 16));
 }
 
 NavigationToolButton::NavigationToolButton(const QIcon &icon, QWidget *parent)
@@ -487,7 +495,9 @@ void NavigationToolButton::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_pressed = false;
-    emit clicked(true);
+    if (rect().contains(event->pos())) {
+        emit clicked(true);
+    }
     update();
 }
 
@@ -552,7 +562,7 @@ void NavigationTreeWidget::insertChild(int index, NavigationTreeWidget *child)
     child->setParent(this);
     child->setVisible(m_expanded);
     if (index < 0 || index > m_children.size()) {
-        index = m_children.size();
+        index = static_cast<int>(m_children.size());
     }
     m_children.insert(index, child);
     relayoutChildren();
@@ -649,6 +659,11 @@ void NavigationTreeWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_pressed = false;
+    // Only a release on the item's own row is a click; the rows below belong to its children.
+    if (!QRect(0, 0, width(), kItemHeight).contains(event->pos())) {
+        update();
+        return;
+    }
     if (!m_children.isEmpty() && !m_compacted) {
         setExpanded(!m_expanded);
     }
@@ -695,8 +710,9 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         painter.setPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
         const int textLeft = m_icon.isNull() ? 16 : 44;
         const int arrowReserve = m_children.isEmpty() ? 8 : 28;
-        painter.drawText(QRect(textLeft, 0, width() - textLeft - arrowReserve, kItemHeight), Qt::AlignVCenter,
-                         m_text);
+        const QRect textRect(textLeft, 0, width() - textLeft - arrowReserve, kItemHeight);
+        painter.drawText(textRect, Qt::AlignVCenter,
+                         painter.fontMetrics().elidedText(m_text, Qt::ElideRight, textRect.width()));
     }
 
     if (!m_compacted && !m_children.isEmpty()) {

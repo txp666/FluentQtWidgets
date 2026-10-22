@@ -75,7 +75,9 @@ void NavigationBarPushButton::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_pressed = false;
-    emit clicked(true);
+    if (rect().contains(event->pos())) {
+        emit clicked(true);
+    }
     update();
 }
 
@@ -120,7 +122,8 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
     painter.setOpacity(isEnabled() ? 1.0 : 0.4);
     painter.setPen(m_selected ? selectedColor() : textColor());
     painter.setFont(font());
-    painter.drawText(QRect(0, 32, width(), 26), Qt::AlignCenter, m_text);
+    painter.drawText(QRect(0, 32, width(), 26), Qt::AlignCenter,
+                     painter.fontMetrics().elidedText(m_text, Qt::ElideRight, width() - 4));
 }
 
 QColor NavigationBarPushButton::selectedColor() const

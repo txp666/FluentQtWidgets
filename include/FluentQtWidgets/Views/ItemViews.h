@@ -57,6 +57,7 @@ class FQW_API TableItemDelegate : public QStyledItemDelegate
     virtual void drawCheckBox(QPainter *painter, const QStyleOptionViewItem &option,
                               const QModelIndex &index) const;
     bool isRowSelected(int row) const;
+    bool isIndexRowSelected(const QModelIndex &index) const;
     bool isRowHovered(int row) const;
     bool isRowPressed(int row) const;
 

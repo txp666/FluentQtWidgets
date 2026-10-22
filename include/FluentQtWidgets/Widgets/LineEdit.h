@@ -7,6 +7,7 @@
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QList>
+#include <QtCore/QPointer>
 #include <QtGui/QColor>
 #include <QtWidgets/QCompleter>
 #include <QtWidgets/QHBoxLayout>
@@ -74,6 +75,7 @@ class FQW_API LineEdit : public QLineEdit
   public:
     explicit LineEdit(QWidget *parent = nullptr);
     explicit LineEdit(const QString &text, QWidget *parent = nullptr);
+    ~LineEdit() override;
 
     bool isClearButtonEnabled() const;
     virtual void setClearButtonEnabled(bool enable);
@@ -134,8 +136,8 @@ class FQW_API LineEdit : public QLineEdit
     bool m_isError = false;
     QColor m_lightFocusedBorderColor;
     QColor m_darkFocusedBorderColor;
-    QCompleter *m_completer = nullptr;
-    CompleterMenu *m_completerMenu = nullptr;
+    QPointer<QCompleter> m_completer;
+    QPointer<CompleterMenu> m_completerMenu;
 };
 
 // ============================================================================
@@ -352,10 +354,15 @@ class FQW_API TextEdit : public QTextEdit
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
   private:
     QWidget *m_layer = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    // Ctrl+wheel zoom in font-size steps, applied to the document's default font.
+    int m_zoom = 0;
+    int m_zoomAngle = 0;
 };
 
 class FQW_API PlainTextEdit : public QPlainTextEdit
@@ -372,10 +379,15 @@ class FQW_API PlainTextEdit : public QPlainTextEdit
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
   private:
     QWidget *m_layer = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    // Ctrl+wheel zoom in font-size steps, applied to the document's default font.
+    int m_zoom = 0;
+    int m_zoomAngle = 0;
 };
 
 class FQW_API TextBrowser : public QTextBrowser
@@ -392,10 +404,15 @@ class FQW_API TextBrowser : public QTextBrowser
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
   private:
     QWidget *m_layer = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    // Ctrl+wheel zoom in font-size steps, applied to the document's default font.
+    int m_zoom = 0;
+    int m_zoomAngle = 0;
 };
 
 } // namespace FluentQt

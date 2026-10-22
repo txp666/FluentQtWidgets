@@ -111,7 +111,8 @@ void ToolTip::showFor(QWidget *target, ToolTipPosition position, int durationMs)
 
 ToolTip *ToolTip::showText(QWidget *target, const QString &text, ToolTipPosition position, int durationMs)
 {
-    auto *tip = new ToolTip(text);
+    auto *tip = new ToolTip(text, target ? target->window() : nullptr);
+    tip->m_deleteOnHide = true;
     tip->showFor(target, position, durationMs);
     return tip;
 }
@@ -197,6 +198,9 @@ void ToolTip::hideEvent(QHideEvent *event)
         m_timer->stop();
     }
     QFrame::hideEvent(event);
+    if (m_deleteOnHide) {
+        deleteLater();
+    }
 }
 
 ToolTipFilter::ToolTipFilter(QWidget *parent, int showDelayMs, ToolTipPosition position)
@@ -235,12 +239,9 @@ bool ToolTipFilter::eventFilter(QObject *watched, QEvent *event)
         m_pointerInside = true;
         m_targetWidget = widget;
         if (canShowToolTip(widget)) {
-            if (!m_toolTip) {
-                m_toolTip = createToolTip(m_text.isEmpty() ? widget->toolTip() : m_text, widget->window());
-            }
-
+            ToolTip *toolTip = toolTipFor(widget, m_text.isEmpty() ? widget->toolTip() : m_text);
             const int duration = widget->toolTipDuration() > 0 ? widget->toolTipDuration() : -1;
-            m_toolTip->setDuration(duration);
+            toolTip->setDuration(duration);
             m_timer.start(m_showDelayMs);
         }
     }
@@ -267,7 +268,7 @@ void ToolTipFilter::showToolTip()
         return;
     }
 
-    auto *widget = m_targetWidget ? m_targetWidget : qobject_cast<QWidget *>(parent());
+    QWidget *widget = m_targetWidget ? m_targetWidget.data() : qobject_cast<QWidget *>(parent());
     if (!widget) {
         return;
     }
@@ -277,12 +278,25 @@ void ToolTipFilter::showToolTip()
         return;
     }
 
-    if (!m_toolTip) {
+    ToolTip *toolTip = toolTipFor(widget, text);
+    toolTip->setText(text);
+    toolTip->adjustPos(widget, m_position);
+    toolTip->show();
+}
+
+ToolTip *ToolTipFilter::toolTipFor(QWidget *widget, const QString &text)
+{
+    // The tooltip lives in the window the widget was in when first hovered; follow the widget
+    // if it has been moved to another window since.
+    if (m_toolTip && m_toolTip->parentWidget() != widget->window()) {
+        const int duration = m_toolTip->duration();
+        delete m_toolTip;
+        m_toolTip = createToolTip(text, widget->window());
+        m_toolTip->setDuration(duration);
+    } else if (!m_toolTip) {
         m_toolTip = createToolTip(text, widget->window());
     }
-    m_toolTip->setText(text);
-    m_toolTip->adjustPos(widget, m_position);
-    m_toolTip->show();
+    return m_toolTip;
 }
 
 bool ToolTipFilter::canShowToolTip(QWidget *widget) const
@@ -410,6 +424,9 @@ void ItemViewToolTipDelegate::showToolTip()
         return;
     }
 
+    if (m_toolTip && m_toolTip->parentWidget() != m_view->window()) {
+        delete m_toolTip;
+    }
     if (!m_toolTip) {
         m_toolTip = new ToolTip(m_text, m_view->window());
         m_toolTip->setDuration(m_durationMs);

@@ -43,6 +43,8 @@ class FQW_API AcrylicBrush
     void setNoiseOpacity(qreal opacity);
     void setClipPath(const QPainterPath &path);
     void setBlurPicSize(const QSize &size);
+    // Captures the screen behind globalRect, when screen capture is available; otherwise the
+    // brush paints an opaque tint instead.
     void grabImage(const QRect &globalRect);
     void setImage(const QImage &image);
     void setPixmap(const QPixmap &pixmap);
@@ -50,6 +52,14 @@ class FQW_API AcrylicBrush
     bool setImagePath(const QString &path);
     QImage textureImage() const;
     void paint(QPainter *painter = nullptr);
+
+    // Application-wide switch for the screen capture behind acrylic surfaces (on by default).
+    static void setScreenCaptureEnabled(bool enabled);
+    static bool isScreenCaptureEnabled();
+    // Whether grabImage() can capture without side effects: enabled, not on Wayland (which does
+    // not let clients read the screen), and on macOS only once the Screen Recording permission
+    // has been granted, so that opening a menu never triggers the system prompt.
+    static bool isScreenCaptureAvailable();
 
   private:
     void invalidateCache();

@@ -293,7 +293,10 @@ QWidget *NavigationInterface::widget(const QString &routeKey) const { return wid
 
 int NavigationInterface::indexOf(QWidget *page) const { return m_stackedWidget->indexOf(page); }
 
-int NavigationInterface::indexOf(const QString &routeKey) const { return m_routeOrder.indexOf(routeKey); }
+int NavigationInterface::indexOf(const QString &routeKey) const
+{
+    return static_cast<int>(m_routeOrder.indexOf(routeKey));
+}
 
 QString NavigationInterface::routeKey(int index) const
 {

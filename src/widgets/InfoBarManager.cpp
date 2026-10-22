@@ -60,6 +60,9 @@ void InfoBarManager::add(InfoBar *infoBar)
         p->installEventFilter(this);
         m_infoBars[p] = QList<InfoBar *>();
         m_aniGroups[p] = new QParallelAnimationGroup(this);
+        // The parent (and with it its bars) can go away without any bar being closed,
+        // e.g. a WA_DeleteOnClose window; a later widget may then reuse the address.
+        connect(p, &QObject::destroyed, this, [this, p]() { forgetParent(p); });
     }
 
     if (m_infoBars[p].contains(infoBar)) {
@@ -71,7 +74,7 @@ void InfoBarManager::add(InfoBar *infoBar)
         auto *dropAni = new QPropertyAnimation(infoBar, "pos");
         dropAni->setDuration(200);
         m_aniGroups[p]->addAnimation(dropAni);
-        m_dropAnis.append(dropAni);
+        m_dropAnis.insert(infoBar, dropAni);
         infoBar->setProperty("dropAni", QVariant::fromValue(dropAni));
     }
 
@@ -79,11 +82,17 @@ void InfoBarManager::add(InfoBar *infoBar)
 
     // Create and start slide animation
     auto *slideAni = createSlideAni(infoBar);
-    m_slideAnis.append(slideAni);
+    m_slideAnis.insert(infoBar, slideAni);
     infoBar->setProperty("slideAni", QVariant::fromValue(slideAni));
 
     connect(infoBar, &InfoBar::closedSignal, this, [this, infoBar]() {
         remove(infoBar);
+    });
+    // A bar deleted without close() must not stay in the stacking list.
+    connect(infoBar, &QObject::destroyed, this, [this, p, infoBar]() {
+        if (forget(p, infoBar)) {
+            QMetaObject::invokeMethod(this, [this, p]() { reposition(p); }, Qt::QueuedConnection);
+        }
     });
 
     slideAni->start();
@@ -92,43 +101,54 @@ void InfoBarManager::add(InfoBar *infoBar)
 void InfoBarManager::remove(InfoBar *infoBar)
 {
     QWidget *p = infoBar->parentWidget();
-    if (!p || !m_infoBars.contains(p)) {
+    if (forget(p, infoBar)) {
+        reposition(p);
+    }
+}
+
+bool InfoBarManager::forget(QWidget *parent, InfoBar *infoBar)
+{
+    const auto bars = m_infoBars.find(parent);
+    if (bars == m_infoBars.end() || !bars->removeOne(infoBar)) {
+        return false;
+    }
+
+    if (QPropertyAnimation *dropAni = m_dropAnis.take(infoBar)) {
+        if (QParallelAnimationGroup *group = m_aniGroups.value(parent)) {
+            group->removeAnimation(dropAni);
+        }
+        delete dropAni;
+    }
+    // The slide animation is a child of the bar and goes away with it.
+    m_slideAnis.remove(infoBar);
+    return true;
+}
+
+void InfoBarManager::forgetParent(QWidget *parent)
+{
+    const QList<InfoBar *> bars = m_infoBars.take(parent);
+    for (InfoBar *bar : bars) {
+        m_dropAnis.remove(bar);
+        m_slideAnis.remove(bar);
+    }
+    // Owns the drop animations of the bars that belonged to this parent.
+    delete m_aniGroups.take(parent);
+}
+
+void InfoBarManager::reposition(QWidget *parent)
+{
+    // The parent may have been destroyed (and forgotten) before a queued call runs.
+    if (!m_infoBars.contains(parent)) {
         return;
     }
 
-    if (!m_infoBars[p].contains(infoBar)) {
-        return;
-    }
-
-    m_infoBars[p].removeOne(infoBar);
-
-    // Remove drop animation
-    QVariant dropVar = infoBar->property("dropAni");
-    if (dropVar.isValid()) {
-        auto *dropAni = dropVar.value<QPropertyAnimation *>();
-        if (dropAni) {
-            m_aniGroups[p]->removeAnimation(dropAni);
-            m_dropAnis.removeOne(dropAni);
-        }
-    }
-
-    // Remove slide animation
-    QVariant slideVar = infoBar->property("slideAni");
-    if (slideVar.isValid()) {
-        auto *slideAni = slideVar.value<QPropertyAnimation *>();
-        if (slideAni) {
-            m_slideAnis.removeOne(slideAni);
-        }
-    }
-
-    // Adjust position of remaining info bars
-    updateDropAni(p);
-    m_aniGroups[p]->start();
+    updateDropAni(parent);
+    m_aniGroups[parent]->start();
 }
 
 QPropertyAnimation *InfoBarManager::createSlideAni(InfoBar *infoBar)
 {
-    auto *ani = new QPropertyAnimation(infoBar, "pos");
+    auto *ani = new QPropertyAnimation(infoBar, "pos", infoBar);
     ani->setEasingCurve(QEasingCurve::OutQuad);
     ani->setDuration(200);
     ani->setStartValue(slideStartPos(infoBar));
@@ -143,11 +163,7 @@ void InfoBarManager::updateDropAni(QWidget *parent)
     }
 
     for (InfoBar *bar : m_infoBars[parent]) {
-        QVariant dropVar = bar->property("dropAni");
-        if (!dropVar.isValid()) {
-            continue;
-        }
-        auto *ani = dropVar.value<QPropertyAnimation *>();
+        QPropertyAnimation *ani = m_dropAnis.value(bar);
         if (!ani) {
             continue;
         }
@@ -182,7 +198,7 @@ QPoint TopInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) const
     int x = (size.width() - infoBar->width()) / 2;
     int y = m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y += m_infoBars[p][i]->height() + m_spacing;
     }
@@ -206,7 +222,7 @@ QPoint TopRightInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) co
     int x = size.width() - infoBar->width() - m_margin;
     int y = m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y += m_infoBars[p][i]->height() + m_spacing;
     }
@@ -227,7 +243,7 @@ QPoint TopLeftInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) con
     Q_UNUSED(parentSize);
 
     int y = m_margin;
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y += m_infoBars[p][i]->height() + m_spacing;
     }
@@ -250,7 +266,7 @@ QPoint BottomInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) cons
     int x = (size.width() - infoBar->width()) / 2;
     int y = size.height() - infoBar->height() - m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y -= (m_infoBars[p][i]->height() + m_spacing);
     }
@@ -274,7 +290,7 @@ QPoint BottomRightInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize)
     int x = size.width() - infoBar->width() - m_margin;
     int y = size.height() - infoBar->height() - m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y -= (m_infoBars[p][i]->height() + m_spacing);
     }
@@ -295,7 +311,7 @@ QPoint BottomLeftInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) 
     const QSize size = parentSize.isValid() ? parentSize : p->size();
 
     int y = size.height() - infoBar->height() - m_margin;
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y -= (m_infoBars[p][i]->height() + m_spacing);
     }

@@ -12,6 +12,8 @@
 #include <functional>
 
 class QEvent;
+class QFile;
+class QTextStream;
 class QContextMenuEvent;
 class QMouseEvent;
 class QPainter;
@@ -74,6 +76,9 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool isSeriesVisible(int seriesIndex) const;
     QString crosshairXText(qreal value) const;
     void setCrosshairXValueFormatter(std::function<QString(qreal)> formatter);
+    // Labels of the x-axis ticks; the default prints the number with the precision of the tick
+    // step. Separate from the crosshair formatter, whose text may be longer than a tick has room.
+    void setXAxisValueFormatter(std::function<QString(qreal)> formatter);
 
   public slots:
     int addSeries(const QString &name = QString(), const QColor &color = QColor());
@@ -161,6 +166,8 @@ class FQW_API RealtimePlotWidget : public QWidget
         bool renderCachePerformanceMode = false;
         bool visible = true;
         bool xMonotonic = true;
+        // Adjacent stored pairs whose x decreases; xMonotonic is xDescents == 0.
+        int xDescents = 0;
     };
 
     bool hasSeries(int seriesIndex) const;
@@ -206,6 +213,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     void showContextMenu(const QPoint &globalPosition);
     void showAllData();
     QString exportDirectory() const;
+    static bool finishCsv(QTextStream *stream, QFile *file);
     QString defaultExportPath(const QString &suffix) const;
     QString chooseExportPath(const QString &title, const QString &suffix, const QString &nameFilter) const;
     bool writeCsv(const QString &path) const;
@@ -233,6 +241,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool m_dataUpdatePending = false;
     QColor m_curveColor;
     std::function<QString(qreal)> m_crosshairXValueFormatter;
+    std::function<QString(qreal)> m_xAxisValueFormatter;
     bool m_dragging = false;
     bool m_rightDragPending = false;
     bool m_rightScaling = false;

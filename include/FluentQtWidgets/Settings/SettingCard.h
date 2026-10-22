@@ -361,7 +361,11 @@ class FQW_API ExpandButton : public QToolButton
 
   protected:
     void paintEvent(QPaintEvent *event) override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
+#else
+    void enterEvent(QEvent *event) override;
+#endif
     void leaveEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -394,6 +398,7 @@ class FQW_API HeaderSettingCard : public SettingCard
 
   private:
     ExpandButton *m_expandButton = nullptr;
+    bool m_headerPressed = false;
 };
 
 class FQW_API ExpandSettingCard : public QScrollArea

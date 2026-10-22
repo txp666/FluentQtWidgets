@@ -5,6 +5,7 @@
 
 #include <QtCore/QEasingCurve>
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtCore/QRectF>
 #include <QtCore/QSize>
 #include <QtCore/QUrl>
@@ -59,11 +60,16 @@ class FQW_API PushButton : public QPushButton
     virtual void setIcon(const QIcon &icon);
 
   protected:
+    bool event(QEvent *event) override;
     void initFluentButton(const QString &role);
     virtual void drawIcon(QPainter *painter, const QRectF &rect);
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
+#else
+    void enterEvent(QEvent *event) override;
+#endif
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     QIcon m_storedIcon;
@@ -142,7 +148,7 @@ class FQW_API DropDownPushButton : public PushButton
 
   private:
     void animateArrow(int endValue, int duration, QEasingCurve::Type easing);
-    RoundMenu *m_menu = nullptr;
+    QPointer<RoundMenu> m_menu;
     QPropertyAnimation *m_arrowAnimation = nullptr;
     int m_arrowOffset = 0;
     Q_PROPERTY(int arrowOffset READ arrowOffset WRITE setArrowOffset)
@@ -180,7 +186,7 @@ class FQW_API PrimaryDropDownPushButton : public PrimaryPushButton
   private:
     void showMenu();
     void animateArrow(int endValue, int duration, QEasingCurve::Type easing);
-    RoundMenu *m_menu = nullptr;
+    QPointer<RoundMenu> m_menu;
     QPropertyAnimation *m_arrowAnimation = nullptr;
     int m_arrowOffset = 0;
     Q_PROPERTY(int arrowOffset READ arrowOffset WRITE setArrowOffset)
@@ -207,11 +213,16 @@ class FQW_API ToolButton : public QToolButton
     virtual void setIcon(const QIcon &icon);
 
   protected:
+    bool event(QEvent *event) override;
     void initFluentToolButton(const QString &role);
     virtual void drawIcon(QPainter *painter, const QRectF &rect);
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
+#else
+    void enterEvent(QEvent *event) override;
+#endif
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     QIcon m_storedIcon;
@@ -283,7 +294,7 @@ class FQW_API DropDownToolButton : public ToolButton
   private:
     void showMenu();
     void animateArrow(int endValue, int duration, QEasingCurve::Type easing);
-    RoundMenu *m_menu = nullptr;
+    QPointer<RoundMenu> m_menu;
     QPropertyAnimation *m_arrowAnimation = nullptr;
     int m_arrowOffset = 0;
     Q_PROPERTY(int arrowOffset READ arrowOffset WRITE setArrowOffset)
@@ -322,7 +333,7 @@ class FQW_API PrimaryDropDownToolButton : public PrimaryToolButton
   private:
     void showMenu();
     void animateArrow(int endValue, int duration, QEasingCurve::Type easing);
-    RoundMenu *m_menu = nullptr;
+    QPointer<RoundMenu> m_menu;
     QPropertyAnimation *m_arrowAnimation = nullptr;
     int m_arrowOffset = 0;
     Q_PROPERTY(int arrowOffset READ arrowOffset WRITE setArrowOffset)
@@ -655,8 +666,14 @@ class FQW_API RadioButton : public QRadioButton
 
   protected:
     void paintEvent(QPaintEvent *event) override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
+#else
+    void enterEvent(QEvent *event) override;
+#endif
     void leaveEvent(QEvent *event) override;
+    void focusInEvent(QFocusEvent *event) override;
+    void focusOutEvent(QFocusEvent *event) override;
 
   private:
     void drawIndicator(QPainter *painter);
@@ -671,6 +688,8 @@ class FQW_API RadioButton : public QRadioButton
     QColor m_darkIndicatorColor;
     QPoint m_indicatorPos = QPoint(11, 12);
     bool m_isHover = false;
+    // Focus from the keyboard shows a focus visual; focus from a click does not.
+    bool m_focusVisible = false;
 };
 
 // --- Pill Buttons ---
@@ -781,7 +800,7 @@ class FQW_API SplitWidgetBase : public QWidget
 
     QWidget *m_contentWidget = nullptr;
     QToolButton *m_dropButton = nullptr;
-    RoundMenu *m_menu = nullptr;
+    QPointer<RoundMenu> m_menu;
     QHBoxLayout *m_layout = nullptr;
 };
 

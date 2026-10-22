@@ -17,6 +17,8 @@
 #include <QtGui/QPainterPath>
 #include <QtGui/QScreen>
 #include <QtGui/QTextCursor>
+#include <QtGui/QTextDocument>
+#include <QtGui/QWheelEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QWidget>
@@ -241,6 +243,14 @@ LineEdit::LineEdit(const QString &text, QWidget *parent)
     init();
 }
 
+LineEdit::~LineEdit()
+{
+    // Completer menus are top-level popups without a parent; nothing else frees them.
+    if (m_completerMenu && !m_completerMenu->parent()) {
+        delete m_completerMenu;
+    }
+}
+
 void LineEdit::init()
 {
     setProperty("transparent", true);
@@ -327,10 +337,16 @@ void LineEdit::setCompleterMenu(CompleterMenu *menu)
         return;
     }
 
-    connect(menu, &CompleterMenu::activated, this,
-            [this](const QString &text) { m_completer->activated(text); });
-    connect(menu, &CompleterMenu::indexActivated, this,
-            [this](const QModelIndex &idx) { m_completer->activated(idx); });
+    connect(menu, &CompleterMenu::activated, this, [this](const QString &text) {
+        if (m_completer) {
+            m_completer->activated(text);
+        }
+    });
+    connect(menu, &CompleterMenu::indexActivated, this, [this](const QModelIndex &idx) {
+        if (m_completer) {
+            m_completer->activated(idx);
+        }
+    });
 
     m_completerMenu = menu;
 }
@@ -625,7 +641,14 @@ bool CompleterMenu::setCompletion(QAbstractItemModel *model, int column)
 
 void CompleterMenu::setItems(const QStringList &items)
 {
+    // clear() only detaches actions; the ones made by addAction(text) below belong to this menu.
+    const QList<QAction *> previous = menuActions();
     clear();
+    for (QAction *action : previous) {
+        if (action->parent() == this) {
+            action->deleteLater();
+        }
+    }
     m_items = items;
 
     for (int i = 0; i < items.size(); ++i) {
@@ -727,7 +750,7 @@ LineEditMenu::LineEditMenu(QLineEdit *parent)
 {
     if (m_editor) {
         m_selectionStart = m_editor->selectionStart();
-        m_selectionLength = m_editor->selectedText().size();
+        m_selectionLength = static_cast<int>(m_editor->selectedText().size());
     }
 }
 
@@ -1120,6 +1143,53 @@ void TextEditMenu::restoreSelection() const
     }
 }
 
+namespace {
+
+// The Fluent text styles set a pixel font size in QSS. QTextEdit::zoomInF() only changes point
+// sizes, and the style sheet would put the widget font back anyway, so zoom the document's
+// default font instead and re-apply it whenever the widget font changes.
+QFont zoomedFont(QFont font, int zoom)
+{
+    if (font.pixelSize() > 0) {
+        font.setPixelSize(qMax(1, font.pixelSize() + zoom));
+    } else if (font.pointSizeF() > 0) {
+        font.setPointSizeF(qMax(1.0, font.pointSizeF() + zoom));
+    }
+    return font;
+}
+
+// Same rule as QTextEdit and QPlainTextEdit: Ctrl+wheel zooms read-only text.
+template <typename Editor>
+bool zoomOnWheel(Editor *editor, QWheelEvent *event, int *zoom, int *zoomAngle)
+{
+    if (!(event->modifiers() & Qt::ControlModifier) || !editor->isReadOnly()) {
+        return false;
+    }
+
+    // Touchpads deliver fractions of a notch; keep the remainder for the next event.
+    *zoomAngle += event->angleDelta().y();
+    const int steps = *zoomAngle / 120;
+    *zoomAngle -= steps * 120;
+    if (steps != 0) {
+        const QFont base = editor->font();
+        const int baseSize = base.pixelSize() > 0 ? base.pixelSize() : qRound(base.pointSizeF());
+        *zoom = qMax(*zoom + steps, 1 - baseSize);
+        editor->document()->setDefaultFont(zoomedFont(base, *zoom));
+    }
+    event->accept();
+    return true;
+}
+
+template <typename Editor>
+void reapplyZoom(Editor *editor, QEvent *event, int zoom)
+{
+    if (event->type() == QEvent::FontChange && zoom != 0) {
+        editor->document()->setDefaultFont(zoomedFont(editor->font(), zoom));
+    }
+}
+
+} // namespace
+
 // ============================================================================
 // TextEdit
 // ============================================================================
@@ -1139,6 +1209,19 @@ void TextEdit::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = new TextEditMenu(this);
     menu->setAttribute(Qt::WA_DeleteOnClose);
     menu->exec(event->globalPos(), true, MenuAnimationType::FadeInDropDown);
+}
+
+void TextEdit::wheelEvent(QWheelEvent *event)
+{
+    if (!zoomOnWheel(this, event, &m_zoom, &m_zoomAngle)) {
+        QTextEdit::wheelEvent(event);
+    }
+}
+
+void TextEdit::changeEvent(QEvent *event)
+{
+    QTextEdit::changeEvent(event);
+    reapplyZoom(this, event, m_zoom);
 }
 
 // ============================================================================
@@ -1162,6 +1245,19 @@ void PlainTextEdit::contextMenuEvent(QContextMenuEvent *event)
     menu->exec(event->globalPos(), true, MenuAnimationType::FadeInDropDown);
 }
 
+void PlainTextEdit::wheelEvent(QWheelEvent *event)
+{
+    if (!zoomOnWheel(this, event, &m_zoom, &m_zoomAngle)) {
+        QPlainTextEdit::wheelEvent(event);
+    }
+}
+
+void PlainTextEdit::changeEvent(QEvent *event)
+{
+    QPlainTextEdit::changeEvent(event);
+    reapplyZoom(this, event, m_zoom);
+}
+
 // ============================================================================
 // TextBrowser
 // ============================================================================
@@ -1181,6 +1277,19 @@ void TextBrowser::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = new TextEditMenu(this);
     menu->setAttribute(Qt::WA_DeleteOnClose);
     menu->exec(event->globalPos(), true, MenuAnimationType::FadeInDropDown);
+}
+
+void TextBrowser::wheelEvent(QWheelEvent *event)
+{
+    if (!zoomOnWheel(this, event, &m_zoom, &m_zoomAngle)) {
+        QTextBrowser::wheelEvent(event);
+    }
+}
+
+void TextBrowser::changeEvent(QEvent *event)
+{
+    QTextBrowser::changeEvent(event);
+    reapplyZoom(this, event, m_zoom);
 }
 
 } // namespace FluentQt

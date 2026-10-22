@@ -119,6 +119,8 @@ class FQW_API IndeterminateProgressBar : public QProgressBar
 
   protected:
     void paintEvent(QPaintEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
   private:
     QColor barColor() const;
@@ -128,6 +130,8 @@ class FQW_API IndeterminateProgressBar : public QProgressBar
     QColor m_lightBarColor;
     QColor m_darkBarColor;
     bool m_isError = false;
+    // Running, but paused by the library while the bar is not visible.
+    bool m_suspended = false;
     QPropertyAnimation *m_shortBarAni = nullptr;
     QPropertyAnimation *m_longBarAni = nullptr;
     QParallelAnimationGroup *m_aniGroup = nullptr;
@@ -208,11 +212,15 @@ class FQW_API IndeterminateProgressRing : public QProgressBar
 
   protected:
     void paintEvent(QPaintEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
   private:
     QColor barColor() const;
     QColor backgroundColor() const;
 
+    // Running, but paused by the library while the ring is not visible.
+    bool m_suspended = false;
     QColor m_lightBackgroundColor = QColor(0, 0, 0, 0);
     QColor m_darkBackgroundColor = QColor(255, 255, 255, 0);
     QColor m_lightBarColor;

@@ -265,7 +265,7 @@ QVector<qreal> AudioWaveformWidget::displaySamples(int maximumBars) const
 
     QVector<qreal> result;
     result.reserve(maximumBars);
-    const int total = m_samples.size();
+    const int total = static_cast<int>(m_samples.size());
     for (int i = 0; i < maximumBars; ++i) {
         const int begin = static_cast<int>(std::floor(static_cast<qreal>(i) * total / maximumBars));
         const int end = qMax(begin + 1, static_cast<int>(std::floor(static_cast<qreal>(i + 1) * total / maximumBars)));

@@ -7,7 +7,9 @@
 #include <QtCore/QPoint>
 #include <QtCore/QRectF>
 #include <QtCore/QEvent>
+#include <QtCore/QHash>
 #include <QtGui/QEnterEvent>
+#include <QtGui/QFocusEvent>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QIcon>
 #include <QtGui/QMouseEvent>
@@ -16,6 +18,38 @@
 #include <QtGui/QPen>
 
 namespace FluentQt {
+
+namespace {
+
+// Focus reached from the keyboard shows WinUI's focus visual; a click gives focus without one.
+bool isKeyboardFocusReason(Qt::FocusReason reason)
+{
+    return reason == Qt::TabFocusReason || reason == Qt::BacktabFocusReason || reason == Qt::ShortcutFocusReason;
+}
+
+void paintFocusVisual(QPainter *painter, const QRectF &rect, qreal radius)
+{
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    painter->save();
+    painter->setOpacity(1.0);
+    painter->setPen(QPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0, 228), 2));
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRoundedRect(rect.adjusted(1, 1, -1, -1), radius, radius);
+    painter->restore();
+}
+
+// Parsed once per path; a QIcon made from the file on every paint parsed the SVG every time.
+QIcon cachedIcon(const QString &path)
+{
+    static QHash<QString, QIcon> icons;
+    auto it = icons.find(path);
+    if (it == icons.end()) {
+        it = icons.insert(path, QIcon(path));
+    }
+    return it.value();
+}
+
+} // namespace
 
 CheckBox::CheckBox(QWidget *parent) : QCheckBox(parent)
 {
@@ -95,7 +129,7 @@ QColor CheckBox::textColor() const
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     QColor color = dark ? m_darkTextColor : m_lightTextColor;
     if (!isEnabled()) {
-        color.setAlphaF(dark ? 0.3628 : 0.36);
+        color.setAlphaF(dark ? 0.3628f : 0.36f);
     }
     return color;
 }
@@ -252,13 +286,31 @@ void CheckBox::paintEvent(QPaintEvent *)
     }
 
     if (checkState() == Qt::Checked || checkState() == Qt::PartiallyChecked) {
-        QIcon(indicatorIconPath()).paint(&painter, rect);
+        cachedIcon(indicatorIconPath()).paint(&painter, rect);
     }
 
     painter.setOpacity(1.0);
     painter.setPen(textColor());
     painter.setFont(font());
     painter.drawText(textRect(), Qt::AlignVCenter | Qt::AlignLeft, text());
+
+    if (m_focusVisible && hasFocus()) {
+        paintFocusVisual(&painter, QRectF(this->rect()), 4.0);
+    }
+}
+
+void CheckBox::focusInEvent(QFocusEvent *event)
+{
+    m_focusVisible = isKeyboardFocusReason(event->reason());
+    QCheckBox::focusInEvent(event);
+    update();
+}
+
+void CheckBox::focusOutEvent(QFocusEvent *event)
+{
+    m_focusVisible = false;
+    QCheckBox::focusOutEvent(event);
+    update();
 }
 
 void CheckBox::mousePressEvent(QMouseEvent *event)
@@ -275,7 +327,11 @@ void CheckBox::mouseReleaseEvent(QMouseEvent *event)
     update();
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void CheckBox::enterEvent(QEnterEvent *event)
+#else
+void CheckBox::enterEvent(QEvent *event)
+#endif
 {
     m_isHover = true;
     QCheckBox::enterEvent(event);
@@ -353,7 +409,11 @@ void RadioButton::setIndicatorPos(const QPoint &pos)
     update();
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void RadioButton::enterEvent(QEnterEvent *event)
+#else
+void RadioButton::enterEvent(QEvent *event)
+#endif
 {
     m_isHover = true;
     QRadioButton::enterEvent(event);
@@ -379,6 +439,23 @@ void RadioButton::paintEvent(QPaintEvent *)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     drawIndicator(&painter);
     drawText(&painter);
+    if (m_focusVisible && hasFocus()) {
+        paintFocusVisual(&painter, QRectF(rect()), 4.0);
+    }
+}
+
+void RadioButton::focusInEvent(QFocusEvent *event)
+{
+    m_focusVisible = isKeyboardFocusReason(event->reason());
+    QRadioButton::focusInEvent(event);
+    update();
+}
+
+void RadioButton::focusOutEvent(QFocusEvent *event)
+{
+    m_focusVisible = false;
+    QRadioButton::focusOutEvent(event);
+    update();
 }
 
 void RadioButton::drawText(QPainter *painter)

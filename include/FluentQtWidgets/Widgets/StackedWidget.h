@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QEasingCurve>
+#include <QtCore/QPointer>
 #include <QtCore/QVector>
 #include <QtWidgets/QStackedWidget>
 
@@ -33,11 +34,11 @@ class FQW_API OpacityAniStackedWidget : public QStackedWidget
     void onAnimationFinished();
 
   private:
-    void ensureAnimationForWidget(QWidget *widget, int index);
+    void finishAnimation();
 
-    int m_nextIndex = 0;
-    QVector<QGraphicsOpacityEffect *> m_effects;
-    QVector<QPropertyAnimation *> m_animations;
+    int m_nextIndex = -1;
+    QPointer<QWidget> m_animatedWidget;
+    QPointer<QPropertyAnimation> m_animation;
 };
 
 struct FQW_API PopUpAniInfo
@@ -55,6 +56,7 @@ class FQW_API PopUpAniStackedWidget : public QStackedWidget
 
   public:
     explicit PopUpAniStackedWidget(QWidget *parent = nullptr);
+    ~PopUpAniStackedWidget() override;
 
     int addWidget(QWidget *widget, int deltaX = 0, int deltaY = 76);
     void removeWidget(QWidget *widget);
@@ -78,7 +80,12 @@ class FQW_API PopUpAniStackedWidget : public QStackedWidget
   private:
     void setupAnimation(QPropertyAnimation *animation, const QPoint &startValue, const QPoint &endValue,
                         int duration, QEasingCurve::Type easingCurve);
+    int animationInfoIndex(const QWidget *widget) const;
+    PopUpAniInfo &ensureAnimationInfo(QWidget *widget);
+    void onWidgetRemoved(int index);
 
+    // Looked up by page, not by stack index: pages can also be added, removed or deleted
+    // through the plain QStackedWidget API.
     QVector<PopUpAniInfo> m_animationInfos;
     bool m_animationEnabled = true;
     int m_nextIndex = -1;

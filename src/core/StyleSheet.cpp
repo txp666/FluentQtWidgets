@@ -9,6 +9,8 @@
 #include <QtCore/QEvent>
 #include <QtCore/QFile>
 #include <QtCore/QHash>
+#include <QtCore/QMetaObject>
+#include <QtCore/QSet>
 #include <QtCore/QVariant>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QWidget>
@@ -22,6 +24,12 @@ constexpr const char *kLightCustomQssProperty = "fqw-light-qss";
 constexpr const char *kDarkCustomQssProperty = "fqw-dark-qss";
 constexpr const char *kDirtyQssProperty = "fqw-dirty-qss";
 constexpr const char *kStyleSourceProperty = "fqw-style-source";
+// The style sheet the manager last set, so it can tell its own from one the application set.
+constexpr const char *kAppliedQssProperty = "fqw-applied-qss";
+
+// The manager's own bookkeeping (and the "fqw" role) never changes how a widget looks, so
+// setting it must not repolish; neither do Qt's own ("_q_"), which styles set as they polish.
+bool isInternalProperty(const QByteArray &name) { return name.startsWith("fqw") || name.startsWith("_q_"); }
 
 bool containsWidget(const QList<QPointer<QWidget>> &widgets, QWidget *widget)
 {
@@ -375,7 +383,7 @@ StyleSheetManager *StyleSheetManager::instance()
 
 StyleSheetManager::StyleSheetManager(QObject *parent) : QObject(parent) {}
 
-void StyleSheetManager::registerWidget(QWidget *widget, FluentStyleSheetSource source)
+void StyleSheetManager::registerWidget(QWidget *widget, FluentStyleSheetSource source, Theme theme)
 {
     if (!widget) {
         return;
@@ -384,14 +392,15 @@ void StyleSheetManager::registerWidget(QWidget *widget, FluentStyleSheetSource s
     widget->setProperty(kStyleSourceProperty, static_cast<int>(source));
     if (!isRegistered(widget)) {
         m_widgets.append(QPointer<QWidget>(widget));
+        m_registered.insert(widget);
         widget->installEventFilter(this);
         connect(widget, &QObject::destroyed, this, [this](QObject *object) {
-            deregisterWidget(qobject_cast<QWidget *>(object));
+            m_registered.remove(object);
             compact();
         });
     }
 
-    updateWidget(widget);
+    updateWidget(widget, theme);
 }
 
 void StyleSheetManager::deregisterWidget(QWidget *widget)
@@ -401,27 +410,16 @@ void StyleSheetManager::deregisterWidget(QWidget *widget)
         return;
     }
 
+    m_registered.remove(widget);
     widget->removeEventFilter(this);
-    for (int i = m_widgets.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(m_widgets.size()) - 1; i >= 0; --i) {
         if (m_widgets.at(i).isNull() || m_widgets.at(i).data() == widget) {
             m_widgets.removeAt(i);
         }
     }
 }
 
-bool StyleSheetManager::isRegistered(QWidget *widget) const
-{
-    if (!widget) {
-        return false;
-    }
-
-    for (const QPointer<QWidget> &registeredWidget : m_widgets) {
-        if (registeredWidget.data() == widget) {
-            return true;
-        }
-    }
-    return false;
-}
+bool StyleSheetManager::isRegistered(QWidget *widget) const { return widget && m_registered.contains(widget); }
 
 FluentStyleSheetSource StyleSheetManager::sourceForWidget(QWidget *widget) const
 {
@@ -471,11 +469,19 @@ void StyleSheetManager::updateWidget(QWidget *widget, Theme theme)
 
     const FluentStyleSheetSource source = sourceFromProperty(widget);
     const QString composed = FluentStyleSheet::compose(widget, source, theme);
-    if (!composed.isEmpty()) {
+    // An empty result still replaces a sheet this manager set (the custom QSS was cleared), but
+    // never one the application set on a widget without Fluent QSS.
+    const bool ownsStyleSheet = widget->styleSheet() == widget->property(kAppliedQssProperty).toString();
+    if ((!composed.isEmpty() || ownsStyleSheet) && widget->styleSheet() != composed) {
         widget->setStyleSheet(composed);
     }
+    if (!composed.isEmpty() || ownsStyleSheet) {
+        widget->setProperty(kAppliedQssProperty, composed);
+    }
 
-    widget->setProperty(kDirtyQssProperty, false);
+    if (widget->property(kDirtyQssProperty).toBool()) {
+        widget->setProperty(kDirtyQssProperty, false);
+    }
     FluentStyleSheet::polish(widget);
 }
 
@@ -507,11 +513,24 @@ bool StyleSheetManager::eventFilter(QObject *watched, QEvent *event)
         return QObject::eventFilter(watched, event);
     }
 
-    if (event->type() == QEvent::Paint && widget->property(kDirtyQssProperty).toBool()) {
+    // A widget skipped by a lazy updateAll() catches up as it is shown, before its first paint.
+    if (event->type() == QEvent::Show && widget->property(kDirtyQssProperty).toBool()) {
         updateWidget(widget);
+    } else if (event->type() == QEvent::Paint && widget->property(kDirtyQssProperty).toBool()) {
+        // Shown without a Show event of its own; restyling inside its paint event would repaint
+        // recursively, so do it right after.
+        QMetaObject::invokeMethod(
+            this,
+            [this, guarded = QPointer<QWidget>(widget)]() {
+                if (guarded && guarded->property(kDirtyQssProperty).toBool()) {
+                    updateWidget(guarded);
+                }
+            },
+            Qt::QueuedConnection);
     }
 
-    if (event->type() == QEvent::DynamicPropertyChange) {
+    if (event->type() == QEvent::DynamicPropertyChange &&
+        !isInternalProperty(static_cast<QDynamicPropertyChangeEvent *>(event)->propertyName())) {
         FluentStyleSheet::polish(widget);
     }
 
@@ -520,7 +539,7 @@ bool StyleSheetManager::eventFilter(QObject *watched, QEvent *event)
 
 void StyleSheetManager::compact()
 {
-    for (int i = m_widgets.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(m_widgets.size()) - 1; i >= 0; --i) {
         if (m_widgets.at(i).isNull()) {
             m_widgets.removeAt(i);
         }
@@ -596,7 +615,7 @@ void FluentStyleSheet::apply(QWidget *widget, FluentStyleSheetSource source, The
         return;
     }
 
-    StyleSheetManager::instance()->registerWidget(widget, source);
+    StyleSheetManager::instance()->registerWidget(widget, source, theme);
 }
 
 void FluentStyleSheet::updateAll(Theme theme, bool lazy) { StyleSheetManager::instance()->updateAll(theme, lazy); }
@@ -607,8 +626,16 @@ void FluentStyleSheet::polish(QWidget *widget)
         return;
     }
 
+    // A style may set properties on the widget as it (un)polishes it, as Qt 6.8's Windows 11 style
+    // does. Each change would repolish the widget again, until the stack overflowed.
+    static QSet<const QWidget *> polishing;
+    if (polishing.contains(widget)) {
+        return;
+    }
+    polishing.insert(widget);
     widget->style()->unpolish(widget);
     widget->style()->polish(widget);
+    polishing.remove(widget);
     widget->update();
 }
 

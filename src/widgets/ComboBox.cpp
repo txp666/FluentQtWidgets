@@ -8,6 +8,8 @@
 
 #include <QtCore/QEasingCurve>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QElapsedTimer>
+#include <QtCore/QScopedValueRollback>
 #include <QtCore/QSignalBlocker>
 #include <QtGui/QCursor>
 #include <QtGui/QMouseEvent>
@@ -148,6 +150,18 @@ bool shouldClearClosedDropMenu(QWidget *owner)
 #endif
 }
 
+// On Windows, the click on the combo that closes its popup reaches the combo too and would reopen
+// it right away, so onDropMenuClosed() arms an ignore flag for it. A press that never turns into
+// a click (released elsewhere) must not leave the flag armed for the next real click.
+bool consumeIgnoredToggle(bool *ignoreNextToggle, const QElapsedTimer &closedTimer)
+{
+    if (!*ignoreNextToggle) {
+        return false;
+    }
+    *ignoreNextToggle = false;
+    return closedTimer.isValid() && closedTimer.elapsed() <= QApplication::doubleClickInterval();
+}
+
 void paintComboBoxArrow(QPainter *painter, const QRectF &rect)
 {
     if (!painter) {
@@ -201,45 +215,67 @@ void ComboBox::removeItem(int index)
         return;
     }
 
+    // Read before the list shifts; afterwards m_currentIndex names another item.
+    const QString oldText = currentText();
     m_items.removeAt(index);
 
-    if (index < m_currentIndex) {
-        setCurrentIndex(m_currentIndex - 1);
-    } else if (index == m_currentIndex) {
-        if (index > 0) {
-            setCurrentIndex(m_currentIndex - 1);
-        } else if (!m_items.isEmpty()) {
-            m_currentIndex = 0;
-            setPlaceholderTextProperty(false);
-            setText(itemText(0));
-            emit currentTextChanged(currentText());
-            emit currentIndexChanged(0);
-        } else {
-            clear();
+    if (m_items.isEmpty()) {
+        if (m_currentIndex >= 0) {
+            m_currentIndex = -1;
+            showPlaceholder(oldText);
         }
+        return;
+    }
+
+    if (index < m_currentIndex) {
+        // Same item, new position.
+        --m_currentIndex;
+        emit currentIndexChanged(m_currentIndex);
+    } else if (index == m_currentIndex) {
+        m_currentIndex = index > 0 ? index - 1 : 0;
+        setPlaceholderTextProperty(false);
+        setText(m_items[m_currentIndex].text);
+        adjustSize();
+        if (oldText != currentText()) {
+            emit currentTextChanged(currentText());
+        }
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
 void ComboBox::insertItem(int index, const QString &text, const QIcon &icon, const QVariant &userData)
 {
-    index = qBound(0, index, m_items.size());
-    ComboItem item(text, icon, userData);
-    m_items.insert(index, item);
-    if (index <= m_currentIndex) {
-        setCurrentIndex(m_currentIndex + 1);
-    }
+    insertComboItems(index, {ComboItem(text, icon, userData)});
 }
 
 void ComboBox::insertItems(int index, const QStringList &texts)
 {
-    index = qBound(0, index, m_items.size());
-    int pos = index;
+    QList<ComboItem> items;
     for (const QString &t : texts) {
-        m_items.insert(pos, ComboItem(t));
-        ++pos;
+        items.append(ComboItem(t));
     }
-    if (index <= m_currentIndex) {
-        setCurrentIndex(m_currentIndex + pos - index);
+    insertComboItems(index, items);
+}
+
+void ComboBox::insertComboItems(int index, const QList<ComboItem> &items)
+{
+    if (items.isEmpty()) {
+        return;
+    }
+
+    const bool wasEmpty = m_items.isEmpty();
+    index = qBound(0, index, static_cast<int>(m_items.size()));
+    for (int i = 0; i < items.size(); ++i) {
+        m_items.insert(index + i, items.at(i));
+    }
+
+    if (wasEmpty) {
+        // Like addItem() and QComboBox: the first item becomes current.
+        setCurrentIndex(0);
+    } else if (index <= m_currentIndex) {
+        // Same item, new position.
+        m_currentIndex += static_cast<int>(items.size());
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
@@ -251,8 +287,9 @@ void ComboBox::setCurrentIndex(int index)
         if (m_currentIndex == -1) {
             return;
         }
+        const QString oldText = currentText();
         m_currentIndex = -1;
-        setPlaceholderText(m_placeholderText);
+        showPlaceholder(oldText);
         return;
     }
 
@@ -378,15 +415,29 @@ int ComboBox::findData(const QVariant &data) const
     return -1;
 }
 
-int ComboBox::count() const { return m_items.size(); }
+int ComboBox::count() const { return static_cast<int>(m_items.size()); }
 
 void ComboBox::clear()
 {
-    if (m_currentIndex >= 0) {
-        setText(QString());
-    }
+    const QString oldText = currentText();
+    const bool hadCurrent = m_currentIndex >= 0;
     m_items.clear();
     m_currentIndex = -1;
+    if (hadCurrent) {
+        showPlaceholder(oldText);
+    }
+}
+
+// Back to no selection: the placeholder shows again, and listeners hear about it as with
+// QComboBox.
+void ComboBox::showPlaceholder(const QString &oldText)
+{
+    setPlaceholderText(m_placeholderText);
+    adjustSize();
+    if (!oldText.isEmpty()) {
+        emit currentTextChanged(QString());
+    }
+    emit currentIndexChanged(-1);
 }
 
 int ComboBox::maxVisibleItems() const { return m_maxVisibleItems; }
@@ -561,8 +612,7 @@ void ComboBox::closeComboMenu()
 
 void ComboBox::toggleComboMenu()
 {
-    if (m_ignoreNextToggle) {
-        m_ignoreNextToggle = false;
+    if (consumeIgnoredToggle(&m_ignoreNextToggle, m_dropMenuClosedTimer)) {
         return;
     }
     if (m_dropMenu) {
@@ -595,6 +645,7 @@ void ComboBox::onDropMenuClosed()
     m_arrowAni->setDirection(QAbstractAnimation::Backward);
     m_arrowAni->start();
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
 }
 
@@ -701,27 +752,43 @@ void EditableComboBox::removeItem(int index)
         m_currentIndex--;
     } else if (index == m_currentIndex) {
         m_currentIndex = -1;
-        setCurrentIndex(qMin(index, m_items.size() - 1));
+        setCurrentIndex(qMin(index, static_cast<int>(m_items.size()) - 1));
     }
 }
 
 void EditableComboBox::insertItem(int index, const QString &text, const QIcon &icon, const QVariant &userData)
 {
-    index = qBound(0, index, m_items.size());
-    m_items.insert(index, ComboItem(text, icon, userData));
-    if (index <= m_currentIndex) {
-        m_currentIndex++;
-    }
+    insertComboItems(index, {ComboItem(text, icon, userData)});
 }
 
 void EditableComboBox::insertItems(int index, const QStringList &texts)
 {
-    int pos = qBound(0, index, m_items.size());
+    QList<ComboItem> items;
     for (const QString &text : texts) {
-        m_items.insert(pos++, ComboItem(text));
+        items.append(ComboItem(text));
     }
-    if (index <= m_currentIndex) {
-        m_currentIndex += texts.size();
+    insertComboItems(index, items);
+}
+
+void EditableComboBox::insertComboItems(int index, const QList<ComboItem> &items)
+{
+    if (items.isEmpty()) {
+        return;
+    }
+
+    const bool wasEmpty = m_items.isEmpty();
+    index = qBound(0, index, static_cast<int>(m_items.size()));
+    for (int i = 0; i < items.size(); ++i) {
+        m_items.insert(index + i, items.at(i));
+    }
+
+    if (wasEmpty && text().isEmpty()) {
+        // Like addItem(): the first item becomes current unless something has been typed.
+        setCurrentIndex(0);
+    } else if (index <= m_currentIndex) {
+        // Same item, new position.
+        m_currentIndex += static_cast<int>(items.size());
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
@@ -781,7 +848,8 @@ void EditableComboBox::setCurrentText(const QString &text)
     if (index >= 0) {
         setCurrentIndex(index);
     } else {
-        m_currentIndex = -1;
+        // onComboTextChanged() sets the index to -1 and emits currentIndexChanged(-1); setting it
+        // here first would swallow that signal.
         setText(text);
     }
 }
@@ -862,13 +930,18 @@ int EditableComboBox::findData(const QVariant &data) const
     return -1;
 }
 
-int EditableComboBox::count() const { return m_items.size(); }
+int EditableComboBox::count() const { return static_cast<int>(m_items.size()); }
 
 void EditableComboBox::clear()
 {
-    QLineEdit::clear();
+    // Items first, so onComboTextChanged() (run by the text change) finds nothing to select and
+    // emits the change of index.
     m_items.clear();
-    m_currentIndex = -1;
+    QLineEdit::clear();
+    if (m_currentIndex != -1) {
+        m_currentIndex = -1;
+        emit currentIndexChanged(-1);
+    }
 }
 
 int EditableComboBox::maxVisibleItems() const { return m_maxVisibleItems; }
@@ -991,8 +1064,7 @@ void EditableComboBox::closeComboMenu()
 
 void EditableComboBox::toggleComboMenu()
 {
-    if (m_ignoreNextToggle) {
-        m_ignoreNextToggle = false;
+    if (consumeIgnoredToggle(&m_ignoreNextToggle, m_dropMenuClosedTimer)) {
         return;
     }
     if (m_dropMenu) {
@@ -1016,6 +1088,7 @@ void EditableComboBox::onItemClicked(int index)
 void EditableComboBox::onDropMenuClosed()
 {
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
 }
 
@@ -1056,9 +1129,13 @@ void EditableComboBox::onReturnPressed()
 
 void EditableComboBox::onClearButtonClicked()
 {
-    m_currentIndex = -1;
-    updatePlaceholderState(true);
-    emit currentIndexChanged(-1);
+    // textChanged() runs onComboTextChanged(), which updates the placeholder and emits; an item
+    // whose text happens to be empty is still not selected by clearing.
+    QLineEdit::clear();
+    if (m_currentIndex != -1) {
+        m_currentIndex = -1;
+        emit currentIndexChanged(-1);
+    }
 }
 
 void EditableComboBox::onCompleterActivated(const QString &text)
@@ -1109,16 +1186,31 @@ void ModelComboBox::setModel(QAbstractItemModel *model)
     }
     m_modelConnections.clear();
 
+    // Like QComboBox: a model the combo owns (its default one) goes away when replaced, and a
+    // model of the caller stays the caller's whatever its parent; adopting parentless models
+    // double-deleted the ones living on the stack or as members.
+    QAbstractItemModel *previous = m_model;
     m_model = model;
-    if (!m_model->parent()) {
-        m_model->setParent(this);
+    if (previous && previous->parent() == this) {
+        previous->deleteLater();
     }
     bindModelSignals();
 
+    // A new list: its first item even when the old current index was 0 too, where
+    // setCurrentIndex(0) would keep the old item's text.
     if (m_model->rowCount() > 0) {
-        setCurrentIndex(0);
+        reselectCurrentIndex(0);
     } else {
         setCurrentIndex(-1);
+    }
+}
+
+// The default model is a child of the combo and is destroyed by ~QWidget after this body; its
+// destroyed() handler must not run against a half-destroyed combo.
+ModelComboBox::~ModelComboBox()
+{
+    for (const auto &connection : std::as_const(m_modelConnections)) {
+        QObject::disconnect(connection);
     }
 }
 
@@ -1138,10 +1230,12 @@ void ModelComboBox::bindModelSignals()
     }
 
     m_modelConnections = {
-        connect(m_model, &QAbstractItemModel::rowsInserted, this, &ModelComboBox::onModelRowsInserted),
-        connect(m_model, &QAbstractItemModel::rowsRemoved, this, &ModelComboBox::onModelRowsRemoved),
-        connect(m_model, &QAbstractItemModel::dataChanged, this, &ModelComboBox::onModelDataChanged),
-        connect(m_model, &QAbstractItemModel::modelReset, this, &ModelComboBox::onModelReset),
+        connect(m_model.data(), &QAbstractItemModel::rowsInserted, this, &ModelComboBox::onModelRowsInserted),
+        connect(m_model.data(), &QAbstractItemModel::rowsRemoved, this, &ModelComboBox::onModelRowsRemoved),
+        connect(m_model.data(), &QAbstractItemModel::dataChanged, this, &ModelComboBox::onModelDataChanged),
+        connect(m_model.data(), &QAbstractItemModel::modelReset, this, &ModelComboBox::onModelReset),
+        // m_model is a QPointer and already null by now.
+        connect(m_model.data(), &QObject::destroyed, this, [this]() { setCurrentIndex(-1); }),
     };
 }
 
@@ -1160,10 +1254,18 @@ QModelIndex ModelComboBox::insertItem(int index, const QString &text, const QIco
         return {};
     }
     const int row = qBound(0, index, count());
-    const QSignalBlocker blocker(m_model);
-    const QModelIndex modelIndex = insertModelComboItem(m_model, row, text, icon, userData);
-    if (row <= m_currentIndex) {
-        setCurrentIndex(m_currentIndex + 1);
+    const bool wasEmpty = count() == 0;
+    QModelIndex modelIndex;
+    {
+        const QScopedValueRollback<bool> updating(m_updatingModel, true);
+        modelIndex = insertModelComboItem(m_model, row, text, icon, userData);
+    }
+    if (wasEmpty) {
+        setCurrentIndex(0);
+    } else if (row <= m_currentIndex) {
+        // Same item, new position.
+        ++m_currentIndex;
+        emit currentIndexChanged(m_currentIndex);
     }
     return modelIndex;
 }
@@ -1181,13 +1283,23 @@ void ModelComboBox::insertItems(int index, const QStringList &texts)
         return;
     }
     const int startRow = qBound(0, index, count());
+    const bool wasEmpty = count() == 0;
     int row = startRow;
-    const QSignalBlocker blocker(m_model);
-    for (const QString &text : texts) {
-        insertModelComboItem(m_model, row++, text, QIcon(), QVariant());
+    {
+        const QScopedValueRollback<bool> updating(m_updatingModel, true);
+        for (const QString &text : texts) {
+            insertModelComboItem(m_model, row++, text, QIcon(), QVariant());
+        }
     }
-    if (!texts.isEmpty() && startRow <= m_currentIndex) {
-        setCurrentIndex(m_currentIndex + texts.size());
+    if (texts.isEmpty()) {
+        return;
+    }
+    if (wasEmpty) {
+        setCurrentIndex(0);
+    } else if (startRow <= m_currentIndex) {
+        // Same item, new position.
+        m_currentIndex += static_cast<int>(texts.size());
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
@@ -1199,7 +1311,7 @@ void ModelComboBox::removeItem(int index)
 
     const QString oldText = currentText();
     {
-        const QSignalBlocker blocker(m_model);
+        const QScopedValueRollback<bool> updating(m_updatingModel, true);
         m_model->removeRow(index);
     }
 
@@ -1209,21 +1321,20 @@ void ModelComboBox::removeItem(int index)
     }
 
     if (index < m_currentIndex) {
-        setCurrentIndex(m_currentIndex - 1);
+        // Same item, new position.
+        --m_currentIndex;
+        emit currentIndexChanged(m_currentIndex);
     } else if (index == m_currentIndex) {
-        if (index > 0) {
-            setCurrentIndex(m_currentIndex - 1);
-        } else {
-            m_currentIndex = 0;
-            setPlaceholderTextProperty(false);
-            setText(itemText(0));
-            adjustSize();
-            updateCurrentIcon();
-            if (oldText != currentText()) {
-                emit currentTextChanged(currentText());
-            }
-            emit currentIndexChanged(0);
+        // oldText was read before the rows shifted.
+        m_currentIndex = index > 0 ? index - 1 : 0;
+        setPlaceholderTextProperty(false);
+        setText(itemText(m_currentIndex));
+        adjustSize();
+        updateCurrentIcon();
+        if (oldText != currentText()) {
+            emit currentTextChanged(currentText());
         }
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
@@ -1320,9 +1431,9 @@ void ModelComboBox::clear()
     if (!m_model) {
         return;
     }
+    // onModelRowsRemoved() resets the index, shows the placeholder again and emits.
     m_model->removeRows(0, m_model->rowCount());
-    m_currentIndex = -1;
-    setText(QString());
+    setCurrentIndex(-1);
     updateCurrentIcon();
 }
 
@@ -1480,8 +1591,7 @@ void ModelComboBox::closeComboMenu()
 
 void ModelComboBox::toggleComboMenu()
 {
-    if (m_ignoreNextToggle) {
-        m_ignoreNextToggle = false;
+    if (consumeIgnoredToggle(&m_ignoreNextToggle, m_dropMenuClosedTimer)) {
         return;
     }
     if (m_dropMenu) {
@@ -1514,13 +1624,19 @@ void ModelComboBox::onDropMenuClosed()
     m_arrowAni->setDirection(QAbstractAnimation::Backward);
     m_arrowAni->start();
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
 }
 
 void ModelComboBox::onModelRowsInserted(const QModelIndex &, int first, int last)
 {
+    if (m_updatingModel) {
+        return;
+    }
     if (first <= m_currentIndex) {
-        setCurrentIndex(m_currentIndex + last - first + 1);
+        // Same item, new position; its text did not change.
+        m_currentIndex += last - first + 1;
+        emit currentIndexChanged(m_currentIndex);
     } else if (m_currentIndex < 0 && count() > 0) {
         setCurrentIndex(0);
     }
@@ -1528,20 +1644,25 @@ void ModelComboBox::onModelRowsInserted(const QModelIndex &, int first, int last
 
 void ModelComboBox::onModelRowsRemoved(const QModelIndex &, int first, int last)
 {
+    if (m_updatingModel) {
+        return;
+    }
     const int removed = last - first + 1;
     if (count() == 0) {
         setCurrentIndex(-1);
     } else if (last < m_currentIndex) {
-        setCurrentIndex(m_currentIndex - removed);
+        // Same item, new position; its text did not change.
+        m_currentIndex -= removed;
+        emit currentIndexChanged(m_currentIndex);
     } else if (first <= m_currentIndex && m_currentIndex <= last) {
-        setCurrentIndex(qMin(first, count() - 1));
+        reselectCurrentIndex(qMin(first, count() - 1));
     }
 }
 
 void ModelComboBox::onModelDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                                        const QList<int> &roles)
 {
-    if (m_currentIndex < topLeft.row() || m_currentIndex > bottomRight.row()) {
+    if (m_updatingModel || m_currentIndex < topLeft.row() || m_currentIndex > bottomRight.row()) {
         return;
     }
     if (roles.isEmpty() || roles.contains(Qt::EditRole) || roles.contains(Qt::DisplayRole)) {
@@ -1556,10 +1677,30 @@ void ModelComboBox::onModelDataChanged(const QModelIndex &topLeft, const QModelI
 void ModelComboBox::onModelReset()
 {
     if (count() > 0) {
-        setCurrentIndex(0);
+        reselectCurrentIndex(0);
     } else {
         setCurrentIndex(-1);
     }
+}
+
+// setCurrentIndex() returns early for the current index, but after a reset or after the current
+// row was removed, the row at that index is a different item and the button has to follow it.
+void ModelComboBox::reselectCurrentIndex(int index)
+{
+    if (index < 0 || index != m_currentIndex) {
+        setCurrentIndex(index);
+        return;
+    }
+
+    const QString oldText = text();
+    setPlaceholderTextProperty(false);
+    setText(itemText(index));
+    adjustSize();
+    updateCurrentIcon();
+    if (oldText != currentText()) {
+        emit currentTextChanged(currentText());
+    }
+    emit currentIndexChanged(index);
 }
 
 // ============================================================================
@@ -1595,14 +1736,39 @@ void EditableModelComboBox::setModel(QAbstractItemModel *model)
     }
     m_modelConnections.clear();
 
+    // Like QComboBox: a model the combo owns (its default one) goes away when replaced, and a
+    // model of the caller stays the caller's whatever its parent; adopting parentless models
+    // double-deleted the ones living on the stack or as members.
+    QAbstractItemModel *previous = m_model;
     m_model = model;
-    if (!m_model->parent()) {
-        m_model->setParent(this);
+    if (previous && previous->parent() == this) {
+        previous->deleteLater();
     }
     bindModelSignals();
 
-    if (count() > 0 && text().isEmpty()) {
-        setCurrentIndex(0);
+    // A new list: an item of the old one gives way to its first item, even when the old current
+    // index was 0 too. Typed text stays, and is selected where the new list has it.
+    if (m_currentIndex >= 0 || text().isEmpty()) {
+        if (count() > 0) {
+            reselectCurrentIndex(0);
+        } else {
+            setCurrentIndex(-1);
+        }
+    } else {
+        const int index = findText(text());
+        if (index != m_currentIndex) {
+            m_currentIndex = index;
+            emit currentIndexChanged(index);
+        }
+    }
+}
+
+// The default model is a child of the combo and is destroyed by ~QWidget after this body; its
+// destroyed() handler must not run against a half-destroyed combo.
+EditableModelComboBox::~EditableModelComboBox()
+{
+    for (const auto &connection : std::as_const(m_modelConnections)) {
+        QObject::disconnect(connection);
     }
 }
 
@@ -1622,10 +1788,12 @@ void EditableModelComboBox::bindModelSignals()
     }
 
     m_modelConnections = {
-        connect(m_model, &QAbstractItemModel::rowsInserted, this, &EditableModelComboBox::onModelRowsInserted),
-        connect(m_model, &QAbstractItemModel::rowsRemoved, this, &EditableModelComboBox::onModelRowsRemoved),
-        connect(m_model, &QAbstractItemModel::dataChanged, this, &EditableModelComboBox::onModelDataChanged),
-        connect(m_model, &QAbstractItemModel::modelReset, this, &EditableModelComboBox::onModelReset),
+        connect(m_model.data(), &QAbstractItemModel::rowsInserted, this, &EditableModelComboBox::onModelRowsInserted),
+        connect(m_model.data(), &QAbstractItemModel::rowsRemoved, this, &EditableModelComboBox::onModelRowsRemoved),
+        connect(m_model.data(), &QAbstractItemModel::dataChanged, this, &EditableModelComboBox::onModelDataChanged),
+        connect(m_model.data(), &QAbstractItemModel::modelReset, this, &EditableModelComboBox::onModelReset),
+        // m_model is a QPointer and already null by now.
+        connect(m_model.data(), &QObject::destroyed, this, [this]() { setCurrentIndex(-1); }),
     };
 }
 
@@ -1645,10 +1813,18 @@ QModelIndex EditableModelComboBox::insertItem(int index, const QString &text, co
         return {};
     }
     const int row = qBound(0, index, count());
-    const QSignalBlocker blocker(m_model);
-    const QModelIndex modelIndex = insertModelComboItem(m_model, row, text, icon, userData);
-    if (row <= m_currentIndex) {
-        m_currentIndex++;
+    const bool wasEmpty = count() == 0;
+    QModelIndex modelIndex;
+    {
+        const QScopedValueRollback<bool> updating(m_updatingModel, true);
+        modelIndex = insertModelComboItem(m_model, row, text, icon, userData);
+    }
+    if (wasEmpty && this->text().isEmpty()) {
+        setCurrentIndex(0);
+    } else if (row <= m_currentIndex) {
+        // Same item, new position.
+        ++m_currentIndex;
+        emit currentIndexChanged(m_currentIndex);
     }
     return modelIndex;
 }
@@ -1666,13 +1842,23 @@ void EditableModelComboBox::insertItems(int index, const QStringList &texts)
         return;
     }
     const int startRow = qBound(0, index, count());
+    const bool wasEmpty = count() == 0;
     int row = startRow;
-    const QSignalBlocker blocker(m_model);
-    for (const QString &text : texts) {
-        insertModelComboItem(m_model, row++, text, QIcon(), QVariant());
+    {
+        const QScopedValueRollback<bool> updating(m_updatingModel, true);
+        for (const QString &text : texts) {
+            insertModelComboItem(m_model, row++, text, QIcon(), QVariant());
+        }
     }
-    if (!texts.isEmpty() && startRow <= m_currentIndex) {
-        m_currentIndex += texts.size();
+    if (texts.isEmpty()) {
+        return;
+    }
+    if (wasEmpty && text().isEmpty()) {
+        setCurrentIndex(0);
+    } else if (startRow <= m_currentIndex) {
+        // Same item, new position.
+        m_currentIndex += static_cast<int>(texts.size());
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
@@ -1684,7 +1870,7 @@ void EditableModelComboBox::removeItem(int index)
 
     const QString oldText = currentText();
     {
-        const QSignalBlocker blocker(m_model);
+        const QScopedValueRollback<bool> updating(m_updatingModel, true);
         m_model->removeRow(index);
     }
 
@@ -1694,22 +1880,20 @@ void EditableModelComboBox::removeItem(int index)
     }
 
     if (index < m_currentIndex) {
-        m_currentIndex--;
+        // Same item, new position.
+        --m_currentIndex;
+        emit currentIndexChanged(m_currentIndex);
     } else if (index == m_currentIndex) {
-        if (index > 0) {
-            setCurrentIndex(m_currentIndex - 1);
-        } else {
-            m_currentIndex = 0;
-            updatePlaceholderState(false);
-            {
-                const QSignalBlocker blocker(this);
-                setText(itemText(0));
-            }
-            if (oldText != currentText()) {
-                emit currentTextChanged(currentText());
-            }
-            emit currentIndexChanged(0);
+        m_currentIndex = index > 0 ? index - 1 : 0;
+        updatePlaceholderState(false);
+        {
+            const QSignalBlocker blocker(this);
+            setText(itemText(m_currentIndex));
         }
+        if (oldText != currentText()) {
+            emit currentTextChanged(currentText());
+        }
+        emit currentIndexChanged(m_currentIndex);
     }
 }
 
@@ -1912,8 +2096,7 @@ void EditableModelComboBox::closeComboMenu()
 
 void EditableModelComboBox::toggleComboMenu()
 {
-    if (m_ignoreNextToggle) {
-        m_ignoreNextToggle = false;
+    if (consumeIgnoredToggle(&m_ignoreNextToggle, m_dropMenuClosedTimer)) {
         return;
     }
     if (m_dropMenu) {
@@ -1937,6 +2120,7 @@ void EditableModelComboBox::onItemClicked(int index)
 void EditableModelComboBox::onDropMenuClosed()
 {
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
+    m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
 }
 
@@ -1969,9 +2153,13 @@ void EditableModelComboBox::onReturnPressed()
 
 void EditableModelComboBox::onClearButtonClicked()
 {
-    m_currentIndex = -1;
-    updatePlaceholderState(true);
-    emit currentIndexChanged(-1);
+    // textChanged() runs onComboTextChanged(), which updates the placeholder and emits; an item
+    // whose text happens to be empty is still not selected by clearing.
+    QLineEdit::clear();
+    if (m_currentIndex != -1) {
+        m_currentIndex = -1;
+        emit currentIndexChanged(-1);
+    }
 }
 
 void EditableModelComboBox::onCompleterActivated(const QString &text)
@@ -1996,8 +2184,13 @@ void EditableModelComboBox::updatePlaceholderState(bool isPlaceholder)
 
 void EditableModelComboBox::onModelRowsInserted(const QModelIndex &, int first, int last)
 {
+    if (m_updatingModel) {
+        return;
+    }
     if (first <= m_currentIndex) {
+        // Same item, new position.
         m_currentIndex += last - first + 1;
+        emit currentIndexChanged(m_currentIndex);
     } else if (m_currentIndex < 0 && count() > 0 && text().isEmpty()) {
         setCurrentIndex(0);
     }
@@ -2005,20 +2198,25 @@ void EditableModelComboBox::onModelRowsInserted(const QModelIndex &, int first, 
 
 void EditableModelComboBox::onModelRowsRemoved(const QModelIndex &, int first, int last)
 {
+    if (m_updatingModel) {
+        return;
+    }
     const int removed = last - first + 1;
     if (count() == 0) {
         setCurrentIndex(-1);
     } else if (last < m_currentIndex) {
+        // Same item, new position.
         m_currentIndex -= removed;
+        emit currentIndexChanged(m_currentIndex);
     } else if (first <= m_currentIndex && m_currentIndex <= last) {
-        setCurrentIndex(qMin(first, count() - 1));
+        reselectCurrentIndex(qMin(first, count() - 1));
     }
 }
 
 void EditableModelComboBox::onModelDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                                                const QList<int> &roles)
 {
-    if (m_currentIndex < topLeft.row() || m_currentIndex > bottomRight.row()) {
+    if (m_updatingModel || m_currentIndex < topLeft.row() || m_currentIndex > bottomRight.row()) {
         return;
     }
     if (roles.isEmpty() || roles.contains(Qt::EditRole) || roles.contains(Qt::DisplayRole)) {
@@ -2028,11 +2226,39 @@ void EditableModelComboBox::onModelDataChanged(const QModelIndex &topLeft, const
 
 void EditableModelComboBox::onModelReset()
 {
-    if (count() > 0 && text().isEmpty()) {
-        setCurrentIndex(0);
-    } else if (count() == 0) {
+    if (count() == 0) {
         setCurrentIndex(-1);
+    } else if (text().isEmpty()) {
+        reselectCurrentIndex(0);
+    } else {
+        // Keep the typed or selected text; it may now be a different row, or no row at all.
+        const int index = findText(text());
+        if (index != m_currentIndex) {
+            m_currentIndex = index;
+            emit currentIndexChanged(index);
+        }
     }
+}
+
+// setCurrentIndex() returns early for the current index, but after a reset or after the current
+// row was removed, the row at that index is a different item and the text has to follow it.
+void EditableModelComboBox::reselectCurrentIndex(int index)
+{
+    if (index < 0 || index != m_currentIndex) {
+        setCurrentIndex(index);
+        return;
+    }
+
+    const QString oldText = text();
+    updatePlaceholderState(false);
+    {
+        const QSignalBlocker blocker(this);
+        setText(itemText(index));
+    }
+    if (oldText != currentText()) {
+        emit currentTextChanged(currentText());
+    }
+    emit currentIndexChanged(index);
 }
 
 } // namespace FluentQt

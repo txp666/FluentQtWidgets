@@ -37,8 +37,8 @@ void ConfigItem::setValue(const QVariant &value)
     }
 
     m_value = corrected;
+    // The registry forwards valueChanged() as itemValueChanged().
     emit valueChanged(m_value);
-    emit ConfigItemRegistry::instance()->itemValueChanged(this);
 }
 
 void ConfigItem::reset() { setValue(m_defaultValue); }
@@ -49,6 +49,8 @@ OptionsConfigItem::OptionsConfigItem(const QString &group, const QString &name, 
                                      const QVariantList &options, QObject *parent)
     : ConfigItem(group, name, defaultValue, parent), m_options(options)
 {
+    // ConfigItem's constructor could only call its own correctValue().
+    m_value = correctValue(defaultValue);
 }
 
 QVariantList OptionsConfigItem::options() const { return m_options; }
@@ -88,6 +90,8 @@ ColorConfigItem::ColorConfigItem(const QString &group, const QString &name, cons
                                  QObject *parent)
     : ConfigItem(group, name, defaultColor, parent)
 {
+    // ConfigItem's constructor could only call its own correctValue().
+    m_value = correctValue(defaultColor);
 }
 
 QVariant ColorConfigItem::correctValue(const QVariant &value) const
@@ -110,8 +114,17 @@ void ConfigItemRegistry::registerItem(ConfigItem *item)
         return;
     }
 
-    m_items.insert(item->key(), item);
+    const QString key = item->key();
+    m_items.insert(key, item);
     connect(item, &ConfigItem::valueChanged, this, [this, item]() { emit itemValueChanged(item); });
+    // Items are often owned by widgets or other objects; drop the entry when one goes away
+    // unless a later item has taken over the key.
+    connect(item, &QObject::destroyed, this, [this, key, item]() {
+        const auto it = m_items.find(key);
+        if (it != m_items.end() && it.value() == item) {
+            m_items.erase(it);
+        }
+    });
 }
 
 ConfigItem *ConfigItemRegistry::item(const QString &key) const { return m_items.value(key, nullptr); }

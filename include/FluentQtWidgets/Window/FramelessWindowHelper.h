@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtCore/QRect>
 #include <QtCore/QByteArray>
 #include <QtCore/QtGlobal>
@@ -51,6 +52,10 @@ public:
 
     // ---- Windows native event handler ----
     bool handleNativeEvent(const QByteArray &eventType, void *message, qintptr *result);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    // Qt 5's nativeEvent() hands out a long, which is 32 bits on 64-bit Windows.
+    bool handleNativeEvent(const QByteArray &eventType, void *message, long *result);
+#endif
 
     // Call from host's changeEvent (WindowStateChange)
     void handleWindowStateChange();
@@ -68,8 +73,8 @@ private:
     bool isMaximizedOrFullScreen() const;
 
     QWidget *m_host;
-    FluentTitleBar *m_titleBar = nullptr;
-    TransparentToolButton *m_pressedMaxButton = nullptr;
+    QPointer<FluentTitleBar> m_titleBar;
+    QPointer<TransparentToolButton> m_pressedMaxButton;
 
     // Frameless interaction state
     bool m_mousePressed = false;

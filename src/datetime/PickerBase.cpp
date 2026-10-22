@@ -397,7 +397,7 @@ void PickerPanel::addColumn(const QStringList &items, int width, Qt::Alignment a
     }
 
     const int itemHeight = 37;
-    const int columnIndex = m_listWidgets.size();
+    const int columnIndex = static_cast<int>(m_listWidgets.size());
     auto *widget = new CycleListWidget(items, QSize(width, itemHeight), alignment, m_view);
     widget->setScrollButtonRepeatEnabled(m_scrollButtonRepeatEnabled);
     connect(widget, &CycleListWidget::currentItemChanged, this, [this, columnIndex](QListWidgetItem *item) {

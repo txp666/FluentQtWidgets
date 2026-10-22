@@ -38,7 +38,7 @@ void BreadcrumbBar::addItem(const QString &key, const QString &text)
 
     m_items.append(BreadcrumbItem(key, text));
     rebuild();
-    setCurrentIndex(m_items.size() - 1);
+    setCurrentIndex(static_cast<int>(m_items.size()) - 1);
 }
 
 void BreadcrumbBar::setItems(const QList<BreadcrumbItem> &items)
@@ -53,7 +53,7 @@ void BreadcrumbBar::setItems(const QList<BreadcrumbItem> &items)
             emit currentItemChanged(QString());
         }
     } else {
-        setCurrentIndex(m_items.size() - 1);
+        setCurrentIndex(static_cast<int>(m_items.size()) - 1);
     }
 }
 
@@ -118,7 +118,7 @@ void BreadcrumbBar::setItemText(const QString &key, const QString &text)
     }
 }
 
-int BreadcrumbBar::count() const { return m_items.size(); }
+int BreadcrumbBar::count() const { return static_cast<int>(m_items.size()); }
 
 QString BreadcrumbBar::currentItem() const
 {

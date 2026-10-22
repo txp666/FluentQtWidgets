@@ -5,7 +5,9 @@
 
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QTimer>
+#include <QtGui/QHideEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QShowEvent>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/QEnterEvent>
 #endif
@@ -89,8 +91,6 @@ StateToolTip::StateToolTip(const QString &title, const QString &content, QWidget
     initWidget();
     applyQss();
     initLayout();
-
-    m_rotateTimer.start();
 }
 
 StateToolTip *StateToolTip::showIn(QWidget *parent, const QString &title, const QString &content)
@@ -196,7 +196,12 @@ void StateToolTip::setDone(bool done)
     if (m_done) {
         QTimer::singleShot(1000, this, &StateToolTip::fadeOut);
     } else {
-        m_rotateTimer.start();
+        // Back to busy before or during the fade-out: stay.
+        m_animation->stop();
+        m_opacityEffect->setOpacity(1.0);
+        if (isVisible()) {
+            m_rotateTimer.start();
+        }
     }
 }
 
@@ -223,6 +228,11 @@ void StateToolTip::initWidget()
     });
 
     connect(&m_rotateTimer, &QTimer::timeout, this, &StateToolTip::rotateTick);
+    connect(m_animation, &QPropertyAnimation::finished, this, [this]() {
+        if (m_done) {
+            deleteLater();
+        }
+    });
 }
 
 void StateToolTip::initLayout()
@@ -247,12 +257,29 @@ void StateToolTip::applyQss()
 
 void StateToolTip::fadeOut()
 {
+    if (!m_done) {
+        return;
+    }
     m_rotateTimer.stop();
     m_animation->setDuration(200);
     m_animation->setStartValue(1.0);
     m_animation->setEndValue(0.0);
-    connect(m_animation, &QPropertyAnimation::finished, this, &StateToolTip::deleteLater);
     m_animation->start();
+}
+
+void StateToolTip::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    if (!m_done) {
+        m_rotateTimer.start();
+    }
+}
+
+// The close button only hides the tooltip; nothing spins while it is hidden.
+void StateToolTip::hideEvent(QHideEvent *event)
+{
+    m_rotateTimer.stop();
+    QWidget::hideEvent(event);
 }
 
 void StateToolTip::rotateTick()

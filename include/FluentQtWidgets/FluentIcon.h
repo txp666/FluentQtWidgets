@@ -195,6 +195,11 @@ FQW_API QIcon icon(FluentIcon icon, Theme theme = Theme::Auto);
 FQW_API QIcon icon(FluentIcon icon, Theme theme, const QColor &tint);
 FQW_API QIcon icon(FluentIcon icon, const QColor &tint);
 
+// An icon drawn from lightPath in the light theme and from darkPath in the dark one, chosen each
+// time it is painted, so it follows theme changes as the FluentIcon icons do. Meant for custom
+// icons that come as one file per theme: a QIcon made from one of the files keeps its colour.
+FQW_API QIcon themedIcon(const QString &lightPath, const QString &darkPath);
+
 } // namespace FluentQt
 
 Q_DECLARE_METATYPE(FluentQt::FluentIcon)

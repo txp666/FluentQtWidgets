@@ -40,9 +40,9 @@ QColor primaryButtonForeground(QIcon::Mode mode)
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     QColor color = dark ? QColor(Qt::black) : QColor(Qt::white);
     if (mode == QIcon::Disabled) {
-        color.setAlphaF(dark ? 0.43 : 0.9);
+        color.setAlphaF(dark ? 0.43f : 0.9f);
     } else if (mode == QIcon::Selected) {
-        color.setAlphaF(0.63);
+        color.setAlphaF(0.63f);
     }
     return color;
 }
@@ -223,9 +223,9 @@ QColor statusIconColor(ButtonStatus status, bool filled, bool enabled, bool pres
         foreground = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
     }
     if (!enabled) {
-        foreground.setAlphaF(0.43);
+        foreground.setAlphaF(0.43f);
     } else if (pressed) {
-        foreground.setAlphaF(0.63);
+        foreground.setAlphaF(0.63f);
     }
     return foreground;
 }
@@ -391,6 +391,13 @@ void setSplitDropIconSize(QToolButton *button, const QSize &size)
     }
 }
 
+// Only a left click that ends on the button opens its menu, like clicked(); not a right-click,
+// nor a press dragged off the button.
+bool isDropDownClick(const QWidget *button, const QMouseEvent *event)
+{
+    return event->button() == Qt::LeftButton && button->rect().contains(event->pos());
+}
+
 void showDropDownMenu(QWidget *anchor, RoundMenu *menu)
 {
     if (!anchor || !menu) {
@@ -447,6 +454,16 @@ void PushButton::setIcon(const QIcon &icon)
 
 QIcon PushButton::icon() const { return m_storedIcon; }
 
+bool PushButton::event(QEvent *event)
+{
+    // QAbstractButton::setIcon() is not virtual, so an icon set through a QPushButton or
+    // QAbstractButton pointer lands in the base class, where the Fluent paint code never looks.
+    if (event->type() == QEvent::Paint && !QPushButton::icon().isNull()) {
+        setIcon(QPushButton::icon());
+    }
+    return QPushButton::event(event);
+}
+
 bool PushButton::isPressed() const { return m_isPressed; }
 
 bool PushButton::isHover() const { return m_isHover; }
@@ -495,7 +512,11 @@ void PushButton::mouseReleaseEvent(QMouseEvent *event)
     update();
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void PushButton::enterEvent(QEnterEvent *event)
+#else
+void PushButton::enterEvent(QEvent *event)
+#endif
 {
     m_isHover = true;
     QPushButton::enterEvent(event);
@@ -744,7 +765,9 @@ void DropDownPushButton::mouseReleaseEvent(QMouseEvent *event)
 {
     PushButton::mouseReleaseEvent(event);
     animateArrow(0, 500, QEasingCurve::OutElastic);
-    showDropDownMenu(this, m_menu);
+    if (isDropDownClick(this, event)) {
+        showDropDownMenu(this, m_menu);
+    }
 }
 
 void DropDownPushButton::animateArrow(int endValue, int duration, QEasingCurve::Type easing)
@@ -838,7 +861,9 @@ void PrimaryDropDownPushButton::mouseReleaseEvent(QMouseEvent *event)
 {
     PrimaryPushButton::mouseReleaseEvent(event);
     animateArrow(0, 500, QEasingCurve::OutElastic);
-    showMenu();
+    if (isDropDownClick(this, event)) {
+        showMenu();
+    }
 }
 
 void PrimaryDropDownPushButton::showMenu()
@@ -890,6 +915,16 @@ void ToolButton::setIcon(const QIcon &icon)
 
 QIcon ToolButton::icon() const { return m_storedIcon; }
 
+bool ToolButton::event(QEvent *event)
+{
+    // QAbstractButton::setIcon() is not virtual: an icon set through a base pointer, or by
+    // setDefaultAction(), lands in the base class, where the Fluent paint code never looks.
+    if (event->type() == QEvent::Paint && !QToolButton::icon().isNull()) {
+        setIcon(QToolButton::icon());
+    }
+    return QToolButton::event(event);
+}
+
 void ToolButton::initFluentToolButton(const QString &role)
 {
     setCursor(Qt::PointingHandCursor);
@@ -915,7 +950,11 @@ void ToolButton::mouseReleaseEvent(QMouseEvent *event)
     update();
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void ToolButton::enterEvent(QEnterEvent *event)
+#else
+void ToolButton::enterEvent(QEvent *event)
+#endif
 {
     m_isHover = true;
     QToolButton::enterEvent(event);
@@ -1137,7 +1176,9 @@ void DropDownToolButton::mouseReleaseEvent(QMouseEvent *event)
 {
     ToolButton::mouseReleaseEvent(event);
     animateArrow(0, 500, QEasingCurve::OutElastic);
-    showMenu();
+    if (isDropDownClick(this, event)) {
+        showMenu();
+    }
 }
 
 void DropDownToolButton::showMenu()
@@ -1243,7 +1284,9 @@ void PrimaryDropDownToolButton::mouseReleaseEvent(QMouseEvent *event)
 {
     PrimaryToolButton::mouseReleaseEvent(event);
     animateArrow(0, 500, QEasingCurve::OutElastic);
-    showMenu();
+    if (isDropDownClick(this, event)) {
+        showMenu();
+    }
 }
 
 void PrimaryDropDownToolButton::showMenu()
@@ -1324,9 +1367,9 @@ void HyperlinkButton::drawIcon(QPainter *painter, const QRectF &rect)
 
     QColor color = ThemeManager::instance()->accentColor();
     if (!isEnabled()) {
-        color.setAlphaF(0.43);
+        color.setAlphaF(0.43f);
     } else if (isPressed()) {
-        color.setAlphaF(0.63);
+        color.setAlphaF(0.63f);
     }
 
     QPixmap tinted(source.size());
@@ -1387,9 +1430,9 @@ void HyperlinkToolButton::paintEvent(QPaintEvent *event)
 
     QColor color = themeColor();
     if (!isEnabled()) {
-        color.setAlphaF(0.43);
+        color.setAlphaF(0.43f);
     } else if (isDown()) {
-        color.setAlphaF(0.63);
+        color.setAlphaF(0.63f);
     }
     paintToolButtonContent(&painter, this, m_storedIcon, color);
 }
@@ -1398,9 +1441,9 @@ void HyperlinkToolButton::drawIcon(QPainter *painter, const QRectF &rect)
 {
     QColor color = themeColor();
     if (!isEnabled()) {
-        color.setAlphaF(0.43);
+        color.setAlphaF(0.43f);
     } else if (isPressed()) {
-        color.setAlphaF(0.63);
+        color.setAlphaF(0.63f);
     }
     paintTintedIcon(painter, m_storedIcon, rect, color, isEnabled() ? QIcon::Normal : QIcon::Disabled);
 }
@@ -1685,12 +1728,12 @@ void LuminaPushButton::paintEvent(QPaintEvent *event)
     QColor textColor = dark ? QColor(Qt::white) : QColor(Qt::black);
     QColor iconColor = accent;
     if (!isEnabled()) {
-        textColor.setAlphaF(0.36);
-        iconColor.setAlphaF(0.43);
-        border.setAlphaF(0.24);
+        textColor.setAlphaF(0.36f);
+        iconColor.setAlphaF(0.43f);
+        border.setAlphaF(0.24f);
     } else if (isDown()) {
-        textColor.setAlphaF(0.63);
-        iconColor.setAlphaF(0.63);
+        textColor.setAlphaF(0.63f);
+        iconColor.setAlphaF(0.63f);
     }
 
     paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border, 7);
@@ -1768,8 +1811,8 @@ void OutlinedPushButton::paintEvent(QPaintEvent *event)
     }
     QColor border = isChecked() ? accent : neutralButtonBorder(isEnabled(), isDown());
     if (!isEnabled()) {
-        foreground.setAlphaF(0.36);
-        border.setAlphaF(0.36);
+        foreground.setAlphaF(0.36f);
+        border.setAlphaF(0.36f);
     }
     paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border, height() / 2.0);
     paintPushButtonContent(&painter, this, m_storedIcon, foreground, foreground);
@@ -1839,8 +1882,8 @@ void OutlinedToolButton::paintEvent(QPaintEvent *event)
     }
     QColor border = isChecked() ? accent : neutralButtonBorder(isEnabled(), isDown());
     if (!isEnabled()) {
-        foreground.setAlphaF(0.36);
-        border.setAlphaF(0.36);
+        foreground.setAlphaF(0.36f);
+        border.setAlphaF(0.36f);
     }
     paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border,
                             qMin(width(), height()) / 2.0);
@@ -1879,9 +1922,9 @@ void RoundPushButton::paintEvent(QPaintEvent *event)
 
     QColor textColor = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
     if (!isEnabled()) {
-        textColor.setAlphaF(0.36);
+        textColor.setAlphaF(0.36f);
     } else if (isDown()) {
-        textColor.setAlphaF(0.63);
+        textColor.setAlphaF(0.63f);
     }
     paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1),
                             neutralButtonBackground(isEnabled(), underMouse(), isDown()),
@@ -1914,9 +1957,9 @@ void RoundToolButton::paintEvent(QPaintEvent *event)
 
     QColor iconColor = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
     if (!isEnabled()) {
-        iconColor.setAlphaF(0.36);
+        iconColor.setAlphaF(0.36f);
     } else if (isDown()) {
-        iconColor.setAlphaF(0.63);
+        iconColor.setAlphaF(0.63f);
     }
     paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1),
                             neutralButtonBackground(isEnabled(), underMouse(), isDown()),
@@ -2006,9 +2049,9 @@ void Chip::paintEvent(QPaintEvent *event)
                               : (ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(Qt::white)
                                                                                            : QColor(Qt::black));
     if (!isEnabled()) {
-        textColor.setAlphaF(0.36);
+        textColor.setAlphaF(0.36f);
     } else if (!filled && (isDown() || m_closePressed)) {
-        textColor.setAlphaF(0.63);
+        textColor.setAlphaF(0.63f);
     }
     const QColor background = filled ? stateAdjustedColor(statusColor(m_status), isEnabled(), underMouse(),
                                                           isDown() || m_closePressed)
@@ -2020,7 +2063,7 @@ void Chip::paintEvent(QPaintEvent *event)
 
     QColor closeColor = textColor;
     if (isEnabled()) {
-        closeColor.setAlphaF(m_closePressed ? 0.55 : 0.72);
+        closeColor.setAlphaF(m_closePressed ? 0.55f : 0.72f);
     }
 
     const QRect contentRect = rect().adjusted(12, 0, m_closable ? -34 : -12, 0);
@@ -2091,8 +2134,8 @@ void Tag::paintEvent(QPaintEvent *event)
         }
     }
     if (!isEnabled()) {
-        foreground.setAlphaF(0.36);
-        border.setAlphaF(0.24);
+        foreground.setAlphaF(0.36f);
+        border.setAlphaF(0.24f);
     }
 
     paintRoundedButtonFrame(&painter, rect().adjusted(0, 0, -1, -1), background, border, 5);

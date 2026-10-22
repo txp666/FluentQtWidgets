@@ -1,5 +1,42 @@
 # Changelog
 
+## Unreleased
+
+### Object lifetime fixes
+
+- Skipped the macOS window-corner setup outside the Cocoa platform plugin, so `FluentWindow`, `MSFluentWindow`, and `FluentWidget` no longer crash under `offscreen` or `minimal`.
+- Made `InfoBarManager` forget bars that are deleted without being closed and parents that are destroyed, so a reopened window that reuses the old address no longer stacks against freed bars. Slide animations are now owned by their bar.
+- Removed deleted `ConfigItem`s from `ConfigItemRegistry` without dropping a newer item registered under the same key.
+- Removed child entries when `NavigationPanel::removeWidget()` deletes a tree item that has children.
+- Kept `PopUpAniStackedWidget` animation data per page instead of per index, so pages deleted or changed through the `QStackedWidget` API no longer leave it out of step with the stack.
+- Gave `InfoBadgeManager` the badge as its default parent, retired the previous manager when a badge is attached again, and stopped it from touching a deleted badge or target.
+- Closed a `TeachingTip` when its target is deleted, and stopped its window filter from going through the deleted target.
+- Cleared a submenu's parent links when `RoundMenu::removeMenu()` removes it or its parent menu is deleted, and dropped a submenu's row when the submenu is deleted.
+- Tracked `FluentWindow`'s splash screen and `LineEdit`'s completer and completer menu with `QPointer`. `LineEdit` now frees its parentless completer menu, and `CompleterMenu` frees the actions it creates for each completion list.
+- Built the child widgets in `FlyoutView(QWidget *)` and `AcrylicFlyoutView(QWidget *)`, which previously crashed on `show()`.
+- Added regression tests for each of these cases.
+
+### Behaviour fixes
+
+- Inputs: dragging a `Slider` handle moves the slider; `ClickableSlider`, `ProgressBar` and `ProgressRing` honour `minimum()`; Ctrl+wheel zooms read-only `TextEdit`, `PlainTextEdit` and `TextBrowser` as in Qt; plain Fluent labels leave right-clicks to their parent; `SwitchButton`, navigation items, image labels and setting card headers act only on a left click released over them; drop-down buttons open their menu only on a left click.
+- Combo boxes: the clear button of the editable combos clears the text; model combos no longer block the model's signals for other views and proxies, follow model resets and the removal of the current row, show the first item of a model set with `setModel()` (they kept the old model's text when row 0 was current before), and no longer take ownership of the caller's model; `clear()` and `setCurrentIndex(-1)` emit and bring the placeholder back; `insertItem()` into an empty combo selects the item; moving rows no longer emits spurious text changes.
+- Scrolling: scroll bar handle maths no longer overflows on large item views; `SmoothScrollArea` no longer leaves the replaced delegate's scroll bars behind; `ExpandSettingCard` passes the wheel on to the page; zero-delta wheel events no longer flip `FlipView` or `CycleListWidget`.
+- Item views: selection highlights follow inserted, removed, sorted and filtered rows; the pressed look ends on release; typed values get Qt's matching editor.
+- Dialogs and popups: `MaskDialogBase` finishes once however often it is accepted or rejected during the fade-out; text wrapping in dialogs, info bars and flyouts is shared and never cuts a surrogate pair or an emoji sequence; on Wayland mask dialogs overlay the parent window as a child; info bar and state tooltip timers no longer pile up or run while hidden; `ToolTip::showText()` tooltips delete themselves once hidden; the compact spin box flyout no longer grabs the keyboard.
+- Menus and tabs: `RoundMenu::clear()` removes separators, `setMenuView()` rebuilds existing rows, shortcuts are no longer cut to one character, and the new `execAndWait()` offers `QMenu::exec()` semantics; tabs dragged in from another `TabBar` are ignored and moving a tab keeps the current page.
+- Navigation: `Pivot` keeps items in display order and follows item resizes; `NavigationHistory` back navigation emits through the interface and no longer keeps duplicate entries; the panel's window filter follows reparenting; tooltips are translatable; long item texts are elided.
+- Windows and theme: hit testing on Windows uses device-independent coordinates at any scale factor, also for messages passed to `FramelessWindowHelper::handleNativeEvent()` without a window; the frameless helper is owned by its window and handles Wayland and finished system moves; title bars added later mirror their window; Auto theme can switch back to light where Qt does not report the colour scheme, without polling; `FluentConfig::save()` writes atomically; acrylic surfaces capture the screen only when allowed (never prompting on macOS) and fall back to an opaque tint.
+- Style sheets: `apply()` honours its theme, the manager's own properties and Qt's `_q_` properties no longer repolish, a style that sets properties while it polishes (Qt 6.8's Windows 11 style) no longer repolishes the widget until the stack overflows, registration is constant-time, clearing a custom style sheet takes effect, and lazy refreshes run on show instead of inside paint events.
+- Others: `CommandBar::clear()` keeps actions it does not own; `ConfigItemRegistry` reports a change once; option and colour config items correct their defaults; `OrchidLight` is `#C239B3`; `OptionsSettingCard` unchecks every option for an unknown value; `OpacityAniStackedWidget` applies its opacity effect only during transitions; charts handle negative values; `RealtimePlotWidget` stops dragging when the button is gone, exports every sample to CSV, shows negative x while auto-scrolling, fits all data on "View All", recovers its fast path once out-of-order samples age out, gains `setXAxisValueFormatter()`, and starts plot exports in an existing folder (the user's download folder by default) instead of creating `app/download`; `FlowLayout` and `VBoxLayout` follow widgets deleted from outside.
+- Builds: on Windows, tests and examples load the rebuilt `FluentQtWidgets.dll` after a change inside the library (the copy beside them only followed relinks); Qt 5 builds no longer use Qt 6-only event signatures or APIs; the library compiles without warnings under `-Wall -Wextra -Wshadow -Wconversion -Woverloaded-virtual`.
+- Added regression tests for these fixes.
+
+### Tests
+
+- Grouped the widget tests into one suite per Gallery area (`tst_basic_input`, `tst_combo_box`, `tst_text`, `tst_status_info`, `tst_dialog_flyout`, `tst_menu`, `tst_navigation`, `tst_view`, `tst_layout`, `tst_settings`, `tst_window`, `tst_material`, `tst_charts`, `tst_datetime`), with `tst_theme`, `tst_qss` and `tst_config` for the shared parts and `tst_gallery_pages` and `tst_gallery_translation` for the Gallery. Overlapping tests were merged.
+- Every test now starts from the same theme, accent colour and configuration, whatever an earlier test changed, and the suites share their helpers (`tests/TestSupport.h`).
+- The Windows CI job builds and runs the tests, including the native hit tests at 150% scaling.
+
 ## 0.1.9
 
 ### Expandable cards and scroll-bar synchronization

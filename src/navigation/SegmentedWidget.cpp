@@ -97,7 +97,7 @@ SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(
 
 TransparentToggleToolButton *SegmentedToggleToolWidget::addItem(const QString &routeKey, const QIcon &icon)
 {
-    return insertItem(m_items.size(), routeKey, icon);
+    return insertItem(static_cast<int>(m_items.size()), routeKey, icon);
 }
 
 TransparentToggleToolButton *SegmentedToggleToolWidget::insertItem(int index, const QString &routeKey,
@@ -115,7 +115,7 @@ TransparentToggleToolButton *SegmentedToggleToolWidget::insertItem(int index, co
     button->setProperty("routeKey", routeKey);
     button->setToolTip(routeKey);
 
-    const int boundedIndex = qBound(0, index, m_items.size());
+    const int boundedIndex = qBound(0, index, static_cast<int>(m_items.size()));
     m_items.insert(boundedIndex, button);
     m_itemMap.insert(routeKey, button);
     m_buttonGroup->addButton(button);

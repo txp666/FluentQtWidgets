@@ -37,6 +37,9 @@ private:
 
     QPropertyAnimation *createSlideAni(InfoBar *infoBar);
     void updateDropAni(QWidget *parent);
+    bool forget(QWidget *parent, InfoBar *infoBar);
+    void forgetParent(QWidget *parent);
+    void reposition(QWidget *parent);
 
 protected:
     int m_spacing = 16;
@@ -45,8 +48,9 @@ protected:
     QHash<QWidget *, QParallelAnimationGroup *> m_aniGroups;
 
 private:
-    QList<QPropertyAnimation *> m_slideAnis;
-    QList<QPropertyAnimation *> m_dropAnis;
+    // Keyed by bar pointer only; a destroyed bar is never dereferenced through these.
+    QHash<InfoBar *, QPropertyAnimation *> m_slideAnis;
+    QHash<InfoBar *, QPropertyAnimation *> m_dropAnis;
 
     static InfoBarManager *s_managers[7]; // indexed by InfoBarPosition
 };

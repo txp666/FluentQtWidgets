@@ -114,6 +114,13 @@ void FluentLabelBase::setUnderline(bool underline)
 
 void FluentLabelBase::contextMenuEvent(QContextMenuEvent *event)
 {
+    // Copy/Select all only make sense for selectable text; otherwise let the parent's own
+    // context menu handle the event, as QLabel does.
+    if (!(textInteractionFlags() & (Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard))) {
+        QLabel::contextMenuEvent(event);
+        return;
+    }
+
     auto *menu = new LabelContextMenu(this);
     menu->setAttribute(Qt::WA_DeleteOnClose);
     menu->exec(event->globalPos(), true, MenuAnimationType::FadeInDropDown);
@@ -215,6 +222,10 @@ int ImageLabel::bottomRightRadius() const { return m_bottomRightRadius; }
 
 void ImageLabel::setImage(const QImage &image)
 {
+    // A playing movie would paint its next frame over the new image.
+    if (m_movie) {
+        setMovie(nullptr);
+    }
     m_image = image;
     if (!m_image.isNull()) {
         setFixedSize(m_image.size());
@@ -341,8 +352,15 @@ void ImageLabel::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    const qreal dpr = devicePixelRatioF();
-    QImage scaled = m_image.scaled(size() * dpr, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    // Scaled once per image and size, not on every repaint; movie frames already come at the
+    // label's size from QMovie::setScaledSize().
+    const QSize target = size() * devicePixelRatioF();
+    if (m_image.size() != target &&
+        (m_scaledImage.size() != target || m_scaledCacheKey != m_image.cacheKey())) {
+        m_scaledImage = m_image.scaled(target, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        m_scaledCacheKey = m_image.cacheKey();
+    }
+    const QImage &scaled = m_image.size() == target ? m_image : m_scaledImage;
 
     // Build path with 4 independent corner radii
     QPainterPath path;
@@ -378,7 +396,7 @@ void ImageLabel::paintEvent(QPaintEvent *)
 void ImageLabel::mouseReleaseEvent(QMouseEvent *event)
 {
     QLabel::mouseReleaseEvent(event);
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && rect().contains(event->pos())) {
         emit clicked();
     }
 }

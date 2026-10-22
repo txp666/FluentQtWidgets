@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtWidgets/QFrame>
 
 class QLabel;
@@ -32,6 +33,8 @@ class FQW_API FluentTitleBar : public QFrame
     void toggleMaximized();
 
   protected:
+    bool event(QEvent *event) override;
+    void changeEvent(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -40,8 +43,12 @@ class FQW_API FluentTitleBar : public QFrame
 
   private:
     void initLayout();
+    void retranslateUi();
     void syncWithWindow();
     bool isCaptionArea(const QPoint &pos) const;
+
+    // The window whose title, icon and state are mirrored; follows reparenting.
+    QPointer<QWidget> m_syncedWindow;
 
     CaptionLabel *m_titleLabel = nullptr;
     QLabel *m_iconLabel = nullptr;

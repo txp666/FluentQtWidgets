@@ -11,7 +11,11 @@
 #include <QtGui/QIcon>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
+#include <QtCore/QHash>
+#include <QtCore/QSharedPointer>
 #include <QtGui/QPixmap>
+#include <QtSvg/QSvgRenderer>
+#include <QtWidgets/QApplication>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QStyle>
 
@@ -32,13 +36,20 @@ static QString spinIconPath(const QString &name)
     return QStringLiteral(":/qfluentwidgets/images/spin_box/%1_%2.svg").arg(name, color);
 }
 
-static QPixmap loadSpinIcon(const QString &name, int size = 11)
+// Rendered from the SVG: sharp at any scale factor, parsed once per icon and theme. (A fixed-size
+// pixmap decoded on every paint was blurry on HiDPI screens, and a failed load came back as an
+// uninitialized pixmap full of garbage.)
+static void paintSpinIcon(QPainter *painter, const QString &name, const QRectF &rect)
 {
-    QPixmap pix(spinIconPath(name));
-    if (pix.isNull()) {
-        return QPixmap(size, size);
+    static QHash<QString, QSharedPointer<QSvgRenderer>> renderers;
+    const QString path = spinIconPath(name);
+    QSharedPointer<QSvgRenderer> &renderer = renderers[path];
+    if (!renderer) {
+        renderer.reset(new QSvgRenderer(path));
     }
-    return pix.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (renderer->isValid()) {
+        renderer->render(painter, rect);
+    }
 }
 
 class SpinFlyoutButton final : public TransparentToolButton
@@ -67,9 +78,8 @@ protected:
 
         const int iconExtent = iconSize().isValid() ? qMin(iconSize().width(), iconSize().height()) : 13;
         const QString iconName = (m_icon == SpinIconType::Up) ? QStringLiteral("Up") : QStringLiteral("Down");
-        const QPixmap pix = loadSpinIcon(iconName, iconExtent);
         const QRectF rect((width() - iconExtent) / 2.0, (height() - iconExtent) / 2.0, iconExtent, iconExtent);
-        painter.drawPixmap(rect, pix, QRectF(QPointF(0, 0), QSizeF(pix.size())));
+        paintSpinIcon(&painter, iconName, rect);
     }
 
 private:
@@ -133,8 +143,7 @@ void SpinButton::paintEvent(QPaintEvent *event)
     }
 
     const QString iconName = (m_icon == SpinIconType::Up) ? QStringLiteral("Up") : QStringLiteral("Down");
-    const QPixmap pix = loadSpinIcon(iconName);
-    painter.drawPixmap(QRectF(10, 6.5, 11, 11), pix, QRectF(QPointF(0, 0), QSizeF(pix.size())));
+    paintSpinIcon(&painter, iconName, QRectF(10, 6.5, 11, 11));
 }
 
 // ============================================================================
@@ -156,14 +165,11 @@ void CompactSpinButton::paintEvent(QPaintEvent * /*event*/)
     const qreal x = (width() - 10) / 2.0;
     const qreal s = 9;
 
-    const QPixmap upPix = loadSpinIcon(QStringLiteral("Up"), 9);
-    const QPixmap downPix = loadSpinIcon(QStringLiteral("Down"), 9);
-
     const qreal upY = height() / 2.0 - s + 1;
     const qreal downY = height() / 2.0;
 
-    painter.drawPixmap(QRectF(x, upY, s, s), upPix, QRectF(QPointF(0, 0), QSizeF(upPix.size())));
-    painter.drawPixmap(QRectF(x, downY, s, s), downPix, QRectF(QPointF(0, 0), QSizeF(downPix.size())));
+    paintSpinIcon(&painter, QStringLiteral("Up"), QRectF(x, upY, s, s));
+    paintSpinIcon(&painter, QStringLiteral("Down"), QRectF(x, downY, s, s));
 }
 
 // ============================================================================
@@ -256,8 +262,17 @@ void SpinBoxHelper::init(QAbstractSpinBox *spinBox, Mode mode)
         m_flyoutView = new SpinFlyoutView(nullptr);
         m_flyout = new Flyout(m_flyoutView, m_spinBox);
         m_flyout->setIsDeleteOnClose(false);
-        m_flyout->setPopupMode(true);
+        // Not a popup: it opens on focus-in, and a popup would take the keyboard away from the
+        // spin box being typed into. Clicks outside still close it (Flyout's application-wide
+        // filter), and so does focus moving somewhere else.
+        m_flyout->setPopupMode(false);
         m_flyout->hide();
+        QObject::connect(qApp, &QApplication::focusChanged, m_spinBox, [this](QWidget *, QWidget *now) {
+            if (m_flyout && m_flyout->isVisible() && now && now != m_spinBox && !m_spinBox->isAncestorOf(now) &&
+                !m_flyout->isAncestorOf(now)) {
+                m_flyout->hide();
+            }
+        });
 
         m_layout->setContentsMargins(0, 0, 0, 0);
         m_layout->addStretch();

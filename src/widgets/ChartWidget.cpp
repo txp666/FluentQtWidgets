@@ -152,7 +152,7 @@ QStringList categoryLabels(const QJsonObject &option, const QString &axisKey)
     QStringList labels;
     const QJsonArray data = arrayValue(axisObject(option, axisKey), QStringLiteral("data"));
     labels.reserve(data.size());
-    for (const QJsonValue &value : data) {
+    for (const QJsonValue value : data) {
         labels.append(value.toVariant().toString());
     }
     return labels;
@@ -162,7 +162,7 @@ QVector<qreal> numericValues(const QJsonArray &array)
 {
     QVector<qreal> values;
     values.reserve(array.size());
-    for (const QJsonValue &value : array) {
+    for (const QJsonValue value : array) {
         if (value.isArray()) {
             const QJsonArray point = value.toArray();
             values.append(point.size() > 1 ? point.at(1).toDouble() : 0.0);
@@ -179,7 +179,7 @@ QVector<QPointF> pointValues(const QJsonArray &array)
 {
     QVector<QPointF> points;
     points.reserve(array.size());
-    for (const QJsonValue &value : array) {
+    for (const QJsonValue value : array) {
         if (!value.isArray()) {
             continue;
         }
@@ -196,7 +196,7 @@ QVector<ChartSeries> seriesList(const QJsonObject &option)
     QVector<ChartSeries> result;
     const QJsonArray seriesArray = arrayValue(option, QStringLiteral("series"));
     result.reserve(seriesArray.size());
-    for (const QJsonValue &value : seriesArray) {
+    for (const QJsonValue value : seriesArray) {
         const QJsonObject object = value.toObject();
         ChartSeries series;
         series.name = object.value(QStringLiteral("name")).toString();
@@ -304,7 +304,7 @@ void drawTooltip(QPainter *painter, const QRectF &bounds, QPointF anchor, const 
     }
 
     const qreal padding = 9.0;
-    const QSizeF size(width + padding * 2.0, metrics.height() * lines.size() + padding * 2.0);
+    const QSizeF size(width + padding * 2.0, metrics.height() * static_cast<qreal>(lines.size()) + padding * 2.0);
     QPointF topLeft(anchor.x() + 14.0, anchor.y() - size.height() - 12.0);
     if (topLeft.x() + size.width() > bounds.right() - 8.0) {
         topLeft.setX(anchor.x() - size.width() - 14.0);
@@ -374,7 +374,7 @@ void drawFrame(QPainter *painter, const QRectF &plot)
     painter->drawRoundedRect(plot.adjusted(-8, -8, 8, 8), 6, 6);
 }
 
-void drawGrid(QPainter *painter, const QRectF &plot, qreal maximum, const QStringList &categories)
+void drawGrid(QPainter *painter, const QRectF &plot, qreal minimum, qreal maximum, const QStringList &categories)
 {
     painter->setPen(QPen(gridColor(), 1));
     painter->setBrush(Qt::NoBrush);
@@ -386,7 +386,7 @@ void drawGrid(QPainter *painter, const QRectF &plot, qreal maximum, const QStrin
         const qreal y = plot.bottom() - ratio * plot.height();
         painter->drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y));
         painter->setPen(mutedTextColor());
-        const QString label = formatNumber(maximum * ratio);
+        const QString label = formatNumber(minimum + (maximum - minimum) * ratio);
         painter->drawText(QRectF(0, y - metrics.height() / 2.0, plot.left() - 10, metrics.height()),
                           Qt::AlignRight | Qt::AlignVCenter, label);
         painter->setPen(QPen(gridColor(), 1));
@@ -394,23 +394,29 @@ void drawGrid(QPainter *painter, const QRectF &plot, qreal maximum, const QStrin
 
     if (!categories.isEmpty()) {
         painter->setPen(mutedTextColor());
-        const int stride = qMax(1, categories.size() / 7);
+        const int stride = qMax(1, static_cast<int>(categories.size()) / 7);
         for (int i = 0; i < categories.size(); i += stride) {
             const qreal x = categories.size() == 1
                                 ? plot.center().x()
-                                : plot.left() + (static_cast<qreal>(i) + 0.5) * plot.width() / categories.size();
+                                : plot.left() + (static_cast<qreal>(i) + 0.5) * plot.width() /
+                                                    static_cast<qreal>(categories.size());
             painter->drawText(QRectF(x - 38, plot.bottom() + 8, 76, metrics.height()),
                               Qt::AlignHCenter | Qt::AlignTop, categories.at(i));
         }
     }
 }
 
-QPointF mapCategoryPoint(const QRectF &plot, int index, int count, qreal value, qreal maximum)
+// The value axis runs from minimum (zero, or below for negative data) to maximum.
+qreal mapCategoryValue(const QRectF &plot, qreal value, qreal minimum, qreal maximum)
+{
+    return plot.bottom() - (value - minimum) / (maximum - minimum) * plot.height();
+}
+
+QPointF mapCategoryPoint(const QRectF &plot, int index, int count, qreal value, qreal minimum, qreal maximum)
 {
     const qreal x = count <= 1 ? plot.center().x()
                                : plot.left() + static_cast<qreal>(index) * plot.width() / qMax(1, count - 1);
-    const qreal y = plot.bottom() - (value / maximum) * plot.height();
-    return QPointF(x, y);
+    return QPointF(x, mapCategoryValue(plot, value, minimum, maximum));
 }
 
 void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &option, qreal animationProgress,
@@ -500,7 +506,7 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
             painter->setPen(Qt::NoPen);
             for (int i = 0; i < item.points.size(); ++i) {
                 const QPointF &point = item.points.at(i);
-                const qreal itemProgress = stagedProgress(animationProgress, i, item.points.size());
+                const qreal itemProgress = stagedProgress(animationProgress, i, static_cast<int>(item.points.size()));
                 const qreal x = plot.left() + (point.x() - xMinimum) / (xMaximum - xMinimum) * plot.width();
                 const qreal y = plot.bottom() - (point.y() - yMinimum) / (yMaximum - yMinimum) * plot.height();
                 painter->setBrush(withOpacity(color, qMax<qreal>(0.1, itemProgress)));
@@ -533,9 +539,9 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
     }
 
     QStringList categories = categoryLabels(option, QStringLiteral("xAxis"));
-    int categoryCount = categories.size();
+    int categoryCount = static_cast<int>(categories.size());
     for (const ChartSeries &item : series) {
-        categoryCount = qMax(categoryCount, item.values.size());
+        categoryCount = qMax(categoryCount, static_cast<int>(item.values.size()));
     }
     if (categories.isEmpty()) {
         for (int i = 0; i < categoryCount; ++i) {
@@ -543,20 +549,26 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
         }
     }
 
+    // Zero always on the axis; negative values extend it downwards instead of being drawn below
+    // the plot.
+    qreal minimum = 0;
     qreal maximum = 0;
     for (const ChartSeries &item : series) {
         for (qreal value : item.values) {
+            minimum = qMin(minimum, value);
             maximum = qMax(maximum, value);
         }
         for (const QPointF &point : item.points) {
+            minimum = qMin(minimum, point.y());
             maximum = qMax(maximum, point.y());
         }
     }
-    maximum = niceMaximum(maximum);
-
+    minimum = minimum < 0 ? -niceMaximum(-minimum) : 0.0;
+    maximum = maximum > 0 || minimum == 0 ? niceMaximum(maximum) : 0.0;
     const QRectF plot = chartAreaRect(rect, optionTitle(option), series.size() > 1);
+    const qreal zeroY = mapCategoryValue(plot, 0, minimum, maximum);
     drawFrame(painter, plot);
-    drawGrid(painter, plot, maximum, categories);
+    drawGrid(painter, plot, minimum, maximum, categories);
 
     const QVector<QColor> colors = palette();
     QVector<int> barSeriesIndexes;
@@ -568,19 +580,22 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
 
     if (!barSeriesIndexes.isEmpty() && categoryCount > 0) {
         const qreal groupWidth = plot.width() / categoryCount;
-        const qreal barWidth = qMin<qreal>(34.0, groupWidth * 0.72 / barSeriesIndexes.size());
+        const qreal barWidth = qMin<qreal>(34.0, groupWidth * 0.72 / static_cast<qreal>(barSeriesIndexes.size()));
         for (int groupIndex = 0; groupIndex < barSeriesIndexes.size(); ++groupIndex) {
             const int seriesIndex = barSeriesIndexes.at(groupIndex);
             const ChartSeries &item = series.at(seriesIndex);
             painter->setPen(Qt::NoPen);
             painter->setBrush(colors.at(seriesIndex % colors.size()));
             for (int i = 0; i < item.values.size(); ++i) {
-                const qreal itemProgress = stagedProgress(animationProgress, i + groupIndex, item.values.size() + barSeriesIndexes.size());
+                const int stageCount = static_cast<int>(item.values.size() + barSeriesIndexes.size());
+                const qreal itemProgress = stagedProgress(animationProgress, i + groupIndex, stageCount);
                 const qreal center = plot.left() + (i + 0.5) * groupWidth;
-                const qreal x = center - (barWidth * barSeriesIndexes.size()) / 2.0 + groupIndex * barWidth;
-                const qreal targetHeight = item.values.at(i) / maximum * plot.height();
-                const qreal height = targetHeight * itemProgress;
-                painter->drawRoundedRect(QRectF(x, plot.bottom() - height, barWidth * 0.82, height), 2, 2);
+                const qreal x =
+                    center - (barWidth * static_cast<qreal>(barSeriesIndexes.size())) / 2.0 + groupIndex * barWidth;
+                // From the zero line, up or down.
+                const qreal valueY = mapCategoryValue(plot, item.values.at(i), minimum, maximum);
+                const qreal height = (zeroY - valueY) * itemProgress;
+                painter->drawRoundedRect(QRectF(x, zeroY - height, barWidth * 0.82, height).normalized(), 2, 2);
             }
         }
     }
@@ -594,10 +609,11 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
         QPainterPath line;
         QPainterPath area;
         for (int i = 0; i < item.values.size(); ++i) {
-            const QPointF point = mapCategoryPoint(plot, i, item.values.size(), item.values.at(i), maximum);
+            const QPointF point =
+                mapCategoryPoint(plot, i, static_cast<int>(item.values.size()), item.values.at(i), minimum, maximum);
             if (i == 0) {
                 line.moveTo(point);
-                area.moveTo(point.x(), plot.bottom());
+                area.moveTo(point.x(), zeroY);
                 area.lineTo(point);
             } else {
                 line.lineTo(point);
@@ -605,9 +621,9 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
             }
         }
         if (!item.values.isEmpty()) {
-            area.lineTo(mapCategoryPoint(plot, item.values.size() - 1, item.values.size(), item.values.last(), maximum)
-                            .x(),
-                        plot.bottom());
+            const int valueCount = static_cast<int>(item.values.size());
+            area.lineTo(mapCategoryPoint(plot, valueCount - 1, valueCount, item.values.last(), minimum, maximum).x(),
+                        zeroY);
             area.closeSubpath();
         }
 
@@ -656,7 +672,7 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
         qreal nearestDistance = std::numeric_limits<qreal>::max();
         for (int i = 0; i < item.points.size(); ++i) {
             const QPointF &point = item.points.at(i);
-            const qreal itemProgress = stagedProgress(animationProgress, i, item.points.size());
+            const qreal itemProgress = stagedProgress(animationProgress, i, static_cast<int>(item.points.size()));
             painter->setBrush(withOpacity(colors.at(seriesIndex % colors.size()), qMax<qreal>(0.1, itemProgress)));
             const qreal x = plot.left() + (point.x() - xMinimum) / (xMaximum - xMinimum) * plot.width();
             const qreal y = plot.bottom() - (point.y() - yMinimum) / (yMaximum - yMinimum) * plot.height();
@@ -704,7 +720,7 @@ void drawAxisCharts(QPainter *painter, const QRectF &rect, const QJsonObject &op
                 continue;
             }
             const qreal value = item.values.at(index);
-            const QPointF point(x, plot.bottom() - value / maximum * plot.height());
+            const QPointF point(x, mapCategoryValue(plot, value, minimum, maximum));
             const QColor color = chartColors.at(seriesIndex % chartColors.size());
             painter->setPen(QPen(plotColor(), 3));
             painter->setBrush(color);
@@ -730,9 +746,13 @@ void drawPieChart(QPainter *painter, const QRectF &rect, const QJsonObject &opti
         return;
     }
 
+    // A negative value has no slice; summing it shrank the total and turned slices backwards.
+    const auto sliceValue = [](const QJsonValue &value) {
+        return qMax<qreal>(0.0, value.toObject().value(QStringLiteral("value")).toDouble());
+    };
     qreal total = 0;
-    for (const QJsonValue &value : data) {
-        total += value.toObject().value(QStringLiteral("value")).toDouble();
+    for (const QJsonValue value : data) {
+        total += sliceValue(value);
     }
     if (total <= 0) {
         return;
@@ -756,7 +776,7 @@ void drawPieChart(QPainter *painter, const QRectF &rect, const QJsonObject &opti
             const qreal clockwiseFromTop = std::fmod(angle + 90.0 + 360.0, 360.0);
             qreal accumulated = 0;
             for (int i = 0; i < data.size(); ++i) {
-                const qreal span = data.at(i).toObject().value(QStringLiteral("value")).toDouble() / total * 360.0;
+                const qreal span = sliceValue(data.at(i)) / total * 360.0;
                 if (clockwiseFromTop >= accumulated && clockwiseFromTop < accumulated + span) {
                     hoveredIndex = i;
                     break;
@@ -777,7 +797,7 @@ void drawPieChart(QPainter *painter, const QRectF &rect, const QJsonObject &opti
         const QJsonObject object = data.at(i).toObject();
         const QString label = object.value(QStringLiteral("name")).toString(QStringLiteral("Item %1").arg(i + 1));
         const qreal rawValue = object.value(QStringLiteral("value")).toDouble();
-        const qreal sliceDegrees = rawValue / total * 360.0;
+        const qreal sliceDegrees = sliceValue(data.at(i)) / total * 360.0;
         labels.append(label);
         values.append(formatNumber(rawValue));
         const int span = qRound(-sliceDegrees * 16.0 * progress);
@@ -940,7 +960,7 @@ void drawRadar(QPainter *painter, const QRectF &rect, const QJsonObject &option,
         QPolygonF polygon;
         const qreal r = radius * ring / 4.0;
         for (int i = 0; i < indicators.size(); ++i) {
-            const qreal angle = -kHalfPi + i * 2.0 * kPi / indicators.size();
+            const qreal angle = -kHalfPi + i * 2.0 * kPi / static_cast<qreal>(indicators.size());
             polygon.append(center + QPointF(std::cos(angle) * r, std::sin(angle) * r));
         }
         painter->drawPolygon(polygon);
@@ -948,7 +968,7 @@ void drawRadar(QPainter *painter, const QRectF &rect, const QJsonObject &option,
 
     QFontMetrics metrics(painter->font());
     for (int i = 0; i < indicators.size(); ++i) {
-        const qreal angle = -kHalfPi + i * 2.0 * kPi / indicators.size();
+        const qreal angle = -kHalfPi + i * 2.0 * kPi / static_cast<qreal>(indicators.size());
         const QPointF end = center + QPointF(std::cos(angle) * radius, std::sin(angle) * radius);
         painter->drawLine(center, end);
         const QString label = indicators.at(i).toObject().value(QStringLiteral("name")).toString();
@@ -971,18 +991,18 @@ void drawRadar(QPainter *painter, const QRectF &rect, const QJsonObject &option,
             dataObject.value(QStringLiteral("name")).toString(QStringLiteral("Series %1").arg(dataIndex + 1));
         legendLabels.append(seriesName);
         qreal average = 0;
-        for (const QJsonValue &value : values) {
+        for (const QJsonValue value : values) {
             average += value.toDouble();
         }
         if (!values.isEmpty()) {
-            average /= values.size();
+            average /= static_cast<qreal>(values.size());
         }
         legendValues.append(formatNumber(average));
         QPolygonF polygon;
         for (int i = 0; i < qMin(indicators.size(), values.size()); ++i) {
             const qreal maximum = indicators.at(i).toObject().value(QStringLiteral("max")).toDouble(100);
             const qreal ratio = maximum > 0 ? values.at(i).toDouble() / maximum * progress : 0;
-            const qreal angle = -kHalfPi + i * 2.0 * kPi / indicators.size();
+            const qreal angle = -kHalfPi + i * 2.0 * kPi / static_cast<qreal>(indicators.size());
             polygon.append(center + QPointF(std::cos(angle) * radius * ratio, std::sin(angle) * radius * ratio));
         }
         const QColor color = colors.at(dataIndex % colors.size());
@@ -1031,12 +1051,12 @@ void drawHeatmap(QPainter *painter, const QRectF &rect, const QJsonObject &optio
 
     const QRectF plot = chartAreaRect(rect, optionTitle(option));
     drawFrame(painter, plot);
-    const qreal cellWidth = plot.width() / xLabels.size();
-    const qreal cellHeight = plot.height() / yLabels.size();
+    const qreal cellWidth = plot.width() / static_cast<qreal>(xLabels.size());
+    const qreal cellHeight = plot.height() / static_cast<qreal>(yLabels.size());
     const QColor accent = ThemeManager::instance()->accentColor();
 
     qreal maximum = 1;
-    for (const QJsonValue &value : data) {
+    for (const QJsonValue value : data) {
         const QJsonArray cell = value.toArray();
         if (cell.size() >= 3) {
             maximum = qMax(maximum, cell.at(2).toDouble());
@@ -1054,7 +1074,7 @@ void drawHeatmap(QPainter *painter, const QRectF &rect, const QJsonObject &optio
         }
         const int x = cell.at(0).toInt();
         const int y = cell.at(1).toInt();
-        const qreal itemProgress = stagedProgress(animationProgress, i, data.size());
+        const qreal itemProgress = stagedProgress(animationProgress, i, static_cast<int>(data.size()));
         const qreal ratio = qBound<qreal>(0, cell.at(2).toDouble() / maximum, 1);
         painter->setBrush(withAlpha(accent, qRound((35 + ratio * 210) * itemProgress)));
         const QRectF cellRect(plot.left() + x * cellWidth + 2, plot.top() + y * cellHeight + 2, cellWidth - 4,

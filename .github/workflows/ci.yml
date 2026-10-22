@@ -16,6 +16,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
+    env:
+      # Windows keeps debug information, so that the stack of a crashing test names its functions.
+      BUILD_CONFIG: ${{ matrix.os == 'windows-latest' && 'RelWithDebInfo' || 'Release' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -29,17 +32,56 @@ jobs:
       - name: Configure
         run: cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
 
-      - name: Build (Linux)
-        if: runner.os == 'Linux'
-        run: cmake --build build --config Release --parallel 2
+      - name: Build (Linux / Windows)
+        if: runner.os != 'macOS'
+        run: cmake --build build --config ${{ env.BUILD_CONFIG }} --parallel 2
 
-      - name: Build (Windows / macOS)
-        if: runner.os != 'Linux'
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
         run: cmake --build build --config Release --parallel 2 --target FluentQtWidgets FluentQtWidgetsGallery
 
       - name: Test (Linux)
         if: runner.os == 'Linux'
         run: xvfb-run -a ctest --test-dir build --build-config Release --output-on-failure
+
+      # Windows-only code (native hit testing, frameless windows) is only covered here; the runner has
+      # an interactive desktop, which the widget tests need.
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        run: ctest --test-dir build --build-config ${{ env.BUILD_CONFIG }} --output-on-failure
+
+      # ctest captures none of the Windows tests' output here. Run the failed suites again with QTest
+      # writing its log to a file, which also keeps what a crashing suite wrote before it crashed, and
+      # with their own output in files: QTest prints the stack of a crash there. A crashing suite also
+      # runs under the console debugger when there is one.
+      - name: Failed test logs (Windows)
+        if: failure() && runner.os == 'Windows'
+        run: |
+          function Invoke-Logged($program, $arguments, $directory, $output) {
+            $process = Start-Process -FilePath $program -ArgumentList $arguments -WorkingDirectory $directory `
+              -NoNewWindow -PassThru -RedirectStandardOutput "$output.out" -RedirectStandardError "$output.err"
+            $null = $process.Handle
+            if (!$process.WaitForExit(300000)) { $process.Kill() }
+            return $process.ExitCode
+          }
+          $cdb = "${env:ProgramFiles(x86)}\Windows Kits\10\Debuggers\x64\cdb.exe"
+          $failed = Get-Content build/Testing/Temporary/LastTestsFailed.log -ErrorAction SilentlyContinue
+          foreach ($entry in $failed) {
+            $name = $entry.Split(':', 2)[1]
+            $exe = Join-Path $PWD "build/tests/$env:BUILD_CONFIG/$name.exe"
+            if (!(Test-Path $exe)) { continue }
+            $directory = Split-Path $exe
+            $output = Join-Path $env:RUNNER_TEMP $name
+            $exitCode = Invoke-Logged $exe @('-o', "$output.txt,txt") $directory $output
+            "::group::$name (exit code $exitCode)"
+            Get-Content "$output.txt", "$output.out", "$output.err" -ErrorAction SilentlyContinue
+            if ($exitCode -eq -1073741819 -and (Test-Path $cdb)) {
+              '--- under cdb ---'
+              $null = Invoke-Logged $cdb @('-G', '-lines', '-y', $directory, '-c', '"g; .lastevent; .ecxr; kn 60; q"', $exe) $directory "$output.cdb"
+              Get-Content "$output.cdb.out" -ErrorAction SilentlyContinue | Select-Object -Last 150
+            }
+            '::endgroup::'
+          }
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

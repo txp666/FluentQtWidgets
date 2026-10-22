@@ -187,6 +187,7 @@ void PipsPager::setPageNumber(int pageNumber)
         return;
     }
 
+    const int previousIndex = m_currentIndex;
     m_pageNumber = boundedPageNumber;
     if (m_pageNumber == 0) {
         m_currentIndex = -1;
@@ -198,7 +199,9 @@ void PipsPager::setPageNumber(int pageNumber)
 
     rebuildPips();
     emit pageNumberChanged(m_pageNumber);
-    emit currentIndexChanged(m_currentIndex);
+    if (m_currentIndex != previousIndex) {
+        emit currentIndexChanged(m_currentIndex);
+    }
 }
 
 void PipsPager::setVisibleNumber(int visibleNumber)
@@ -388,7 +391,7 @@ void PipsPager::updateVisiblePips()
         return;
     }
 
-    const int visibleCount = qMin(m_visibleNumber, m_pipButtons.size());
+    const int visibleCount = qMin(m_visibleNumber, static_cast<int>(m_pipButtons.size()));
     const int start = qRound(m_pipScrollOffset);
     const int end = start + visibleCount;
 
@@ -405,12 +408,12 @@ int PipsPager::visibleStartIndex(int index) const
         return 0;
     }
 
-    const int visibleCount = qMin(m_visibleNumber, m_pipButtons.size());
+    const int visibleCount = qMin(m_visibleNumber, static_cast<int>(m_pipButtons.size()));
     int start = 0;
     if (index >= 0) {
         start = index - visibleCount / 2;
     }
-    return qBound(0, start, m_pipButtons.size() - visibleCount);
+    return qBound(0, start, static_cast<int>(m_pipButtons.size()) - visibleCount);
 }
 
 void PipsPager::updatePipContainerOffset()

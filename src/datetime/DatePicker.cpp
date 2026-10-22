@@ -69,7 +69,7 @@ QString MonthFormatter::encode(const QVariant &value) const
 QVariant MonthFormatter::decode(const QString &value) const
 {
     const QStringList labels = translatedMonthNames();
-    const int index = labels.indexOf(value);
+    const int index = static_cast<int>(labels.indexOf(value));
     if (index >= 0) {
         return index + 1;
     }
@@ -224,7 +224,11 @@ void DatePicker::setDayFormatter(PickerColumnFormatter *formatter)
     updateColumnDisplay();
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void DatePicker::enterEvent(QEnterEvent *event)
+#else
+void DatePicker::enterEvent(QEvent *event)
+#endif
 {
     setColumnButtonProperty("enter", true);
     QFrame::enterEvent(event);

@@ -341,7 +341,7 @@ void TabBar::clear()
     }
 }
 
-int TabBar::count() const { return m_items.size(); }
+int TabBar::count() const { return static_cast<int>(m_items.size()); }
 
 int TabBar::currentIndex() const { return m_currentIndex; }
 
@@ -556,27 +556,35 @@ void TabBar::wheelEvent(QWheelEvent *event)
     event->accept();
 }
 
+// The tab index in the drag data only means something to the bar it came from; a tab dragged in
+// from another TabBar must not move an unrelated tab of this one.
+bool TabBar::isOwnTabDrag(const QDropEvent *event) const
+{
+    auto *source = qobject_cast<TabItem *>(event->source());
+    return m_movable && event->mimeData()->hasFormat(kTabMimeType) && source && m_items.contains(source);
+}
+
 void TabBar::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (m_movable && event->mimeData()->hasFormat(kTabMimeType)) {
+    if (isOwnTabDrag(event)) {
         event->acceptProposedAction();
     }
 }
 
 void TabBar::dragMoveEvent(QDragMoveEvent *event)
 {
-    if (m_movable && event->mimeData()->hasFormat(kTabMimeType)) {
+    if (isOwnTabDrag(event)) {
         event->acceptProposedAction();
     }
 }
 
 void TabBar::dropEvent(QDropEvent *event)
 {
-    if (!m_movable || !event->mimeData()->hasFormat(kTabMimeType)) {
+    if (!isOwnTabDrag(event)) {
         return;
     }
 
-    const int from = event->mimeData()->data(kTabMimeType).toInt();
+    const int from = static_cast<int>(m_items.indexOf(qobject_cast<TabItem *>(event->source())));
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     const QPoint pos = m_tabStrip->mapFromGlobal(event->position().toPoint());
 #else
@@ -661,6 +669,8 @@ void TabBar::moveTab(int from, int to)
         m_itemLayout->addWidget(tabItem, 1, Qt::AlignVCenter);
     }
 
+    // The current tab stays current, only its index may shift; like QTabBar, that is no
+    // currentChanged().
     if (m_currentIndex == from) {
         m_currentIndex = to;
     } else if (from < m_currentIndex && to >= m_currentIndex) {
@@ -670,7 +680,6 @@ void TabBar::moveTab(int from, int to)
     }
 
     updateSelectedItems();
-    emit currentChanged(m_currentIndex);
     updateOverflowButtons();
 }
 
@@ -718,7 +727,7 @@ void TabBar::updateSelectedItems()
 void TabBar::connectItem(TabItem *item)
 {
     connect(item, &QPushButton::clicked, this, [this, item]() {
-        const int index = m_items.indexOf(item);
+        const int index = static_cast<int>(m_items.indexOf(item));
         if (index < 0) {
             return;
         }
@@ -726,13 +735,13 @@ void TabBar::connectItem(TabItem *item)
         setCurrentIndex(index);
     });
     connect(item, &TabItem::doubleClicked, this, [this, item]() {
-        const int index = m_items.indexOf(item);
+        const int index = static_cast<int>(m_items.indexOf(item));
         if (index >= 0) {
             emit tabBarDoubleClicked(index);
         }
     });
     connect(item, &TabItem::closed, this, [this, item]() {
-        const int index = m_items.indexOf(item);
+        const int index = static_cast<int>(m_items.indexOf(item));
         if (index >= 0) {
             emit tabCloseRequested(index);
         }
@@ -878,9 +887,11 @@ void TabWidget::init()
             return;
         }
 
+        // Follow the bar: the same page stays current, whichever tab was dragged.
+        QWidget *currentPage = m_stackedWidget->currentWidget();
         m_stackedWidget->removeWidget(page);
         m_stackedWidget->insertWidget(to, page);
-        setCurrentIndex(to);
+        m_stackedWidget->setCurrentWidget(currentPage);
     });
 
     FluentStyleSheet::setRole(this, QStringLiteral("TabWidget"));

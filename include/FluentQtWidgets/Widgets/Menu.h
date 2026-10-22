@@ -94,11 +94,6 @@ public:
 
 protected:
     void rowsInserted(const QModelIndex &parent, int start, int end) override;
-#if QT_VERSION < QT_VERSION_CHECK(6, 8, 0)
-    void rowsRemoved(const QModelIndex &parent, int start, int end) override;
-#else
-    void rowsAboutToBeRemoved(const QModelIndex &parent, int first, int last) override;
-#endif
 
 private:
     int m_itemHeight = 28;
@@ -206,8 +201,15 @@ public:
     QIcon menuIcon() const;
 
     using QMenu::exec;
+    // Shows the menu and returns at once, like QMenu::popup() (and like qfluentwidgets); the
+    // result is always nullptr. A menu on the stack, or a caller that needs the chosen action,
+    // wants execAndWait().
     QAction *exec(const QPoint &pos, bool animated = true,
                   MenuAnimationType animationType = MenuAnimationType::DropDown);
+    // Like QMenu::exec(): returns once the menu is hidden, with the action triggered in it or in
+    // one of its submenus, or nullptr.
+    QAction *execAndWait(const QPoint &pos, bool animated = true,
+                         MenuAnimationType animationType = MenuAnimationType::DropDown);
 
     MenuAnimationType animationType() const;
     void setAnimationType(MenuAnimationType type);
@@ -233,6 +235,8 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
+    // Rebuilds existing actions, submenus and separators in the new view; rows added with
+    // addWidget() are dropped, since their widgets go away with the old view.
     void setMenuView(MenuActionListWidget *view);
 
 private:
@@ -246,6 +250,7 @@ private:
     bool hasItemIcon() const;
     int longestShortcutWidth() const;
     void removeItem(QListWidgetItem *item);
+    void detachSubMenu(RoundMenu *menu);
     QRect visualItemRect(QListWidgetItem *item) const;
     void showSubMenu(QListWidgetItem *item);
     void onShowMenuTimeout();

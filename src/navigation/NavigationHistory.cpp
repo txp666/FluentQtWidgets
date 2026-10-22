@@ -79,7 +79,9 @@ void NavigationHistory::remove(QStackedWidget *stackedWidget, const QString &rou
         }
     }
 
-    filtered.erase(std::unique(filtered.begin() + 1, filtered.end()), filtered.end());
+    // Including the default entry: [A, B, A] without B is [A], not an [A, A] that can "go back"
+    // to the page it is on.
+    filtered.erase(std::unique(filtered.begin(), filtered.end()), filtered.end());
     history.history = filtered;
     navigateToTop(stackedWidget, history);
     emitEmptyChanged();
@@ -92,6 +94,15 @@ bool NavigationHistory::canGoBack(QStackedWidget *stackedWidget) const
     }
 
     return m_histories.value(stackedWidget).history.size() > 1;
+}
+
+QString NavigationHistory::previousRouteKey(QStackedWidget *stackedWidget) const
+{
+    if (!canGoBack(stackedWidget)) {
+        return QString();
+    }
+    const QStringList &history = m_histories.value(stackedWidget).history;
+    return history.at(history.size() - 2);
 }
 
 QString NavigationHistory::topRouteKey(QStackedWidget *stackedWidget) const
@@ -132,10 +143,16 @@ void NavigationHistory::navigateToTop(QStackedWidget *stackedWidget, StackHistor
         return;
     }
 
+    // Only the stack's own pages; a recursive findChild() could hit a nested widget that
+    // happens to share the name.
     const QString routeKey = history.history.constLast();
-    QWidget *page = stackedWidget->findChild<QWidget *>(routeKey);
-    if (page) {
-        stackedWidget->setCurrentWidget(page);
+    for (int i = 0; i < stackedWidget->count(); ++i) {
+        QWidget *page = stackedWidget->widget(i);
+        const QString pageKey = page->property("routeKey").toString();
+        if (pageKey == routeKey || (pageKey.isEmpty() && page->objectName() == routeKey)) {
+            stackedWidget->setCurrentWidget(page);
+            return;
+        }
     }
 }
 

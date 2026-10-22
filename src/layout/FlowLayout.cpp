@@ -61,7 +61,7 @@ void FlowLayout::insertItem(int index, QLayoutItem *item)
         return;
     }
 
-    const int boundedIndex = qBound(0, index, m_items.size());
+    const int boundedIndex = qBound(0, index, static_cast<int>(m_items.size()));
     m_items.insert(boundedIndex, item);
     setupAnimationForItem(item, boundedIndex);
     invalidate();
@@ -169,7 +169,7 @@ void FlowLayout::setGeometry(const QRect &rect)
     }
 }
 
-int FlowLayout::count() const { return m_items.size(); }
+int FlowLayout::count() const { return static_cast<int>(m_items.size()); }
 
 QLayoutItem *FlowLayout::itemAt(int index) const
 {
@@ -301,10 +301,11 @@ int FlowLayout::doLayout(const QRect &rect, bool move)
         for (const RowItem &rowItem : std::as_const(rowItems)) {
             const int itemY = alignedItemY(rowItem.item, rowY, height, rowItem.size.height());
             const QRect target(QPoint(rowItem.x, itemY), rowItem.size);
-            if (!m_animationEnabled || rowItem.index >= m_animations.size() || !m_animations.at(rowItem.index)) {
+            QPropertyAnimation *animation =
+                m_animationEnabled ? m_animations.value(rowItem.item->widget(), nullptr) : nullptr;
+            if (!animation) {
                 rowItem.item->setGeometry(target);
             } else {
-                QPropertyAnimation *animation = m_animations.at(rowItem.index);
                 if (animation->endValue().toRect() != target) {
                     animation->stop();
                     animation->setEndValue(target);
@@ -345,7 +346,7 @@ int FlowLayout::doLayout(const QRect &rect, bool move)
     return y + rowHeight + margins.bottom() - rect.y();
 }
 
-void FlowLayout::setupAnimationForItem(QLayoutItem *item, int index)
+void FlowLayout::setupAnimationForItem(QLayoutItem *item, int /*index*/)
 {
     QWidget *widget = item ? item->widget() : nullptr;
     if (!widget || !m_animationEnabled) {
@@ -357,18 +358,20 @@ void FlowLayout::setupAnimationForItem(QLayoutItem *item, int index)
         m_parentWidget->installEventFilter(this);
     }
 
+    // Keyed by widget, not by item index: spacers have no animation, and widgets deleted from
+    // outside leave the item list without passing through here. setAnimationEnabled(true) a
+    // second time must not add another one either.
+    if (m_animations.contains(widget)) {
+        return;
+    }
+
     auto *animation = new QPropertyAnimation(widget, "geometry", this);
     animation->setDuration(m_duration);
     animation->setEasingCurve(m_easing);
     animation->setEndValue(QRect(QPoint(0, 0), widget->size()));
     widget->setProperty("flowAni", QVariant::fromValue<QObject *>(animation));
     m_animationGroup->addAnimation(animation);
-
-    if (index >= 0 && index <= m_animations.size()) {
-        m_animations.insert(index, animation);
-    } else {
-        m_animations.append(animation);
-    }
+    m_animations.insert(widget, animation);
 }
 
 void FlowLayout::removeAnimationForWidget(QWidget *widget)
@@ -377,20 +380,14 @@ void FlowLayout::removeAnimationForWidget(QWidget *widget)
         return;
     }
 
-    QPropertyAnimation *animation = nullptr;
-    for (int i = 0; i < m_animations.size(); ++i) {
-        if (m_animations.at(i) && m_animations.at(i)->targetObject() == widget) {
-            animation = m_animations.takeAt(i);
-            break;
-        }
-    }
-
+    // The widget may be mid-destruction (deleted from outside, the layout told through
+    // ChildRemoved); only its address is used.
+    QPropertyAnimation *animation = m_animations.take(widget);
     if (!animation) {
         return;
     }
 
     m_animationGroup->removeAnimation(animation);
-    widget->setProperty("flowAni", QVariant());
     animation->deleteLater();
 }
 
@@ -510,10 +507,11 @@ int AdaptiveFlowLayout::doLayout(const QRect &rect, bool move)
         for (const RowItem &rowItem : std::as_const(rowItems)) {
             const int itemY = alignedItemY(rowItem.item, rowY, height, rowItem.size.height());
             const QRect target(QPoint(rowItem.x, itemY), rowItem.size);
-            if (!m_animationEnabled || rowItem.index >= m_animations.size() || !m_animations.at(rowItem.index)) {
+            QPropertyAnimation *animation =
+                m_animationEnabled ? m_animations.value(rowItem.item->widget(), nullptr) : nullptr;
+            if (!animation) {
                 rowItem.item->setGeometry(target);
             } else {
-                QPropertyAnimation *animation = m_animations.at(rowItem.index);
                 if (animation->endValue().toRect() != target) {
                     animation->stop();
                     animation->setEndValue(target);
@@ -626,7 +624,7 @@ QSize ExpandLayout::minimumSize() const
     return size;
 }
 
-int ExpandLayout::count() const { return m_items.size(); }
+int ExpandLayout::count() const { return static_cast<int>(m_items.size()); }
 
 QLayoutItem *ExpandLayout::itemAt(int index) const
 {

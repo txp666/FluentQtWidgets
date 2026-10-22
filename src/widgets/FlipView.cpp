@@ -10,6 +10,7 @@
 #include <QtGui/QEnterEvent>
 #include <QtGui/QImageReader>
 #include <QtGui/QMouseEvent>
+#include <QtGui/QCursor>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QWheelEvent>
@@ -54,7 +55,7 @@ qreal FlipView::previousButtonOpacity() const { return m_previousButtonOpacity; 
 
 qreal FlipView::nextButtonOpacity() const { return m_nextButtonOpacity; }
 
-int FlipView::count() const { return m_images.size(); }
+int FlipView::count() const { return static_cast<int>(m_images.size()); }
 
 QImage FlipView::image(int index) const
 {
@@ -204,12 +205,20 @@ void FlipView::paintEvent(QPaintEvent *)
     }
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void FlipView::enterEvent(QEnterEvent *event)
+#else
+void FlipView::enterEvent(QEvent *event)
+#endif
 {
     QWidget::enterEvent(event);
     m_hovered = true;
     updateButtonOpacityForCurrentIndex(true);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     updateCursorForPosition(event->position().toPoint());
+#else
+    updateCursorForPosition(mapFromGlobal(QCursor::pos()));
+#endif
     update();
 }
 
@@ -262,18 +271,30 @@ void FlipView::mouseReleaseEvent(QMouseEvent *event)
 
 void FlipView::wheelEvent(QWheelEvent *event)
 {
+    const QPoint delta = event->angleDelta();
+    const int step = delta.y() != 0 ? delta.y() : delta.x();
+    const bool forward = step < 0;
+    // A zero delta (touchpad phase events) is no direction; and at the first or last page the
+    // wheel belongs to whatever scrolls around the view.
+    if (step == 0 || (forward && m_currentIndex >= count() - 1) || (!forward && m_currentIndex <= 0)) {
+        event->ignore();
+        return;
+    }
+
+    // While a flip is under way, further notches are swallowed so the page around does not
+    // scroll instead.
+    event->accept();
     if (m_isScrolling) {
         return;
     }
 
     m_isScrolling = true;
-    if (event->angleDelta().y() < 0 || event->angleDelta().x() < 0) {
+    if (forward) {
         scrollNext();
     } else {
         scrollPrevious();
     }
     QTimer::singleShot(500, this, [this]() { m_isScrolling = false; });
-    event->accept();
 }
 
 QRectF FlipView::imageRect() const

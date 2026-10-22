@@ -12,11 +12,6 @@ namespace FluentQt {
 
 namespace {
 
-QGraphicsOpacityEffect *opacityEffect(QWidget *widget)
-{
-    return widget ? qobject_cast<QGraphicsOpacityEffect *>(widget->graphicsEffect()) : nullptr;
-}
-
 inline QEasingCurve cubicBezierEasing(qreal x1, qreal y1, qreal x2, qreal y2)
 {
     QEasingCurve curve(QEasingCurve::BezierSpline);
@@ -59,29 +54,21 @@ QPropertyAnimation *geometryAnimation(QWidget *target, int duration, const QRect
 
 OpacityAniStackedWidget::OpacityAniStackedWidget(QWidget *parent) : QStackedWidget(parent) {}
 
-int OpacityAniStackedWidget::addWidget(QWidget *widget)
-{
-    const int index = QStackedWidget::addWidget(widget);
-    ensureAnimationForWidget(widget, index);
-    return index;
-}
+int OpacityAniStackedWidget::addWidget(QWidget *widget) { return QStackedWidget::addWidget(widget); }
 
-void OpacityAniStackedWidget::insertWidget(int index, QWidget *widget)
-{
-    const int insertedIndex = QStackedWidget::insertWidget(index, widget);
-    ensureAnimationForWidget(widget, insertedIndex);
-}
+void OpacityAniStackedWidget::insertWidget(int index, QWidget *widget) { QStackedWidget::insertWidget(index, widget); }
 
 void OpacityAniStackedWidget::removeWidget(QWidget *widget)
 {
-    const int index = indexOf(widget);
-    if (index >= 0 && index < m_animations.size()) {
-        delete m_animations.takeAt(index);
-        m_effects.removeAt(index);
+    if (widget && widget == m_animatedWidget) {
+        finishAnimation();
     }
     QStackedWidget::removeWidget(widget);
 }
 
+// The opacity effect lives only for the transition and only on the page being faded: a page's own
+// graphics effect would be deleted by setGraphicsEffect(), and OpenGL, video or web views do not
+// render under an effect at all. Pages that already have an effect switch without fading.
 void OpacityAniStackedWidget::setCurrentIndex(int index)
 {
     const int current = currentIndex();
@@ -89,32 +76,36 @@ void OpacityAniStackedWidget::setCurrentIndex(int index)
         return;
     }
 
-    QPropertyAnimation *animation = nullptr;
-    if (index > current) {
-        animation = m_animations.value(index);
-        if (auto *effect = m_effects.value(index, nullptr)) {
-            effect->setOpacity(0.0);
-        }
-        animation->setStartValue(0.0);
-        animation->setEndValue(1.0);
-        QStackedWidget::setCurrentIndex(index);
-    } else {
-        animation = m_animations.value(current);
-        animation->setStartValue(1.0);
-        animation->setEndValue(0.0);
-    }
+    finishAnimation();
 
-    if (!animation) {
+    // Forward, the next page fades in; backward, the current page fades out over it.
+    const bool forward = index > current;
+    QWidget *animated = forward ? widget(index) : widget(current);
+    if (!animated || animated->graphicsEffect()) {
         QStackedWidget::setCurrentIndex(index);
         return;
     }
 
-    if (QWidget *oldWidget = widget(current)) {
-        oldWidget->show();
-    }
+    auto *effect = new QGraphicsOpacityEffect(animated);
+    effect->setOpacity(forward ? 0.0 : 1.0);
+    animated->setGraphicsEffect(effect);
+
+    m_animatedWidget = animated;
     m_nextIndex = index;
-    animation->stop();
-    animation->start();
+    m_animation = new QPropertyAnimation(effect, "opacity", this);
+    m_animation->setDuration(220);
+    m_animation->setStartValue(forward ? 0.0 : 1.0);
+    m_animation->setEndValue(forward ? 1.0 : 0.0);
+    connect(m_animation, &QPropertyAnimation::finished, this, &OpacityAniStackedWidget::onAnimationFinished);
+
+    if (forward) {
+        QStackedWidget::setCurrentIndex(index);
+    } else if (QWidget *next = widget(index)) {
+        // Keep the current page on top while it fades.
+        next->show();
+        animated->raise();
+    }
+    m_animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void OpacityAniStackedWidget::setCurrentWidget(QWidget *widget)
@@ -124,59 +115,55 @@ void OpacityAniStackedWidget::setCurrentWidget(QWidget *widget)
 
 void OpacityAniStackedWidget::onAnimationFinished()
 {
-    QStackedWidget::setCurrentIndex(m_nextIndex);
+    if (m_animatedWidget) {
+        m_animatedWidget->setGraphicsEffect(nullptr);
+    }
+    m_animatedWidget = nullptr;
+    m_animation = nullptr;
+    if (m_nextIndex >= 0 && m_nextIndex < count()) {
+        QStackedWidget::setCurrentIndex(m_nextIndex);
+    }
+    m_nextIndex = -1;
 }
 
-void OpacityAniStackedWidget::ensureAnimationForWidget(QWidget *widget, int index)
+// Jumps a running transition to its end.
+void OpacityAniStackedWidget::finishAnimation()
 {
-    if (!widget || index < 0) {
+    if (!m_animation) {
         return;
     }
-
-    auto *effect = new QGraphicsOpacityEffect(widget);
-    effect->setOpacity(1.0);
-    widget->setGraphicsEffect(effect);
-
-    auto *animation = new QPropertyAnimation(effect, "opacity", this);
-    animation->setDuration(220);
-    connect(animation, &QPropertyAnimation::finished, this, &OpacityAniStackedWidget::onAnimationFinished);
-
-    m_effects.insert(index, effect);
-    m_animations.insert(index, animation);
+    QPointer<QPropertyAnimation> animation = m_animation;
+    disconnect(animation, nullptr, this, nullptr);
+    animation->stop();
+    onAnimationFinished();
 }
 
-PopUpAniStackedWidget::PopUpAniStackedWidget(QWidget *parent) : QStackedWidget(parent) {}
+PopUpAniStackedWidget::PopUpAniStackedWidget(QWidget *parent) : QStackedWidget(parent)
+{
+    connect(this, &QStackedWidget::widgetRemoved, this, &PopUpAniStackedWidget::onWidgetRemoved);
+}
+
+PopUpAniStackedWidget::~PopUpAniStackedWidget()
+{
+    disconnect(this, &QStackedWidget::widgetRemoved, this, &PopUpAniStackedWidget::onWidgetRemoved);
+}
 
 int PopUpAniStackedWidget::addWidget(QWidget *widget, int deltaX, int deltaY)
 {
     const int index = QStackedWidget::addWidget(widget);
-    PopUpAniInfo info;
-    info.widget = widget;
+    if (index < 0) {
+        return index;
+    }
+
+    PopUpAniInfo &info = ensureAnimationInfo(widget);
     info.deltaX = deltaX;
     info.deltaY = deltaY;
-    info.animation = new QPropertyAnimation(widget, "pos", this);
-    m_animationInfos.insert(index, info);
     return index;
 }
 
 void PopUpAniStackedWidget::removeWidget(QWidget *widget)
 {
-    const int index = indexOf(widget);
-    if (index >= 0 && index < m_animationInfos.size()) {
-        QPropertyAnimation *animation = m_animationInfos.at(index).animation;
-        if (m_currentAnimation == animation) {
-            m_currentAnimation->stop();
-            m_currentAnimation = nullptr;
-            m_nextIndex = -1;
-        }
-        delete animation;
-        m_animationInfos.removeAt(index);
-        if (m_nextIndex == index) {
-            m_nextIndex = -1;
-        } else if (m_nextIndex > index) {
-            --m_nextIndex;
-        }
-    }
+    // onWidgetRemoved() drops the page's animation data.
     QStackedWidget::removeWidget(widget);
 }
 
@@ -187,7 +174,68 @@ bool PopUpAniStackedWidget::isAnimationEnabled() const
 
 QVector<PopUpAniInfo> PopUpAniStackedWidget::animationInfos() const
 {
-    return m_animationInfos;
+    QVector<PopUpAniInfo> infos;
+    infos.reserve(count());
+    for (int i = 0; i < count(); ++i) {
+        const int infoIndex = animationInfoIndex(widget(i));
+        if (infoIndex >= 0) {
+            infos.append(m_animationInfos.at(infoIndex));
+        } else {
+            PopUpAniInfo info;
+            info.widget = widget(i);
+            infos.append(info);
+        }
+    }
+    return infos;
+}
+
+int PopUpAniStackedWidget::animationInfoIndex(const QWidget *widget) const
+{
+    for (int i = 0; i < m_animationInfos.size(); ++i) {
+        if (m_animationInfos.at(i).widget == widget) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+PopUpAniInfo &PopUpAniStackedWidget::ensureAnimationInfo(QWidget *widget)
+{
+    const int infoIndex = animationInfoIndex(widget);
+    if (infoIndex >= 0) {
+        return m_animationInfos[infoIndex];
+    }
+
+    PopUpAniInfo info;
+    info.widget = widget;
+    info.animation = new QPropertyAnimation(widget, "pos", this);
+    m_animationInfos.append(info);
+    return m_animationInfos.last();
+}
+
+void PopUpAniStackedWidget::onWidgetRemoved(int index)
+{
+    // The removed page may already be mid-destruction: only compare its pointer.
+    for (int i = static_cast<int>(m_animationInfos.size()) - 1; i >= 0; --i) {
+        const PopUpAniInfo info = m_animationInfos.at(i);
+        if (indexOf(info.widget) >= 0) {
+            continue;
+        }
+
+        if (m_currentAnimation == info.animation) {
+            m_currentAnimation->stop();
+            m_currentAnimation = nullptr;
+            m_nextIndex = -1;
+        }
+        delete info.animation;
+        m_animationInfos.removeAt(i);
+    }
+
+    if (m_nextIndex == index) {
+        m_nextIndex = -1;
+    } else if (m_nextIndex > index) {
+        --m_nextIndex;
+    }
 }
 
 void PopUpAniStackedWidget::setAnimationEnabled(bool enabled)
@@ -213,8 +261,9 @@ void PopUpAniStackedWidget::setCurrentIndex(int index, bool needPopOut, bool sho
     }
 
     m_nextIndex = index;
-    PopUpAniInfo nextInfo = m_animationInfos.at(index);
-    PopUpAniInfo currentInfo = m_animationInfos.at(currentIndex());
+    // Copies: ensureAnimationInfo() may append and invalidate references.
+    const PopUpAniInfo nextInfo = ensureAnimationInfo(widget(index));
+    const PopUpAniInfo currentInfo = ensureAnimationInfo(currentWidget());
     QWidget *current = currentWidget();
     QWidget *next = nextInfo.widget;
 

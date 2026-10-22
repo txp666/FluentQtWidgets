@@ -5,7 +5,7 @@
 
 #include <QtCore/QObject>
 
-class QTimerEvent;
+class QEvent;
 
 namespace FluentQt {
 
@@ -31,7 +31,7 @@ class FQW_API SystemThemeListener : public QObject
     void systemThemeChanged(FluentQt::Theme theme);
 
   protected:
-    void timerEvent(QTimerEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
   private:
     Theme detectSystemTheme() const;
@@ -40,7 +40,6 @@ class FQW_API SystemThemeListener : public QObject
 
     bool m_running = false;
     Theme m_systemTheme = Theme::Light;
-    int m_timerId = 0;
 };
 
 } // namespace FluentQt

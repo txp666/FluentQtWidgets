@@ -668,8 +668,11 @@ TeachingTip::TeachingTip(FlyoutViewBase *view, QWidget *target, int durationMs, 
     }
     setShadowEffect();
     FluentStyleSheet::setRole(this, QStringLiteral("TeachingTip"));
-    if (m_target && m_target->window()) {
-        m_target->window()->installEventFilter(this);
+    if (m_target) {
+        m_targetWindow = m_target->window();
+        m_targetWindow->installEventFilter(this);
+        // A tip pointing at nothing has no position left to follow.
+        connect(m_target, &QObject::destroyed, this, &TeachingTip::close);
     }
 }
 
@@ -818,7 +821,7 @@ void TeachingTip::closeEvent(QCloseEvent *event)
 
 bool TeachingTip::eventFilter(QObject *watched, QEvent *event)
 {
-    if (m_target && watched == m_target->window()) {
+    if (m_target && m_targetWindow && watched == m_targetWindow) {
         if (event->type() == QEvent::Move || event->type() == QEvent::Resize ||
             event->type() == QEvent::WindowStateChange) {
             reposition();
@@ -913,10 +916,11 @@ QPoint TeachingTip::calculatePosition() const
     return point;
 }
 
+// closeEvent() deletes the tip when isDeleteOnClose() is set. Deleting here as well ignored
+// create(..., isDeleteOnClose = false), and freed tips that live on the stack.
 void TeachingTip::closeAndDelete()
 {
     close();
-    deleteLater();
 }
 
 void TeachingTip::applyTailMargins()

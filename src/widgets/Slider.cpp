@@ -139,6 +139,10 @@ void Slider::postInit()
     FluentStyleSheet::setRole(this, QStringLiteral("Slider"));
     setOrientation(orientation());
 
+    // The handle accepts its own press, so Slider::mousePressEvent() never sees it. Its moves
+    // still reach the slider (the handle ignores them), so start and stop the drag here.
+    connect(m_handle, &SliderHandle::pressed, this, [this]() { m_isDragging = true; });
+    connect(m_handle, &SliderHandle::released, this, [this]() { m_isDragging = false; });
     connect(m_handle, &SliderHandle::pressed, this, &Slider::sliderPressed);
     connect(m_handle, &SliderHandle::released, this, &Slider::sliderReleased);
     connect(this, &Slider::valueChanged, this, [this](int) { adjustHandlePos(); });
@@ -326,23 +330,18 @@ void ClickableSlider::mousePressEvent(QMouseEvent *event)
 {
     QSlider::mousePressEvent(event);
 
-    if (orientation() == Qt::Horizontal) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        const int value = static_cast<int>(static_cast<qreal>(event->position().x()) / width() * maximum());
+    const QPointF pos = event->position();
 #else
-        const int value = static_cast<int>(static_cast<qreal>(event->pos().x()) / width() * maximum());
+    const QPointF pos = event->localPos();
 #endif
-        setValue(qBound(minimum(), value, maximum()));
-    } else {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        const int value = static_cast<int>(static_cast<qreal>(height() - event->position().y()) / height() * maximum());
-#else
-        const int value = static_cast<int>(static_cast<qreal>(height() - event->pos().y()) / height() * maximum());
-#endif
-        setValue(qBound(minimum(), value, maximum()));
-    }
+    const qreal ratio = orientation() == Qt::Horizontal ? pos.x() / qMax(width(), 1)
+                                                        : (height() - pos.y()) / qMax(height(), 1);
+    const qreal span = static_cast<qreal>(maximum()) - minimum();
+    const int value = minimum() + qRound(qBound<qreal>(0.0, ratio, 1.0) * span);
+    setValue(qBound(minimum(), value, maximum()));
 
-    emit clicked(value());
+    emit clicked(this->value());
 }
 
 // ============================================================================

@@ -5,15 +5,31 @@ function(fqw_deploy_qt_executable target)
     endif()
 
     if(WIN32 AND FQW_BUILD_SHARED)
-        add_custom_command(
-            TARGET ${target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_FILE:FluentQtWidgets>
-                    $<TARGET_FILE_DIR:${target}>
-            COMMENT "Copy FluentQtWidgets runtime next to ${target}"
-            VERBATIM
-        )
+        # A rule of its own that depends on the library, rather than a post-build step: that only
+        # ran when the executable relinked, which a change inside the library does not cause (its
+        # import library stays the same), so tests and examples kept loading the old DLL. One rule
+        # per output directory; the tests share theirs.
+        get_property(_fqw_runtime_target DIRECTORY PROPERTY FQW_RUNTIME_COPY_TARGET)
+        if(NOT _fqw_runtime_target)
+            get_property(_fqw_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+            set(_fqw_runtime_dir "${CMAKE_CURRENT_BINARY_DIR}")
+            if(_fqw_multi_config)
+                string(APPEND _fqw_runtime_dir "/$<CONFIG>")
+            endif()
+            set(_fqw_runtime_copy
+                "${_fqw_runtime_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}FluentQtWidgets${CMAKE_SHARED_LIBRARY_SUFFIX}")
+            add_custom_command(
+                OUTPUT "${_fqw_runtime_copy}"
+                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FluentQtWidgets> "${_fqw_runtime_copy}"
+                DEPENDS FluentQtWidgets
+                COMMENT "Copy FluentQtWidgets runtime next to ${target}"
+                VERBATIM
+            )
+            set(_fqw_runtime_target fqw_runtime_${target})
+            add_custom_target(${_fqw_runtime_target} DEPENDS "${_fqw_runtime_copy}")
+            set_property(DIRECTORY PROPERTY FQW_RUNTIME_COPY_TARGET ${_fqw_runtime_target})
+        endif()
+        add_dependencies(${target} ${_fqw_runtime_target})
     endif()
 
     if(WIN32)

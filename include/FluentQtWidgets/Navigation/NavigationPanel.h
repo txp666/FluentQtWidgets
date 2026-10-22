@@ -5,6 +5,7 @@
 #include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 
 #include <QtCore/QHash>
+#include <QtCore/QPointer>
 #include <QtCore/QRectF>
 #include <QtCore/QString>
 #include <QtGui/QColor>
@@ -111,6 +112,7 @@ class FQW_API NavigationPanel : public QFrame
     void returnRequested();
 
   protected:
+    bool event(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
@@ -123,6 +125,8 @@ class FQW_API NavigationPanel : public QFrame
     };
 
     void initLayout();
+    void followWindow();
+    void retranslateUi();
     void insertWidgetToLayout(int index, NavigationWidget *widget, NavigationItemPosition position);
     void setDisplayMode(NavigationDisplayMode mode);
     void setItemsCompacted(bool compacted);
@@ -153,6 +157,7 @@ class FQW_API NavigationPanel : public QFrame
     QHash<QString, NavigationItemEntry> m_items;
     QString m_currentRouteKey;
     NavigationDisplayMode m_displayMode = NavigationDisplayMode::Compact;
+    QPointer<QWidget> m_filteredWindow;
     bool m_menu = false;
     bool m_acrylicEnabled = false;
     bool m_indicatorAnimationEnabled = true;

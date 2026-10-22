@@ -99,6 +99,8 @@ QRect constrainedResizeRect(const QRect &baseRect, const QRect &screenRect, Qt::
     return target;
 }
 
+#if defined(Q_OS_WIN)
+// Helpers of the native (WM_NC*) event path.
 TransparentToolButton *hoveredMaximizeButton(FluentTitleBar *titleBar, const QPoint &globalPos)
 {
     if (!titleBar || !titleBar->isVisible()) {
@@ -124,7 +126,35 @@ bool isTitleBarCaptionPoint(FluentTitleBar *titleBar, const QPoint &globalPos)
     return titleBar->rect().contains(titlePos) && !titleBar->childAt(titlePos);
 }
 
+#endif
+
+#if !defined(Q_OS_WIN)
+// XWayland sessions set WAYLAND_DISPLAY too, but there the xcb plugin can move windows itself.
+bool isWaylandPlatform()
+{
+    return QGuiApplication::platformName().startsWith(QLatin1String("wayland"));
+}
+#endif
+
 #if defined(Q_OS_WIN)
+// The lParam of WM_NCHITTEST and the WM_NC*BUTTON* messages holds physical screen pixels, while
+// Qt's widget coordinates are device-independent. Go through the client origin of the native
+// window (the host's top-left) and the window's scale factor rather than mapFromGlobal(). A message
+// passed in directly may name no window: the host's own native window is used then, and without one
+// the position is only scaled.
+QPoint logicalLocalPos(const QWidget *host, HWND hwnd, LPARAM lParam)
+{
+    const qreal ratio = host->devicePixelRatioF() > 0 ? host->devicePixelRatioF() : 1.0;
+    POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+    if (!hwnd) {
+        hwnd = reinterpret_cast<HWND>(host->internalWinId());
+    }
+    if (!hwnd || !ScreenToClient(hwnd, &point)) {
+        return host->mapFromGlobal(QPointF(point.x / ratio, point.y / ratio).toPoint());
+    }
+    return QPointF(point.x / ratio, point.y / ratio).toPoint();
+}
+
 int resizeBorderThickness(HWND hwnd, bool horizontal)
 {
     const int frameMetric = horizontal ? SM_CXSIZEFRAME : SM_CYSIZEFRAME;
@@ -231,6 +261,7 @@ bool handleGetMinMaxInfo(MSG *msg, qintptr *result)
 }
 #endif
 
+#if defined(Q_OS_WIN)
 void sendMaximizeButtonMouseEvent(TransparentToolButton *button, QEvent::Type type, Qt::MouseButton buttonState)
 {
     if (!button) {
@@ -245,17 +276,6 @@ void sendMaximizeButtonMouseEvent(TransparentToolButton *button, QEvent::Type ty
     QMouseEvent event(type, localPos, button->mapToGlobal(localPos), buttonState, buttonState, Qt::NoModifier);
 #endif
     QCoreApplication::sendEvent(button, &event);
-}
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-static QPoint eventGlobalPos(const QMouseEvent *event)
-{
-    return event ? event->globalPos() : QPoint();
-}
-#else
-static QPoint eventGlobalPos(const QMouseEvent *event)
-{
-    return event ? event->globalPosition().toPoint() : QPoint();
 }
 #endif
 
@@ -311,8 +331,13 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
     }
 #endif
 
-    const QPoint globalPos(GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam));
-    auto *maxButton = hoveredMaximizeButton(m_titleBar, globalPos);
+    // Only these messages carry a screen position in lParam.
+    const bool hasScreenPos = msg->message == WM_NCHITTEST || msg->message == WM_NCLBUTTONDOWN ||
+                              msg->message == WM_NCLBUTTONDBLCLK || msg->message == WM_NCLBUTTONUP ||
+                              msg->message == WM_NCRBUTTONUP;
+    const QPoint localPos = hasScreenPos ? logicalLocalPos(m_host, msg->hwnd, msg->lParam) : QPoint(-1, -1);
+    const QPoint globalPos = m_host->mapToGlobal(localPos);
+    auto *maxButton = hasScreenPos ? hoveredMaximizeButton(m_titleBar, globalPos) : nullptr;
 
     if ((msg->message == WM_NCLBUTTONDOWN || msg->message == WM_NCLBUTTONDBLCLK) && maxButton) {
         m_pressedMaxButton = maxButton;
@@ -323,7 +348,7 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
 
     if (msg->message == WM_NCLBUTTONUP || msg->message == WM_NCRBUTTONUP) {
         if (m_pressedMaxButton) {
-            auto *pressedButton = m_pressedMaxButton;
+            TransparentToolButton *pressedButton = m_pressedMaxButton;
             m_pressedMaxButton = nullptr;
             if (pressedButton == maxButton) {
                 sendMaximizeButtonMouseEvent(pressedButton, QEvent::MouseButtonRelease, Qt::LeftButton);
@@ -371,7 +396,6 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
         return true;
     }
 
-    const QPoint localPos = m_host->mapFromGlobal(globalPos);
     const bool resizable = !isMaximizedOrFullScreen();
 
     if (resizable) {
@@ -414,6 +438,18 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
 }
 #endif
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void *message, long *result)
+{
+    qintptr value = 0;
+    const bool handled = handleNativeEvent(eventType, message, &value);
+    if (handled && result) {
+        *result = static_cast<long>(value);
+    }
+    return handled;
+}
+#endif
+
 // ---- Non-Windows event handlers ----
 
 #if !defined(Q_OS_WIN)
@@ -431,8 +467,7 @@ void FramelessWindowHelper::handleMousePress(const QPoint &globalPos, Qt::MouseB
     }
 
     // Wayland: only system-level move/resize works (manual setGeometry is not allowed)
-    static const bool isWayland = !qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY");
-    if (isWayland) {
+    if (isWaylandPlatform()) {
         const FramelessArea area = hitTestFramelessArea(m_host->mapFromGlobal(globalPos));
         if (area == FramelessArea::Caption) {
             if (QWindow *handle = windowHandle()) {
@@ -493,6 +528,13 @@ void FramelessWindowHelper::handleMousePress(const QPoint &globalPos, Qt::MouseB
 
 void FramelessWindowHelper::handleMouseMove(const QPoint &globalPos)
 {
+    // A system move or resize hands the drag to the window manager, which usually keeps the
+    // release to itself; the first move without the button ends it here.
+    if (m_usingSystemMove && !QGuiApplication::mouseButtons().testFlag(Qt::LeftButton)) {
+        handleMouseRelease();
+        return;
+    }
+
     if (!m_mousePressed) {
         updateFramelessCursor(m_host->mapFromGlobal(globalPos));
         return;

@@ -3,7 +3,9 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QModelIndex>
+#include <QtCore/QPersistentModelIndex>
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtCore/QString>
 #include <QtCore/QTimer>
 #include <QtWidgets/QFrame>
@@ -61,6 +63,7 @@ class FQW_API ToolTip : public QFrame
     void adjustPos(QWidget *target, ToolTipPosition position = ToolTipPosition::Top);
     void showFor(QWidget *target, ToolTipPosition position = ToolTipPosition::Top, int durationMs = 1000);
 
+    // The tooltip belongs to the target's window and deletes itself once it is hidden.
     static ToolTip *showText(QWidget *target, const QString &text, ToolTipPosition position = ToolTipPosition::Top,
                              int durationMs = 1000);
 
@@ -78,6 +81,7 @@ class FQW_API ToolTip : public QFrame
     QPropertyAnimation *m_opacityAnimation = nullptr;
     QGraphicsDropShadowEffect *m_shadowEffect = nullptr;
     int m_duration = 1000;
+    bool m_deleteOnHide = false;
 };
 
 class FQW_API ToolTipFilter : public QObject
@@ -103,12 +107,14 @@ class FQW_API ToolTipFilter : public QObject
 
   private:
     void showToolTip();
+    ToolTip *toolTipFor(QWidget *widget, const QString &text);
 
     QString m_text;
     ToolTipPosition m_position = ToolTipPosition::Top;
     QTimer m_timer;
-    ToolTip *m_toolTip = nullptr;
-    QWidget *m_targetWidget = nullptr;
+    // A child of the hovered widget's window, which may go away independently of the filter.
+    QPointer<ToolTip> m_toolTip;
+    QPointer<QWidget> m_targetWidget;
     int m_showDelayMs = 300;
     bool m_pointerInside = false;
 };
@@ -168,10 +174,11 @@ class FQW_API ItemViewToolTipDelegate : public QObject
 
     QAbstractItemView *m_view = nullptr;
     ItemViewToolTipType m_type = ItemViewToolTipType::Table;
-    ToolTip *m_toolTip = nullptr;
+    QPointer<ToolTip> m_toolTip;
     QTimer m_timer;
     QString m_text;
-    QModelIndex m_currentIndex;
+    // Survives rows being inserted or removed while the show delay runs.
+    QPersistentModelIndex m_currentIndex;
     int m_showDelayMs = 300;
     int m_durationMs = -1;
     bool m_pointerInside = false;

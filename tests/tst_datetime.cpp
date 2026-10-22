@@ -14,8 +14,11 @@
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QToolButton>
 
+#include "TestSupport.h"
+
 #include <algorithm>
 #include <functional>
+#include <optional>
 
 class SecondsFormatter : public FluentQt::PickerColumnFormatter
 {
@@ -66,9 +69,12 @@ class DateTimeTest : public QObject
     Q_OBJECT
 
   private slots:
+    void init() { m_globalState.emplace(); }
+
     void cleanup()
     {
-        drainDeferredDeletes();
+        FqwTest::drainDeferredDeletes();
+        m_globalState.reset();
     }
 
     void calendarPickerTracksDateAndReset()
@@ -531,7 +537,7 @@ class DateTimeTest : public QObject
         QTest::mouseClick(&calendarPicker, Qt::LeftButton);
 
         QWidget *calendarPanel = nullptr;
-        QTRY_VERIFY((calendarPanel = findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
+        QTRY_VERIFY((calendarPanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
         QVERIFY(calendarPanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(calendarPanel->testAttribute(Qt::WA_StyledBackground));
         QVERIFY(calendarPanel->testAttribute(Qt::WA_DeleteOnClose));
@@ -556,7 +562,7 @@ class DateTimeTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&narrowCalendarPicker));
         QTest::mouseClick(&narrowCalendarPicker, Qt::LeftButton);
         QWidget *narrowCalendarPanel = nullptr;
-        QTRY_VERIFY((narrowCalendarPanel = findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
+        QTRY_VERIFY((narrowCalendarPanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
         const int pickerCenter = narrowCalendarPicker.mapToGlobal(QPoint(narrowCalendarPicker.width() / 2, 0)).x();
         const int panelCenter = narrowCalendarPanel->geometry().center().x();
         QVERIFY(qAbs(panelCenter - pickerCenter) <= 4);
@@ -572,7 +578,7 @@ class DateTimeTest : public QObject
         QTest::mouseClick(&fastCalendarPicker, Qt::LeftButton);
 
         QWidget *fastFlyoutWidget = nullptr;
-        QTRY_VERIFY((fastFlyoutWidget = findVisibleTopLevelByRole(QStringLiteral("Flyout"))) != nullptr);
+        QTRY_VERIFY((fastFlyoutWidget = FqwTest::findVisibleTopLevelByRole(QStringLiteral("Flyout"))) != nullptr);
         auto *fastFlyout = qobject_cast<FluentQt::Flyout *>(fastFlyoutWidget);
         QVERIFY(fastFlyout != nullptr);
         QCOMPARE(fastFlyout->animationType(), FluentQt::FlyoutAnimationType::FadeIn);
@@ -605,7 +611,7 @@ class DateTimeTest : public QObject
         QTest::mouseClick(&datePicker, Qt::LeftButton);
 
         QWidget *datePanel = nullptr;
-        QTRY_VERIFY((datePanel = findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel"))) != nullptr);
+        QTRY_VERIFY((datePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel"))) != nullptr);
         QVERIFY(datePanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(datePanel->windowFlags() & Qt::NoDropShadowWindowHint);
         auto *datePanelView = datePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
@@ -620,7 +626,7 @@ class DateTimeTest : public QObject
         datePicker.setDate(QDate(2024, 6, 23));
         datePicker.setResetEnabled(true);
         QTest::mouseClick(&datePicker, Qt::LeftButton);
-        QTRY_VERIFY((datePanel = findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel"))) != nullptr);
+        QTRY_VERIFY((datePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel"))) != nullptr);
         datePanelView = datePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(datePanelView != nullptr);
         verifyPickerOperationButtons(datePanelView, true);
@@ -637,7 +643,7 @@ class DateTimeTest : public QObject
         QTest::mouseClick(&timePicker, Qt::LeftButton);
 
         QWidget *timePanel = nullptr;
-        QTRY_VERIFY((timePanel = findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel"))) != nullptr);
+        QTRY_VERIFY((timePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel"))) != nullptr);
         QVERIFY(timePanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(timePanel->windowFlags() & Qt::NoDropShadowWindowHint);
         auto *timePanelView = timePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
@@ -661,7 +667,7 @@ class DateTimeTest : public QObject
         timePicker.setTime(QTime(23, 5));
         timePicker.setResetEnabled(true);
         QTest::mouseClick(&timePicker, Qt::LeftButton);
-        QTRY_VERIFY((timePanel = findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel"))) != nullptr);
+        QTRY_VERIFY((timePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel"))) != nullptr);
         timePanelView = timePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(timePanelView != nullptr);
         verifyPickerOperationButtons(timePanelView, true);
@@ -673,7 +679,82 @@ class DateTimeTest : public QObject
         QTRY_VERIFY(timePanelGuard.isNull());
     }
 
+
+    void cycleListWidgetMatchesPythonPickerColumnBehavior()
+    {
+        FluentQt::CycleListWidget shortList(QStringList{QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("C")},
+                                            QSize(50, 20), Qt::AlignCenter);
+        shortList.setVisibleNumber(5);
+        QCOMPARE(shortList.property("fqw").toString(), QStringLiteral("CycleListWidget"));
+        QCOMPARE(shortList.property("cycleColumn").toBool(), true);
+        QCOMPARE(shortList.itemSize(), QSize(50, 20));
+        QCOMPARE(shortList.visibleNumber(), 5);
+        QCOMPARE(shortList.size(), QSize(58, 100));
+        QCOMPARE(shortList.originItems(), QStringList({QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("C")}));
+        QVERIFY(!shortList.isCycle());
+        QCOMPARE(shortList.count(), 7);
+        QCOMPARE(shortList.currentCycleIndex(), 2);
+        QVERIFY(shortList.upButton() != nullptr);
+        QVERIFY(shortList.downButton() != nullptr);
+        QVERIFY(shortList.verticalSmoothScrollBar() != nullptr);
+        QCOMPARE(shortList.verticalSmoothScrollBar()->isForceHidden(), true);
+        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::Up);
+        QCOMPARE(shortList.downButton()->fluentIcon(), FluentQt::FluentIcon::ArrowDown);
+        QCOMPARE(shortList.upButton()->property("pickerOperation").toBool(), true);
+        QCOMPARE(shortList.downButton()->property("pickerOperation").toBool(), true);
+        QVERIFY(shortList.upButton()->metaObject()->indexOfProperty("isPressed") >= 0);
+        QVERIFY(shortList.upButton()->metaObject()->indexOfProperty("fluentIcon") >= 0);
+
+        shortList.setScrollButtonRepeatEnabled(false);
+        QVERIFY(!shortList.isScrollButtonRepeatEnabled());
+        QCOMPARE(shortList.upButton()->autoRepeat(), false);
+        QCOMPARE(shortList.downButton()->autoRepeat(), false);
+        shortList.setScrollButtonRepeatEnabled(true);
+        QVERIFY(shortList.isScrollButtonRepeatEnabled());
+        QCOMPARE(shortList.upButton()->autoRepeat(), true);
+        QCOMPARE(shortList.downButton()->autoRepeat(), true);
+
+        shortList.setSelectedItem(QStringLiteral("B"));
+        QCOMPARE(shortList.currentCycleIndex(), 3);
+        QCOMPARE(shortList.currentItem()->text(), QStringLiteral("B"));
+        shortList.scrollUp();
+        QCOMPARE(shortList.currentCycleIndex(), 2);
+        shortList.scrollUp();
+        QCOMPARE(shortList.currentCycleIndex(), 2);
+
+        shortList.setScrollDuration(123);
+        QCOMPARE(shortList.scrollDuration(), 123);
+        QCOMPARE(shortList.verticalSmoothScrollBar()->scrollAnimationDuration(), 123);
+
+        FluentQt::CycleListWidget cycleList(
+            QStringList{QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"), QStringLiteral("3"),
+                        QStringLiteral("4"), QStringLiteral("5"), QStringLiteral("6"), QStringLiteral("7"),
+                        QStringLiteral("8"), QStringLiteral("9"), QStringLiteral("10"), QStringLiteral("11")},
+            QSize(42, 18), Qt::AlignRight);
+        QVERIFY(cycleList.isCycle());
+        QCOMPARE(cycleList.count(), 24);
+        QCOMPARE(cycleList.currentCycleIndex(), 12);
+        QCOMPARE(cycleList.alignment(), Qt::AlignRight);
+
+        QSignalSpy changedSpy(&cycleList, &FluentQt::CycleListWidget::cycleCurrentItemChanged);
+        cycleList.scrollDown();
+        QCOMPARE(cycleList.currentCycleIndex(), 13);
+        QCOMPARE(changedSpy.count(), 1);
+        QCOMPARE(cycleList.currentItem()->text(), QStringLiteral("1"));
+
+        cycleList.setCurrentIndex(cycleList.count() - 1);
+        QCOMPARE(cycleList.currentCycleIndex(), 11);
+        QCOMPARE(cycleList.currentItem()->text(), QStringLiteral("11"));
+
+        QTest::keyClick(&cycleList, Qt::Key_Up);
+        QCOMPARE(cycleList.currentCycleIndex(), 10);
+        QTest::keyClick(&cycleList, Qt::Key_Down);
+        QCOMPARE(cycleList.currentCycleIndex(), 11);
+    }
+
   private:
+    std::optional<FqwTest::GlobalState> m_globalState;
+
     static bool deletePopup(QWidget *&popup)
     {
         if (!popup) {
@@ -684,30 +765,8 @@ class DateTimeTest : public QObject
         popup->close();
         popup->deleteLater();
         popup = nullptr;
-        drainDeferredDeletes([&guard]() { return guard.isNull(); });
+        FqwTest::drainDeferredDeletes([&guard]() { return guard.isNull(); });
         return guard.isNull();
-    }
-
-    static void drainDeferredDeletes(const std::function<bool()> &done = {})
-    {
-        for (int i = 0; i < 8; ++i) {
-            QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-            QCoreApplication::processEvents();
-            if (done && done()) {
-                return;
-            }
-        }
-    }
-
-    static QWidget *findVisibleTopLevelByRole(const QString &role)
-    {
-        const auto widgets = QApplication::topLevelWidgets();
-        for (QWidget *widget : widgets) {
-            if (widget->isVisible() && widget->property("fqw").toString() == role) {
-                return widget;
-            }
-        }
-        return nullptr;
     }
 
     static QStringList pickerButtonTexts(QWidget *picker)

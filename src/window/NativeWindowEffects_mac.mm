@@ -1,17 +1,24 @@
+#include <QtGui/QGuiApplication>
 #include <QtWidgets/QWidget>
 
 #import <AppKit/AppKit.h>
+#import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
 
 namespace FluentQt::Private {
 
 void updateMacOSWindowCorner(QWidget *widget, int radius)
 {
-    if (!widget) {
+    // winId() is only an NSView under the Cocoa platform plugin; offscreen and
+    // minimal hand out plain integers.
+    if (!widget || QGuiApplication::platformName() != QLatin1String("cocoa")) {
         return;
     }
 
-    auto *widgetView = reinterpret_cast<NSView *>(widget->winId());
+    // internalWinId() rather than winId(): calls from the window's constructor must not create
+    // the native window early. The first show sends a pending resize event, which calls this
+    // again once the window exists.
+    auto *widgetView = reinterpret_cast<NSView *>(widget->internalWinId());
     if (!widgetView) {
         return;
     }
@@ -49,6 +56,16 @@ void updateMacOSWindowCorner(QWidget *widget, int radius)
     if (widgetView != window.contentView) {
         configureView(widgetView);
     }
+}
+
+// Asks without prompting: CGRequestScreenCaptureAccess() or an actual capture would show the
+// Screen Recording dialog. Before macOS 10.15 no permission exists.
+bool isScreenCapturePermitted()
+{
+    if (@available(macOS 10.15, *)) {
+        return CGPreflightScreenCaptureAccess();
+    }
+    return true;
 }
 
 } // namespace FluentQt::Private

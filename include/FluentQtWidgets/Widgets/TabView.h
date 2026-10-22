@@ -172,6 +172,7 @@ class FQW_API TabBar : public QWidget
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    bool isOwnTabDrag(const QDropEvent *event) const;
 
   private:
     void init();

@@ -12,6 +12,7 @@
 #include <QtCore/QJsonValue>
 #include <QtCore/QList>
 #include <QtCore/QPair>
+#include <QtCore/QSaveFile>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QtGlobal>
 
@@ -183,7 +184,7 @@ bool FluentConfig::load(const QString &fileName)
                                  : qfluentGroup.value(QStringLiteral("FontFamilies")).toArray();
     if (!fonts.isEmpty()) {
         QStringList families;
-        for (const QJsonValue &font : fonts) {
+        for (const QJsonValue font : fonts) {
             const QString family = font.toString();
             if (!family.isEmpty()) {
                 families.append(family);
@@ -238,12 +239,17 @@ bool FluentConfig::save(const QString &fileName)
     root.insert(QStringLiteral("Folders"), foldersGroup);
     root.insert(QStringLiteral("Material"), materialGroup);
 
-    QFile file(target);
+    // Written to a temporary file and renamed over the old one, so a crash or a full disk
+    // never leaves a truncated config behind.
+    QSaveFile file(target);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return false;
     }
 
-    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    const QByteArray data = QJsonDocument(root).toJson(QJsonDocument::Indented);
+    if (file.write(data) != data.size() || !file.commit()) {
+        return false;
+    }
     emit configSaved();
     return true;
 }

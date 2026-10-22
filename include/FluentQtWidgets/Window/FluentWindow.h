@@ -6,6 +6,7 @@
 
 #include <QtCore/QByteArray>
 #include <QtCore/QList>
+#include <QtCore/QPointer>
 #include <QtCore/QRect>
 #include <QtCore/QString>
 #include <QtCore/QtGlobal>
@@ -13,6 +14,8 @@
 #include <QtGui/QIcon>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QWidget>
+
+#include <memory>
 
 class QStackedWidget;
 class QEvent;
@@ -75,7 +78,7 @@ class FQW_API FluentWidget : public QWidget
     void updateWindowMask();
 
     FluentTitleBar *m_titleBar = nullptr;
-    FramelessWindowHelper *m_frameless = nullptr;
+    std::unique_ptr<FramelessWindowHelper> m_frameless;
     QColor m_lightBackgroundColor = QColor(240, 244, 249);
     QColor m_darkBackgroundColor = QColor(32, 32, 32);
     bool m_isMicaEnabled = false;
@@ -149,8 +152,9 @@ class FQW_API FluentWindow : public QMainWindow
     NavigationInterface *m_navigation = nullptr;
     NavigationHistory *m_history = nullptr;
     FluentTitleBar *m_titleBar = nullptr;
-    FramelessWindowHelper *m_frameless = nullptr;
-    SplashScreen *m_splashScreen = nullptr;
+    std::unique_ptr<FramelessWindowHelper> m_frameless;
+    // Callers commonly delete the splash themselves once loading finishes.
+    QPointer<SplashScreen> m_splashScreen;
     bool m_suppressHistoryPush = false;
     int m_titleBarLeftMargin = -1;
     int m_contentTopMargin = 48;
@@ -217,7 +221,7 @@ class FQW_API MSFluentWindow : public QMainWindow
     NavigationBar *m_navigationBar = nullptr;
     QStackedWidget *m_stackedWidget = nullptr;
     FluentTitleBar *m_titleBar = nullptr;
-    FramelessWindowHelper *m_frameless = nullptr;
+    std::unique_ptr<FramelessWindowHelper> m_frameless;
     QList<QString> m_routeOrder;
     bool m_isMicaEnabled = false;
 };

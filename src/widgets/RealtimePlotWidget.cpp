@@ -8,6 +8,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QMap>
+#include <QtCore/QStandardPaths>
 #include <QtCore/QtMath>
 #include <QtCore/QTextStream>
 #include <QtCore/QTimer>
@@ -22,6 +23,8 @@
 
 #include <FluentQtWidgets/Widgets/Menu.h>
 
+#include "RealtimePlotWidget_p.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -32,7 +35,7 @@ namespace FluentQt {
 namespace {
 
 constexpr qreal kMinimumRange = 1.0e-6;
-constexpr int kYRangeBlockSize = 256;
+constexpr int kYRangeBlockSize = Private::kPlotBlockSize;
 constexpr int kStorageChunkSize = 4096;
 
 bool isFinite(qreal value)
@@ -141,7 +144,7 @@ int RealtimePlotWidget::sampleCount() const
     return count;
 }
 
-int RealtimePlotWidget::seriesCount() const { return m_series.size(); }
+int RealtimePlotWidget::seriesCount() const { return static_cast<int>(m_series.size()); }
 
 int RealtimePlotWidget::maximumVisiblePoints() const { return m_maximumVisiblePoints; }
 
@@ -193,6 +196,12 @@ QString RealtimePlotWidget::crosshairXText(qreal value) const
     return m_crosshairXValueFormatter ? m_crosshairXValueFormatter(value) : QString::number(value);
 }
 
+void RealtimePlotWidget::setXAxisValueFormatter(std::function<QString(qreal)> formatter)
+{
+    m_xAxisValueFormatter = std::move(formatter);
+    update();
+}
+
 void RealtimePlotWidget::setCrosshairXValueFormatter(std::function<QString(qreal)> formatter)
 {
     m_crosshairXValueFormatter = std::move(formatter);
@@ -213,7 +222,7 @@ int RealtimePlotWidget::addSeries(const QString &name, const QColor &color)
 
     update();
     emit seriesChanged();
-    return m_series.size() - 1;
+    return static_cast<int>(m_series.size()) - 1;
 }
 
 void RealtimePlotWidget::removeSeries(int seriesIndex)
@@ -309,12 +318,13 @@ void RealtimePlotWidget::setCapacity(int capacity)
         if (m_capacity > 0) {
             series.buffer.resize(m_capacity);
         } else {
-            reserveUnlimitedStorage(&series, currentPoints.at(seriesIndex).size());
+            reserveUnlimitedStorage(&series, static_cast<int>(currentPoints.at(seriesIndex).size()));
         }
         resizeYRangeBlocks(&series);
         series.start = 0;
         series.count = 0;
         series.xMonotonic = true;
+        series.xDescents = 0;
         for (const QPointF &point : currentPoints.at(seriesIndex)) {
             appendPointInternal(seriesIndex, point.x(), point.y(), false);
         }
@@ -577,7 +587,8 @@ void RealtimePlotWidget::appendSamples(int seriesIndex, const QVector<qreal> &sa
 
     bool changed = false;
     if (m_capacity == 0) {
-        reserveUnlimitedStorage(&m_series[seriesIndex], m_series.at(seriesIndex).count + samples.size());
+        reserveUnlimitedStorage(&m_series[seriesIndex],
+                                m_series.at(seriesIndex).count + static_cast<int>(samples.size()));
     }
     for (qreal sample : samples) {
         const qreal x = m_series.at(seriesIndex).nextX;
@@ -613,8 +624,8 @@ void RealtimePlotWidget::appendSamples(const QVector<QVector<qreal>> &seriesSamp
 
         bool seriesChangedData = false;
         if (m_capacity == 0) {
-            reserveUnlimitedStorage(&m_series[seriesIndex],
-                                    m_series.at(seriesIndex).count + seriesSamples.at(seriesIndex).size());
+            const int incoming = static_cast<int>(seriesSamples.at(seriesIndex).size());
+            reserveUnlimitedStorage(&m_series[seriesIndex], m_series.at(seriesIndex).count + incoming);
         }
         for (qreal sample : seriesSamples.at(seriesIndex)) {
             const qreal x = m_series.at(seriesIndex).nextX;
@@ -675,17 +686,18 @@ void RealtimePlotWidget::setSamples(int seriesIndex, const QVector<qreal> &sampl
     if (m_capacity > 0) {
         series.buffer.resize(m_capacity);
     } else {
-        reserveUnlimitedStorage(&series, samples.size());
+        reserveUnlimitedStorage(&series, static_cast<int>(samples.size()));
     }
     series.start = 0;
     series.count = 0;
     series.nextX = 0;
     series.xMonotonic = true;
+    series.xDescents = 0;
     resizeYRangeBlocks(&series);
     for (int i = 0; i < samples.size(); ++i) {
         appendPointInternal(seriesIndex, i, samples.at(i), false);
     }
-    series.nextX = samples.size();
+    series.nextX = static_cast<qreal>(samples.size());
     markSeriesRenderCacheDirty(&series);
     scheduleDataUpdate();
     emit samplesChanged();
@@ -706,6 +718,7 @@ void RealtimePlotWidget::clear()
         series.count = 0;
         series.nextX = 0;
         series.xMonotonic = true;
+        series.xDescents = 0;
         resizeYRangeBlocks(&series);
         markSeriesRenderCacheDirty(&series);
     }
@@ -779,6 +792,19 @@ void RealtimePlotWidget::mouseMoveEvent(QMouseEvent *event)
 {
     const QRectF plot = plotRect();
     const QPointF position = mousePosition(event);
+
+    // A release can get lost (a popup opening, the window losing focus); without the button the
+    // drag is over, so hovering must not keep scaling or panning.
+    if ((m_rightDragPending || m_rightScaling) && !event->buttons().testFlag(Qt::RightButton)) {
+        m_rightDragPending = false;
+        m_rightScaling = false;
+        if (mouseGrabber() == this) {
+            releaseMouse();
+        }
+    }
+    if (m_dragging && !event->buttons().testFlag(Qt::LeftButton)) {
+        m_dragging = false;
+    }
 
     if (m_rightDragPending || m_rightScaling) {
         const QPointF delta = position - m_rightDragStartPosition;
@@ -978,7 +1004,27 @@ void RealtimePlotWidget::showContextMenu(const QPoint &globalPosition)
 
 void RealtimePlotWidget::showAllData()
 {
-    m_visibleSpan = m_maximumVisiblePoints - 1;
+    // Wide enough for every stored sample, not only for the configured number of points; x is
+    // not necessarily the sample index.
+    qreal earliest = std::numeric_limits<qreal>::max();
+    qreal latest = std::numeric_limits<qreal>::lowest();
+    for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+        const PlotSeries &series = m_series.at(seriesIndex);
+        if (!series.visible || series.count == 0) {
+            continue;
+        }
+        if (series.xMonotonic) {
+            earliest = qMin(earliest, pointAt(seriesIndex, 0).x());
+            latest = qMax(latest, pointAt(seriesIndex, series.count - 1).x());
+            continue;
+        }
+        for (int i = 0; i < series.count; ++i) {
+            earliest = qMin(earliest, pointAt(seriesIndex, i).x());
+            latest = qMax(latest, pointAt(seriesIndex, i).x());
+        }
+    }
+    const qreal dataSpan = latest > earliest ? latest - earliest : 0;
+    m_visibleSpan = qMax<qreal>(m_maximumVisiblePoints - 1, dataSpan);
     m_autoScroll = true;
     m_autoYRange = true;
     update();
@@ -988,11 +1034,17 @@ void RealtimePlotWidget::showAllData()
 
 QString RealtimePlotWidget::exportDirectory() const
 {
-    QDir directory(FluentConfig::instance()->downloadFolder());
-    if (!directory.exists()) {
-        directory.mkpath(QStringLiteral("."));
+    // The configured folder (by default the relative "app/download") is only a starting point
+    // for the save dialog, so nothing is created here. A relative path resolves against the
+    // working directory, which is "/" for apps started from Finder and is often read-only on
+    // Windows; fall back to the user's download folder when it does not exist.
+    const QFileInfo configured(FluentConfig::instance()->downloadFolder());
+    if (configured.isDir() && configured.isWritable()) {
+        return configured.absoluteFilePath();
     }
-    return directory.absolutePath();
+
+    const QString downloads = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    return downloads.isEmpty() ? QDir::homePath() : downloads;
 }
 
 QString RealtimePlotWidget::defaultExportPath(const QString &suffix) const
@@ -1078,47 +1130,63 @@ bool RealtimePlotWidget::writeCsv(const QString &path) const
             for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
                 stream << ';';
                 const PlotSeries &series = m_series.at(seriesIndex);
+                // One sample per series and row: samples sharing an x get rows of their own
+                // instead of all but the last being dropped.
                 QString value;
-                int index = indices.at(seriesIndex);
-                while (index < series.count && pointAt(seriesIndex, index).x() == nextX) {
+                const int index = indices.at(seriesIndex);
+                if (index < series.count && pointAt(seriesIndex, index).x() == nextX) {
                     value = csvNumber(pointAt(seriesIndex, index).y());
-                    ++index;
+                    indices[seriesIndex] = index + 1;
                 }
-                indices[seriesIndex] = index;
                 if (!value.isEmpty()) {
                     stream << csvField(value);
                 }
             }
             stream << '\n';
         }
-        return file.error() == QFile::NoError;
+        return finishCsv(&stream, &file);
     }
 
-    QMap<qreal, QVector<QString>> rows;
+    // Per x, the values of each series in arrival order; an x with several samples in one series
+    // takes as many rows.
+    QMap<qreal, QVector<QStringList>> rows;
     for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
         const PlotSeries &series = m_series.at(seriesIndex);
         for (int i = 0; i < series.count; ++i) {
             const QPointF point = pointAt(seriesIndex, i);
-            QVector<QString> &columns = rows[point.x()];
+            QVector<QStringList> &columns = rows[point.x()];
             if (columns.size() < m_series.size()) {
                 columns.resize(m_series.size());
             }
-            columns[seriesIndex] = csvNumber(point.y());
+            columns[seriesIndex].append(csvNumber(point.y()));
         }
     }
 
     for (auto it = rows.constBegin(); it != rows.constEnd(); ++it) {
-        stream << csvField(csvNumber(it.key()));
-        const QVector<QString> &columns = it.value();
-        for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
-            stream << ';';
-            if (seriesIndex < columns.size()) {
-                stream << csvField(columns.at(seriesIndex));
-            }
+        const QVector<QStringList> &columns = it.value();
+        qsizetype rowCount = 0;
+        for (const QStringList &values : columns) {
+            rowCount = qMax(rowCount, values.size());
         }
-        stream << '\n';
+        for (qsizetype row = 0; row < rowCount; ++row) {
+            stream << csvField(csvNumber(it.key()));
+            for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+                stream << ';';
+                if (seriesIndex < columns.size() && row < columns.at(seriesIndex).size()) {
+                    stream << csvField(columns.at(seriesIndex).at(row));
+                }
+            }
+            stream << '\n';
+        }
     }
-    return file.error() == QFile::NoError;
+    return finishCsv(&stream, &file);
+}
+
+// QTextStream buffers; only after flushing does the file know whether the data was written.
+bool RealtimePlotWidget::finishCsv(QTextStream *stream, QFile *file)
+{
+    stream->flush();
+    return stream->status() == QTextStream::Ok && file->error() == QFile::NoError;
 }
 
 bool RealtimePlotWidget::exportCsv()
@@ -1272,8 +1340,12 @@ bool RealtimePlotWidget::appendPointInternal(int seriesIndex, qreal x, qreal y, 
     }
 
     PlotSeries &series = m_series[seriesIndex];
-    if (series.count > 0 && x < pointAt(seriesIndex, series.count - 1).x()) {
-        series.xMonotonic = false;
+    // Count the places where x goes backwards, so a ring buffer becomes monotonic again (and
+    // gets back its binary searches) once the out-of-order samples have been overwritten. With a
+    // capacity of 1 the previous sample is the one being replaced.
+    const bool replacesOnlySample = m_capacity == 1 && series.count >= 1;
+    if (series.count > 0 && !replacesOnlySample && x < pointAt(seriesIndex, series.count - 1).x()) {
+        ++series.xDescents;
     }
 
     bool overwrote = false;
@@ -1284,6 +1356,10 @@ bool RealtimePlotWidget::appendPointInternal(int seriesIndex, qreal x, qreal y, 
         ++series.count;
     } else {
         overwrote = series.count >= m_capacity;
+        if (overwrote && series.count > 1 &&
+            pointAt(seriesIndex, 1).x() < pointAt(seriesIndex, 0).x()) {
+            --series.xDescents;
+        }
         index = overwrote ? series.start : (series.start + series.count) % m_capacity;
         previousY = overwrote ? series.buffer.at(index).y() : 0;
         series.buffer[index] = QPointF(x, y);
@@ -1294,6 +1370,7 @@ bool RealtimePlotWidget::appendPointInternal(int seriesIndex, qreal x, qreal y, 
         }
     }
 
+    series.xMonotonic = series.xDescents == 0;
     updateYRangeBlockAfterWrite(&series, index, previousY, overwrote);
     if (markDirty) {
         markSeriesRenderCacheDirty(&series);
@@ -1378,7 +1455,7 @@ void RealtimePlotWidget::ensureYRangeBlockCount(PlotSeries *series, int blockInd
         return;
     }
 
-    const int oldSize = series->yBlockMinimums.size();
+    const int oldSize = static_cast<int>(series->yBlockMinimums.size());
     const int newSize = blockIndex + 1;
     series->yBlockMinimums.resize(newSize);
     series->yBlockMaximums.resize(newSize);
@@ -1596,12 +1673,30 @@ QRectF RealtimePlotWidget::plotRect() const
     return QRectF(rect()).adjusted(58, 18, -58, -42);
 }
 
+// While auto-scrolling, the view ends at the newest sample and starts no earlier than the oldest
+// one. (It used to be clamped to x >= 0 and x >= 1, which hid data with negative x.)
 qreal RealtimePlotWidget::viewXMinimum() const
 {
-    if (m_autoScroll) {
-        return qMax<qreal>(0, viewXMaximum() - m_visibleSpan);
+    if (!m_autoScroll) {
+        return m_xMinimum;
     }
-    return m_xMinimum;
+
+    qreal earliest = std::numeric_limits<qreal>::max();
+    bool hasData = false;
+    for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
+        const PlotSeries &series = m_series.at(seriesIndex);
+        if (!series.visible || series.count == 0) {
+            continue;
+        }
+        hasData = true;
+        // Out-of-order data has no cheap lower bound; let the span decide.
+        earliest = series.xMonotonic ? qMin(earliest, pointAt(seriesIndex, 0).x())
+                                     : std::numeric_limits<qreal>::lowest();
+    }
+    if (!hasData) {
+        earliest = 0;
+    }
+    return qMax(earliest, viewXMaximum() - m_visibleSpan);
 }
 
 qreal RealtimePlotWidget::viewXMaximum() const
@@ -1610,18 +1705,21 @@ qreal RealtimePlotWidget::viewXMaximum() const
         return m_xMaximum;
     }
 
+    qreal earliest = std::numeric_limits<qreal>::max();
     qreal latest = std::numeric_limits<qreal>::lowest();
     for (int seriesIndex = 0; seriesIndex < m_series.size(); ++seriesIndex) {
         const PlotSeries &series = m_series.at(seriesIndex);
         if (!series.visible || series.count == 0) {
             continue;
         }
+        earliest = qMin(earliest, pointAt(seriesIndex, 0).x());
         latest = qMax(latest, pointAt(seriesIndex, series.count - 1).x());
     }
     if (latest == std::numeric_limits<qreal>::lowest()) {
         return 1;
     }
-    return qMax<qreal>(1, latest);
+    // Keep a non-empty range while there is a single x value.
+    return latest > earliest ? latest : earliest + 1;
 }
 
 void RealtimePlotWidget::visibleYRange(qreal xMinimum, qreal xMaximum, qreal *minimum, qreal *maximum) const

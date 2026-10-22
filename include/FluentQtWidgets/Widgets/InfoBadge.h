@@ -4,6 +4,7 @@
 #include <FluentQtWidgets/Global.h>
 #include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
 
+#include <QtCore/QPointer>
 #include <QtGui/QColor>
 #include <QtGui/QIcon>
 #include <QtWidgets/QLabel>
@@ -94,7 +95,7 @@ class FQW_API InfoBadge : public QLabel
     InfoLevel m_level = InfoLevel::Attention;
     QColor m_lightBackgroundColor;
     QColor m_darkBackgroundColor;
-    InfoBadgeManager *m_manager = nullptr;
+    QPointer<InfoBadgeManager> m_manager;
 };
 
 class FQW_API DotInfoBadge : public InfoBadge

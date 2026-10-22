@@ -5,6 +5,7 @@
 #include <QtCore/QHash>
 #include <QtCore/QObject>
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
@@ -31,6 +32,7 @@ class FQW_API InfoBadgeManager : public QObject
     Q_OBJECT
 
   public:
+    // Without an explicit parent the manager is owned by the badge.
     explicit InfoBadgeManager(QWidget *target, InfoBadge *badge, QObject *parent = nullptr);
 
     QWidget *target() const;
@@ -48,8 +50,8 @@ class FQW_API InfoBadgeManager : public QObject
   protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
-    QWidget *m_target = nullptr;
-    InfoBadge *m_badge = nullptr;
+    QPointer<QWidget> m_target;
+    QPointer<InfoBadge> m_badge;
 };
 
 class FQW_API TopRightInfoBadgeManager : public InfoBadgeManager

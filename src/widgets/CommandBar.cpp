@@ -244,9 +244,9 @@ void MoreActionsButton::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     QColor color = commandBarDarkTheme() ? QColor(Qt::white) : QColor(Qt::black);
     if (!isEnabled()) {
-        color.setAlphaF(0.43);
+        color.setAlphaF(0.43f);
     } else if (isDown()) {
-        color.setAlphaF(0.63);
+        color.setAlphaF(0.63f);
     }
 
     painter.setPen(Qt::NoPen);
@@ -356,7 +356,7 @@ QAction *CommandBar::insertSeparator(int index)
 {
     auto *action = new QAction(this);
     action->setSeparator(true);
-    index = qBound(0, index < 0 ? m_actions.size() : index, m_actions.size());
+    index = qBound(0, index < 0 ? static_cast<int>(m_actions.size()) : index, static_cast<int>(m_actions.size()));
     m_actions.insert(index, action);
     trackAction(action);
     auto *separator = new CommandSeparator(this);
@@ -526,7 +526,7 @@ int CommandBar::suitableWidth() const
     for (int itemWidth : widths) {
         width += itemWidth;
     }
-    return width + m_spacing * qMax(widths.size() - 1, 0);
+    return width + m_spacing * qMax(static_cast<int>(widths.size()) - 1, 0);
 }
 
 MenuAnimationType CommandBar::menuAnimation() const { return m_menuAnimation; }
@@ -622,11 +622,16 @@ void CommandBar::clear()
         detachCommandWidget(widget);
     }
     for (QAction *action : allActions) {
-        if (action) {
-            disconnect(action, nullptr, this, nullptr);
+        if (!action) {
+            continue;
+        }
+        disconnect(action, nullptr, this, nullptr);
+        // Only actions the bar created or adopted are its to delete; the caller's own actions
+        // may be shared with menus and toolbars, or not be heap objects at all.
+        if (action->parent() == this) {
+            delete action;
         }
     }
-    qDeleteAll(allActions);
     clearWidgets();
     syncHeight();
     relayoutWidgets();
@@ -695,7 +700,7 @@ void CommandBar::relayoutWidgets()
     }
 
     m_overflowButton->hide();
-    int visibleCount = m_widgets.size();
+    int visibleCount = static_cast<int>(m_widgets.size());
     if (suitableWidth() > width()) {
         int occupiedWidth = m_overflowButton->width();
         visibleCount = 0;
@@ -952,7 +957,10 @@ QAction *CommandBarView::addSeparator() { return m_commandBar->addSeparator(); }
 
 QAction *CommandBarView::insertSeparator(int index) { return m_commandBar->insertSeparator(index); }
 
-void CommandBarView::addWidget(QWidget *widget) { m_commandBar->addWidget(widget); }
+void CommandBarView::addWidget(QWidget *widget, int /*stretch*/, Qt::Alignment /*alignment*/)
+{
+    m_commandBar->addWidget(widget);
+}
 
 void CommandBarView::removeAction(QAction *action) { m_commandBar->removeAction(action); }
 

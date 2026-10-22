@@ -319,8 +319,9 @@ QColor micaHitTestBackgroundColor()
 bool isMicaEffectAvailable()
 {
 #if defined(Q_OS_WIN)
-    QOperatingSystemVersion ver = QOperatingSystemVersion::current();
-    if (ver >= QOperatingSystemVersion::Windows11) {
+    // QOperatingSystemVersion::Windows11 only exists from Qt 6.3; Windows 11 is build 22000.
+    if (QOperatingSystemVersion::current() >=
+        QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 22000)) {
         return true;
     }
 #endif
@@ -338,7 +339,7 @@ FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
     configureRoundedWindowBackground(this);
     FluentStyleSheet::setRole(this, QStringLiteral("FluentWidget"));
 
-    m_frameless = new FramelessWindowHelper(this);
+    m_frameless = std::make_unique<FramelessWindowHelper>(this);
     m_titleBar = new FluentTitleBar(this);
     m_frameless->setTitleBar(m_titleBar);
 
@@ -544,7 +545,7 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     setMinimumSize(900, 620);
     FluentStyleSheet::setRole(this, QStringLiteral("FluentWindow"));
 
-    m_frameless = new FramelessWindowHelper(this);
+    m_frameless = std::make_unique<FramelessWindowHelper>(this);
     m_history = new NavigationHistory(this);
     m_titleBar = new FluentTitleBar(this);
     setTitleBarNavigationBackground(m_titleBar, true);
@@ -676,9 +677,13 @@ bool FluentWindow::goBack()
         return false;
     }
 
+    // Navigate first, through the interface, so it emits currentIndexChanged() and
+    // currentRouteKeyChanged(); pop() would switch the stack behind its back and leave nothing
+    // to notice.
+    QStackedWidget *stack = m_navigation->stackedWidget();
     m_suppressHistoryPush = true;
-    m_history->pop(m_navigation->stackedWidget());
-    m_navigation->setCurrentRouteKey(m_history->topRouteKey(m_navigation->stackedWidget()));
+    m_navigation->setCurrentRouteKey(m_history->previousRouteKey(stack));
+    m_history->pop(stack);
     m_suppressHistoryPush = false;
     updateStackedBackground();
     return true;
@@ -917,7 +922,7 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
     setMinimumSize(900, 620);
     FluentStyleSheet::setRole(this, QStringLiteral("MSFluentWindow"));
 
-    m_frameless = new FramelessWindowHelper(this);
+    m_frameless = std::make_unique<FramelessWindowHelper>(this);
     m_titleBar = new FluentTitleBar(this);
     m_frameless->setTitleBar(m_titleBar);
 
@@ -1038,7 +1043,7 @@ bool MSFluentWindow::switchTo(QWidget *widget)
 
 bool MSFluentWindow::switchTo(const QString &routeKey)
 {
-    const int index = m_routeOrder.indexOf(routeKey);
+    const int index = static_cast<int>(m_routeOrder.indexOf(routeKey));
     if (index < 0) {
         return false;
     }
@@ -1059,7 +1064,7 @@ bool MSFluentWindow::removeInterface(QWidget *widget, bool deleteWidget)
 
 bool MSFluentWindow::removeInterface(const QString &routeKey, bool deleteWidget)
 {
-    const int index = m_routeOrder.indexOf(routeKey);
+    const int index = static_cast<int>(m_routeOrder.indexOf(routeKey));
     if (index < 0) {
         return false;
     }

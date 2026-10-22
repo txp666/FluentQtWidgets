@@ -162,17 +162,14 @@ NavigationPanel::NavigationPanel(QWidget *parent) : QFrame(parent)
 
     m_returnButton->hide();
     m_returnButton->setDisabled(true);
-    m_returnButton->setToolTip(QStringLiteral("Back"));
-    m_menuButton->setToolTip(QStringLiteral("Open Navigation"));
+    retranslateUi();
 
     m_expandAnimation = new QPropertyAnimation(this, "geometry", this);
     m_expandAnimation->setEasingCurve(QEasingCurve::OutQuad);
     m_expandAnimation->setDuration(150);
     connect(m_expandAnimation, &QPropertyAnimation::finished, this, &NavigationPanel::onExpandAnimationFinished);
 
-    if (QWidget *topLevel = window()) {
-        topLevel->installEventFilter(this);
-    }
+    followWindow();
 }
 
 NavigationPanel::~NavigationPanel()
@@ -452,6 +449,19 @@ void NavigationPanel::removeWidget(const QString &routeKey)
         m_currentRouteKey.clear();
     }
 
+    // Child tree items are QObject children of entry.widget and are deleted with it, so
+    // their entries have to go too.
+    for (auto it = m_items.begin(); it != m_items.end();) {
+        if (entry.widget->isAncestorOf(it.value().widget)) {
+            if (m_currentRouteKey == it.key()) {
+                m_currentRouteKey.clear();
+            }
+            it = m_items.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     auto *treeWidget = qobject_cast<NavigationTreeWidget *>(entry.widget);
     auto *parentTreeWidget =
         !entry.parentRouteKey.isEmpty() ? qobject_cast<NavigationTreeWidget *>(navigationWidget(entry.parentRouteKey))
@@ -493,7 +503,7 @@ void NavigationPanel::expand(bool animated)
         emit displayModeChanged(m_displayMode);
     }
 
-    m_menuButton->setToolTip(QStringLiteral("Close Navigation"));
+    m_menuButton->setToolTip(tr("Close Navigation"));
 }
 
 void NavigationPanel::collapse(bool animated)
@@ -518,7 +528,7 @@ void NavigationPanel::collapse(bool animated)
         emit displayModeChanged(m_displayMode);
     }
 
-    m_menuButton->setToolTip(QStringLiteral("Open Navigation"));
+    m_menuButton->setToolTip(tr("Open Navigation"));
 }
 
 void NavigationPanel::toggle()
@@ -541,6 +551,42 @@ void NavigationPanel::onExpandAnimationFinished()
     } else {
         updatePanelWidth(m_expandWidth);
     }
+}
+
+bool NavigationPanel::event(QEvent *event)
+{
+    const bool result = QFrame::event(event);
+    // An ancestor being reparented sends no ParentChange here; check again when shown.
+    if (event->type() == QEvent::ParentChange || event->type() == QEvent::Show) {
+        followWindow();
+    } else if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    return result;
+}
+
+// The window filter (closing the menu on outside clicks, following resizes) has to move with the
+// panel; a panel created first and added to a window later was watching only itself.
+void NavigationPanel::followWindow()
+{
+    QWidget *topLevel = window();
+    if (topLevel == m_filteredWindow) {
+        return;
+    }
+    if (m_filteredWindow) {
+        m_filteredWindow->removeEventFilter(this);
+    }
+    m_filteredWindow = topLevel;
+    if (m_filteredWindow) {
+        m_filteredWindow->installEventFilter(this);
+    }
+}
+
+void NavigationPanel::retranslateUi()
+{
+    m_returnButton->setToolTip(tr("Back"));
+    m_menuButton->setToolTip(m_displayMode == NavigationDisplayMode::Compact ? tr("Open Navigation")
+                                                                            : tr("Close Navigation"));
 }
 
 bool NavigationPanel::eventFilter(QObject *watched, QEvent *event)
