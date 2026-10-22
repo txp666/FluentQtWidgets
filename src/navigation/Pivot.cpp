@@ -71,6 +71,8 @@ PivotItem *Pivot::insertItem(int index, const QString &routeKey, const QString &
     m_items.insert(routeKey, newItem);
     m_buttonGroup->addButton(newItem);
     m_layout->insertWidget(qBound(0, index, m_layout->count()), newItem, 1);
+    // Items change width with their text (also on a language change); the indicator follows.
+    newItem->installEventFilter(this);
 
     connect(newItem, &QPushButton::clicked, this, [this, routeKey]() {
         setCurrentItem(routeKey);
@@ -91,18 +93,34 @@ void Pivot::removeItem(const QString &routeKey)
         return;
     }
 
+    const int position = static_cast<int>(orderedItems().indexOf(removedItem));
+    removedItem->removeEventFilter(this);
     m_buttonGroup->removeButton(removedItem);
     m_layout->removeWidget(removedItem);
     removedItem->deleteLater();
 
     if (m_currentItem == routeKey) {
         m_currentItem.clear();
-        if (!m_items.isEmpty()) {
-            setCurrentItem(m_items.constBegin().key());
+        // The neighbour that took the removed item's place, or the new last one; m_items is a
+        // hash and has no order.
+        const QList<PivotItem *> remaining = orderedItems();
+        if (!remaining.isEmpty()) {
+            setCurrentItem(remaining.at(qBound(0, position, static_cast<int>(remaining.size()) - 1))->routeKey());
         } else {
             emit currentItemChanged(QString());
         }
     }
+}
+
+QList<PivotItem *> Pivot::orderedItems() const
+{
+    QList<PivotItem *> items;
+    for (int i = 0; i < m_layout->count(); ++i) {
+        if (auto *pivotItem = qobject_cast<PivotItem *>(m_layout->itemAt(i)->widget())) {
+            items.append(pivotItem);
+        }
+    }
+    return items;
 }
 
 bool Pivot::contains(const QString &routeKey) const { return m_items.contains(routeKey); }
@@ -111,7 +129,15 @@ QString Pivot::currentItem() const { return m_currentItem; }
 
 PivotItem *Pivot::item(const QString &routeKey) const { return m_items.value(routeKey, nullptr); }
 
-QList<QString> Pivot::routeKeys() const { return m_items.keys(); }
+// In display order.
+QList<QString> Pivot::routeKeys() const
+{
+    QList<QString> keys;
+    for (PivotItem *pivotItem : orderedItems()) {
+        keys.append(pivotItem->routeKey());
+    }
+    return keys;
+}
 
 void Pivot::setCurrentItem(const QString &routeKey)
 {
@@ -191,6 +217,15 @@ void Pivot::paintEvent(QPaintEvent *event)
 
     painter.setBrush(ThemeManager::instance()->accentColor());
     painter.drawRoundedRect(m_indicatorGeometry, 1.5, 1.5);
+}
+
+bool Pivot::eventFilter(QObject *watched, QEvent *event)
+{
+    if ((event->type() == QEvent::Resize || event->type() == QEvent::Move) &&
+        watched == item(m_currentItem)) {
+        adjustIndicatorPosition();
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 void Pivot::showEvent(QShowEvent *event)

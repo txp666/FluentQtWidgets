@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QEasingCurve>
+#include <QtCore/QPointer>
 #include <QtCore/QVector>
 #include <QtWidgets/QStackedWidget>
 
@@ -33,11 +34,11 @@ class FQW_API OpacityAniStackedWidget : public QStackedWidget
     void onAnimationFinished();
 
   private:
-    void ensureAnimationForWidget(QWidget *widget, int index);
+    void finishAnimation();
 
-    int m_nextIndex = 0;
-    QVector<QGraphicsOpacityEffect *> m_effects;
-    QVector<QPropertyAnimation *> m_animations;
+    int m_nextIndex = -1;
+    QPointer<QWidget> m_animatedWidget;
+    QPointer<QPropertyAnimation> m_animation;
 };
 
 struct FQW_API PopUpAniInfo

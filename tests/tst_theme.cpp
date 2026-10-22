@@ -101,6 +101,30 @@ class ThemeTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    void themedIconFollowsThemeChanges()
+    {
+        // One file per theme (the black and the white Add glyph); a QIcon of either file keeps
+        // its colour, the themed icon has to switch when the theme does.
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        const QString lightPath = FluentQt::iconPath(FluentQt::FluentIcon::Add, FluentQt::Theme::Light);
+        const QString darkPath = FluentQt::iconPath(FluentQt::FluentIcon::Add, FluentQt::Theme::Dark);
+        QVERIFY(lightPath != darkPath);
+
+        const QIcon themed = FluentQt::themedIcon(lightPath, darkPath);
+        const QImage lightImage = QIcon(lightPath).pixmap(QSize(24, 24), 1.0).toImage();
+        const QImage darkImage = QIcon(darkPath).pixmap(QSize(24, 24), 1.0).toImage();
+        QVERIFY(lightImage != darkImage);
+
+        manager->setTheme(FluentQt::Theme::Light);
+        QCOMPARE(themed.pixmap(QSize(24, 24), 1.0).toImage(), lightImage);
+        manager->setTheme(FluentQt::Theme::Dark);
+        QCOMPARE(themed.pixmap(QSize(24, 24), 1.0).toImage(), darkImage);
+        QVERIFY(!themed.isNull());
+
+        manager->setTheme(previousTheme);
+    }
+
     void themeColorPaletteMatchesReference()
     {
         QCOMPARE(FluentQt::color(FluentQt::FluentThemeColor::DefaultBlue), QColor(QStringLiteral("#0078D7")));

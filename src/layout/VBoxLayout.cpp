@@ -25,6 +25,8 @@ void VBoxLayout::addWidget(QWidget *widget, int stretch, Qt::Alignment alignment
 
     QVBoxLayout::addWidget(widget, stretch, alignment);
     m_widgets.append(widget);
+    // A widget deleted from outside leaves the layout by itself; it must leave widgets() too.
+    connect(widget, &QObject::destroyed, this, [this, widget]() { m_widgets.removeAll(widget); });
     widget->show();
 }
 
@@ -34,6 +36,7 @@ void VBoxLayout::removeWidget(QWidget *widget)
         return;
     }
 
+    disconnect(widget, &QObject::destroyed, this, nullptr);
     QVBoxLayout::removeWidget(widget);
     m_widgets.removeAll(widget);
 }
@@ -52,6 +55,7 @@ void VBoxLayout::deleteWidget(QWidget *widget)
 void VBoxLayout::removeAllWidget()
 {
     for (QWidget *widget : std::as_const(m_widgets)) {
+        disconnect(widget, &QObject::destroyed, this, nullptr);
         QVBoxLayout::removeWidget(widget);
     }
     m_widgets.clear();

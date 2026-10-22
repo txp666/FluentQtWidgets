@@ -162,13 +162,31 @@ void FluentTitleBar::updateMaximizeButtonState()
     QWidget *targetWindow = window();
     const bool maximized = targetWindow && (targetWindow->isMaximized() || targetWindow->isFullScreen());
     asTitleBarButton(m_maxButton)->setSymbol(maximized ? TitleBarSymbol::Restore : TitleBarSymbol::Maximize);
-    m_maxButton->setToolTip(maximized ? QStringLiteral("Restore") : QStringLiteral("Maximize"));
+    m_maxButton->setToolTip(maximized ? tr("Restore") : tr("Maximize"));
     m_maxButton->setProperty("windowMaximized", maximized);
+}
+
+bool FluentTitleBar::event(QEvent *event)
+{
+    const bool result = QFrame::event(event);
+    // A title bar made without a parent and handed to setTitleBar() only gets its window now.
+    if (event->type() == QEvent::ParentChange) {
+        syncWithWindow();
+    }
+    return result;
+}
+
+void FluentTitleBar::changeEvent(QEvent *event)
+{
+    QFrame::changeEvent(event);
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
 }
 
 bool FluentTitleBar::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == window() && event && event->type() == QEvent::WindowStateChange) {
+    if (watched == m_syncedWindow && event && event->type() == QEvent::WindowStateChange) {
         updateMaximizeButtonState();
     }
     return QFrame::eventFilter(watched, event);
@@ -253,17 +271,15 @@ void FluentTitleBar::initLayout()
     m_minButton = new TitleBarToolButton(TitleBarSymbol::Minimize, this);
     m_minButton->setObjectName(QStringLiteral("MinimizeButton"));
     m_minButton->setFixedSize(46, 32);
-    m_minButton->setToolTip(QStringLiteral("Minimize"));
 
     m_maxButton = new TitleBarToolButton(TitleBarSymbol::Maximize, this);
     m_maxButton->setObjectName(QStringLiteral("MaximizeButton"));
     m_maxButton->setFixedSize(46, 32);
-    m_maxButton->setToolTip(QStringLiteral("Maximize"));
 
     m_closeButton = new TitleBarToolButton(TitleBarSymbol::Close, this);
     m_closeButton->setObjectName(QStringLiteral("CloseButton"));
     m_closeButton->setFixedSize(46, 32);
-    m_closeButton->setToolTip(QStringLiteral("Close"));
+    retranslateUi();
 
     layout->addWidget(m_iconLabel, 0, Qt::AlignVCenter);
     layout->addWidget(m_titleLabel, 0, Qt::AlignVCenter);
@@ -292,10 +308,28 @@ void FluentTitleBar::initLayout()
     });
 }
 
+void FluentTitleBar::retranslateUi()
+{
+    m_minButton->setToolTip(tr("Minimize"));
+    m_closeButton->setToolTip(tr("Close"));
+    updateMaximizeButtonState();
+}
+
 void FluentTitleBar::syncWithWindow()
 {
     QWidget *window = this->window();
-    if (!window) {
+    if (window == m_syncedWindow) {
+        return;
+    }
+
+    if (m_syncedWindow) {
+        disconnect(m_syncedWindow, nullptr, this, nullptr);
+        m_syncedWindow->removeEventFilter(this);
+    }
+    m_syncedWindow = window;
+    // Without a parent, window() is the title bar itself; nothing to mirror yet.
+    if (!window || window == this) {
+        m_syncedWindow = nullptr;
         return;
     }
 

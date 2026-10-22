@@ -164,6 +164,12 @@ SmoothScrollDelegate::SmoothScrollDelegate(QAbstractScrollArea *parent, bool use
     }
 }
 
+SmoothScrollDelegate::~SmoothScrollDelegate()
+{
+    delete m_verticalScrollBar;
+    delete m_horizontalScrollBar;
+}
+
 SmoothScrollBar *SmoothScrollDelegate::verticalScrollBar() const { return m_verticalScrollBar; }
 
 SmoothScrollBar *SmoothScrollDelegate::horizontalScrollBar() const { return m_horizontalScrollBar; }
@@ -259,7 +265,12 @@ bool SmoothScrollDelegate::handleWheelEvent(QWheelEvent *event)
 bool SmoothScrollDelegate::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == m_area->viewport() && event->type() == QEvent::Wheel) {
-        return handleWheelEvent(static_cast<QWheelEvent *>(event));
+        auto *wheelEvent = static_cast<QWheelEvent *>(event);
+        // Ctrl+wheel belongs to the area itself (text zoom in the editors).
+        if (wheelEvent->modifiers() & Qt::ControlModifier) {
+            return false;
+        }
+        return handleWheelEvent(wheelEvent);
     }
 
     return QObject::eventFilter(watched, event);

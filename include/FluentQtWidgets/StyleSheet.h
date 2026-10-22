@@ -6,6 +6,7 @@
 #include <QtCore/QList>
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
+#include <QtCore/QSet>
 #include <QtCore/QString>
 
 class QWidget;
@@ -68,7 +69,8 @@ class FQW_API StyleSheetManager : public QObject
   public:
     static StyleSheetManager *instance();
 
-    void registerWidget(QWidget *widget, FluentStyleSheetSource source = FluentStyleSheetSource::Global);
+    void registerWidget(QWidget *widget, FluentStyleSheetSource source = FluentStyleSheetSource::Global,
+                        Theme theme = Theme::Auto);
     void deregisterWidget(QWidget *widget);
     bool isRegistered(QWidget *widget) const;
     int registeredWidgetCount() const;
@@ -88,6 +90,8 @@ class FQW_API StyleSheetManager : public QObject
     void compact();
 
     QList<QPointer<QWidget>> m_widgets;
+    // For constant-time isRegistered(); compared by address only.
+    QSet<const QObject *> m_registered;
 };
 
 class FQW_API FluentStyleSheet final

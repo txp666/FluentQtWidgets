@@ -219,7 +219,7 @@ bool FolderListDialog::addFolder(const QString &folder)
 bool FolderListDialog::removeFolder(const QString &folder)
 {
     const QString cleanFolder = QDir::cleanPath(folder);
-    const int index = m_folders.indexOf(cleanFolder);
+    const int index = static_cast<int>(m_folders.indexOf(cleanFolder));
     if (index < 0) {
         return false;
     }

@@ -5,6 +5,7 @@
 #include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 
+#include <QtCore/QItemSelectionModel>
 #include <QtCore/QMargins>
 #include <QtCore/QVariant>
 #include <QtCore/QEvent>
@@ -277,7 +278,12 @@ QSize TableItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QMod
 QWidget *TableItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                                          const QModelIndex &index) const
 {
-    Q_UNUSED(index)
+    // Numbers, booleans and dates get Qt's matching editor so they are written back with their
+    // type instead of as text; text gets the Fluent line edit.
+    const QVariant value = index.data(Qt::EditRole);
+    if (value.isValid() && value.userType() != QMetaType::QString) {
+        return QStyledItemDelegate::createEditor(parent, option, index);
+    }
 
     auto *lineEdit = new LineEdit(parent);
     lineEdit->setProperty("transparent", false);
@@ -313,7 +319,7 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->setClipping(true);
     painter->setClipRect(option.rect);
 
-    const bool selected = isRowSelected(index.row()) || option.state.testFlag(QStyle::State_Selected);
+    const bool selected = isIndexRowSelected(index) || option.state.testFlag(QStyle::State_Selected);
     const bool hovered = isRowHovered(index.row());
     const bool pressed = isRowPressed(index.row());
     const auto *view = dynamic_cast<const QAbstractItemView *>(parent());
@@ -444,7 +450,25 @@ void TableItemDelegate::drawCheckBox(QPainter *painter, const QStyleOptionViewIt
     painter->restore();
 }
 
-bool TableItemDelegate::isRowSelected(int row) const { return m_selectedRows.contains(row); }
+// Asked of the selection model at paint time: a cached set of row numbers goes stale as soon as
+// rows are inserted, removed, sorted or filtered.
+bool TableItemDelegate::isRowSelected(int row) const
+{
+    const auto *view = qobject_cast<const QAbstractItemView *>(parent());
+    if (view && view->selectionModel()) {
+        return view->selectionModel()->rowIntersectsSelection(row, view->rootIndex());
+    }
+    return m_selectedRows.contains(row);
+}
+
+bool TableItemDelegate::isIndexRowSelected(const QModelIndex &index) const
+{
+    const auto *view = qobject_cast<const QAbstractItemView *>(parent());
+    if (view && view->selectionModel() && view->selectionModel()->model() == index.model()) {
+        return view->selectionModel()->rowIntersectsSelection(index.row(), index.parent());
+    }
+    return m_selectedRows.contains(index.row());
+}
 
 bool TableItemDelegate::isRowHovered(int row) const { return m_hoverRow == row; }
 
@@ -529,7 +553,7 @@ void TreeItemDelegate::drawBackground(QPainter *painter, const QStyleOptionViewI
 }
 
 void TreeItemDelegate::drawIndicator(QPainter *painter, const QStyleOptionViewItem &option,
-                                     const QModelIndex &index) const
+                                     const QModelIndex & /*index*/) const
 {
     const int height = option.rect.height() - 4;
     painter->setBrush(checkedColor());
@@ -626,9 +650,8 @@ void ListView::mouseReleaseEvent(QMouseEvent *event)
 {
     QListView::mouseReleaseEvent(event);
     updateSelectedRows();
-    if (!indexAt(event->pos()).isValid() || event->button() == Qt::RightButton) {
-        m_delegate->setPressedRow(-1);
-    }
+    // The pressed look lasts while the button is down, also on a row that was already selected.
+    m_delegate->setPressedRow(-1);
 }
 
 void ListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -648,7 +671,7 @@ void ListView::init()
     setProperty("isBorderVisible", false);
 }
 
-void ListView::updateSelectedRows() { m_delegate->setSelectedRows(selectedIndexes()); }
+void ListView::updateSelectedRows() { viewport()->update(); }
 
 bool ListView::isBorderVisible() const { return property("isBorderVisible").toBool(); }
 
@@ -720,9 +743,8 @@ void ListWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     QListWidget::mouseReleaseEvent(event);
     updateSelectedRows();
-    if (!indexAt(event->pos()).isValid() || event->button() == Qt::RightButton) {
-        m_delegate->setPressedRow(-1);
-    }
+    // The pressed look lasts while the button is down, also on a row that was already selected.
+    m_delegate->setPressedRow(-1);
 }
 
 void ListWidget::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -742,7 +764,7 @@ void ListWidget::init()
     setProperty("isBorderVisible", false);
 }
 
-void ListWidget::updateSelectedRows() { m_delegate->setSelectedRows(selectedIndexes()); }
+void ListWidget::updateSelectedRows() { viewport()->update(); }
 
 bool ListWidget::isBorderVisible() const { return property("isBorderVisible").toBool(); }
 
@@ -822,9 +844,8 @@ void TableView::mouseReleaseEvent(QMouseEvent *event)
 {
     QTableView::mouseReleaseEvent(event);
     updateSelectedRows();
-    if (!indexAt(event->pos()).isValid() || event->button() == Qt::RightButton) {
-        m_delegate->setPressedRow(-1);
-    }
+    // The pressed look lasts while the button is down, also on a row that was already selected.
+    m_delegate->setPressedRow(-1);
 }
 
 void TableView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -841,7 +862,7 @@ void TableView::init()
     setViewportMargins(0, 2, 0, 2);
 }
 
-void TableView::updateSelectedRows() { m_delegate->setSelectedRows(selectedIndexes()); }
+void TableView::updateSelectedRows() { viewport()->update(); }
 
 TableWidget::TableWidget(QWidget *parent) : QTableWidget(parent) { init(); }
 
@@ -907,9 +928,8 @@ void TableWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     QTableWidget::mouseReleaseEvent(event);
     updateSelectedRows();
-    if (!indexAt(event->pos()).isValid() || event->button() == Qt::RightButton) {
-        m_delegate->setPressedRow(-1);
-    }
+    // The pressed look lasts while the button is down, also on a row that was already selected.
+    m_delegate->setPressedRow(-1);
 }
 
 void TableWidget::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -926,7 +946,7 @@ void TableWidget::init()
     setViewportMargins(0, 2, 0, 2);
 }
 
-void TableWidget::updateSelectedRows() { m_delegate->setSelectedRows(selectedIndexes()); }
+void TableWidget::updateSelectedRows() { viewport()->update(); }
 
 TreeView::TreeView(QWidget *parent) : QTreeView(parent) { init(); }
 

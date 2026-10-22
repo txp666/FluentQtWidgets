@@ -158,6 +158,8 @@ class FQW_API ImageLabel : public QLabel
     void onMovieFrameChanged(int frame);
 
     QImage m_image;
+    QImage m_scaledImage;
+    qint64 m_scaledCacheKey = 0;
     int m_topLeftRadius = 0;
     int m_topRightRadius = 0;
     int m_bottomLeftRadius = 0;

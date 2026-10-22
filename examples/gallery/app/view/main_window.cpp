@@ -17,9 +17,11 @@ using namespace FluentQt;
 
 namespace {
 
+// Picks the black or white file whenever it is painted; a QIcon of galleryIconPath(icon) would
+// keep the colour of the theme it was created in.
 QIcon galleryNavIcon(GalleryIcon icon)
 {
-    return QIcon(galleryIconPath(icon));
+    return themedIcon(galleryIconPath(icon, Theme::Light), galleryIconPath(icon, Theme::Dark));
 }
 
 } // namespace

@@ -159,7 +159,7 @@ QColor SwitchIndicator::sliderColor() const
 // --- SwitchButton ---
 
 SwitchButton::SwitchButton(QWidget *parent, IndicatorPosition pos)
-    : QWidget(parent), m_onText(QStringLiteral("On")), m_offText(QStringLiteral("Off"))
+    : QWidget(parent), m_onText(tr("On")), m_offText(tr("Off"))
 {
     m_indicator = new SwitchIndicator(this);
     m_label = new QLabel(m_offText, this);
@@ -277,8 +277,9 @@ void SwitchButton::setCheckedIndicatorColor(const QColor &light, const QColor &d
 void SwitchButton::setIndicatorPosition(IndicatorPosition pos)
 {
     m_indicatorPosition = pos;
+    // takeAt() hands over the layout item (not the widget); removeItem() leaked it.
     while (m_layout->count() > 0) {
-        m_layout->removeItem(m_layout->itemAt(0));
+        delete m_layout->takeAt(0);
     }
     if (pos == IndicatorPosition::Left) {
         m_layout->addWidget(m_indicator);
@@ -296,12 +297,23 @@ bool SwitchButton::eventFilter(QObject *obj, QEvent *e)
 {
     if (obj == this && isEnabled()) {
         switch (e->type()) {
+        // Clicks on the label act like clicks on the indicator: a left press (or the second
+        // press of a double-click) released on the button toggles it; other buttons, and a press
+        // dragged away, do nothing.
         case QEvent::MouseButtonPress:
-            m_indicator->setDown(true);
+        case QEvent::MouseButtonDblClick:
+            if (static_cast<QMouseEvent *>(e)->button() == Qt::LeftButton) {
+                m_indicator->setDown(true);
+            }
             break;
         case QEvent::MouseButtonRelease:
-            m_indicator->setDown(false);
-            m_indicator->toggleIndicator();
+            if (auto *mouseEvent = static_cast<QMouseEvent *>(e); mouseEvent->button() == Qt::LeftButton) {
+                const bool click = m_indicator->isDown() && rect().contains(mouseEvent->pos());
+                m_indicator->setDown(false);
+                if (click) {
+                    m_indicator->toggleIndicator();
+                }
+            }
             break;
         case QEvent::Enter:
             m_indicator->setHover(true);

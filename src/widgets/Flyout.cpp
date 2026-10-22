@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Flyout.h>
 
+#include "../core/TextWrap_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
@@ -32,181 +34,6 @@ namespace {
 bool isDarkTheme()
 {
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-}
-
-enum class TextCharType
-{
-    Space,
-    Asian,
-    Latin,
-};
-
-int textCharWidth(QChar ch)
-{
-    const ushort u = ch.unicode();
-    if ((u >= 0x1100 && u <= 0x115F) || u == 0x2329 || u == 0x232A ||
-        (u >= 0x2E80 && u <= 0xA4CF) || (u >= 0xAC00 && u <= 0xD7A3) ||
-        (u >= 0xF900 && u <= 0xFAFF) || (u >= 0xFE10 && u <= 0xFE19) ||
-        (u >= 0xFE30 && u <= 0xFE6F) || (u >= 0xFF00 && u <= 0xFF60) ||
-        (u >= 0xFFE0 && u <= 0xFFE6)) {
-        return 2;
-    }
-    return 1;
-}
-
-int textDisplayWidth(const QString &text)
-{
-    int width = 0;
-    for (QChar ch : text) {
-        width += textCharWidth(ch);
-    }
-    return width;
-}
-
-TextCharType textCharType(QChar ch)
-{
-    if (ch.isSpace()) {
-        return TextCharType::Space;
-    }
-    return textCharWidth(ch) == 1 ? TextCharType::Latin : TextCharType::Asian;
-}
-
-QString trimmedRight(QString text)
-{
-    while (!text.isEmpty() && text.back().isSpace()) {
-        text.chop(1);
-    }
-    return text;
-}
-
-QString normalizedWhitespace(const QString &text)
-{
-    QString result;
-    bool inWhitespace = false;
-    for (QChar ch : text) {
-        if (ch.isSpace()) {
-            if (!inWhitespace) {
-                result.append(QLatin1Char(' '));
-                inWhitespace = true;
-            }
-        } else {
-            result.append(ch);
-            inWhitespace = false;
-        }
-    }
-    return result.trimmed();
-}
-
-QStringList splitLines(const QString &text)
-{
-    QStringList lines;
-    QString current;
-    for (int i = 0; i < text.size(); ++i) {
-        const QChar ch = text.at(i);
-        if (ch == QLatin1Char('\r') || ch == QLatin1Char('\n')) {
-            lines.append(current);
-            current.clear();
-            if (ch == QLatin1Char('\r') && i + 1 < text.size() && text.at(i + 1) == QLatin1Char('\n')) {
-                ++i;
-            }
-        } else {
-            current.append(ch);
-        }
-    }
-    lines.append(current);
-    return lines;
-}
-
-QStringList tokenizeForWrap(const QString &text)
-{
-    QStringList tokens;
-    QString buffer;
-    TextCharType lastType = TextCharType::Latin;
-    bool hasLastType = false;
-
-    for (QChar ch : text) {
-        const TextCharType type = textCharType(ch);
-        if (!buffer.isEmpty() && (type != lastType || type != TextCharType::Latin)) {
-            tokens.append(buffer);
-            buffer.clear();
-        }
-        buffer.append(ch);
-        lastType = type;
-        hasLastType = true;
-    }
-
-    if (hasLastType) {
-        tokens.append(buffer);
-    }
-    return tokens;
-}
-
-QStringList splitLongToken(const QString &token, int width)
-{
-    QStringList chunks;
-    for (int i = 0; i < token.size(); i += width) {
-        chunks.append(token.mid(i, width));
-    }
-    return chunks;
-}
-
-QString wrapLineLikeOriginal(const QString &text, int width)
-{
-    QString lineBuffer;
-    QStringList wrappedLines;
-    int currentWidth = 0;
-
-    for (const QString &token : tokenizeForWrap(text)) {
-        const int tokenWidth = textDisplayWidth(token);
-
-        if (token == QLatin1String(" ") && currentWidth == 0) {
-            continue;
-        }
-
-        if (currentWidth + tokenWidth <= width) {
-            lineBuffer += token;
-            currentWidth += tokenWidth;
-            if (currentWidth == width) {
-                wrappedLines.append(trimmedRight(lineBuffer));
-                lineBuffer.clear();
-                currentWidth = 0;
-            }
-        } else {
-            if (currentWidth != 0) {
-                wrappedLines.append(trimmedRight(lineBuffer));
-            }
-
-            const QStringList chunks = splitLongToken(token, width);
-            for (int i = 0; i + 1 < chunks.size(); ++i) {
-                wrappedLines.append(trimmedRight(chunks.at(i)));
-            }
-
-            lineBuffer = chunks.isEmpty() ? QString() : chunks.last();
-            currentWidth = textDisplayWidth(lineBuffer);
-        }
-    }
-
-    if (currentWidth != 0) {
-        wrappedLines.append(trimmedRight(lineBuffer));
-    }
-
-    return wrappedLines.join(QLatin1Char('\n'));
-}
-
-QString wrapPopupText(const QString &text, int maxChars)
-{
-    const int width = qMax(maxChars, 1);
-    QStringList wrappedLines;
-
-    for (QString line : splitLines(text)) {
-        line = normalizedWhitespace(line);
-        if (textDisplayWidth(line) > width) {
-            wrappedLines.append(wrapLineLikeOriginal(line, width));
-        } else {
-            wrappedLines.append(line);
-        }
-    }
-    return wrappedLines.join(QLatin1Char('\n'));
 }
 
 // ==========================================
@@ -445,7 +272,7 @@ public:
     }
 };
 
-FlyoutAnimationManager *makeFlyoutAnimationManager(FlyoutAnimationType type, Flyout *flyout)
+FlyoutAnimationManager *createFlyoutAnimationManager(FlyoutAnimationType type, Flyout *flyout)
 {
     switch (type) {
     case FlyoutAnimationType::PullUp:
@@ -462,6 +289,21 @@ FlyoutAnimationManager *makeFlyoutAnimationManager(FlyoutAnimationType type, Fly
     default:
         return new DummyFlyoutAnimationManager(flyout, flyout);
     }
+}
+
+constexpr const char *kAnimationManagerName = "fqwFlyoutAnimationManager";
+
+// One manager per flyout: the one from the previous exec() goes, instead of a reusable flyout
+// gaining three objects each time it is shown.
+FlyoutAnimationManager *makeFlyoutAnimationManager(FlyoutAnimationType type, Flyout *flyout)
+{
+    const QList<QObject *> previous =
+        flyout->findChildren<QObject *>(QLatin1String(kAnimationManagerName), Qt::FindDirectChildrenOnly);
+    qDeleteAll(previous);
+
+    FlyoutAnimationManager *manager = createFlyoutAnimationManager(type, flyout);
+    manager->setObjectName(QLatin1String(kAnimationManagerName));
+    return manager;
 }
 
 void grabAcrylicFlyoutBackground(Flyout *flyout, const QPoint &pos)
@@ -647,12 +489,12 @@ void FlyoutView::adjustText()
     if (m_titleLabel) {
         m_titleLabel->setWordWrap(false);
         const int chars = qMax(qMin(width / 10, 120), 30);
-        m_titleLabel->setText(wrapPopupText(m_title, chars));
+        m_titleLabel->setText(Private::wrapText(m_title, chars));
     }
     if (m_contentLabel) {
         m_contentLabel->setWordWrap(false);
         const int chars = qMax(qMin(width / 9, 120), 30);
-        m_contentLabel->setText(wrapPopupText(m_content, chars));
+        m_contentLabel->setText(Private::wrapText(m_content, chars));
     }
 }
 
@@ -1104,7 +946,12 @@ bool Flyout::eventFilter(QObject *watched, QEvent *event)
 {
     if (isVisible() && event && event->type() == QEvent::MouseButtonPress) {
         auto *mouseEvent = static_cast<QMouseEvent *>(event);
-        if (!rect().contains(mapFromGlobal(mouseEvent->globalPosition().toPoint()))) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        const QPoint globalPos = mouseEvent->globalPosition().toPoint();
+#else
+        const QPoint globalPos = mouseEvent->globalPos();
+#endif
+        if (!rect().contains(mapFromGlobal(globalPos))) {
             close();
         }
     }

@@ -6,6 +6,7 @@
 #include <FluentQtWidgets/Widgets/Menu.h>
 
 #include <QtCore/QAbstractItemModel>
+#include <QtCore/QElapsedTimer>
 #include <QtCore/QList>
 #include <QtCore/QMetaObject>
 #include <QtCore/QPointer>
@@ -129,6 +130,8 @@ class FQW_API ComboBox : public QPushButton
     void toggleComboMenu();
     void onItemClicked(int index);
     void onDropMenuClosed();
+    void insertComboItems(int index, const QList<ComboItem> &items);
+    void showPlaceholder(const QString &oldText);
 
     QList<ComboItem> m_items;
     int m_currentIndex = -1;
@@ -138,6 +141,7 @@ class FQW_API ComboBox : public QPushButton
     bool m_isHover = false;
     bool m_isPressed = false;
     bool m_ignoreNextToggle = false;
+    QElapsedTimer m_dropMenuClosedTimer;
     ArrowAnimation *m_arrowAni = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };
@@ -226,6 +230,7 @@ class FQW_API EditableComboBox : public LineEdit
     void onClearButtonClicked();
     void onCompleterActivated(const QString &text);
     void updatePlaceholderState(bool isPlaceholder);
+    void insertComboItems(int index, const QList<ComboItem> &items);
 
     QList<ComboItem> m_items;
     int m_currentIndex = -1;
@@ -235,6 +240,7 @@ class FQW_API EditableComboBox : public LineEdit
     bool m_isHover = false;
     bool m_isPressed = false;
     bool m_ignoreNextToggle = false;
+    QElapsedTimer m_dropMenuClosedTimer;
     LineEditButton *m_dropButton = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };
@@ -251,6 +257,7 @@ class FQW_API ModelComboBox : public QPushButton
 
   public:
     explicit ModelComboBox(QWidget *parent = nullptr);
+    ~ModelComboBox() override;
 
     void setModel(QAbstractItemModel *model);
     QAbstractItemModel *model() const;
@@ -325,9 +332,13 @@ class FQW_API ModelComboBox : public QPushButton
     void onModelDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                             const QList<int> &roles);
     void onModelReset();
+    void reselectCurrentIndex(int index);
 
-    QAbstractItemModel *m_model = nullptr;
+    QPointer<QAbstractItemModel> m_model;
     QList<QMetaObject::Connection> m_modelConnections;
+    // Set while the combo edits its own model, so its model slots do not react twice. The
+    // model's signals still reach every other view and proxy.
+    bool m_updatingModel = false;
     int m_currentIndex = -1;
     int m_maxVisibleItems = -1;
     QString m_placeholderText;
@@ -336,6 +347,7 @@ class FQW_API ModelComboBox : public QPushButton
     bool m_isHover = false;
     bool m_isPressed = false;
     bool m_ignoreNextToggle = false;
+    QElapsedTimer m_dropMenuClosedTimer;
     ArrowAnimation *m_arrowAni = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };
@@ -351,6 +363,7 @@ class FQW_API EditableModelComboBox : public LineEdit
 
   public:
     explicit EditableModelComboBox(QWidget *parent = nullptr);
+    ~EditableModelComboBox() override;
 
     void setModel(QAbstractItemModel *model);
     QAbstractItemModel *model() const;
@@ -424,9 +437,13 @@ class FQW_API EditableModelComboBox : public LineEdit
     void onModelDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                             const QList<int> &roles);
     void onModelReset();
+    void reselectCurrentIndex(int index);
 
-    QAbstractItemModel *m_model = nullptr;
+    QPointer<QAbstractItemModel> m_model;
     QList<QMetaObject::Connection> m_modelConnections;
+    // Set while the combo edits its own model, so its model slots do not react twice. The
+    // model's signals still reach every other view and proxy.
+    bool m_updatingModel = false;
     int m_currentIndex = -1;
     int m_maxVisibleItems = -1;
     QString m_placeholderText;
@@ -434,6 +451,7 @@ class FQW_API EditableModelComboBox : public LineEdit
     bool m_isHover = false;
     bool m_isPressed = false;
     bool m_ignoreNextToggle = false;
+    QElapsedTimer m_dropMenuClosedTimer;
     LineEditButton *m_dropButton = nullptr;
     QPointer<ComboBoxMenu> m_dropMenu;
 };

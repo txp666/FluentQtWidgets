@@ -162,7 +162,11 @@ void TimePicker::setColumnFormatter(int index, PickerColumnFormatter *formatter)
     updateColumnDisplay();
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void TimePicker::enterEvent(QEnterEvent *event)
+#else
+void TimePicker::enterEvent(QEvent *event)
+#endif
 {
     setColumnButtonProperty("enter", true);
     QFrame::enterEvent(event);

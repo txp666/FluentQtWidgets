@@ -3,6 +3,7 @@
 #include <FluentQtWidgets/Global.h>
 
 #include <QtCore/QEasingCurve>
+#include <QtCore/QHash>
 #include <QtCore/QList>
 #include <QtCore/QRect>
 #include <QtCore/QSize>
@@ -77,7 +78,7 @@ class FQW_API FlowLayout : public QLayout
     void removeAnimationForWidget(QWidget *widget);
 
     QList<QLayoutItem *> m_items;
-    QList<QPropertyAnimation *> m_animations;
+    QHash<const QWidget *, QPropertyAnimation *> m_animations;
     QParallelAnimationGroup *m_animationGroup = nullptr;
     QTimer *m_debounceTimer = nullptr;
     QWidget *m_parentWidget = nullptr;

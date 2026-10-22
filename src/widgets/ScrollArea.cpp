@@ -854,16 +854,18 @@ int ScrollBar::grooveLength() const
 
 int ScrollBar::slideLength() const { return qMax(0, grooveLength() - handleLength()); }
 
+// Item views scroll per pixel, so ranges reach millions; products of a range and a length in
+// pixels are done in 64 bits.
 int ScrollBar::handleLength() const
 {
-    const int total = qMax(1, m_maximum - m_minimum + m_pageStep);
-    return qMax(30, grooveLength() * qMax(1, m_pageStep) / total);
+    const qint64 total = qMax<qint64>(1, qint64(m_maximum) - m_minimum + m_pageStep);
+    return qMax(30, int(qint64(grooveLength()) * qMax(1, m_pageStep) / total));
 }
 
 QRect ScrollBar::handleRect() const
 {
-    const int valueRange = qMax(1, m_maximum - m_minimum);
-    const int offset = (m_value - m_minimum) * slideLength() / valueRange;
+    const qint64 valueRange = qMax<qint64>(1, qint64(m_maximum) - m_minimum);
+    const int offset = int((qint64(m_value) - m_minimum) * slideLength() / valueRange);
     const qreal grooveOpacity = m_groove ? m_groove->opacity() : (property("expanded").toBool() ? 1.0 : 0.0);
     const int thickness = qBound(3, qRound(3 + grooveOpacity * 3), 6);
 
@@ -893,7 +895,9 @@ bool ScrollBar::isSlideRegion(const QPoint &pos) const
 
 int ScrollBar::valueFromHandleOffset(int offset) const
 {
-    return m_minimum + offset * qMax(1, m_maximum - m_minimum) / qMax(1, slideLength());
+    const qint64 valueRange = qMax<qint64>(1, qint64(m_maximum) - m_minimum);
+    const qint64 value = m_minimum + qint64(offset) * valueRange / qMax(1, slideLength());
+    return int(qBound(qint64(m_minimum), value, qint64(m_maximum)));
 }
 
 void ScrollBar::mousePressEvent(QMouseEvent *event)
@@ -953,7 +957,9 @@ void ScrollBar::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
-    setValue(m_value + delta * qMax(1, m_maximum - m_minimum) / qMax(1, slideLength()));
+    const qint64 valueRange = qMax<qint64>(1, qint64(m_maximum) - m_minimum);
+    const qint64 value = m_value + qint64(delta) * valueRange / qMax(1, slideLength());
+    setValue(int(qBound(qint64(m_minimum), value, qint64(m_maximum))));
     m_pressedPos = event->pos();
     emit sliderMoved();
 }
@@ -1213,9 +1219,8 @@ void SingleDirectionScrollArea::updatePolicies()
 
 SmoothScrollArea::SmoothScrollArea(QWidget *parent) : ScrollArea(parent)
 {
-    if (scrollDelegate()) {
-        scrollDelegate()->deleteLater();
-    }
+    // Replaces the plain delegate ScrollArea::init() created, together with its scroll bars.
+    delete scrollDelegate();
 
     m_smoothDelegate = new SmoothScrollDelegate(this, true);
     m_scrollDelegate = m_smoothDelegate;

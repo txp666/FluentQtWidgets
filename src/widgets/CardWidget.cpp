@@ -12,6 +12,7 @@
 #include <QtGui/QEnterEvent>
 #endif
 #include <QtGui/QMouseEvent>
+#include <QtGui/QMoveEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtWidgets/QStyle>
@@ -232,7 +233,7 @@ SimpleCardWidget::SimpleCardWidget(QWidget *parent) : CardWidget(parent)
     FluentStyleSheet::setRole(this, QStringLiteral("SimpleCardWidget"));
 }
 
-void SimpleCardWidget::paintEvent(QPaintEvent *event)
+void SimpleCardWidget::paintEvent(QPaintEvent * /*event*/)
 {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing);
@@ -291,6 +292,17 @@ void ElevatedCardWidget::mousePressEvent(QMouseEvent *event)
 {
     SimpleCardWidget::mousePressEvent(event);
     startElevateAnimation(pos(), m_originalPos);
+}
+
+// A layout can move the card while it is lifted (siblings resizing, the window resizing); its
+// own position then becomes the resting one, or leaving would animate back to a stale place.
+// Moves made by the lift animation itself happen while it is running.
+void ElevatedCardWidget::moveEvent(QMoveEvent *event)
+{
+    SimpleCardWidget::moveEvent(event);
+    if (m_elevateAni->state() != QPropertyAnimation::Running) {
+        m_originalPos = pos();
+    }
 }
 
 void ElevatedCardWidget::startElevateAnimation(const QPoint &start, const QPoint &end)
@@ -520,7 +532,7 @@ CardGroupWidget *GroupHeaderCardWidget::addGroup(const QIcon &icon, const QStrin
     return group;
 }
 
-int GroupHeaderCardWidget::groupCount() const { return m_groupWidgets.size(); }
+int GroupHeaderCardWidget::groupCount() const { return static_cast<int>(m_groupWidgets.size()); }
 
 QList<CardGroupWidget *> GroupHeaderCardWidget::groupWidgets() const { return m_groupWidgets; }
 

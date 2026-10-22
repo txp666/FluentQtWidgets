@@ -23,6 +23,8 @@ class FQW_API NavigationHistory : public QObject
     void pop(QStackedWidget *stackedWidget);
     void remove(QStackedWidget *stackedWidget, const QString &routeKey);
     bool canGoBack(QStackedWidget *stackedWidget) const;
+    // The entry pop() would go back to, or an empty string.
+    QString previousRouteKey(QStackedWidget *stackedWidget) const;
     QString topRouteKey(QStackedWidget *stackedWidget) const;
     void clear(QStackedWidget *stackedWidget);
 

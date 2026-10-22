@@ -266,7 +266,7 @@ void CycleListWidget::setCurrentIndex(int index)
 
     if (!m_isCycle) {
         const int padding = m_visibleNumber / 2;
-        const int maxIndex = padding + m_originItems.size() - 1;
+        const int maxIndex = padding + static_cast<int>(m_originItems.size()) - 1;
         m_currentIndex = qBound(padding, index, maxIndex);
         setCurrentRow(m_currentIndex, QItemSelectionModel::NoUpdate);
         return;
@@ -357,7 +357,13 @@ void CycleListWidget::resizeEvent(QResizeEvent *event)
 
 void CycleListWidget::wheelEvent(QWheelEvent *event)
 {
-    if (event->angleDelta().y() < 0) {
+    const int delta = event->angleDelta().y();
+    // A zero delta (touchpad phase events, horizontal scrolling) is no direction.
+    if (delta == 0) {
+        event->ignore();
+        return;
+    }
+    if (delta < 0) {
         scrollDown();
     } else {
         scrollUp();
@@ -367,7 +373,7 @@ void CycleListWidget::wheelEvent(QWheelEvent *event)
 
 void CycleListWidget::createItems(const QStringList &items)
 {
-    const int itemCount = items.size();
+    const int itemCount = static_cast<int>(items.size());
     m_isCycle = itemCount > m_visibleNumber;
 
     if (m_isCycle) {
@@ -388,7 +394,9 @@ void CycleListWidget::createItems(const QStringList &items)
 void CycleListWidget::addColumnItems(const QStringList &items, bool disabled)
 {
     for (const QString &text : items) {
-        auto *listItem = new QListWidgetItem(text, this);
+        // Not created with the view as parent: that already adds it, and the addItem() below
+        // would then be a silent no-op.
+        auto *listItem = new QListWidgetItem(text);
         listItem->setSizeHint(m_itemSize);
         listItem->setTextAlignment(m_alignment | Qt::AlignVCenter);
         if (disabled) {

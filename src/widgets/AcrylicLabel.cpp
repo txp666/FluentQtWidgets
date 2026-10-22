@@ -13,7 +13,20 @@
 #include <QtWidgets/QSizePolicy>
 
 namespace FluentQt {
+
+#if defined(Q_OS_MACOS)
+namespace Private {
+bool isScreenCapturePermitted();
+}
+#endif
+
 namespace {
+
+bool &screenCaptureEnabled()
+{
+    static bool enabled = true;
+    return enabled;
+}
 
 QImage boxBlur(const QImage &source, int radius)
 {
@@ -137,7 +150,30 @@ QImage AcrylicBrush::originalImage() const { return m_originalImage; }
 
 bool AcrylicBrush::isNull() const { return m_image.isNull(); }
 
-bool AcrylicBrush::isAvailable() const { return true; }
+// Without a capture there is nothing to show through, so acrylic surfaces fall back to their
+// solid look (NavigationPanel checks this).
+bool AcrylicBrush::isAvailable() const { return isScreenCaptureAvailable(); }
+
+void AcrylicBrush::setScreenCaptureEnabled(bool enabled) { screenCaptureEnabled() = enabled; }
+
+bool AcrylicBrush::isScreenCaptureEnabled() { return screenCaptureEnabled(); }
+
+bool AcrylicBrush::isScreenCaptureAvailable()
+{
+    if (!screenCaptureEnabled()) {
+        return false;
+    }
+    const QString platform = QGuiApplication::platformName();
+    if (platform.startsWith(QLatin1String("wayland"))) {
+        return false;
+    }
+#if defined(Q_OS_MACOS)
+    if (platform == QLatin1String("cocoa") && !Private::isScreenCapturePermitted()) {
+        return false;
+    }
+#endif
+    return true;
+}
 
 void AcrylicBrush::setBlurRadius(int radius)
 {
@@ -209,6 +245,10 @@ void AcrylicBrush::grabImage(const QRect &globalRect)
         screen = QGuiApplication::primaryScreen();
     }
     if (!screen || globalRect.isEmpty()) {
+        return;
+    }
+    if (!isScreenCaptureAvailable()) {
+        setImage(QImage());
         return;
     }
 
@@ -283,6 +323,12 @@ void AcrylicBrush::paint(QPainter *painter)
         QImage image = m_image.scaled(m_device->size(), Qt::KeepAspectRatioByExpanding,
                                       Qt::SmoothTransformation);
         painter->drawImage(QPoint(0, 0), image);
+    } else {
+        // Nothing captured: an opaque base, so the translucent tint does not turn into a
+        // see-through surface.
+        QColor base = m_tintColor;
+        base.setAlpha(255);
+        painter->fillRect(m_device->rect(), base);
     }
 
     painter->fillRect(m_device->rect(), QBrush(textureImage()));

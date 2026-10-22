@@ -47,8 +47,14 @@ class FQW_API CheckBox : public QCheckBox
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
+#else
+    void enterEvent(QEvent *event) override;
+#endif
     void leaveEvent(QEvent *event) override;
+    void focusInEvent(QFocusEvent *event) override;
+    void focusOutEvent(QFocusEvent *event) override;
 
   private:
     enum class State
@@ -75,6 +81,8 @@ class FQW_API CheckBox : public QCheckBox
 
     bool m_isPressed = false;
     bool m_isHover = false;
+    // Focus from the keyboard shows a focus visual; focus from a click does not.
+    bool m_focusVisible = false;
     QColor m_lightCheckedColor;
     QColor m_darkCheckedColor;
     QColor m_lightTextColor = QColor(0, 0, 0);

@@ -1,6 +1,6 @@
 #include <FluentQtWidgets/ThemeListener.h>
 
-#include <QtCore/QTimerEvent>
+#include <QtCore/QEvent>
 #include <QtGui/QPalette>
 #include <QtWidgets/QApplication>
 
@@ -24,6 +24,8 @@ void SystemThemeListener::start()
 
     refresh();
 
+    // Change notifications instead of polling: Qt 6.5 reports color scheme changes, and the
+    // system palette fallback below changes together with an ApplicationPaletteChange.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     if (qApp && qApp->styleHints()) {
         connect(qApp->styleHints(),
@@ -33,9 +35,8 @@ void SystemThemeListener::start()
                 Qt::UniqueConnection);
     }
 #endif
-
-    if (m_timerId == 0) {
-        m_timerId = startTimer(2000);
+    if (qApp) {
+        qApp->installEventFilter(this);
     }
 
     setRunning(true);
@@ -53,9 +54,8 @@ void SystemThemeListener::stop()
     }
 #endif
 
-    if (m_timerId != 0) {
-        killTimer(m_timerId);
-        m_timerId = 0;
+    if (qApp) {
+        qApp->removeEventFilter(this);
     }
 
     setRunning(false);
@@ -77,11 +77,23 @@ Theme SystemThemeListener::detectSystemTheme() const
     }
 #endif
 
-    if (qApp && qApp->palette().color(QPalette::Window).lightness() < 128) {
-        return Theme::Dark;
+    if (!qApp) {
+        return m_systemTheme;
     }
 
-    return Theme::Light;
+    // The application palette only tells the system theme while nobody has set it. Once
+    // ThemeManager::applyTo() (or the application) installs its own, it would just reflect the
+    // theme back, and Auto could never leave dark again; keep the last known value instead.
+    const QPalette palette = qApp->palette();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    const bool explicitPalette = palette.resolveMask() != 0;
+#else
+    const bool explicitPalette = palette.resolve() != 0;
+#endif
+    if (explicitPalette) {
+        return m_systemTheme;
+    }
+    return palette.color(QPalette::Window).lightness() < 128 ? Theme::Dark : Theme::Light;
 }
 
 void SystemThemeListener::setRunning(bool running)
@@ -104,14 +116,12 @@ void SystemThemeListener::setSystemTheme(Theme theme)
     emit systemThemeChanged(m_systemTheme);
 }
 
-void SystemThemeListener::timerEvent(QTimerEvent *event)
+bool SystemThemeListener::eventFilter(QObject *watched, QEvent *event)
 {
-    if (event->timerId() == m_timerId) {
+    if (watched == qApp && event->type() == QEvent::ApplicationPaletteChange) {
         refresh();
-        return;
     }
-
-    QObject::timerEvent(event);
+    return QObject::eventFilter(watched, event);
 }
 
 } // namespace FluentQt

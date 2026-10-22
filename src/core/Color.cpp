@@ -36,7 +36,8 @@ QColor color(FluentThemeColor color)
     case FluentThemeColor::Plum:
         return QColor(QStringLiteral("#BF0077"));
     case FluentThemeColor::OrchidLight:
-        return QColor(QStringLiteral("#BF0077"));
+        // Windows accent palette; #BF0077 is Plum.
+        return QColor(QStringLiteral("#C239B3"));
     case FluentThemeColor::Orchid:
         return QColor(QStringLiteral("#9A0089"));
     case FluentThemeColor::DefaultBlue:

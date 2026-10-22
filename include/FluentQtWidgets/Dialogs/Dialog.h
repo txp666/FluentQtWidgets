@@ -116,6 +116,8 @@ class FQW_API MaskDialogBase : public QDialog
     bool eventFilter(QObject *watched, QEvent *event) override;
     void syncGeometryToParent();
     void setCenterWidgetRole(const QString &role);
+    // True while the fade-out of an accepted or rejected dialog runs.
+    bool isFinishing() const;
 
     QFrame *m_widget = nullptr;
     QWidget *m_windowMask = nullptr;

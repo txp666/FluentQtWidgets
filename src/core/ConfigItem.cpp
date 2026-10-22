@@ -37,8 +37,8 @@ void ConfigItem::setValue(const QVariant &value)
     }
 
     m_value = corrected;
+    // The registry forwards valueChanged() as itemValueChanged().
     emit valueChanged(m_value);
-    emit ConfigItemRegistry::instance()->itemValueChanged(this);
 }
 
 void ConfigItem::reset() { setValue(m_defaultValue); }
@@ -49,6 +49,8 @@ OptionsConfigItem::OptionsConfigItem(const QString &group, const QString &name, 
                                      const QVariantList &options, QObject *parent)
     : ConfigItem(group, name, defaultValue, parent), m_options(options)
 {
+    // ConfigItem's constructor could only call its own correctValue().
+    m_value = correctValue(defaultValue);
 }
 
 QVariantList OptionsConfigItem::options() const { return m_options; }
@@ -88,6 +90,8 @@ ColorConfigItem::ColorConfigItem(const QString &group, const QString &name, cons
                                  QObject *parent)
     : ConfigItem(group, name, defaultColor, parent)
 {
+    // ConfigItem's constructor could only call its own correctValue().
+    m_value = correctValue(defaultColor);
 }
 
 QVariant ColorConfigItem::correctValue(const QVariant &value) const

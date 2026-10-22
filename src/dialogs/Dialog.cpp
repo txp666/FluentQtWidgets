@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 
+#include "../core/TextWrap_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Button.h>
@@ -11,6 +13,7 @@
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QStringList>
 #include <QtGui/QColor>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QResizeEvent>
@@ -36,179 +39,12 @@ QWidget *dialogOverlayTarget(QWidget *parent)
     return parent ? parent->window() : nullptr;
 }
 
-enum class TextCharType
+// Wayland does not let clients place top-level windows, so an overlay window sized like the
+// parent would not line up with it. There the dialog becomes a child overlay of the parent
+// window instead, as in qfluentwidgets.
+bool overlaysAsChild(QWidget *target)
 {
-    Space,
-    Asian,
-    Latin,
-};
-
-int textCharWidth(QChar ch)
-{
-    const ushort u = ch.unicode();
-    if ((u >= 0x1100 && u <= 0x115F) || u == 0x2329 || u == 0x232A ||
-        (u >= 0x2E80 && u <= 0xA4CF) || (u >= 0xAC00 && u <= 0xD7A3) ||
-        (u >= 0xF900 && u <= 0xFAFF) || (u >= 0xFE10 && u <= 0xFE19) ||
-        (u >= 0xFE30 && u <= 0xFE6F) || (u >= 0xFF00 && u <= 0xFF60) ||
-        (u >= 0xFFE0 && u <= 0xFFE6)) {
-        return 2;
-    }
-    return 1;
-}
-
-int textDisplayWidth(const QString &text)
-{
-    int width = 0;
-    for (QChar ch : text) {
-        width += textCharWidth(ch);
-    }
-    return width;
-}
-
-TextCharType textCharType(QChar ch)
-{
-    if (ch.isSpace()) {
-        return TextCharType::Space;
-    }
-    return textCharWidth(ch) == 1 ? TextCharType::Latin : TextCharType::Asian;
-}
-
-QString trimmedRight(QString text)
-{
-    while (!text.isEmpty() && text.back().isSpace()) {
-        text.chop(1);
-    }
-    return text;
-}
-
-QString normalizedWhitespace(const QString &text)
-{
-    QString result;
-    bool inWhitespace = false;
-    for (QChar ch : text) {
-        if (ch.isSpace()) {
-            if (!inWhitespace) {
-                result.append(QLatin1Char(' '));
-                inWhitespace = true;
-            }
-        } else {
-            result.append(ch);
-            inWhitespace = false;
-        }
-    }
-    return result.trimmed();
-}
-
-QStringList splitLines(const QString &text)
-{
-    QStringList lines;
-    QString current;
-    for (int i = 0; i < text.size(); ++i) {
-        const QChar ch = text.at(i);
-        if (ch == QLatin1Char('\r') || ch == QLatin1Char('\n')) {
-            lines.append(current);
-            current.clear();
-            if (ch == QLatin1Char('\r') && i + 1 < text.size() && text.at(i + 1) == QLatin1Char('\n')) {
-                ++i;
-            }
-        } else {
-            current.append(ch);
-        }
-    }
-    lines.append(current);
-    return lines;
-}
-
-QStringList tokenizeForWrap(const QString &text)
-{
-    QStringList tokens;
-    QString buffer;
-    TextCharType lastType = TextCharType::Latin;
-    bool hasLastType = false;
-
-    for (QChar ch : text) {
-        const TextCharType type = textCharType(ch);
-        if (!buffer.isEmpty() && (type != lastType || type != TextCharType::Latin)) {
-            tokens.append(buffer);
-            buffer.clear();
-        }
-        buffer.append(ch);
-        lastType = type;
-        hasLastType = true;
-    }
-
-    if (hasLastType) {
-        tokens.append(buffer);
-    }
-    return tokens;
-}
-
-QStringList splitLongToken(const QString &token, int width)
-{
-    QStringList chunks;
-    for (int i = 0; i < token.size(); i += width) {
-        chunks.append(token.mid(i, width));
-    }
-    return chunks;
-}
-
-QString wrapLineLikeOriginal(const QString &text, int width)
-{
-    QString lineBuffer;
-    QStringList wrappedLines;
-    int currentWidth = 0;
-
-    for (const QString &token : tokenizeForWrap(text)) {
-        const int tokenWidth = textDisplayWidth(token);
-
-        if (token == QLatin1String(" ") && currentWidth == 0) {
-            continue;
-        }
-
-        if (currentWidth + tokenWidth <= width) {
-            lineBuffer += token;
-            currentWidth += tokenWidth;
-            if (currentWidth == width) {
-                wrappedLines.append(trimmedRight(lineBuffer));
-                lineBuffer.clear();
-                currentWidth = 0;
-            }
-        } else {
-            if (currentWidth != 0) {
-                wrappedLines.append(trimmedRight(lineBuffer));
-            }
-
-            const QStringList chunks = splitLongToken(token, width);
-            for (int i = 0; i + 1 < chunks.size(); ++i) {
-                wrappedLines.append(trimmedRight(chunks.at(i)));
-            }
-
-            lineBuffer = chunks.isEmpty() ? QString() : chunks.last();
-            currentWidth = textDisplayWidth(lineBuffer);
-        }
-    }
-
-    if (currentWidth != 0) {
-        wrappedLines.append(trimmedRight(lineBuffer));
-    }
-
-    return wrappedLines.join(QLatin1Char('\n'));
-}
-
-QString wrapTextByCharacters(const QString &text, int maxChars)
-{
-    const int width = qMax(maxChars, 1);
-    QStringList wrappedLines;
-
-    for (QString line : splitLines(text)) {
-        line = normalizedWhitespace(line);
-        if (textDisplayWidth(line) > width) {
-            wrappedLines.append(wrapLineLikeOriginal(line, width));
-        } else {
-            wrappedLines.append(line);
-        }
-    }
-    return wrappedLines.join(QLatin1Char('\n'));
+    return target && QGuiApplication::platformName().startsWith(QLatin1String("wayland"));
 }
 
 int messageWrapCharacterCount(QWidget *dialog, QLabel *titleLabel)
@@ -361,7 +197,7 @@ void Dialog::setTitle(const QString &title)
 
 void Dialog::setMessage(const QString &message)
 {
-    m_messageLabel->setText(wrapTextByCharacters(message, messageWrapCharacterCount(this, m_titleLabel)));
+    m_messageLabel->setText(Private::wrapText(message, messageWrapCharacterCount(this, m_titleLabel)));
 }
 
 void Dialog::setContentCopyable(bool copyable)
@@ -439,7 +275,11 @@ MaskDialogBase::MaskDialogBase(QWidget *parent)
     , m_maskColor(defaultMaskColor())
 {
     setModal(true);
-    setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    if (QWidget *target = dialogOverlayTarget(parentWidget()); overlaysAsChild(target)) {
+        setParent(target, Qt::Widget | Qt::FramelessWindowHint);
+    } else {
+        setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    }
     setAttribute(Qt::WA_TranslucentBackground);
 
     m_windowMask = new QWidget(this);
@@ -531,12 +371,19 @@ void MaskDialogBase::resizeEvent(QResizeEvent *event)
 
 void MaskDialogBase::done(int result)
 {
-    if (m_finishing || !isVisible()) {
+    // The first accept()/reject() decides; later ones during its fade-out (a second click,
+    // Escape, a mask click) would otherwise finish the dialog again with a different result.
+    if (m_finishing) {
+        return;
+    }
+    if (!isVisible()) {
         QDialog::done(result);
         return;
     }
     installFadeOutAnimation(result);
 }
+
+bool MaskDialogBase::isFinishing() const { return m_finishing; }
 
 bool MaskDialogBase::eventFilter(QObject *watched, QEvent *event)
 {
@@ -576,8 +423,12 @@ bool MaskDialogBase::eventFilter(QObject *watched, QEvent *event)
 
 void MaskDialogBase::syncGeometryToParent()
 {
-    if (QWidget *target = dialogOverlayTarget(parentWidget())) {
-        setGeometry(target->geometry());
+    if (QWidget *target = dialogOverlayTarget(parentWidget()); target && target != this) {
+        // A child overlay is placed in its parent's coordinates.
+        setGeometry(isWindow() ? target->geometry() : target->rect());
+        if (!isWindow()) {
+            raise();
+        }
     } else if (size().isEmpty()) {
         resize(600, 400);
     }
@@ -708,15 +559,18 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_buttonLayout->addWidget(m_acceptButton, 1, Qt::AlignVCenter);
     m_buttonLayout->addWidget(m_cancelButton, 1, Qt::AlignVCenter);
 
+    // The buttons stay clickable during the fade-out; only the first click counts.
     connect(m_acceptButton, &QPushButton::clicked, this, [this]() {
-        if (validate()) {
+        if (!isFinishing() && validate()) {
             accept();
             emit yesSignal();
         }
     });
     connect(m_cancelButton, &QPushButton::clicked, this, [this]() {
-        reject();
-        emit cancelSignal();
+        if (!isFinishing()) {
+            reject();
+            emit cancelSignal();
+        }
     });
 }
 
@@ -834,7 +688,7 @@ void MessageBox::adjustMessageSize()
         return;
     }
 
-    m_messageLabel->setText(wrapTextByCharacters(m_content, messageWrapCharacterCount(this, m_titleLabel)));
+    m_messageLabel->setText(Private::wrapText(m_content, messageWrapCharacterCount(this, m_titleLabel)));
     m_titleLabel->adjustSize();
     m_messageLabel->adjustSize();
     if (m_widget->layout()) {

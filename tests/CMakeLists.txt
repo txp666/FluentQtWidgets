@@ -18,6 +18,7 @@ fqw_add_widget_test(tst_datetime tst_datetime.cpp)
 fqw_add_widget_test(tst_config_item tst_config_item.cpp)
 fqw_add_widget_test(tst_basic_input_parity tst_basic_input_parity.cpp)
 fqw_add_widget_test(tst_lifetime tst_lifetime.cpp)
+fqw_add_widget_test(tst_regressions tst_regressions.cpp)
 
 add_executable(tst_gallery_interface
     tst_gallery_interface.cpp

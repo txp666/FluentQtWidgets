@@ -63,11 +63,13 @@ class FQW_API Pivot : public QWidget
     void paintEvent(QPaintEvent *event) override;
     void showEvent(QShowEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
     QRect computeIndicatorGeometry() const;
 
   private:
     void adjustIndicatorPosition();
+    QList<PivotItem *> orderedItems() const;
 
     QButtonGroup *m_buttonGroup = nullptr;
     QHBoxLayout *m_layout = nullptr;

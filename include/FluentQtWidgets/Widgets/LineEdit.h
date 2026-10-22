@@ -354,10 +354,15 @@ class FQW_API TextEdit : public QTextEdit
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
   private:
     QWidget *m_layer = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    // Ctrl+wheel zoom in font-size steps, applied to the document's default font.
+    int m_zoom = 0;
+    int m_zoomAngle = 0;
 };
 
 class FQW_API PlainTextEdit : public QPlainTextEdit
@@ -374,10 +379,15 @@ class FQW_API PlainTextEdit : public QPlainTextEdit
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
   private:
     QWidget *m_layer = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    // Ctrl+wheel zoom in font-size steps, applied to the document's default font.
+    int m_zoom = 0;
+    int m_zoomAngle = 0;
 };
 
 class FQW_API TextBrowser : public QTextBrowser
@@ -394,10 +404,15 @@ class FQW_API TextBrowser : public QTextBrowser
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
   private:
     QWidget *m_layer = nullptr;
     SmoothScrollDelegate *m_scrollDelegate = nullptr;
+    // Ctrl+wheel zoom in font-size steps, applied to the document's default font.
+    int m_zoom = 0;
+    int m_zoomAngle = 0;
 };
 
 } // namespace FluentQt

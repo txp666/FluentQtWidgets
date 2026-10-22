@@ -10,8 +10,10 @@
 #include <QtCore/QSequentialAnimationGroup>
 #include <QtCore/QRectF>
 #include <QtCore/QEasingCurve>
+#include <QtGui/QHideEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPen>
+#include <QtGui/QShowEvent>
 #include <cmath>
 
 namespace FluentQt {
@@ -190,7 +192,8 @@ void ProgressBar::paintEvent(QPaintEvent *)
 
     painter.setPen(Qt::NoPen);
     painter.setBrush(barColor());
-    int w = static_cast<int>(m_val / (maximum() - minimum()) * width());
+    const qreal ratio = qBound<qreal>(0.0, (m_val - minimum()) / (maximum() - minimum()), 1.0);
+    int w = static_cast<int>(ratio * width());
     qreal r = height() / 2.0;
     painter.drawRoundedRect(0, 0, w, height(), r, r);
 }
@@ -238,8 +241,14 @@ QSequentialAnimationGroup *IndeterminateProgressBar::longBarAniGroup() const { r
 
 qreal IndeterminateProgressBar::shortPos() const { return m_shortPos; }
 qreal IndeterminateProgressBar::longPos() const { return m_longPos; }
-bool IndeterminateProgressBar::isStarted() const { return m_aniGroup->state() == QAbstractAnimation::Running; }
-bool IndeterminateProgressBar::isPaused() const { return m_aniGroup->state() == QAbstractAnimation::Paused; }
+bool IndeterminateProgressBar::isStarted() const
+{
+    return m_suspended || m_aniGroup->state() == QAbstractAnimation::Running;
+}
+bool IndeterminateProgressBar::isPaused() const
+{
+    return !m_suspended && m_aniGroup->state() == QAbstractAnimation::Paused;
+}
 bool IndeterminateProgressBar::isError() const { return m_isError; }
 QColor IndeterminateProgressBar::lightBarColor() const
 {
@@ -279,12 +288,18 @@ void IndeterminateProgressBar::start()
     m_shortPos = 0;
     m_longPos = 0;
     m_isError = false;
+    m_suspended = false;
     m_aniGroup->start();
+    if (!isVisible()) {
+        m_aniGroup->pause();
+        m_suspended = true;
+    }
     update();
 }
 
 void IndeterminateProgressBar::stop()
 {
+    m_suspended = false;
     m_aniGroup->stop();
     m_shortPos = 0;
     m_longPos = 0;
@@ -293,27 +308,59 @@ void IndeterminateProgressBar::stop()
 
 void IndeterminateProgressBar::pause()
 {
+    m_suspended = false;
     m_aniGroup->pause();
     update();
 }
 
 void IndeterminateProgressBar::resume()
 {
-    m_aniGroup->resume();
+    if (m_aniGroup->state() != QAbstractAnimation::Paused) {
+        return;
+    }
+    if (isVisible()) {
+        m_suspended = false;
+        m_aniGroup->resume();
+    } else {
+        m_suspended = true;
+    }
     update();
 }
 
 void IndeterminateProgressBar::error()
 {
     m_isError = true;
+    m_suspended = false;
     m_aniGroup->stop();
     update();
 }
 
 void IndeterminateProgressBar::setPaused(bool paused)
 {
-    m_aniGroup->setPaused(paused);
-    update();
+    if (paused) {
+        pause();
+    } else {
+        resume();
+    }
+}
+
+void IndeterminateProgressBar::showEvent(QShowEvent *event)
+{
+    QProgressBar::showEvent(event);
+    if (m_suspended) {
+        m_suspended = false;
+        m_aniGroup->resume();
+    }
+}
+
+void IndeterminateProgressBar::hideEvent(QHideEvent *event)
+{
+    // Nothing to animate while hidden (including a minimized window); carry on when shown.
+    if (m_aniGroup->state() == QAbstractAnimation::Running) {
+        m_aniGroup->pause();
+        m_suspended = true;
+    }
+    QProgressBar::hideEvent(event);
 }
 
 void IndeterminateProgressBar::setError(bool isError)
@@ -406,7 +453,8 @@ void ProgressRing::paintEvent(QPaintEvent *)
 
     pen.setColor(barColor());
     painter.setPen(pen);
-    const int degree = static_cast<int>(val() / (maximum() - minimum()) * 360);
+    const qreal ratio = qBound<qreal>(0.0, (val() - minimum()) / (maximum() - minimum()), 1.0);
+    const int degree = static_cast<int>(ratio * 360);
     painter.drawArc(ringRect, 90 * 16, -degree * 16);
 
     if (isTextVisible()) {
@@ -485,7 +533,10 @@ int IndeterminateProgressRing::spanAngle() const { return m_spanAngle; }
 
 int IndeterminateProgressRing::strokeWidth() const { return m_strokeWidth; }
 
-bool IndeterminateProgressRing::isStarted() const { return m_aniGroup->state() == QAbstractAnimation::Running; }
+bool IndeterminateProgressRing::isStarted() const
+{
+    return m_suspended || m_aniGroup->state() == QAbstractAnimation::Running;
+}
 
 QColor IndeterminateProgressRing::lightBarColor() const
 {
@@ -550,15 +601,40 @@ void IndeterminateProgressRing::start()
 {
     m_startAngle = 0;
     m_spanAngle = 0;
+    m_suspended = false;
     m_aniGroup->start();
+    if (!isVisible()) {
+        m_aniGroup->pause();
+        m_suspended = true;
+    }
     update();
 }
 
 void IndeterminateProgressRing::stop()
 {
+    m_suspended = false;
     m_aniGroup->stop();
     setStartAngle(0);
     setSpanAngle(0);
+}
+
+void IndeterminateProgressRing::showEvent(QShowEvent *event)
+{
+    QProgressBar::showEvent(event);
+    if (m_suspended) {
+        m_suspended = false;
+        m_aniGroup->resume();
+    }
+}
+
+void IndeterminateProgressRing::hideEvent(QHideEvent *event)
+{
+    // Nothing to animate while hidden (including a minimized window); carry on when shown.
+    if (m_aniGroup->state() == QAbstractAnimation::Running) {
+        m_aniGroup->pause();
+        m_suspended = true;
+    }
+    QProgressBar::hideEvent(event);
 }
 
 void IndeterminateProgressRing::setCustomBarColor(const QColor &light, const QColor &dark)

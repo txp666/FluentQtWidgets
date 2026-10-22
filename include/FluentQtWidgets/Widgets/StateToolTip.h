@@ -56,6 +56,8 @@ class FQW_API StateToolTip : public QWidget
     Q_PROPERTY(int deltaAngle READ deltaAngle WRITE setDeltaAngle)
 
 public:
+    // setDone(true) fades the tooltip out and deletes it about a second later; hold it in a
+    // QPointer when keeping it around.
     StateToolTip(const QString &title, const QString &content, QWidget *parent = nullptr);
 
     static StateToolTip *showIn(QWidget *parent, const QString &title, const QString &content);
@@ -85,6 +87,8 @@ signals:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
 private:
     void initWidget();

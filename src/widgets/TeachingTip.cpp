@@ -916,10 +916,11 @@ QPoint TeachingTip::calculatePosition() const
     return point;
 }
 
+// closeEvent() deletes the tip when isDeleteOnClose() is set. Deleting here as well ignored
+// create(..., isDeleteOnClose = false), and freed tips that live on the stack.
 void TeachingTip::closeAndDelete()
 {
     close();
-    deleteLater();
 }
 
 void TeachingTip::applyTailMargins()

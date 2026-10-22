@@ -2369,9 +2369,11 @@ class DisplayTest : public QObject
             auto *flyout = spin.template findChild<FluentQt::Flyout *>(QString(), Qt::FindDirectChildrenOnly);
             QCOMPARE(flyout, spin.spinFlyout());
             QCOMPARE(flyout->isDeleteOnClose(), false);
-            QCOMPARE(flyout->isPopupMode(), true);
-            QCOMPARE(flyout->property("popupMode").toBool(), true);
-            QCOMPARE(flyout->windowFlags() & Qt::Popup, Qt::Popup);
+            // Not a popup (unlike qfluentwidgets): it opens on focus-in, and a popup would take
+            // the keyboard away from the spin box being typed into.
+            QCOMPARE(flyout->isPopupMode(), false);
+            QCOMPARE(flyout->property("popupMode").toBool(), false);
+            QCOMPARE(flyout->windowFlags() & Qt::WindowType_Mask, Qt::Tool);
             QCOMPARE(qobject_cast<FluentQt::SpinFlyoutView *>(flyout->view()), spin.spinFlyoutView());
             QVERIFY(spin.spinFlyoutView()->upButton != nullptr);
             QVERIFY(spin.spinFlyoutView()->downButton != nullptr);

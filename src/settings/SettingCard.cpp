@@ -814,7 +814,11 @@ void ExpandButton::paintEvent(QPaintEvent *)
     FluentQt::icon(FluentIcon::ArrowDown).paint(&painter, QRect(-5, -5, 10, 10));
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void ExpandButton::enterEvent(QEnterEvent *event)
+#else
+void ExpandButton::enterEvent(QEvent *event)
+#endif
 {
     setHover(true);
     QToolButton::enterEvent(event);
@@ -893,12 +897,19 @@ bool HeaderSettingCard::eventFilter(QObject *watched, QEvent *event)
         case QEvent::MouseButtonPress:
             if (auto *mouseEvent = static_cast<QMouseEvent *>(event); mouseEvent->button() == Qt::LeftButton) {
                 m_expandButton->setPressed(true);
+                m_headerPressed = true;
             }
             break;
         case QEvent::MouseButtonRelease:
             if (auto *mouseEvent = static_cast<QMouseEvent *>(event); mouseEvent->button() == Qt::LeftButton) {
                 m_expandButton->setPressed(false);
-                m_expandButton->click();
+                // A click: pressed and released on the header. The second press of a double-click
+                // arrives as MouseButtonDblClick, so a double-click still toggles once.
+                const bool click = m_headerPressed && rect().contains(mouseEvent->pos());
+                m_headerPressed = false;
+                if (click) {
+                    m_expandButton->click();
+                }
             }
             break;
         default:
@@ -1084,7 +1095,9 @@ void ExpandSettingCard::resizeEvent(QResizeEvent *event)
 
 void ExpandSettingCard::wheelEvent(QWheelEvent *event)
 {
-    event->accept();
+    // The card's own scroll area only serves the expand animation and must not scroll; pass the
+    // wheel on, so the settings page around it scrolls instead of stopping over an open card.
+    event->ignore();
 }
 
 void ExpandSettingCard::refreshExpandedGeometry()
@@ -1291,7 +1304,7 @@ ExpandGroupSettingCard::ExpandGroupSettingCard(FluentIcon icon, const QString &t
 
 QList<QWidget *> ExpandGroupSettingCard::groupWidgets() const { return m_groupWidgets; }
 
-int ExpandGroupSettingCard::groupCount() const { return m_groupWidgets.size(); }
+int ExpandGroupSettingCard::groupCount() const { return static_cast<int>(m_groupWidgets.size()); }
 
 GroupWidget *ExpandGroupSettingCard::addGroup(const QIcon &icon, const QString &title, const QString &content,
                                               QWidget *widget, int stretch)
@@ -1462,10 +1475,15 @@ void OptionsSettingCard::setValue(const QVariant &value)
 
     m_value = value;
     if (m_buttonGroup) {
+        // An exclusive group refuses to uncheck its checked button, which kept the old option
+        // selected for a value that matches none.
+        const bool exclusive = m_buttonGroup->exclusive();
+        m_buttonGroup->setExclusive(false);
         for (QAbstractButton *button : m_buttonGroup->buttons()) {
             const bool checked = button->property(kOptionValueProperty) == m_value;
             button->setChecked(checked);
         }
+        m_buttonGroup->setExclusive(exclusive);
     }
     updateChoiceLabel();
     emit valueChanged(m_value);
@@ -1606,7 +1624,7 @@ bool FolderListSettingCard::addFolder(const QString &folder)
 
 bool FolderListSettingCard::removeFolder(const QString &folder)
 {
-    const int index = m_folders.indexOf(folder);
+    const int index = static_cast<int>(m_folders.indexOf(folder));
     if (index < 0) {
         return false;
     }

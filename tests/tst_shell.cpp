@@ -13,6 +13,7 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QRegion>
 #include <QtTest/QtTest>
+#include <QtWidgets/QGraphicsOpacityEffect>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QStackedWidget>
@@ -1670,12 +1671,16 @@ class ShellTest : public QObject
         auto *opacitySecond = new QWidget;
         QCOMPARE(opacityStack.addWidget(opacityFirst), 0);
         QCOMPARE(opacityStack.addWidget(opacitySecond), 1);
-        QCOMPARE(opacityFirst->graphicsEffect() != nullptr, true);
-        QCOMPARE(opacitySecond->graphicsEffect() != nullptr, true);
+        // The opacity effect is only there while a page fades, so it never replaces a page's own
+        // effect nor stops OpenGL or video children from rendering.
+        QCOMPARE(opacityFirst->graphicsEffect(), nullptr);
         opacityStack.setCurrentIndex(1);
+        QVERIFY(qobject_cast<QGraphicsOpacityEffect *>(opacitySecond->graphicsEffect()) != nullptr);
         QTRY_COMPARE(opacityStack.currentIndex(), 1);
+        QTRY_COMPARE(opacitySecond->graphicsEffect(), nullptr);
         opacityStack.setCurrentWidget(opacityFirst);
         QTRY_COMPARE(opacityStack.currentWidget(), opacityFirst);
+        QTRY_COMPARE(opacitySecond->graphicsEffect(), nullptr);
 
         FluentQt::PopUpAniStackedWidget popupStack;
         auto *popupFirst = new QWidget;

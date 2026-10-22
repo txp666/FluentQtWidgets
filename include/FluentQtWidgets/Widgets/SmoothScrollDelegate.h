@@ -4,6 +4,7 @@
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtWidgets/QAbstractScrollArea>
 
 class QEvent;
@@ -29,6 +30,7 @@ class FQW_API SmoothScrollDelegate : public QObject
 
   public:
     explicit SmoothScrollDelegate(QAbstractScrollArea *parent, bool useAnimation = false);
+    ~SmoothScrollDelegate() override;
 
     SmoothScrollBar *verticalScrollBar() const;
     SmoothScrollBar *horizontalScrollBar() const;
@@ -48,8 +50,9 @@ class FQW_API SmoothScrollDelegate : public QObject
 
     QAbstractScrollArea *m_area = nullptr;
     bool m_useAnimation = false;
-    SmoothScrollBar *m_verticalScrollBar = nullptr;
-    SmoothScrollBar *m_horizontalScrollBar = nullptr;
+    // Children of the area, not of the delegate; the delegate removes them when it goes away.
+    QPointer<SmoothScrollBar> m_verticalScrollBar;
+    QPointer<SmoothScrollBar> m_horizontalScrollBar;
     QObject *m_verticalSmoothScroll = nullptr;
     QObject *m_horizontalSmoothScroll = nullptr;
     SmoothMode m_smoothMode = SmoothMode::Linear;

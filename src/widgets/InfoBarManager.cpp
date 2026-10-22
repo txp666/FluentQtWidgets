@@ -198,7 +198,7 @@ QPoint TopInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) const
     int x = (size.width() - infoBar->width()) / 2;
     int y = m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y += m_infoBars[p][i]->height() + m_spacing;
     }
@@ -222,7 +222,7 @@ QPoint TopRightInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) co
     int x = size.width() - infoBar->width() - m_margin;
     int y = m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y += m_infoBars[p][i]->height() + m_spacing;
     }
@@ -243,7 +243,7 @@ QPoint TopLeftInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) con
     Q_UNUSED(parentSize);
 
     int y = m_margin;
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y += m_infoBars[p][i]->height() + m_spacing;
     }
@@ -266,7 +266,7 @@ QPoint BottomInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) cons
     int x = (size.width() - infoBar->width()) / 2;
     int y = size.height() - infoBar->height() - m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y -= (m_infoBars[p][i]->height() + m_spacing);
     }
@@ -290,7 +290,7 @@ QPoint BottomRightInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize)
     int x = size.width() - infoBar->width() - m_margin;
     int y = size.height() - infoBar->height() - m_margin;
 
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y -= (m_infoBars[p][i]->height() + m_spacing);
     }
@@ -311,7 +311,7 @@ QPoint BottomLeftInfoBarManager::pos(InfoBar *infoBar, const QSize &parentSize) 
     const QSize size = parentSize.isValid() ? parentSize : p->size();
 
     int y = size.height() - infoBar->height() - m_margin;
-    int index = m_infoBars[p].indexOf(infoBar);
+    int index = static_cast<int>(m_infoBars[p].indexOf(infoBar));
     for (int i = 0; i < index; ++i) {
         y -= (m_infoBars[p][i]->height() + m_spacing);
     }

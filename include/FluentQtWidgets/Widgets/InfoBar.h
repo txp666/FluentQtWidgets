@@ -11,6 +11,7 @@ class QLabel;
 class QPushButton;
 class QToolButton;
 class QPropertyAnimation;
+class QTimer;
 class QGraphicsOpacityEffect;
 class QVBoxLayout;
 class QHBoxLayout;
@@ -182,6 +183,8 @@ private:
     QVBoxLayout *m_widgetVLayout = nullptr;
     QGraphicsOpacityEffect *m_opacityEffect = nullptr;
     QPropertyAnimation *m_opacityAni = nullptr;
+    // One timer, restarted on each show; a window restored from minimized does not add another.
+    QTimer *m_fadeTimer = nullptr;
 };
 
 } // namespace FluentQt

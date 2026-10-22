@@ -158,6 +158,7 @@ set(FQW_SOURCES
     src/core/ConfigItem.cpp
     src/core/FluentIcon.cpp
     src/core/StyleSheet.cpp
+    src/core/TextWrap.cpp
     src/core/Theme.cpp
     src/core/ThemeListener.cpp
     src/core/Translator.cpp
@@ -268,7 +269,7 @@ if(WIN32)
     target_link_libraries(FluentQtWidgets PUBLIC dwmapi)
 endif()
 if(APPLE)
-    target_link_libraries(FluentQtWidgets PUBLIC "-framework AppKit" "-framework QuartzCore")
+    target_link_libraries(FluentQtWidgets PUBLIC "-framework AppKit" "-framework CoreGraphics" "-framework QuartzCore")
 endif()
 if(FQW_HAS_MULTIMEDIA)
     target_link_libraries(

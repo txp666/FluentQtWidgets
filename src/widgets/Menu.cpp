@@ -6,6 +6,7 @@
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 
 #include <QtCore/QEasingCurve>
+#include <QtCore/QEventLoop>
 #include <QtCore/QParallelAnimationGroup>
 #include <QtCore/QPointer>
 #include <QtCore/QPropertyAnimation>
@@ -14,6 +15,7 @@
 #include <QtGui/QClipboard>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QGuiApplication>
+#include <QtGui/QFontMetricsF>
 #include <QtGui/QKeySequence>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
@@ -30,6 +32,8 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QWidgetAction>
+
+#include <functional>
 
 namespace FluentQt {
 
@@ -382,6 +386,10 @@ MenuActionListWidget::MenuActionListWidget(QWidget *parent) : QListWidget(parent
     setItemDelegate(new ShortcutMenuItemDelegate(this));
     new SmoothScrollDelegate(this);
     FluentStyleSheet::setRole(this, QStringLiteral("MenuActionListWidget"));
+
+    // Resize once the rows are gone. (Qt 6.8 dropped the rowsRemoved() virtual, and sizing in
+    // rowsAboutToBeRemoved() still counted the rows being removed.)
+    connect(model(), &QAbstractItemModel::rowsRemoved, this, [this]() { adjustItemsSize(); });
 }
 
 void MenuActionListWidget::setItemHeight(int height)
@@ -487,19 +495,6 @@ void MenuActionListWidget::rowsInserted(const QModelIndex &parent, int start, in
     adjustItemsSize();
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 8, 0)
-void MenuActionListWidget::rowsRemoved(const QModelIndex &parent, int start, int end)
-{
-    QListWidget::rowsRemoved(parent, start, end);
-    adjustItemsSize();
-}
-#else
-void MenuActionListWidget::rowsAboutToBeRemoved(const QModelIndex &parent, int first, int last)
-{
-    QListWidget::rowsAboutToBeRemoved(parent, first, last);
-    adjustItemsSize();
-}
-#endif
 
 // ==========================================
 // MenuItemDelegate
@@ -561,17 +556,12 @@ void ShortcutMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewIt
 
     const QString shortcut = action->shortcut().toString(QKeySequence::NativeText);
 
-    // Use QTextLayout for accurate measurement
-    QTextLayout layout(shortcut, font);
-    layout.beginLayout();
-    QTextLine line = layout.createLine();
-    line.setNumColumns(1);
-    layout.endLayout();
-
-    const QRectF bounds = layout.boundingRect();
-    const qreal y = option.rect.y() + (option.rect.height() - bounds.height()) / 2.0;
-    const qreal x = option.rect.right() - bounds.width() - 20.0;
-    layout.draw(painter, QPointF(x, y));
+    // The whole sequence ("Ctrl+Shift+S", "Ctrl+K, Ctrl+C"); a one-column text line showed only
+    // its first character.
+    const QFontMetricsF metrics(font);
+    const qreal width = metrics.horizontalAdvance(shortcut);
+    const QRectF textRect(option.rect.right() - width - 20.0, option.rect.y(), width, option.rect.height());
+    painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, shortcut);
 
     painter->restore();
 }
@@ -744,7 +734,44 @@ void RoundMenu::setMenuView(MenuActionListWidget *view)
         return;
     }
 
+    // Rows already in the old view are rebuilt in the new one, in order; the old list items, and
+    // every pointer to them, go away with the old view. Rows from addWidget() cannot move: their
+    // widgets belong to the old view and are deleted with it.
+    enum class RowKind { Action, SubMenu, Separator };
+    QList<QPair<RowKind, QObject *>> rows;
     if (m_view) {
+        QHash<QListWidgetItem *, QAction *> actionForItem;
+        for (auto it = m_actionItems.cbegin(); it != m_actionItems.cend(); ++it) {
+            actionForItem.insert(it.value(), it.key());
+        }
+        for (int row = 0; row < m_view->count(); ++row) {
+            QListWidgetItem *item = m_view->item(row);
+            QWidget *itemWidget = m_view->itemWidget(item);
+            if (auto *subMenuWidget = qobject_cast<SubMenuItemWidget *>(itemWidget)) {
+                rows.append({RowKind::SubMenu, subMenuWidget->menu()});
+            } else if (item->data(Qt::DecorationRole).toString() == QStringLiteral("seperator")) {
+                rows.append({RowKind::Separator, nullptr});
+            } else if (QAction *action = actionForItem.value(item); action && !itemWidget) {
+                rows.append({RowKind::Action, action});
+            }
+        }
+
+        const QList<QAction *> actions = m_actionList;
+        for (QAction *action : actions) {
+            untrackAction(action);
+            QMenu::removeAction(action);
+        }
+        m_actionList.clear();
+        m_actionItems.clear();
+        const QList<RoundMenu *> subMenus = m_subMenus;
+        for (RoundMenu *menu : subMenus) {
+            detachSubMenu(menu);
+        }
+        m_subMenus.clear();
+        m_lastHoverItem = nullptr;
+        m_lastHoverSubMenuItem = nullptr;
+        m_timer->stop();
+
         disconnect(m_view, nullptr, this, nullptr);
         m_layout->removeWidget(m_view);
         m_view->deleteLater();
@@ -759,6 +786,22 @@ void RoundMenu::setMenuView(MenuActionListWidget *view)
 
     connect(m_view, &QListWidget::itemClicked, this, &RoundMenu::onItemClicked);
     connect(m_view, &QListWidget::itemEntered, this, &RoundMenu::onItemEntered);
+
+    for (const auto &row : std::as_const(rows)) {
+        switch (row.first) {
+        case RowKind::Action:
+            createActionItem(static_cast<QAction *>(row.second));
+            break;
+        case RowKind::SubMenu:
+            if (row.second) {
+                createSubMenuItem(static_cast<RoundMenu *>(row.second));
+            }
+            break;
+        case RowKind::Separator:
+            addSeparator();
+            break;
+        }
+    }
     adjustSize();
 }
 
@@ -960,6 +1003,11 @@ void RoundMenu::clear()
     while (!m_subMenus.isEmpty()) {
         removeMenu(m_subMenus.last());
     }
+    // What is left are separators; a menu rebuilt with clear() must not pile them up.
+    while (m_view->count() > 0) {
+        removeItem(m_view->item(m_view->count() - 1));
+    }
+    adjustSize();
 }
 
 void RoundMenu::setDefaultAction(QAction *action)
@@ -979,7 +1027,7 @@ QListWidgetItem *RoundMenu::createActionItem(QAction *action, QAction *before)
         m_actionList.append(action);
         QMenu::addAction(action);
     } else if (m_actionList.contains(before)) {
-        const int index = m_actionList.indexOf(before);
+        const int index = static_cast<int>(m_actionList.indexOf(before));
         m_actionList.insert(index, action);
         QMenu::insertAction(before, action);
     }
@@ -1151,19 +1199,10 @@ int RoundMenu::longestShortcutWidth() const
     font.setPixelSize(12);
     int maxWidth = 0;
 
+    const QFontMetricsF metrics(font);
     for (QAction *action : m_actionList) {
         const QString shortcut = action->shortcut().toString(QKeySequence::NativeText);
-
-        QTextLayout layout(shortcut, font);
-        layout.beginLayout();
-        QTextLine line = layout.createLine();
-        line.setNumColumns(1);
-        layout.endLayout();
-
-        const int w = qCeil(layout.boundingRect().width());
-        if (w > maxWidth) {
-            maxWidth = w;
-        }
+        maxWidth = qMax(maxWidth, qCeil(metrics.horizontalAdvance(shortcut)));
     }
 
     return maxWidth;
@@ -1381,6 +1420,41 @@ QAction *RoundMenu::exec(const QPoint &pos, bool animated, MenuAnimationType ani
     }
 
     return nullptr;
+}
+
+QAction *RoundMenu::execAndWait(const QPoint &pos, bool animated, MenuAnimationType animationType)
+{
+    QPointer<QAction> triggered;
+    QEventLoop loop;
+    QList<QMetaObject::Connection> connections;
+    // Actions of submenus are triggered there, not here.
+    const std::function<void(RoundMenu *)> watch = [&](RoundMenu *menu) {
+        connections.append(connect(menu, &QMenu::triggered, &loop, [&triggered](QAction *action) {
+            if (!triggered) {
+                triggered = action;
+            }
+        }));
+        for (RoundMenu *subMenu : std::as_const(menu->m_subMenus)) {
+            watch(subMenu);
+        }
+    };
+    watch(this);
+    // Picking an item hides the menu before triggering the action, in the same call; the loop
+    // only returns after that.
+    connections.append(connect(this, &QMenu::aboutToHide, &loop, &QEventLoop::quit));
+
+    const QPointer<RoundMenu> self(this);
+    exec(pos, animated, animationType);
+    if (isVisible()) {
+        loop.exec();
+    }
+
+    if (self) {
+        for (const QMetaObject::Connection &connection : std::as_const(connections)) {
+            disconnect(connection);
+        }
+    }
+    return triggered;
 }
 
 MenuAnimationType RoundMenu::animationType() const { return m_animationType; }
@@ -1709,7 +1783,7 @@ void LabelContextMenu::selectAllText()
     if (!m_label) {
         return;
     }
-    m_label->setSelection(0, m_label->text().size());
+    m_label->setSelection(0, static_cast<int>(m_label->text().size()));
 }
 
 } // namespace FluentQt

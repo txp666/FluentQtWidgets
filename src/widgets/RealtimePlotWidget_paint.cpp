@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/RealtimePlotWidget.h>
 
+#include "RealtimePlotWidget_p.h"
+
 #include <QtCore/QtMath>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QLinearGradient>
@@ -17,7 +19,8 @@ namespace FluentQt {
 namespace {
 
 constexpr qreal kPaintMinimumRange = 1.0e-6;
-constexpr int kRenderBlockSize = 256;
+// Reads the y-range blocks built in RealtimePlotWidget.cpp.
+constexpr int kRenderBlockSize = Private::kPlotBlockSize;
 
 QColor withAlpha(QColor color, int alpha)
 {
@@ -143,7 +146,8 @@ void RealtimePlotWidget::rebuildRenderCache(int seriesIndex, int first, int last
                     return false;
                 }
 
-                *column = qBound(0, static_cast<int>(std::floor(screenX - plot.left())), buckets.size() - 1);
+                *column = qBound(0, static_cast<int>(std::floor(screenX - plot.left())),
+                                 static_cast<int>(buckets.size()) - 1);
                 return true;
             };
 
@@ -365,7 +369,8 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
             const qreal value = xMin + ratio * (xMax - xMin);
             const qreal x = plot.left() + ratio * plot.width();
             painter.drawText(QRectF(x - 36, plot.bottom() + 7, 72, metrics.height()),
-                             Qt::AlignHCenter | Qt::AlignVCenter, tickText(value, xTickStep));
+                             Qt::AlignHCenter | Qt::AlignVCenter,
+                             m_xAxisValueFormatter ? m_xAxisValueFormatter(value) : tickText(value, xTickStep));
         }
     }
 
@@ -426,14 +431,15 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
                 gradient.setColorAt(1, withAlpha(lineColor, 0));
                 painter.setPen(Qt::NoPen);
                 painter.setBrush(gradient);
-                painter.drawPolygon(series.renderCacheFillPoints.constData(), series.renderCacheFillPoints.size());
+                painter.drawPolygon(series.renderCacheFillPoints.constData(),
+                                    static_cast<int>(series.renderCacheFillPoints.size()));
             }
 
             painter.setPen(QPen(lineColor, performanceMode ? 1.35 : 2.0, Qt::SolidLine,
                                 performanceMode ? Qt::FlatCap : Qt::RoundCap,
                                 performanceMode ? Qt::MiterJoin : Qt::RoundJoin));
             painter.setBrush(Qt::NoBrush);
-            painter.drawPolyline(screenPoints.constData(), screenPoints.size());
+            painter.drawPolyline(screenPoints.constData(), static_cast<int>(screenPoints.size()));
         } else if (screenPoints.size() == 1) {
             painter.setRenderHint(QPainter::Antialiasing, true);
             painter.setPen(Qt::NoPen);
@@ -508,7 +514,7 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
         for (const QString &line : labelLines) {
             labelWidth = qMax<qreal>(labelWidth, metrics.horizontalAdvance(line));
         }
-        const QSizeF labelSize(labelWidth + 18, metrics.height() * labelLines.size() + 12);
+        const QSizeF labelSize(labelWidth + 18, metrics.height() * static_cast<qreal>(labelLines.size()) + 12);
         QPointF labelTopLeft(m_hoverPosition.x() + 10, m_hoverPosition.y() - labelSize.height() - 10);
         if (labelTopLeft.x() + labelSize.width() > plot.right() - 4) {
             labelTopLeft.setX(m_hoverPosition.x() - labelSize.width() - 10);

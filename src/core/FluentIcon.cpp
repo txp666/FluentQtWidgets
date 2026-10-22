@@ -859,6 +859,64 @@ QString iconPath(FluentIcon icon, Theme theme)
     return QStringLiteral(":/qfluentwidgets/images/icons/%1_%2.svg").arg(iconResourceName(icon), colorToken);
 }
 
+namespace {
+
+class ThemedPathIconEngine final : public QIconEngine
+{
+  public:
+    ThemedPathIconEngine(const QString &lightPath, const QString &darkPath)
+        : m_lightPath(lightPath), m_darkPath(darkPath), m_light(lightPath), m_dark(darkPath)
+    {
+    }
+
+    QIconEngine *clone() const override { return new ThemedPathIconEngine(m_lightPath, m_darkPath); }
+
+    QString key() const override { return QStringLiteral("FluentQt.ThemedIcon"); }
+
+    void paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state) override
+    {
+        current().paint(painter, rect, Qt::AlignCenter, mode, state);
+    }
+
+    QSize actualSize(const QSize &size, QIcon::Mode mode, QIcon::State state) override
+    {
+        return current().actualSize(size, mode, state);
+    }
+
+    QPixmap pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state) override
+    {
+        return current().pixmap(size, mode, state);
+    }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QPixmap scaledPixmap(const QSize &size, QIcon::Mode mode, QIcon::State state, qreal scale) override
+    {
+        return current().pixmap(size, scale, mode, state);
+    }
+
+    bool isNull() override { return current().isNull(); }
+#endif
+
+  private:
+    // Asked on every paint; the two icons keep their own rendered pixmaps cached.
+    const QIcon &current() const
+    {
+        return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? m_dark : m_light;
+    }
+
+    QString m_lightPath;
+    QString m_darkPath;
+    QIcon m_light;
+    QIcon m_dark;
+};
+
+} // namespace
+
+QIcon themedIcon(const QString &lightPath, const QString &darkPath)
+{
+    return QIcon(new ThemedPathIconEngine(lightPath, darkPath));
+}
+
 QIcon icon(FluentIcon icon, Theme theme) { return QIcon(new FluentIconEngine(icon, theme)); }
 
 QIcon icon(FluentIcon icon, Theme theme, const QColor &tint) { return QIcon(new FluentIconEngine(icon, theme, tint)); }
