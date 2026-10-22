@@ -1440,8 +1440,9 @@ QAction *RoundMenu::execAndWait(const QPoint &pos, bool animated, MenuAnimationT
     };
     watch(this);
     // Picking an item hides the menu before triggering the action, in the same call; the loop
-    // only returns after that.
+    // only returns after that. A menu deleted while open never hides, as with QMenu::exec().
     connections.append(connect(this, &QMenu::aboutToHide, &loop, &QEventLoop::quit));
+    connections.append(connect(this, &QObject::destroyed, &loop, &QEventLoop::quit));
 
     const QPointer<RoundMenu> self(this);
     exec(pos, animated, animationType);

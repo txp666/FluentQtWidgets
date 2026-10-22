@@ -163,6 +163,32 @@ class MenuTest : public QObject
         QCOMPARE(menu.execAndWait(QPoint(100, 100), false), second);
     }
 
+    void menuExecAndWaitReturnsWhenTheMenuIsDeleted()
+    {
+        QWidget window;
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        auto *menu = new RoundMenu;
+        menu->addAction(QStringLiteral("a"));
+        QPointer<RoundMenu> guard(menu);
+        QTimer::singleShot(50, menu, [menu]() { delete menu; });
+        // A menu deleted while open is never hidden; without the fix the loop does not return, so
+        // leave it from outside for the test to fail instead of hang.
+        bool stuck = false;
+        QTimer watchdog;
+        watchdog.setSingleShot(true);
+        connect(&watchdog, &QTimer::timeout, this, [&stuck]() {
+            stuck = true;
+            QCoreApplication::exit();
+        });
+        watchdog.start(3000);
+        QAction *triggered = menu->execAndWait(QPoint(100, 100), false);
+        watchdog.stop();
+        QVERIFY(!stuck);
+        QVERIFY(guard.isNull());
+        QVERIFY(triggered == nullptr);
+    }
+
     void removedSubMenuForgetsParent()
     {
         RoundMenu parent;
