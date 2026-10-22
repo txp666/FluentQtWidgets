@@ -35,6 +35,7 @@
 
 - Grouped the widget tests into one suite per Gallery area (`tst_basic_input`, `tst_combo_box`, `tst_text`, `tst_status_info`, `tst_dialog_flyout`, `tst_menu`, `tst_navigation`, `tst_view`, `tst_layout`, `tst_settings`, `tst_window`, `tst_material`, `tst_charts`, `tst_datetime`), with `tst_theme`, `tst_qss` and `tst_config` for the shared parts and `tst_gallery_pages` and `tst_gallery_translation` for the Gallery. Overlapping tests were merged.
 - Every test now starts from the same theme, accent colour and configuration, whatever an earlier test changed, and the suites share their helpers (`tests/TestSupport.h`).
+- The Windows CI job builds and runs the tests, including the native hit tests at 150% scaling.
 
 ## 0.1.9
 
