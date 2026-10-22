@@ -110,8 +110,17 @@ void ConfigItemRegistry::registerItem(ConfigItem *item)
         return;
     }
 
-    m_items.insert(item->key(), item);
+    const QString key = item->key();
+    m_items.insert(key, item);
     connect(item, &ConfigItem::valueChanged, this, [this, item]() { emit itemValueChanged(item); });
+    // Items are often owned by widgets or other objects; drop the entry when one goes away
+    // unless a later item has taken over the key.
+    connect(item, &QObject::destroyed, this, [this, key, item]() {
+        const auto it = m_items.find(key);
+        if (it != m_items.end() && it.value() == item) {
+            m_items.erase(it);
+        }
+    });
 }
 
 ConfigItem *ConfigItemRegistry::item(const QString &key) const { return m_items.value(key, nullptr); }

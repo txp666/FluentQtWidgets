@@ -1,3 +1,4 @@
+#include <QtGui/QGuiApplication>
 #include <QtWidgets/QWidget>
 
 #import <AppKit/AppKit.h>
@@ -7,7 +8,9 @@ namespace FluentQt::Private {
 
 void updateMacOSWindowCorner(QWidget *widget, int radius)
 {
-    if (!widget) {
+    // winId() is only an NSView under the Cocoa platform plugin; offscreen and
+    // minimal hand out plain integers.
+    if (!widget || QGuiApplication::platformName() != QLatin1String("cocoa")) {
         return;
     }
 

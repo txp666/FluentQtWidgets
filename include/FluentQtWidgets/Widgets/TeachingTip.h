@@ -4,6 +4,7 @@
 #include <FluentQtWidgets/Widgets/Flyout.h>
 
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtCore/QString>
 #include <QtGui/QIcon>
 #include <QtGui/QImage>
@@ -164,7 +165,9 @@ private:
     void resizeToSizeHint();
 
     FlyoutViewBase *m_view = nullptr;
-    QWidget *m_target = nullptr;
+    QPointer<QWidget> m_target;
+    // The window the event filter sits on; compared by pointer only.
+    QPointer<QWidget> m_targetWindow;
     QWidget *m_bubble = nullptr;
     int m_duration = 1000;
     TeachingTipTailPosition m_tailPosition = TeachingTipTailPosition::Bottom;

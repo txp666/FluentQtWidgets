@@ -241,6 +241,14 @@ LineEdit::LineEdit(const QString &text, QWidget *parent)
     init();
 }
 
+LineEdit::~LineEdit()
+{
+    // Completer menus are top-level popups without a parent; nothing else frees them.
+    if (m_completerMenu && !m_completerMenu->parent()) {
+        delete m_completerMenu;
+    }
+}
+
 void LineEdit::init()
 {
     setProperty("transparent", true);
@@ -327,10 +335,16 @@ void LineEdit::setCompleterMenu(CompleterMenu *menu)
         return;
     }
 
-    connect(menu, &CompleterMenu::activated, this,
-            [this](const QString &text) { m_completer->activated(text); });
-    connect(menu, &CompleterMenu::indexActivated, this,
-            [this](const QModelIndex &idx) { m_completer->activated(idx); });
+    connect(menu, &CompleterMenu::activated, this, [this](const QString &text) {
+        if (m_completer) {
+            m_completer->activated(text);
+        }
+    });
+    connect(menu, &CompleterMenu::indexActivated, this, [this](const QModelIndex &idx) {
+        if (m_completer) {
+            m_completer->activated(idx);
+        }
+    });
 
     m_completerMenu = menu;
 }
@@ -625,7 +639,14 @@ bool CompleterMenu::setCompletion(QAbstractItemModel *model, int column)
 
 void CompleterMenu::setItems(const QStringList &items)
 {
+    // clear() only detaches actions; the ones made by addAction(text) below belong to this menu.
+    const QList<QAction *> previous = menuActions();
     clear();
+    for (QAction *action : previous) {
+        if (action->parent() == this) {
+            action->deleteLater();
+        }
+    }
     m_items = items;
 
     for (int i = 0; i < items.size(); ++i) {

@@ -145,38 +145,32 @@ void OpacityAniStackedWidget::ensureAnimationForWidget(QWidget *widget, int inde
     m_animations.insert(index, animation);
 }
 
-PopUpAniStackedWidget::PopUpAniStackedWidget(QWidget *parent) : QStackedWidget(parent) {}
+PopUpAniStackedWidget::PopUpAniStackedWidget(QWidget *parent) : QStackedWidget(parent)
+{
+    connect(this, &QStackedWidget::widgetRemoved, this, &PopUpAniStackedWidget::onWidgetRemoved);
+}
+
+PopUpAniStackedWidget::~PopUpAniStackedWidget()
+{
+    disconnect(this, &QStackedWidget::widgetRemoved, this, &PopUpAniStackedWidget::onWidgetRemoved);
+}
 
 int PopUpAniStackedWidget::addWidget(QWidget *widget, int deltaX, int deltaY)
 {
     const int index = QStackedWidget::addWidget(widget);
-    PopUpAniInfo info;
-    info.widget = widget;
+    if (index < 0) {
+        return index;
+    }
+
+    PopUpAniInfo &info = ensureAnimationInfo(widget);
     info.deltaX = deltaX;
     info.deltaY = deltaY;
-    info.animation = new QPropertyAnimation(widget, "pos", this);
-    m_animationInfos.insert(index, info);
     return index;
 }
 
 void PopUpAniStackedWidget::removeWidget(QWidget *widget)
 {
-    const int index = indexOf(widget);
-    if (index >= 0 && index < m_animationInfos.size()) {
-        QPropertyAnimation *animation = m_animationInfos.at(index).animation;
-        if (m_currentAnimation == animation) {
-            m_currentAnimation->stop();
-            m_currentAnimation = nullptr;
-            m_nextIndex = -1;
-        }
-        delete animation;
-        m_animationInfos.removeAt(index);
-        if (m_nextIndex == index) {
-            m_nextIndex = -1;
-        } else if (m_nextIndex > index) {
-            --m_nextIndex;
-        }
-    }
+    // onWidgetRemoved() drops the page's animation data.
     QStackedWidget::removeWidget(widget);
 }
 
@@ -187,7 +181,68 @@ bool PopUpAniStackedWidget::isAnimationEnabled() const
 
 QVector<PopUpAniInfo> PopUpAniStackedWidget::animationInfos() const
 {
-    return m_animationInfos;
+    QVector<PopUpAniInfo> infos;
+    infos.reserve(count());
+    for (int i = 0; i < count(); ++i) {
+        const int infoIndex = animationInfoIndex(widget(i));
+        if (infoIndex >= 0) {
+            infos.append(m_animationInfos.at(infoIndex));
+        } else {
+            PopUpAniInfo info;
+            info.widget = widget(i);
+            infos.append(info);
+        }
+    }
+    return infos;
+}
+
+int PopUpAniStackedWidget::animationInfoIndex(const QWidget *widget) const
+{
+    for (int i = 0; i < m_animationInfos.size(); ++i) {
+        if (m_animationInfos.at(i).widget == widget) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+PopUpAniInfo &PopUpAniStackedWidget::ensureAnimationInfo(QWidget *widget)
+{
+    const int infoIndex = animationInfoIndex(widget);
+    if (infoIndex >= 0) {
+        return m_animationInfos[infoIndex];
+    }
+
+    PopUpAniInfo info;
+    info.widget = widget;
+    info.animation = new QPropertyAnimation(widget, "pos", this);
+    m_animationInfos.append(info);
+    return m_animationInfos.last();
+}
+
+void PopUpAniStackedWidget::onWidgetRemoved(int index)
+{
+    // The removed page may already be mid-destruction: only compare its pointer.
+    for (int i = m_animationInfos.size() - 1; i >= 0; --i) {
+        const PopUpAniInfo info = m_animationInfos.at(i);
+        if (indexOf(info.widget) >= 0) {
+            continue;
+        }
+
+        if (m_currentAnimation == info.animation) {
+            m_currentAnimation->stop();
+            m_currentAnimation = nullptr;
+            m_nextIndex = -1;
+        }
+        delete info.animation;
+        m_animationInfos.removeAt(i);
+    }
+
+    if (m_nextIndex == index) {
+        m_nextIndex = -1;
+    } else if (m_nextIndex > index) {
+        --m_nextIndex;
+    }
 }
 
 void PopUpAniStackedWidget::setAnimationEnabled(bool enabled)
@@ -213,8 +268,9 @@ void PopUpAniStackedWidget::setCurrentIndex(int index, bool needPopOut, bool sho
     }
 
     m_nextIndex = index;
-    PopUpAniInfo nextInfo = m_animationInfos.at(index);
-    PopUpAniInfo currentInfo = m_animationInfos.at(currentIndex());
+    // Copies: ensureAnimationInfo() may append and invalidate references.
+    const PopUpAniInfo nextInfo = ensureAnimationInfo(widget(index));
+    const PopUpAniInfo currentInfo = ensureAnimationInfo(currentWidget());
     QWidget *current = currentWidget();
     QWidget *next = nextInfo.widget;
 

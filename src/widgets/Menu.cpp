@@ -696,6 +696,17 @@ RoundMenu::RoundMenu(const QString &title, QWidget *parent) : QMenu(title, paren
 
 RoundMenu::~RoundMenu()
 {
+    // Submenus parented to this menu are deleted by ~QWidget after this body; their destroyed()
+    // handlers must not run against a half-destroyed parent. Unparented ones outlive it.
+    const QList<RoundMenu *> subMenus = m_subMenus;
+    for (RoundMenu *menu : subMenus) {
+        detachSubMenu(menu);
+    }
+    m_subMenus.clear();
+    if (m_parentMenu) {
+        m_parentMenu->m_subMenus.removeAll(this);
+    }
+
     const QList<QAction *> actions = m_actionList;
     for (QAction *action : actions) {
         untrackAction(action);
@@ -917,6 +928,15 @@ void RoundMenu::removeMenu(RoundMenu *menu)
         removeItem(item);
     }
     m_subMenus.removeAll(menu);
+    detachSubMenu(menu);
+}
+
+void RoundMenu::detachSubMenu(RoundMenu *menu)
+{
+    disconnect(menu, &QObject::destroyed, this, nullptr);
+    menu->m_parentMenu = nullptr;
+    menu->m_parentMenuItem = nullptr;
+    menu->m_isSubMenu = false;
 }
 
 void RoundMenu::addSeparator()
@@ -1034,6 +1054,17 @@ void RoundMenu::createSubMenuItem(RoundMenu *menu, QAction *before)
 
     menu->m_isSubMenu = true;
     menu->m_parentMenuItem = item;
+    // The submenu is mid-destruction when this fires: find its row by pointer only.
+    connect(menu, &QObject::destroyed, this, [this, menu]() {
+        m_subMenus.removeAll(menu);
+        for (int row = m_view->count() - 1; row >= 0; --row) {
+            QListWidgetItem *rowItem = m_view->item(row);
+            auto *widget = qobject_cast<SubMenuItemWidget *>(m_view->itemWidget(rowItem));
+            if (widget && widget->menu() == menu) {
+                removeItem(rowItem);
+            }
+        }
+    });
 
     item->setData(Qt::UserRole, QVariant::fromValue(menu));
 
@@ -1147,6 +1178,14 @@ void RoundMenu::removeItem(QListWidgetItem *item)
     const int row = m_view->row(item);
     if (row < 0) {
         return;
+    }
+
+    if (m_lastHoverItem == item) {
+        m_lastHoverItem = nullptr;
+    }
+    if (m_lastHoverSubMenuItem == item) {
+        m_lastHoverSubMenuItem = nullptr;
+        m_timer->stop();
     }
 
     QWidget *widget = m_view->itemWidget(item);

@@ -6,6 +6,7 @@
 
 #include <QtCore/QByteArray>
 #include <QtCore/QList>
+#include <QtCore/QPointer>
 #include <QtCore/QRect>
 #include <QtCore/QString>
 #include <QtCore/QtGlobal>
@@ -150,7 +151,8 @@ class FQW_API FluentWindow : public QMainWindow
     NavigationHistory *m_history = nullptr;
     FluentTitleBar *m_titleBar = nullptr;
     FramelessWindowHelper *m_frameless = nullptr;
-    SplashScreen *m_splashScreen = nullptr;
+    // Callers commonly delete the splash themselves once loading finishes.
+    QPointer<SplashScreen> m_splashScreen;
     bool m_suppressHistoryPush = false;
     int m_titleBarLeftMargin = -1;
     int m_contentTopMargin = 48;

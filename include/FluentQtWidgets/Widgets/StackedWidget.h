@@ -55,6 +55,7 @@ class FQW_API PopUpAniStackedWidget : public QStackedWidget
 
   public:
     explicit PopUpAniStackedWidget(QWidget *parent = nullptr);
+    ~PopUpAniStackedWidget() override;
 
     int addWidget(QWidget *widget, int deltaX = 0, int deltaY = 76);
     void removeWidget(QWidget *widget);
@@ -78,7 +79,12 @@ class FQW_API PopUpAniStackedWidget : public QStackedWidget
   private:
     void setupAnimation(QPropertyAnimation *animation, const QPoint &startValue, const QPoint &endValue,
                         int duration, QEasingCurve::Type easingCurve);
+    int animationInfoIndex(const QWidget *widget) const;
+    PopUpAniInfo &ensureAnimationInfo(QWidget *widget);
+    void onWidgetRemoved(int index);
 
+    // Looked up by page, not by stack index: pages can also be added, removed or deleted
+    // through the plain QStackedWidget API.
     QVector<PopUpAniInfo> m_animationInfos;
     bool m_animationEnabled = true;
     int m_nextIndex = -1;

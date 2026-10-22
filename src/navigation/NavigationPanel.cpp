@@ -452,6 +452,19 @@ void NavigationPanel::removeWidget(const QString &routeKey)
         m_currentRouteKey.clear();
     }
 
+    // Child tree items are QObject children of entry.widget and are deleted with it, so
+    // their entries have to go too.
+    for (auto it = m_items.begin(); it != m_items.end();) {
+        if (entry.widget->isAncestorOf(it.value().widget)) {
+            if (m_currentRouteKey == it.key()) {
+                m_currentRouteKey.clear();
+            }
+            it = m_items.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     auto *treeWidget = qobject_cast<NavigationTreeWidget *>(entry.widget);
     auto *parentTreeWidget =
         !entry.parentRouteKey.isEmpty() ? qobject_cast<NavigationTreeWidget *>(navigationWidget(entry.parentRouteKey))

@@ -72,10 +72,24 @@ InfoBadgeManager *makeManager(InfoBadgePosition position, QWidget *target, InfoB
 } // namespace
 
 InfoBadgeManager::InfoBadgeManager(QWidget *target, InfoBadge *badge, QObject *parent)
-    : QObject(parent), m_target(target), m_badge(badge)
+    : QObject(parent ? parent : badge), m_target(target), m_badge(badge)
 {
+    if (m_badge) {
+        // A badge follows a single target; retire the manager from a previous attach().
+        if (InfoBadgeManager *previous = m_badge->manager(); previous && previous != this) {
+            if (previous->m_target) {
+                previous->m_target->removeEventFilter(previous);
+            }
+            previous->deleteLater();
+        }
+    }
     if (m_target) {
         m_target->installEventFilter(this);
+        connect(m_target, &QObject::destroyed, this, [this]() {
+            if (m_badge) {
+                m_badge->hide();
+            }
+        });
     }
     if (m_badge && m_target) {
         if (m_target->parentWidget()) {

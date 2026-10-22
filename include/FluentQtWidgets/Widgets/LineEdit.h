@@ -7,6 +7,7 @@
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QList>
+#include <QtCore/QPointer>
 #include <QtGui/QColor>
 #include <QtWidgets/QCompleter>
 #include <QtWidgets/QHBoxLayout>
@@ -74,6 +75,7 @@ class FQW_API LineEdit : public QLineEdit
   public:
     explicit LineEdit(QWidget *parent = nullptr);
     explicit LineEdit(const QString &text, QWidget *parent = nullptr);
+    ~LineEdit() override;
 
     bool isClearButtonEnabled() const;
     virtual void setClearButtonEnabled(bool enable);
@@ -134,8 +136,8 @@ class FQW_API LineEdit : public QLineEdit
     bool m_isError = false;
     QColor m_lightFocusedBorderColor;
     QColor m_darkFocusedBorderColor;
-    QCompleter *m_completer = nullptr;
-    CompleterMenu *m_completerMenu = nullptr;
+    QPointer<QCompleter> m_completer;
+    QPointer<CompleterMenu> m_completerMenu;
 };
 
 // ============================================================================

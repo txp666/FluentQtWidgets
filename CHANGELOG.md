@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Object lifetime fixes
+
+- Skipped the macOS window-corner setup outside the Cocoa platform plugin, so `FluentWindow`, `MSFluentWindow`, and `FluentWidget` no longer crash under `offscreen` or `minimal`.
+- Made `InfoBarManager` forget bars that are deleted without being closed and parents that are destroyed, so a reopened window that reuses the old address no longer stacks against freed bars. Slide animations are now owned by their bar.
+- Removed deleted `ConfigItem`s from `ConfigItemRegistry` without dropping a newer item registered under the same key.
+- Removed child entries when `NavigationPanel::removeWidget()` deletes a tree item that has children.
+- Kept `PopUpAniStackedWidget` animation data per page instead of per index, so pages deleted or changed through the `QStackedWidget` API no longer leave it out of step with the stack.
+- Gave `InfoBadgeManager` the badge as its default parent, retired the previous manager when a badge is attached again, and stopped it from touching a deleted badge or target.
+- Closed a `TeachingTip` when its target is deleted, and stopped its window filter from going through the deleted target.
+- Cleared a submenu's parent links when `RoundMenu::removeMenu()` removes it or its parent menu is deleted, and dropped a submenu's row when the submenu is deleted.
+- Tracked `FluentWindow`'s splash screen and `LineEdit`'s completer and completer menu with `QPointer`. `LineEdit` now frees its parentless completer menu, and `CompleterMenu` frees the actions it creates for each completion list.
+- Built the child widgets in `FlyoutView(QWidget *)` and `AcrylicFlyoutView(QWidget *)`, which previously crashed on `show()`.
+- Added `tst_lifetime` regression coverage for each of these cases.
+
 ## 0.1.9
 
 ### Expandable cards and scroll-bar synchronization

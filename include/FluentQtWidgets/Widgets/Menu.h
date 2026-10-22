@@ -246,6 +246,7 @@ private:
     bool hasItemIcon() const;
     int longestShortcutWidth() const;
     void removeItem(QListWidgetItem *item);
+    void detachSubMenu(RoundMenu *menu);
     QRect visualItemRect(QListWidgetItem *item) const;
     void showSubMenu(QListWidgetItem *item);
     void onShowMenuTimeout();

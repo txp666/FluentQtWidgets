@@ -502,7 +502,11 @@ void FlyoutViewBase::addWidget(QWidget *widget, int stretch, Qt::Alignment align
 // FlyoutView
 // ==========================================
 
-FlyoutView::FlyoutView(QWidget *parent) : FlyoutViewBase(parent) {}
+FlyoutView::FlyoutView(QWidget *parent) : FlyoutViewBase(parent)
+{
+    initWidgets();
+    initLayout();
+}
 
 FlyoutView::FlyoutView(const QString &title, const QString &content, QWidget *parent)
     : FlyoutViewBase(parent)
@@ -654,7 +658,7 @@ void FlyoutView::adjustText()
 
 void FlyoutView::adjustImage()
 {
-    if (m_imageLabel->isNull()) {
+    if (!m_imageLabel || m_imageLabel->isNull()) {
         return;
     }
     const int w = qMax(1, m_viewLayout->sizeHint().width());
