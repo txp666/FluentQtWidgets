@@ -776,34 +776,36 @@ class WindowTest : public QObject
         maximizeButton->click();
         QTRY_VERIFY(window.isMaximized());
 
+        // Where the frame goes differs: Windows 11 under Qt 6.10 keeps the window rectangle on the
+        // work area, Windows Server under Qt 6.8 puts it a resize border beyond on each side. Either
+        // way the client area, which is all a frameless window shows, must cover the work area.
         const HWND hwnd = reinterpret_cast<HWND>(window.winId());
         RECT windowRect = {};
         QVERIFY(GetWindowRect(hwnd, &windowRect));
+        RECT clientRect = {};
+        QVERIFY(GetClientRect(hwnd, &clientRect));
+        POINT clientOrigin = {0, 0};
+        QVERIFY(ClientToScreen(hwnd, &clientOrigin));
+        const RECT client = {clientOrigin.x, clientOrigin.y, clientOrigin.x + clientRect.right,
+                             clientOrigin.y + clientRect.bottom};
 
         MONITORINFO monitorInfo = {};
         monitorInfo.cbSize = sizeof(MONITORINFO);
         QVERIFY(GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &monitorInfo));
-
-        const RECT expected = {
-            monitorInfo.rcWork.left,
-            monitorInfo.rcWork.top,
-            monitorInfo.rcWork.right,
-            monitorInfo.rcWork.bottom,
-        };
+        const RECT &work = monitorInfo.rcWork;
 
         const auto closeEnough = [](LONG actual, LONG target) {
             return qAbs(actual - target) <= 2;
         };
-        const QString actualExpected =
-            QStringLiteral("actual=(%1,%2,%3,%4), expected=(%5,%6,%7,%8), work=(%9,%10,%11,%12)")
+        const QString rectangles =
+            QStringLiteral("client=(%1,%2,%3,%4), window=(%5,%6,%7,%8), work=(%9,%10,%11,%12)")
+                .arg(client.left).arg(client.top).arg(client.right).arg(client.bottom)
                 .arg(windowRect.left).arg(windowRect.top).arg(windowRect.right).arg(windowRect.bottom)
-                .arg(expected.left).arg(expected.top).arg(expected.right).arg(expected.bottom)
-                .arg(monitorInfo.rcWork.left).arg(monitorInfo.rcWork.top)
-                .arg(monitorInfo.rcWork.right).arg(monitorInfo.rcWork.bottom);
-        QVERIFY2(closeEnough(windowRect.left, expected.left), qPrintable(actualExpected));
-        QVERIFY2(closeEnough(windowRect.top, expected.top), qPrintable(actualExpected));
-        QVERIFY2(closeEnough(windowRect.right, expected.right), qPrintable(actualExpected));
-        QVERIFY2(closeEnough(windowRect.bottom, expected.bottom), qPrintable(actualExpected));
+                .arg(work.left).arg(work.top).arg(work.right).arg(work.bottom);
+        QVERIFY2(closeEnough(client.left, work.left), qPrintable(rectangles));
+        QVERIFY2(closeEnough(client.top, work.top), qPrintable(rectangles));
+        QVERIFY2(closeEnough(client.right, work.right), qPrintable(rectangles));
+        QVERIFY2(closeEnough(client.bottom, work.bottom), qPrintable(rectangles));
         QCOMPARE(maximizeButton->property("windowMaximized").toBool(), true);
 #else
         QSKIP("Windows native maximize geometry only applies on Windows");
