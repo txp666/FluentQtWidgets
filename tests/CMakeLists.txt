@@ -14,6 +14,17 @@ fqw_add_widget_test(tst_pips_pager tst_pips_pager.cpp)
 fqw_add_widget_test(tst_feedback tst_feedback.cpp)
 fqw_add_widget_test(tst_display tst_display.cpp)
 fqw_add_widget_test(tst_shell tst_shell.cpp)
+if(WIN32)
+    # The native hit tests once more at 150%, where physical and device-independent pixels differ.
+    add_test(NAME tst_shell_scaled COMMAND tst_shell
+        framelessWindowInteriorHitTestStaysClientArea
+        framelessWindowHitTestWithoutWindowUsesTheHostWindow
+        framelessWindowMaximizeButtonUsesNativeHitTest
+        framelessWindowMaximizeButtonReleaseDoesNotStick
+        framelessWindowMaximizeButtonNativeClickTogglesWindow
+        fluentWindowCaptionNativeDoubleClickTogglesWindow)
+    set_tests_properties(tst_shell_scaled PROPERTIES ENVIRONMENT "QT_SCALE_FACTOR=1.5")
+endif()
 fqw_add_widget_test(tst_datetime tst_datetime.cpp)
 fqw_add_widget_test(tst_config_item tst_config_item.cpp)
 fqw_add_widget_test(tst_basic_input_parity tst_basic_input_parity.cpp)

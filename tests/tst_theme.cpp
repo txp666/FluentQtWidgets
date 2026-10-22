@@ -1022,27 +1022,6 @@ class ThemeTest : public QObject
         QCOMPARE(messageBox.contentLabel()->text(), QStringLiteral("Message"));
         QVERIFY(!messageBox.contentLabel()->wordWrap());
 
-        QWidget dialogParent;
-        dialogParent.resize(1000, 640);
-        dialogParent.move(80, 90);
-        dialogParent.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&dialogParent));
-        FluentQt::Dialog galleryDialog(
-            QStringLiteral("This is a frameless message dialog"),
-            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
-                           "automatically wrap like this."),
-            &dialogParent);
-        galleryDialog.widget()->setFixedSize(240, 192);
-        QVERIFY(!galleryDialog.contentLabel()->wordWrap());
-        QVERIFY(!galleryDialog.contentLabel()->text().contains(QLatin1Char('\n')));
-        galleryDialog.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&galleryDialog));
-        const QPoint viewCenter = galleryDialog.widget()->mapToGlobal(galleryDialog.widget()->rect().center());
-        const QPoint parentCenter = dialogParent.frameGeometry().center();
-        QVERIFY(qAbs(viewCenter.x() - parentCenter.x()) <= 2);
-        QVERIFY(qAbs(viewCenter.y() - parentCenter.y()) <= 2);
-        galleryDialog.close();
-
         messageBox.show();
         QVERIFY(QTest::qWaitForWindowExposed(&messageBox));
         QSignalSpy messageAcceptedSpy(&messageBox, &QDialog::accepted);
@@ -1087,6 +1066,35 @@ class ThemeTest : public QObject
         auto *messageDialogView = messageDialog.findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(messageDialogView != nullptr);
         QCOMPARE(messageDialogView->property("fqw").toString(), QStringLiteral("MessageDialog"));
+    }
+
+    void galleryDialogKeepsItsContentOnOneLineAndCentred()
+    {
+        QWidget dialogParent;
+        dialogParent.resize(1000, 640);
+        dialogParent.move(80, 90);
+        dialogParent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dialogParent));
+        // The dialog wraps its content to a width taken from the parent's: in a narrower parent the
+        // content wraps, as it should.
+        if (dialogParent.width() < 1000) {
+            QSKIP("The screen is too narrow for a 1000-pixel-wide window");
+        }
+        FluentQt::Dialog galleryDialog(
+            QStringLiteral("This is a frameless message dialog"),
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this."),
+            &dialogParent);
+        galleryDialog.widget()->setFixedSize(240, 192);
+        QVERIFY(!galleryDialog.contentLabel()->wordWrap());
+        QVERIFY(!galleryDialog.contentLabel()->text().contains(QLatin1Char('\n')));
+        galleryDialog.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&galleryDialog));
+        const QPoint viewCenter = galleryDialog.widget()->mapToGlobal(galleryDialog.widget()->rect().center());
+        const QPoint parentCenter = dialogParent.frameGeometry().center();
+        QVERIFY(qAbs(viewCenter.x() - parentCenter.x()) <= 2);
+        QVERIFY(qAbs(viewCenter.y() - parentCenter.y()) <= 2);
+        galleryDialog.close();
     }
 
     void dialogFadeInDropsOpacityEffectBeforeButtonHover()

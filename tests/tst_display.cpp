@@ -603,7 +603,19 @@ class DisplayTest : public QObject
         QCOMPARE(brush.tintColor(), QColor(242, 242, 242, 150));
         QCOMPARE(brush.luminosityColor(), QColor(255, 255, 255, 10));
         QCOMPARE(brush.noiseOpacity(), 0.03);
-        QVERIFY(brush.isAvailable());
+        // Acrylic shows the screen through only where it may capture it (on macOS once the user has
+        // allowed screen recording), and never once capturing is turned off.
+        QVERIFY(FluentQt::AcrylicBrush::isScreenCaptureEnabled());
+        QCOMPARE(brush.isAvailable(), FluentQt::AcrylicBrush::isScreenCaptureAvailable());
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(false);
+        QVERIFY(!FluentQt::AcrylicBrush::isScreenCaptureAvailable());
+        QVERIFY(!brush.isAvailable());
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(true);
+#if !defined(Q_OS_MACOS)
+        if (!QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
+            QVERIFY(brush.isAvailable());
+        }
+#endif
 
         brush.setImage(image);
         QVERIFY(!brush.isNull());

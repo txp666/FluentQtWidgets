@@ -29,6 +29,27 @@
 #include <windowsx.h>
 #endif
 
+#if defined(Q_OS_WIN)
+namespace {
+
+// A WM_NC* mouse message as Windows sends it: for the host's native window, with the position (given
+// in host coordinates) in physical screen pixels.
+MSG nativeMouseMessage(QWidget *host, UINT type, const QPoint &hostPos)
+{
+    const qreal ratio = host->devicePixelRatioF();
+    const HWND hwnd = reinterpret_cast<HWND>(host->winId());
+    POINT point = {qRound(hostPos.x() * ratio), qRound(hostPos.y() * ratio)};
+    ClientToScreen(hwnd, &point);
+    MSG message = {};
+    message.hwnd = hwnd;
+    message.message = type;
+    message.lParam = MAKELPARAM(point.x, point.y);
+    return message;
+}
+
+} // namespace
+#endif
+
 class ShellTest : public QObject
 {
     Q_OBJECT
@@ -1112,14 +1133,38 @@ class ShellTest : public QObject
         host.resize(320, 240);
         FluentQt::FramelessWindowHelper helper(&host);
 
-        const QPoint globalPos = host.mapToGlobal(QPoint(120, 80));
-        MSG message = {};
-        message.message = WM_NCHITTEST;
-        message.lParam = MAKELPARAM(globalPos.x(), globalPos.y());
+        MSG message = nativeMouseMessage(&host, WM_NCHITTEST, QPoint(120, 80));
         qintptr result = 0;
 
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
         QCOMPARE(result, qintptr(HTCLIENT));
+#else
+        QSKIP("Windows hit-test behavior only applies on Windows");
+#endif
+    }
+
+    void framelessWindowHitTestWithoutWindowUsesTheHostWindow()
+    {
+#if defined(Q_OS_WIN)
+        QWidget host;
+        host.resize(320, 240);
+        host.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&host));
+        FluentQt::FramelessWindowHelper helper(&host);
+
+        // A message passed in directly may name no window: the position is then read against the
+        // host's own native window, never against the cursor.
+        const auto hitTest = [&helper, &host](const QPoint &hostPos) {
+            MSG message = nativeMouseMessage(&host, WM_NCHITTEST, hostPos);
+            message.hwnd = nullptr;
+            qintptr result = 0;
+            return helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result)
+                       ? result
+                       : qintptr(-1);
+        };
+        QCOMPARE(hitTest(QPoint(120, 80)), qintptr(HTCLIENT));
+        QCOMPARE(hitTest(QPoint(2, 120)), qintptr(HTLEFT));
+        QCOMPARE(hitTest(QPoint(host.width() - 2, host.height() - 2)), qintptr(HTBOTTOMRIGHT));
 #else
         QSKIP("Windows hit-test behavior only applies on Windows");
 #endif
@@ -1174,10 +1219,8 @@ class ShellTest : public QObject
 
         auto *maximizeButton = titleBar.maximizeButton();
         QVERIFY(maximizeButton != nullptr);
-        const QPoint globalPos = maximizeButton->mapToGlobal(maximizeButton->rect().center());
-        MSG message = {};
-        message.message = WM_NCHITTEST;
-        message.lParam = MAKELPARAM(globalPos.x(), globalPos.y());
+        MSG message = nativeMouseMessage(&host, WM_NCHITTEST,
+                                         maximizeButton->mapTo(&host, maximizeButton->rect().center()));
         qintptr result = 0;
 
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
@@ -1208,19 +1251,14 @@ class ShellTest : public QObject
         connect(maximizeButton, &QToolButton::clicked, this, [&clickedCount](bool) {
             ++clickedCount;
         });
-        const QPoint pressPos = maximizeButton->mapToGlobal(maximizeButton->rect().center());
-        MSG press = {};
-        press.message = WM_NCLBUTTONDOWN;
-        press.lParam = MAKELPARAM(pressPos.x(), pressPos.y());
+        MSG press = nativeMouseMessage(&host, WM_NCLBUTTONDOWN,
+                                       maximizeButton->mapTo(&host, maximizeButton->rect().center()));
         qintptr pressResult = -1;
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &press, &pressResult));
         QCOMPARE(pressResult, qintptr(0));
         QVERIFY(maximizeButton->isDown());
 
-        const QPoint releasePos = host.mapToGlobal(QPoint(8, host.height() - 8));
-        MSG release = {};
-        release.message = WM_NCLBUTTONUP;
-        release.lParam = MAKELPARAM(releasePos.x(), releasePos.y());
+        MSG release = nativeMouseMessage(&host, WM_NCLBUTTONUP, QPoint(8, host.height() - 8));
         qintptr releaseResult = -1;
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &release, &releaseResult));
         QCOMPARE(releaseResult, qintptr(0));
@@ -1249,17 +1287,13 @@ class ShellTest : public QObject
 
         auto *maximizeButton = titleBar.maximizeButton();
         QVERIFY(maximizeButton != nullptr);
-        const QPoint buttonPos = maximizeButton->mapToGlobal(maximizeButton->rect().center());
-        MSG press = {};
-        press.message = WM_NCLBUTTONDOWN;
-        press.lParam = MAKELPARAM(buttonPos.x(), buttonPos.y());
+        const QPoint buttonPos = maximizeButton->mapTo(&host, maximizeButton->rect().center());
+        MSG press = nativeMouseMessage(&host, WM_NCLBUTTONDOWN, buttonPos);
         qintptr pressResult = -1;
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &press, &pressResult));
         QCOMPARE(pressResult, qintptr(0));
 
-        MSG release = {};
-        release.message = WM_NCLBUTTONUP;
-        release.lParam = MAKELPARAM(buttonPos.x(), buttonPos.y());
+        MSG release = nativeMouseMessage(&host, WM_NCLBUTTONUP, buttonPos);
         qintptr releaseResult = -1;
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &release, &releaseResult));
         QCOMPARE(releaseResult, qintptr(0));
@@ -1429,12 +1463,8 @@ class ShellTest : public QObject
 
         FluentQt::FramelessWindowHelper helper(&window);
         helper.setTitleBar(titleBar);
-        const QPoint globalPos = titleBar->mapToGlobal(captionPos);
 
-        MSG message = {};
-        message.hwnd = reinterpret_cast<HWND>(window.winId());
-        message.message = WM_NCLBUTTONDBLCLK;
-        message.lParam = MAKELPARAM(globalPos.x(), globalPos.y());
+        MSG message = nativeMouseMessage(&window, WM_NCLBUTTONDBLCLK, titleBar->mapTo(&window, captionPos));
         qintptr result = -1;
         QVERIFY(helper.handleNativeEvent(QByteArrayLiteral("windows_generic_MSG"), &message, &result));
         QCOMPARE(result, qintptr(0));
@@ -1637,6 +1667,10 @@ class ShellTest : public QObject
 
         auto *navigation = window.navigationInterface();
         auto *panel = navigation->navigationPanel();
+        // A narrower window opens the panel as a menu instead, as it should.
+        if (window.width() < panel->minimumExpandWidth()) {
+            QSKIP("The screen is too narrow for the panel to expand beside the content");
+        }
         panel->expand(false);
 
         QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);

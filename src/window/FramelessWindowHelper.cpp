@@ -139,14 +139,19 @@ bool isWaylandPlatform()
 #if defined(Q_OS_WIN)
 // The lParam of WM_NCHITTEST and the WM_NC*BUTTON* messages holds physical screen pixels, while
 // Qt's widget coordinates are device-independent. Go through the client origin of the native
-// window (the host's top-left) and the window's scale factor rather than mapFromGlobal().
+// window (the host's top-left) and the window's scale factor rather than mapFromGlobal(). A message
+// passed in directly may name no window: the host's own native window is used then, and without one
+// the position is only scaled.
 QPoint logicalLocalPos(const QWidget *host, HWND hwnd, LPARAM lParam)
 {
-    POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-    if (!ScreenToClient(hwnd, &point)) {
-        return host->mapFromGlobal(QCursor::pos());
-    }
     const qreal ratio = host->devicePixelRatioF() > 0 ? host->devicePixelRatioF() : 1.0;
+    POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+    if (!hwnd) {
+        hwnd = reinterpret_cast<HWND>(host->internalWinId());
+    }
+    if (!hwnd || !ScreenToClient(hwnd, &point)) {
+        return host->mapFromGlobal(QPointF(point.x / ratio, point.y / ratio).toPoint());
+    }
     return QPointF(point.x / ratio, point.y / ratio).toPoint();
 }
 
