@@ -27,6 +27,8 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
+#include <functional>
+
 #if defined(Q_OS_WIN)
 #include <windows.h>
 #include <windowsx.h>
@@ -314,6 +316,44 @@ QColor micaHitTestBackgroundColor()
     return QColor(0, 0, 0, 0);
 }
 
+// Before Windows 11 22H2 (build 22523, which added the system backdrop attribute) Mica only takes a
+// new theme when it is set again; later builds cross-fade it to the dark-mode attribute by themselves.
+bool micaNeedsRefresh()
+{
+#if defined(Q_OS_WIN)
+    return QOperatingSystemVersion::current() <
+           QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 22523);
+#else
+    return false;
+#endif
+}
+
+// A theme change can finish several times in a row (the Gallery's theme button sets the theme
+// three times); one update of the window's attributes follows the last, once the widgets have their
+// new style, so that the backdrop starts changing with them. Setting Mica again where Windows
+// recolours it by itself restarted its cross-fade with a jump, a visible flash.
+QTimer *createThemeRefresh(QWidget *window, std::function<bool()> micaEnabled)
+{
+    const bool refreshMica = micaNeedsRefresh();
+    auto *timer = new QTimer(window);
+    timer->setSingleShot(true);
+    timer->setInterval(refreshMica ? 100 : 0);
+    QObject::connect(timer, &QTimer::timeout, window, [window, micaEnabled, refreshMica]() {
+        syncDwmWindowAttributes(window, micaEnabled(), refreshMica);
+        window->update();
+    });
+    return timer;
+}
+
+void beginThemeRefresh(QWidget *window, bool micaEnabled, QTimer *refresh)
+{
+    if (micaNeedsRefresh()) {
+        syncDwmWindowAttributes(window, micaEnabled);
+        window->update();
+    }
+    refresh->start();
+}
+
 } // namespace
 
 bool isMicaEffectAvailable()
@@ -343,14 +383,9 @@ FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
     m_titleBar = new FluentTitleBar(this);
     m_frameless->setTitleBar(m_titleBar);
 
-    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this, [this]() {
-        syncDwmWindowAttributes(this, m_isMicaEnabled);
-        update();
-        QTimer::singleShot(100, this, [this]() {
-            syncDwmWindowAttributes(this, m_isMicaEnabled, true);
-            update();
-        });
-    });
+    QTimer *themeRefresh = createThemeRefresh(this, [this]() { return m_isMicaEnabled; });
+    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this,
+            [this, themeRefresh]() { beginThemeRefresh(this, m_isMicaEnabled, themeRefresh); });
 
     setMicaEffectEnabled(true);
     updateTitleBarGeometry();
@@ -573,14 +608,9 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
             button->setDisabled(isEmpty);
         }
     });
-    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this, [this]() {
-        syncDwmWindowAttributes(this, m_isMicaEnabled);
-        update();
-        QTimer::singleShot(100, this, [this]() {
-            syncDwmWindowAttributes(this, m_isMicaEnabled, true);
-            update();
-        });
-    });
+    QTimer *themeRefresh = createThemeRefresh(this, [this]() { return m_isMicaEnabled; });
+    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this,
+            [this, themeRefresh]() { beginThemeRefresh(this, m_isMicaEnabled, themeRefresh); });
 
     m_titleBar->raise();
     updateTitleBarGeometry();
@@ -951,14 +981,9 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
         }
         updateStackedBackground();
     });
-    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this, [this]() {
-        syncDwmWindowAttributes(this, m_isMicaEnabled);
-        update();
-        QTimer::singleShot(100, this, [this]() {
-            syncDwmWindowAttributes(this, m_isMicaEnabled, true);
-            update();
-        });
-    });
+    QTimer *themeRefresh = createThemeRefresh(this, [this]() { return m_isMicaEnabled; });
+    connect(ThemeManager::instance(), &ThemeManager::themeChangedFinished, this,
+            [this, themeRefresh]() { beginThemeRefresh(this, m_isMicaEnabled, themeRefresh); });
 
     m_titleBar->raise();
     updateTitleBarGeometry();
