@@ -55,10 +55,26 @@ function(fqw_deploy_qt_executable target)
         find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
 
         if(WINDEPLOYQT_EXECUTABLE)
+            # Widgets draw without OpenGL or Direct3D 12, so the software OpenGL fallback and the
+            # DXC shader compiler only added 35 MB to every deployment. Older windeployqt versions
+            # lack the options, hence the check (once per configure).
+            get_property(_fqw_windeployqt_options GLOBAL PROPERTY FQW_WINDEPLOYQT_OPTIONS)
+            if(NOT _fqw_windeployqt_options)
+                execute_process(COMMAND "${WINDEPLOYQT_EXECUTABLE}" --help
+                                OUTPUT_VARIABLE _fqw_windeployqt_help ERROR_VARIABLE _fqw_windeployqt_help)
+                set(_fqw_windeployqt_options --no-translations)
+                foreach(_fqw_option IN ITEMS --no-opengl-sw --no-system-dxc-compiler)
+                    string(FIND "${_fqw_windeployqt_help}" "${_fqw_option}" _fqw_found)
+                    if(_fqw_found GREATER -1)
+                        list(APPEND _fqw_windeployqt_options ${_fqw_option})
+                    endif()
+                endforeach()
+                set_property(GLOBAL PROPERTY FQW_WINDEPLOYQT_OPTIONS "${_fqw_windeployqt_options}")
+            endif()
             add_custom_command(
                 TARGET ${target}
                 POST_BUILD
-                COMMAND "${WINDEPLOYQT_EXECUTABLE}" --no-translations "$<TARGET_FILE:${target}>"
+                COMMAND "${WINDEPLOYQT_EXECUTABLE}" ${_fqw_windeployqt_options} "$<TARGET_FILE:${target}>"
                 COMMENT "Deploy Qt runtime for ${target}"
                 VERBATIM
             )

@@ -77,6 +77,9 @@ class FQW_API StyleSheetManager : public QObject
     FluentStyleSheetSource sourceForWidget(QWidget *widget) const;
     void setCustomStyleSheet(QWidget *widget, const QString &lightQss, const QString &darkQss);
     QString customStyleSheet(QWidget *widget, Theme theme = Theme::Auto) const;
+    // Restyles root and the widgets in it that a lazy updateAll() left for when they are shown, for
+    // drawing them while they are hidden, as a page transition does with grab().
+    void ensureUpdated(QWidget *root);
 
   public slots:
     void updateWidget(QWidget *widget, FluentQt::Theme theme = FluentQt::Theme::Auto);

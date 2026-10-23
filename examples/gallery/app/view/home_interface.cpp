@@ -544,12 +544,8 @@ HomeInterface::HomeInterface(QWidget *parent) : ScrollArea(parent)
     setWidgetResizable(true);
     applyGalleryStyle(this, QStringLiteral("home_interface"));
     applyGalleryStyle(m_banner, QStringLiteral("link_card"));
+    // The style sheet manager switches the sheets set above between the themes.
     connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this](Theme) {
-        applyGalleryStyle(this, QStringLiteral("home_interface"));
-        applyGalleryStyle(m_banner, QStringLiteral("link_card"));
-        for (auto *view : m_view->findChildren<SampleCardView *>(QString(), Qt::FindDirectChildrenOnly)) {
-            applyGalleryStyle(view, QStringLiteral("sample_card"));
-        }
         if (m_banner) {
             m_banner->update();
         }

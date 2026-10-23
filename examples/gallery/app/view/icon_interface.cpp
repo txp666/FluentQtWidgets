@@ -702,9 +702,9 @@ QWidget *GalleryWindow::createIconPage()
     });
 
     applyIconGalleryStyle(container);
+    // The style sheet manager switches the sheets set above between the themes.
     QObject::connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, container,
-                     [container, currentCard](Theme) {
-                         applyIconGalleryStyle(container);
+                     [currentCard](Theme) {
                          if (currentCard->data()) {
                              currentCard->data()->setSelected(true, true);
                          }
