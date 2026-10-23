@@ -149,8 +149,11 @@ class GalleryPagesTest : public QObject
         const QString lightStyle = page.styleSheet();
         QVERIFY(lightStyle.contains(QStringLiteral("rgba(255, 255, 255, 0.667)")));
 
+        // A hidden page restyles once it is shown.
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Dark);
         QCoreApplication::processEvents();
+        QCOMPARE(page.styleSheet(), lightStyle);
+        page.show();
         const QString darkStyle = page.styleSheet();
         QVERIFY(darkStyle.contains(QStringLiteral("rgba(255, 255, 255, 0.09)")));
         QVERIFY(lightStyle != darkStyle);

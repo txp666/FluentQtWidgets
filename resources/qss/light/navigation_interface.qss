@@ -1,23 +1,17 @@
-QFrame[fqw="NavigationInterface"] QListWidget#NavigationList {
-    border: none;
-    background: #f3f3f3;
-    padding: 8px;
-}
+/* The same in both themes: the navigation interface holds every page, and a style sheet that
+   changed with the theme would restyle all of them. Rules for one theme select [fqwTheme]. */
 
-QFrame[fqw="NavigationInterface"] QListWidget#NavigationList::item {
-    min-height: 36px;
-    padding: 4px 10px;
-    border-radius: 6px;
-}
-
-QFrame[fqw="NavigationInterface"] QListWidget#NavigationList::item:selected {
-    background: #e8e8e8;
-    border-left: 3px solid @accentColor;
-}
-
-QFrame[fqw="NavigationPanel"][menu=true] {
+QFrame[fqw="NavigationPanel"][menu=true][fqwTheme="light"] {
     background-color: rgb(243, 243, 243);
     border: 1px solid rgb(229, 229, 229);
+    border-left: none;
+    border-top-right-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+QFrame[fqw="NavigationPanel"][menu=true][fqwTheme="dark"] {
+    background-color: rgb(32, 32, 32);
+    border: 1px solid rgb(57, 57, 57);
     border-left: none;
     border-top-right-radius: 7px;
     border-bottom-right-radius: 7px;
@@ -31,7 +25,9 @@ QFrame[fqw="NavigationPanel"][menu=false] {
     border-bottom-right-radius: 7px;
 }
 
-QFrame[fqw="NavigationPanel"][transparent=true] {
+QFrame[fqw="NavigationPanel"][transparent=true],
+QFrame[fqw="NavigationPanel"][menu=true][transparent=true][fqwTheme="light"],
+QFrame[fqw="NavigationPanel"][menu=true][transparent=true][fqwTheme="dark"] {
     background-color: transparent;
 }
 
@@ -39,8 +35,14 @@ QWidget[fqw="NavigationBar"] {
     background: transparent;
 }
 
-QWidget[fqw="NavigationSpacer"] {
+QWidget[fqw="NavigationSpacer"][fqwTheme="light"] {
     background-color: rgb(243, 243, 243);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+QWidget[fqw="NavigationSpacer"][fqwTheme="dark"] {
+    background-color: rgb(32, 32, 32);
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
 }
@@ -49,10 +51,18 @@ QWidget[fqw="NavigationScrollWidget"] {
     background: transparent;
 }
 
-QFrame[fqw="NavigationSeparator"] {
+QFrame[fqw="NavigationSeparator"][fqwTheme="light"] {
     border: none;
     background: transparent;
     margin: 4px 8px;
     max-height: 1px;
     border-top: 1px solid #e5e5e5;
+}
+
+QFrame[fqw="NavigationSeparator"][fqwTheme="dark"] {
+    border: none;
+    background: transparent;
+    margin: 4px 8px;
+    max-height: 1px;
+    border-top: 1px solid #3d3d3d;
 }

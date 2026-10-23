@@ -1,3 +1,6 @@
+/* The same in both themes: the window and the page stack hold every page, and a style sheet that
+   changed with the theme would restyle all of them. Rules for one theme select [fqwTheme]. */
+
 QMainWindow[fqw="FluentWindow"] {
     background: transparent;
 }
@@ -10,7 +13,16 @@ QWidget#FluentWindowContent {
     background: transparent;
 }
 
-QStackedWidget[fqw="NavigationStack"] {
+QStackedWidget[fqw="NavigationStack"][fqwTheme="light"] {
+    border: 1px solid rgba(0, 0, 0, 17);
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 8px;
+    background-color: rgba(255, 255, 255, 128);
+}
+
+QStackedWidget[fqw="NavigationStack"][fqwTheme="dark"] {
     border: 1px solid rgba(0, 0, 0, 46);
     border-right: none;
     border-bottom: none;
@@ -28,7 +40,12 @@ QFrame[fqw="FluentTitleBar"] {
     background: transparent;
 }
 
-QFrame[fqw="FluentTitleBar"][navigationBackground=true] {
+QFrame[fqw="FluentTitleBar"][navigationBackground=true][fqwTheme="light"] {
+    background-color: rgb(243, 243, 243);
+    border-top-right-radius: 8px;
+}
+
+QFrame[fqw="FluentTitleBar"][navigationBackground=true][fqwTheme="dark"] {
     background-color: rgb(32, 32, 32);
     border-top-right-radius: 8px;
 }

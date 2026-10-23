@@ -26,6 +26,9 @@ constexpr const char *kDirtyQssProperty = "fqw-dirty-qss";
 constexpr const char *kStyleSourceProperty = "fqw-style-source";
 // The style sheet the manager last set, so it can tell its own from one the application set.
 constexpr const char *kAppliedQssProperty = "fqw-applied-qss";
+// "light" or "dark", for rules of one theme in a style sheet that is the same in both. Setting a
+// changed style sheet restyles everything inside the widget, which for a window is every page.
+constexpr const char *kThemeProperty = "fqwTheme";
 
 // The manager's own bookkeeping (and the "fqw" role) never changes how a widget looks, so
 // setting it must not repolish; neither do Qt's own ("_q_"), which styles set as they polish.
@@ -442,6 +445,12 @@ void StyleSheetManager::setCustomStyleSheet(QWidget *widget, const QString &ligh
     if (!widget) {
         return;
     }
+    // Applications often set their sheets again on each theme change, which the manager follows by
+    // itself. The same sheets again leave the widget as it is, hidden or not.
+    if (isRegistered(widget) && widget->property(kLightCustomQssProperty).toString() == lightQss &&
+        widget->property(kDarkCustomQssProperty).toString() == darkQss) {
+        return;
+    }
 
     registerWidget(widget, sourceFromProperty(widget));
     widget->setProperty(kLightCustomQssProperty, lightQss);
@@ -467,6 +476,8 @@ void StyleSheetManager::updateWidget(QWidget *widget, Theme theme)
         return;
     }
 
+    const Theme resolvedTheme = theme == Theme::Auto ? ThemeManager::instance()->effectiveTheme() : theme;
+    widget->setProperty(kThemeProperty, resolvedTheme == Theme::Dark ? QStringLiteral("dark") : QStringLiteral("light"));
     const FluentStyleSheetSource source = sourceFromProperty(widget);
     const QString composed = FluentStyleSheet::compose(widget, source, theme);
     // An empty result still replaces a sheet this manager set (the custom QSS was cleared), but
@@ -483,6 +494,24 @@ void StyleSheetManager::updateWidget(QWidget *widget, Theme theme)
         widget->setProperty(kDirtyQssProperty, false);
     }
     FluentStyleSheet::polish(widget);
+}
+
+void StyleSheetManager::ensureUpdated(QWidget *root)
+{
+    if (!root) {
+        return;
+    }
+
+    if (root->property(kDirtyQssProperty).toBool()) {
+        updateWidget(root);
+    }
+    // Parents come before their children, as when the tree is shown.
+    const QList<QWidget *> children = root->findChildren<QWidget *>();
+    for (QWidget *child : children) {
+        if (child->property(kDirtyQssProperty).toBool()) {
+            updateWidget(child);
+        }
+    }
 }
 
 void StyleSheetManager::updateAll(Theme theme, bool lazy)

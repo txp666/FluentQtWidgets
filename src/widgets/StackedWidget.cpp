@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/StackedWidget.h>
 
+#include <FluentQtWidgets/StyleSheet.h>
+
 #include <QtCore/QParallelAnimationGroup>
 #include <QtCore/QPauseAnimation>
 #include <QtCore/QPropertyAnimation>
@@ -420,6 +422,8 @@ void TransitionStackedWidget::renderSnapshot(QWidget *widget, QLabel *label)
     }
 
     widget->resize(size());
+    // A hidden page may still have the style of the previous theme.
+    StyleSheetManager::instance()->ensureUpdated(widget);
     QPixmap pixmap = widget->grab();
     if (pixmap.isNull() || pixmap.size().isEmpty()) {
         pixmap = QPixmap(widget->size());

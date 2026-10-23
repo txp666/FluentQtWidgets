@@ -221,13 +221,8 @@ GalleryInterface::GalleryInterface(const QString &title, const QString &subtitle
     setWidget(m_view);
     setWidgetResizable(true);
     setViewportMargins(0, m_toolBar->height(), 0, 0);
+    // Both themes' sheets are set once; the style sheet manager switches between them.
     applyGalleryStyle(this, QStringLiteral("gallery_interface"));
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this](Theme) {
-        applyGalleryStyle(this, QStringLiteral("gallery_interface"));
-    });
-    connect(ThemeManager::instance(), &ThemeManager::accentColorChanged, this, [this](const QColor &) {
-        applyGalleryStyle(this, QStringLiteral("gallery_interface"));
-    });
 }
 
 QWidget *GalleryInterface::contentWidget() const { return m_view; }

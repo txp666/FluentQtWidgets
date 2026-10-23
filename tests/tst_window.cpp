@@ -916,6 +916,62 @@ class WindowTest : public QObject
         QCOMPARE(drillStack.currentIndex(), 0);
     }
 
+    void fluentWindowKeepsItsStyleSheetsAcrossThemes()
+    {
+        // The window, its navigation interface and its page stack hold every page, and a style sheet
+        // of theirs that changed with the theme restyled all of them. The parts that look different
+        // follow the theme through their fqwTheme property instead.
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setTheme(FluentQt::Theme::Light);
+        FluentQt::FluentWindow window;
+        window.resize(900, 620);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        auto *stack = window.findChild<QStackedWidget *>(QStringLiteral("NavigationStack"));
+        QVERIFY(stack != nullptr);
+        const QString windowSheet = window.styleSheet();
+        const QString navigationSheet = window.navigationInterface()->styleSheet();
+        const QString stackSheet = stack->styleSheet();
+        const auto titleBarColor = [&window]() {
+            const QImage image = window.titleBar()->grab().toImage();
+            return image.pixelColor(image.width() / 2, 2);
+        };
+        QCOMPARE(titleBarColor(), QColor(243, 243, 243));
+
+        manager->setTheme(FluentQt::Theme::Dark);
+        QCOMPARE(window.styleSheet(), windowSheet);
+        QCOMPARE(window.navigationInterface()->styleSheet(), navigationSheet);
+        QCOMPARE(stack->styleSheet(), stackSheet);
+        QCOMPARE(stack->property("fqwTheme").toString(), QStringLiteral("dark"));
+        QCOMPARE(titleBarColor(), QColor(32, 32, 32));
+    }
+
+    void drillInTransitionDrawsTheNextPageInTheCurrentTheme()
+    {
+        // The drill-in transition draws the next page while it is still hidden, and a theme change
+        // restyles a hidden page only once it is shown.
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setTheme(FluentQt::Theme::Light);
+        FluentQt::DrillInTransitionStackedWidget stack;
+        stack.resize(120, 80);
+        auto *first = new QWidget;
+        auto *second = new QWidget;
+        stack.addWidget(first);
+        stack.addWidget(second);
+        FluentQt::FluentStyleSheet::setCustomStyleSheet(second, QStringLiteral("QWidget { background: #102030; }"),
+                                                        QStringLiteral("QWidget { background: #c0d0e0; }"));
+        stack.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&stack));
+
+        manager->setTheme(FluentQt::Theme::Dark);
+        QVERIFY(second->styleSheet().contains(QStringLiteral("#102030")));
+        // The page stays hidden until the animation ends; it was restyled for its snapshot.
+        stack.setCurrentIndex(1, 20, false);
+        QVERIFY(!second->isVisible());
+        QVERIFY(second->styleSheet().contains(QStringLiteral("#c0d0e0")));
+        QTRY_COMPARE(stack.currentIndex(), 1);
+    }
+
     void popUpStackFollowsDeletedPage()
     {
         PopUpAniStackedWidget stack;

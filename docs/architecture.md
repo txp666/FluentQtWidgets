@@ -75,7 +75,16 @@ FluentQt::FluentStyleSheet::setCustomStyleSheet(
     "QWidget { color: --ThemeColorPrimary; background: #202020; }");
 ```
 
-The manager stores separate light and dark snippets, renders theme tokens, and supports lazy refresh for invisible widgets.
+The manager stores separate light and dark snippets, renders theme tokens, and switches between them when the theme changes; set them once, as setting the same snippets again does nothing.
+
+On a theme change, visible widgets restyle at once and hidden ones when they are shown. Code that draws a hidden widget, for example with `grab()`, calls `StyleSheetManager::ensureUpdated()` on it first.
+
+Setting a style sheet that differs from the previous one makes Qt restyle the widget and everything inside it. For a container that holds many widgets, such as a window or a page stack, keep one style sheet for both themes and select the theme in its rules: the manager sets the `fqwTheme` property to `light` or `dark` on every widget it styles.
+
+```css
+QStackedWidget[fqw="NavigationStack"][fqwTheme="light"] { background-color: rgba(255, 255, 255, 128); }
+QStackedWidget[fqw="NavigationStack"][fqwTheme="dark"] { background-color: rgba(255, 255, 255, 8); }
+```
 
 ## API Style
 

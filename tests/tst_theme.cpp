@@ -162,6 +162,38 @@ class ThemeTest : public QObject
         QVERIFY(widget.styleSheet().contains(QStringLiteral("#112233")));
     }
 
+    void themeChangeRestylesHiddenWidgetsWhenTheyAreShown()
+    {
+        // Restyling every hidden page of a large window took seconds on each theme change: visible
+        // widgets restyle at once, the others when they are shown or drawn.
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setTheme(FluentQt::Theme::Light);
+        const QString light = QStringLiteral("QWidget { color: #010101; }");
+        const QString dark = QStringLiteral("QWidget { color: #fefefe; }");
+        QWidget visible;
+        QWidget shownLater;
+        QWidget drawnHidden;
+        for (QWidget *widget : {&visible, &shownLater, &drawnHidden}) {
+            FluentQt::FluentStyleSheet::setCustomStyleSheet(widget, light, dark);
+            QVERIFY(widget->styleSheet().contains(QStringLiteral("#010101")));
+        }
+        visible.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&visible));
+
+        manager->setTheme(FluentQt::Theme::Dark);
+        QVERIFY(visible.styleSheet().contains(QStringLiteral("#fefefe")));
+        QVERIFY(shownLater.styleSheet().contains(QStringLiteral("#010101")));
+        // Applications set their sheets again on theme changes; the same sheets change nothing.
+        FluentQt::FluentStyleSheet::setCustomStyleSheet(&shownLater, light, dark);
+        QVERIFY(shownLater.styleSheet().contains(QStringLiteral("#010101")));
+
+        shownLater.show();
+        QVERIFY(shownLater.styleSheet().contains(QStringLiteral("#fefefe")));
+
+        FluentQt::StyleSheetManager::instance()->ensureUpdated(&drawnHidden);
+        QVERIFY(drawnHidden.styleSheet().contains(QStringLiteral("#fefefe")));
+    }
+
     void styleSheetManagerSurvivesStylesThatSetProperties()
     {
         // Qt 6.8's Windows 11 style sets dynamic properties on a widget as it polishes and

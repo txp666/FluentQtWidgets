@@ -161,7 +161,9 @@ void ThemeManager::applyTo(QApplication *application) const
         application->setFont(appFont);
     }
 
-    FluentStyleSheet::updateAll(effectiveTheme(), false);
+    // Widgets that are not visible restyle when they are shown, so a theme change only waits for what
+    // is on screen. Restyling every hidden page of a large window took seconds on each change.
+    FluentStyleSheet::updateAll(effectiveTheme(), true);
 }
 
 void ThemeManager::applyTo(QWidget *widget) const { FluentStyleSheet::apply(widget, effectiveTheme()); }
