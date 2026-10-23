@@ -122,7 +122,25 @@ jobs:
           binary_target="$(find build/examples/gallery -maxdepth 6 -type f \( -name 'FluentQtWidgetsGallery.exe' -o -name 'FluentQtWidgetsGallery' \) | head -n 1 || true)"
 
           if [ -n "$app_target" ] && [ -d "$app_target" ]; then
+            bundle="$package_root/$(basename "$app_target")"
             cp -R "$app_target" "$package_root/"
+            # Qt's frameworks and FFmpeg are universal, but the Gallery is built for one architecture:
+            # keeping only that one halves them.
+            arch="$(lipo -archs "$bundle/Contents/MacOS/FluentQtWidgetsGallery")"
+            if [ "$(wc -w <<< "$arch")" -eq 1 ]; then
+              while IFS= read -r -d '' file; do
+                if archs="$(lipo -archs "$file" 2>/dev/null)" && [ "$(wc -w <<< "$archs")" -gt 1 ]; then
+                  lipo "$file" -thin "$arch" -output "$file.thin"
+                  cat "$file.thin" > "$file"
+                  rm "$file.thin"
+                fi
+              done < <(find "$bundle" -type f -print0)
+            fi
+            # Only the executable carries the linker's signature, which leaves the bundled frameworks
+            # and resources unsealed; macOS then calls the downloaded app damaged instead of offering
+            # to open it anyway. The ad-hoc signature covers the whole bundle.
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --strict --verbose=2 "$bundle"
           elif [ -n "$binary_target" ] && [ -f "$binary_target" ]; then
             if [ "${{ runner.os }}" = "Linux" ]; then
               cp "$binary_target" "$package_root/"
@@ -135,11 +153,13 @@ jobs:
             exit 1
           fi
 
-          find build -maxdepth 3 \( -type f -o -type l \) \( \
-            -name 'FluentQtWidgets.dll' -o \
-            -name 'libFluentQtWidgets*.so*' -o \
-            -name 'libFluentQtWidgets*.dylib' \
-          \) -exec cp -P {} "$package_root/" \;
+          # The macOS bundle has the library inside; the Linux binary looks for it beside itself.
+          if [ -z "$app_target" ]; then
+            find build -maxdepth 3 \( -type f -o -type l \) \( \
+              -name 'FluentQtWidgets.dll' -o \
+              -name 'libFluentQtWidgets*.so*' \
+            \) -exec cp -P {} "$package_root/" \;
+          fi
 
           if [ "${{ runner.os }}" = "Windows" ] && [ ! -f "$package_root/Qt6MultimediaWidgets.dll" ]; then
             echo "Missing Qt6MultimediaWidgets.dll from Windows Gallery package."
