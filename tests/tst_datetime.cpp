@@ -536,7 +536,9 @@ class DateTimeTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&calendarPicker));
         QTest::mouseClick(&calendarPicker, Qt::LeftButton);
 
-        QWidget *calendarPanel = nullptr;
+        // The panel is a popup that deletes itself when closed, which macOS does as soon as the
+        // application loses activation (to another test running beside this one, say).
+        QPointer<QWidget> calendarPanel;
         QTRY_VERIFY((calendarPanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
         QVERIFY(calendarPanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(calendarPanel->testAttribute(Qt::WA_StyledBackground));
@@ -545,8 +547,10 @@ class DateTimeTest : public QObject
         QVERIFY(!calendarPanel->findChildren<QPushButton *>().isEmpty());
         QVERIFY(!calendarPanel->findChildren<QToolButton *>().isEmpty());
         if (auto *opacityEffect = qobject_cast<QGraphicsOpacityEffect *>(calendarPanel->graphicsEffect())) {
-            QTRY_VERIFY(opacityEffect->opacity() > 0.9);
+            const QPointer<QGraphicsOpacityEffect> effect(opacityEffect);
+            QTRY_VERIFY(!effect || effect->opacity() > 0.9);
         }
+        QVERIFY2(calendarPanel, "The calendar popup closed while it faded in");
         calendarPanel->setGraphicsEffect(nullptr);
         QPixmap calendarImage(calendarPanel->size());
         calendarImage.fill(Qt::transparent);
