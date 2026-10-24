@@ -166,7 +166,7 @@ jobs:
             exit 1
           fi
 
-          cp README.md CHANGELOG.md LICENSE THIRD_PARTY_NOTICES.md "$package_root/"
+          cp README.md README_EN.md CHANGELOG.md LICENSE THIRD_PARTY_NOTICES.md "$package_root/"
 
           if [ "${{ runner.os }}" = "Windows" ] && command -v 7z >/dev/null 2>&1; then
             7z a "artifacts/${release_name}.zip" "$package_root/."
