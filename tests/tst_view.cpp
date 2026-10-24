@@ -736,6 +736,56 @@ class ViewTest : public QObject
         QCOMPARE(groupedCard.groupWidgets().first(), addedGroup);
     }
 
+    void headerCardTitleFollowsThemeChanges()
+    {
+        // The title is a plain QLabel under the card's style sheet, which is the same in both themes, so
+        // a theme change never repolished it: it kept the colour of the theme it was created in.
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setTheme(FluentQt::Theme::Light);
+        FluentQt::HeaderCardWidget card(QStringLiteral("Title"));
+        card.resize(320, 160);
+        card.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&card));
+        FluentQt::GroupHeaderCardWidget hiddenCard;
+        hiddenCard.setTitle(QStringLiteral("Hidden"));
+
+        const auto titleColor = [](FluentQt::HeaderCardWidget &c) {
+            return c.titleLabel()->palette().color(QPalette::WindowText);
+        };
+        // The lightest and darkest pixels of the drawn title, over the card's own background.
+        const auto titleLightness = [](FluentQt::HeaderCardWidget &c) {
+            QLabel *title = c.titleLabel();
+            const QImage image = c.grab(QRect(title->mapTo(&c, QPoint(0, 0)), title->size())).toImage();
+            int lightest = 0;
+            int darkest = 255;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const int lightness = image.pixelColor(x, y).lightness();
+                    lightest = qMax(lightest, lightness);
+                    darkest = qMin(darkest, lightness);
+                }
+            }
+            return std::make_pair(darkest, lightest);
+        };
+        QCOMPARE(titleColor(card), QColor(32, 32, 32));
+        QVERIFY(titleLightness(card).first < 80);
+        QCOMPARE(card.titleLabel()->font().pointSize(), 15);
+        QCOMPARE(card.titleLabel()->font().weight(), QFont::DemiBold);
+
+        manager->setTheme(FluentQt::Theme::Dark);
+        QCOMPARE(titleColor(card), QColor(243, 243, 243));
+        QVERIFY(titleLightness(card).second > 200);
+        hiddenCard.resize(320, 160);
+        hiddenCard.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&hiddenCard));
+        QCOMPARE(titleColor(hiddenCard), QColor(243, 243, 243));
+
+        manager->setTheme(FluentQt::Theme::Light);
+        QCOMPARE(titleColor(card), QColor(32, 32, 32));
+        QVERIFY(titleLightness(card).first < 80);
+        QCOMPARE(titleColor(hiddenCard), QColor(32, 32, 32));
+    }
+
     void pagerTracksCurrentPageAndButtons()
     {
         FluentQt::PipsPager pager;
