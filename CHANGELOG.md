@@ -6,6 +6,10 @@
 
 - `HeaderCardWidget` and `GroupHeaderCardWidget` titles follow theme changes. The title is a plain label under the card's style sheet, which is the same in both themes, so it kept the colour of the theme the card was created in (dark text on a dark card after switching to the dark theme). It now has a style sheet of its own that the theme switch replaces. `tst_view` covers it.
 
+### Documentation
+
+- The README comes in Chinese (`README.md`) and English (`README_EN.md`), each with screenshots in its own language, a feature overview and a minimal example. `docs/README_zh.md`, an older copy of the Chinese README, is removed. Gallery packages include both READMEs.
+
 ## 0.1.10
 
 ### Object lifetime fixes
