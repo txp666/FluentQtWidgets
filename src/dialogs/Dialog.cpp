@@ -674,6 +674,13 @@ QLabel *MessageBox::contentLabel() const { return m_messageLabel; }
 
 QLabel *MessageBox::messageLabel() const { return m_messageLabel; }
 
+void MessageBox::showEvent(QShowEvent *event)
+{
+    // Callers may add buttons after construction; size the box for them before it is centred.
+    adjustMessageSize();
+    MessageBoxBase::showEvent(event);
+}
+
 bool MessageBox::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == dialogOverlayTarget(parentWidget()) && event->type() == QEvent::Resize) {
@@ -695,7 +702,10 @@ void MessageBox::adjustMessageSize()
         m_widget->layout()->activate();
     }
     const int contentWidth = qMax(m_titleLabel->sizeHint().width(), m_messageLabel->sizeHint().width());
-    const int width = qMax(m_buttonGroup ? m_buttonGroup->minimumWidth() : 0, contentWidth + 48);
+    // Buttons added to buttonLayout() widen the box instead of overlapping.
+    const int buttonsWidth =
+        m_buttonGroup ? qMax(m_buttonGroup->minimumWidth(), m_buttonGroup->minimumSizeHint().width()) : 0;
+    const int width = qMax(buttonsWidth, contentWidth + 48);
     const int height = m_messageLabel->y() + m_messageLabel->height() + 105;
     m_widget->setFixedSize(width, height);
 }

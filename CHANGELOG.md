@@ -5,6 +5,7 @@
 ### Behaviour fixes
 
 - `HeaderCardWidget` and `GroupHeaderCardWidget` titles follow theme changes. The title is a plain label under the card's style sheet, which is the same in both themes, so it kept the colour of the theme the card was created in (dark text on a dark card after switching to the dark theme). It now has a style sheet of its own that the theme switch replaces. `tst_view` covers it.
+- `MessageBox` widens for buttons added to `buttonLayout()`. Its width came from the title and message alone (at least 280 px), so a third button, such as "Don't save", overlapped the other two. The width now covers the button row as well and is worked out again when the box is shown, after callers have added their buttons. `tst_dialog_flyout` covers it.
 
 ### Documentation
 

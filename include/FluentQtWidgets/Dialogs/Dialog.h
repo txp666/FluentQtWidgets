@@ -197,6 +197,7 @@ class FQW_API MessageBox : public MessageBoxBase
     QLabel *messageLabel() const;
 
   protected:
+    void showEvent(QShowEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
 
   private:

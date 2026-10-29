@@ -383,6 +383,27 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(dialog.windowOpacity(), 1.0);
     }
 
+    void messageBoxWidensForAddedButtons()
+    {
+        QWidget parent;
+        parent.resize(800, 600);
+        parent.show();
+        FluentQt::MessageBox box(QStringLiteral("保存更改？"), QStringLiteral("“未命名”有未保存的更改。"), &parent);
+        box.yesButton()->setText(QStringLiteral("保存"));
+        box.cancelButton()->setText(QStringLiteral("取消"));
+        auto *discard = new FluentQt::PushButton(QStringLiteral("不保存"), box.buttonGroup());
+        box.buttonLayout()->insertWidget(1, discard);
+        box.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&box));
+
+        const QRect yes = box.yesButton()->geometry();
+        const QRect middle = discard->geometry();
+        const QRect cancel = box.cancelButton()->geometry();
+        QVERIFY(yes.right() < middle.left());
+        QVERIFY(middle.right() < cancel.left());
+        QVERIFY(cancel.right() < box.buttonGroup()->width());
+    }
+
     void maskDialogFinishesOnce()
     {
         QWidget parent;
