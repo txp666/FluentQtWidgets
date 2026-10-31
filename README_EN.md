@@ -21,8 +21,6 @@ FluentQtWidgets is a Fluent Design widget library for C++/Qt Widgets, with reusa
 
 It is a **C++/Qt Widgets port** of the Python [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). The Python original is the reference for behaviour and looks: control states, spacing, QSS constants, sample content, resource paths, the Gallery's page structure and translations follow upstream as closely as possible, and differ only where Qt/C++ platform behaviour requires it.
 
-Current release line: **0.1.10**. Local reference sources, build directories and development agent metadata are not part of the source release.
-
 ## Screenshots
 
 <table>
@@ -106,6 +104,7 @@ To try it first, download the Gallery for your platform from [Releases](https://
 ## Built with FluentQtWidgets
 
 - [Fluent Serial Assistant](https://github.com/txp666/FluentSerialAssistant) - a serial port debugging tool built on Qt 6 and FluentQtWidgets: port connection, RX/TX terminal, live plots, protocol parsing, log export, theme switching, and packages for all three platforms.
+- [FluentHMI Studio](https://github.com/txp666/FluentHMI-Studio) - a C++/Qt 6 visual HMI designer for hardware engineers: drag and drop widgets, bind serial, TCP or MQTT data (Modbus RTU/TCP), and export a standalone app in under a second with no compiler needed.
 
 ## Requirements
 
@@ -214,3 +213,10 @@ The Gallery shows and compares versions using the CMake project version, `projec
 ## License
 
 FluentQtWidgets is released under **GPL-3.0-or-later**. Upstream sources and asset licences are listed in [Third Party Notices](THIRD_PARTY_NOTICES.md).
+
+## Disclaimer
+
+- This is a community open-source project. It is not affiliated with, sponsored by or endorsed by Microsoft or the author of PyQt-Fluent-Widgets. Fluent Design, Windows and other names and trademarks belong to their respective owners.
+- The software is provided "as is", without warranty of any kind, express or implied, including but not limited to merchantability, fitness for a particular purpose and non-infringement. See sections 15 and 16 of the GPL-3.0.
+- The authors and contributors are not liable for any direct or indirect damages arising from using, modifying or distributing this project. Test it thoroughly before using it in production.
+- You are responsible for making sure your use complies with GPL-3.0-or-later, the third-party asset licences and the laws that apply to you.

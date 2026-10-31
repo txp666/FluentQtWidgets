@@ -21,8 +21,6 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 
 本项目是 Python 版 [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets) 的 **C++/Qt Widgets 移植版本**。Python 原版是本仓库的行为与视觉基准：控件状态、间距、QSS 常量、示例内容、资源路径、Gallery 页面结构和翻译均尽量对齐上游实现；只有 Qt/C++ 平台行为存在差异时才保留必要调整。
 
-当前发布线：**0.1.10**。本地参考源码、构建目录和开发 agent 元数据不会进入源码发布包。
-
 ## 界面预览
 
 <table>
@@ -106,6 +104,7 @@ int main(int argc, char *argv[])
 ## 应用案例
 
 - [Fluent 串口助手](https://github.com/txp666/FluentSerialAssistant) - 基于 Qt 6 和 FluentQtWidgets 构建的串口调试工具，覆盖串口连接、RX/TX 终端显示、实时曲线、协议解析、记录导出、主题切换和三平台发布打包。
+- [FluentHMI Studio](https://github.com/txp666/FluentHMI-Studio) - 面向硬件工程师的 C++/Qt 6 可视化上位机设计器，支持拖拽控件、绑定串口/TCP/MQTT（Modbus RTU/TCP）数据，并可在一秒内导出无需编译器的独立应用。
 
 ## 环境要求
 
@@ -214,3 +213,10 @@ Gallery 使用 CMake 项目版本号 `project(... VERSION ...)` 做版本展示�
 ## 许可
 
 本项目以 **GPL-3.0-or-later** 发布。上游来源与资源授权见 [Third Party Notices](THIRD_PARTY_NOTICES.md)。
+
+## 免责声明
+
+- 本项目为社区开源项目，与 Microsoft 以及 PyQt-Fluent-Widgets 原作者无任何隶属、合作或背书关系。Fluent Design、Windows 等名称和商标归其各自所有者所有。
+- 本项目按“原样”提供，不附带任何明示或暗示的担保，包括但不限于适销性、特定用途适用性和不侵权担保。详见 GPL-3.0 第 15、16 条。
+- 因使用、修改或分发本项目而产生的任何直接或间接损失，作者和贡献者均不承担责任；请在生产环境使用前自行充分测试。
+- 使用者应自行确保其使用方式符合 GPL-3.0-or-later、第三方资源授权以及所在地的法律法规。
