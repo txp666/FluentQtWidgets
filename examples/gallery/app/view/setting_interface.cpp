@@ -76,9 +76,12 @@ QWidget *GalleryWindow::createSettingsPage()
         micaCard->setEnabled(false);
     }
 
-    auto *themeMode = new ComboBoxSettingCard(
-        QStringList{settingTx("Light"), settingTx("Dark"), settingTx("Use system setting")}, FluentIcon::Brush,
-        settingTx("Application theme"), settingTx("Change the appearance of your application"), personalization);
+    // Python's Gallery: an options card for the theme, a combo box card for the language.
+    auto *themeMode = new OptionsSettingCard(
+        QStringList{settingTx("Light"), settingTx("Dark"), settingTx("Use system setting")},
+        QVariantList{static_cast<int>(Theme::Light), static_cast<int>(Theme::Dark), static_cast<int>(Theme::Auto)},
+        FluentIcon::Brush, settingTx("Application theme"), settingTx("Change the appearance of your application"),
+        personalization);
     const QColor defaultThemeColor(QStringLiteral("#009faa"));
     const QColor currentThemeColor = FluentConfig::instance()->themeColor();
     auto *themeColorCard =
@@ -95,33 +98,22 @@ QWidget *GalleryWindow::createSettingsPage()
                                             settingTx("Interface zoom"),
                                             settingTx("Change the size of widgets and fonts"),
                                             personalization);
+    QVariantList languageOptions;
+    for (int index = 0; index < 4; ++index) {
+        languageOptions << GalleryTranslation::languageNameForIndex(index);
+    }
+    auto *languageItem =
+        new OptionsConfigItem(QStringLiteral("MainWindow"), QStringLiteral("Language"),
+                              GalleryTranslation::languageNameForIndex(
+                                  GalleryTranslation::languageIndexForName(FluentConfig::instance()->localeName())),
+                              languageOptions, page);
+    languageItem->setRestartRequired(true);
     auto *language = new ComboBoxSettingCard(
+        languageItem, FluentIcon::Language, settingTx("Language"), settingTx("Set your preferred language for UI"),
         QStringList{QString::fromUtf8("\xE7\xAE\x80\xE4\xBD\x93\xE4\xB8\xAD\xE6\x96\x87"),
-                    QString::fromUtf8("\xE7\xB9\x81\xE9\xAB\x94\xE4\xB8\xAD\xE6\x96\x87"),
-                    QStringLiteral("English"), settingTx("Use system setting")},
-        FluentIcon::Language, settingTx("Language"), settingTx("Set your preferred language for UI"),
+                    QString::fromUtf8("\xE7\xB9\x81\xE9\xAB\x94\xE4\xB8\xAD\xE6\x96\x87"), QStringLiteral("English"),
+                    settingTx("Use system setting")},
         personalization);
-
-    const auto themeToIndex = [](Theme theme) {
-        switch (theme) {
-        case Theme::Light:
-            return 0;
-        case Theme::Dark:
-            return 1;
-        case Theme::Auto:
-            return 2;
-        }
-        return 0;
-    };
-    const auto indexToTheme = [](int index) {
-        if (index == 1) {
-            return Theme::Dark;
-        }
-        if (index == 2) {
-            return Theme::Auto;
-        }
-        return Theme::Light;
-    };
 
     auto *themeModeItem = new OptionsConfigItem(
         QStringLiteral("Gallery"), QStringLiteral("ThemeMode"), static_cast<int>(FluentConfig::instance()->themeMode()),
@@ -133,12 +125,7 @@ QWidget *GalleryWindow::createSettingsPage()
                                                FluentConfig::instance()->dpiScale(), zoomValues, page);
     dpiScaleItem->setRestartRequired(true);
 
-    themeMode->setCurrentIndex(themeToIndex(FluentConfig::instance()->themeMode()));
-    language->setCurrentIndex(GalleryTranslation::languageIndexForName(FluentConfig::instance()->localeName()));
-
-    bindComboBoxSettingCard(
-        themeMode, themeModeItem, [indexToTheme](int index) { return static_cast<int>(indexToTheme(index)); },
-        [themeToIndex](const QVariant &value) { return themeToIndex(static_cast<Theme>(value.toInt())); });
+    bindOptionsSettingCard(themeMode, themeModeItem);
     bindCustomColorSettingCard(themeColorCard, accentColorItem);
     bindOptionsSettingCard(zoomCard, dpiScaleItem);
 
@@ -175,8 +162,8 @@ QWidget *GalleryWindow::createSettingsPage()
         FluentConfig::instance()->save();
         downloadFolderCard->setContent(folder);
     });
-    connect(language, &ComboBoxSettingCard::currentIndexChanged, page, [this](int index) {
-        FluentConfig::instance()->setLocaleName(GalleryTranslation::languageNameForIndex(index));
+    connect(languageItem, &ConfigItem::valueChanged, page, [this](const QVariant &value) {
+        FluentConfig::instance()->setLocaleName(value.toString());
         FluentConfig::instance()->save();
         reloadForLanguageChange();
     });

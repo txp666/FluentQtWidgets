@@ -45,9 +45,12 @@ class SettingsTest : public QObject
             new FluentQt::SwitchSettingCard(FluentQt::FluentIcon::Setting, QStringLiteral("Dark theme"));
         auto *rangeCard =
             new FluentQt::RangeSettingCard(0, 10, 4, FluentQt::FluentIcon::Volume, QStringLiteral("Scale"));
+        auto *comboItem =
+            new FluentQt::OptionsConfigItem(QStringLiteral("Test"), QStringLiteral("Theme"), QStringLiteral("light"),
+                                            {QStringLiteral("light"), QStringLiteral("dark")}, &group);
         auto *comboCard =
-            new FluentQt::ComboBoxSettingCard(QStringList{QStringLiteral("Light"), QStringLiteral("Dark")},
-                                              FluentQt::FluentIcon::Setting, QStringLiteral("Theme"));
+            new FluentQt::ComboBoxSettingCard(comboItem, FluentQt::FluentIcon::Setting, QStringLiteral("Theme"),
+                                              QString(), QStringList{QStringLiteral("Light"), QStringLiteral("Dark")});
         auto *colorCard = new FluentQt::ColorSettingCard(QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
                                                          QStringLiteral("Accent"));
         auto *optionsCard = new FluentQt::OptionsSettingCard(
@@ -80,8 +83,8 @@ class SettingsTest : public QObject
         QCOMPARE(rangeSpy.count(), 1);
         QCOMPARE(rangeCard->valueLabel()->text(), QStringLiteral("8"));
 
-        comboCard->setCurrentIndex(1);
-        QCOMPARE(comboCard->currentText(), QStringLiteral("Dark"));
+        comboCard->comboBox()->setCurrentIndex(1);
+        QCOMPARE(comboItem->value(), QVariant(QStringLiteral("dark")));
 
         colorCard->setColor(QColor(QStringLiteral("#445566")));
         QCOMPARE(colorCard->color(), QColor(QStringLiteral("#445566")));
@@ -251,11 +254,51 @@ class SettingsTest : public QObject
         QCOMPARE(card.switchButton()->indicatorPosition(), IndicatorPosition::Right);
     }
 
+    // Python's ComboBoxSettingCard and AcrylicComboBoxSettingCard take an OptionsConfigItem and the
+    // texts of its options, select the item's value and keep the two in step. The port's card took
+    // a list of texts and needed a separate bind call, and had no acrylic version.
+    void comboBoxSettingCardsFollowTheirConfigItem()
+    {
+        OptionsConfigItem item(QStringLiteral("Test"), QStringLiteral("Language"), QStringLiteral("en"),
+                               {QStringLiteral("zh"), QStringLiteral("en"), QStringLiteral("Auto")});
+        const QStringList texts{QStringLiteral("Chinese"), QStringLiteral("English"), QStringLiteral("System")};
+        ComboBoxSettingCard card(&item, FluentIcon::Language, QStringLiteral("Language"), QString(), texts);
+        AcrylicComboBoxSettingCard acrylic(&item, FluentIcon::Language, QStringLiteral("Language"), QString(), texts);
+        QVERIFY(qobject_cast<AcrylicComboBox *>(acrylic.comboBox()));
+        QCOMPARE(card.configItem(), &item);
+        QCOMPARE(acrylic.configItem(), &item);
+
+        for (ComboBox *combo : std::initializer_list<ComboBox *>{card.comboBox(), acrylic.comboBox()}) {
+            QCOMPARE(combo->count(), 3);
+            QCOMPARE(combo->currentText(), QStringLiteral("English"));
+            QCOMPARE(combo->itemData(0), QVariant(QStringLiteral("zh")));
+        }
+
+        card.comboBox()->setCurrentIndex(0);
+        QCOMPARE(item.value(), QVariant(QStringLiteral("zh")));
+        QCOMPARE(acrylic.comboBox()->currentText(), QStringLiteral("Chinese"));
+
+        item.setValue(QStringLiteral("Auto"));
+        QCOMPARE(card.comboBox()->currentText(), QStringLiteral("System"));
+        QCOMPARE(acrylic.comboBox()->currentText(), QStringLiteral("System"));
+
+        acrylic.setValue(QStringLiteral("en"));
+        QCOMPARE(item.value(), QVariant(QStringLiteral("en")));
+        QCOMPARE(card.comboBox()->currentText(), QStringLiteral("English"));
+
+        // A value the card does not list changes nothing, as Python's setValue() returns early.
+        card.setValue(QStringLiteral("fr"));
+        QCOMPARE(item.value(), QVariant(QStringLiteral("en")));
+        QCOMPARE(card.comboBox()->currentText(), QStringLiteral("English"));
+    }
+
     // Python's ComboBoxSettingCard leaves the combo box at its own size; the port forced 160 px.
     void comboBoxSettingCardKeepsTheComboSizeHint()
     {
-        ComboBoxSettingCard card(QStringList{QStringLiteral("X"), QStringLiteral("Y")}, FluentIcon::Home,
-                                 QStringLiteral("Title"));
+        OptionsConfigItem item(QStringLiteral("Test"), QStringLiteral("Combo"), QStringLiteral("x"),
+                               {QStringLiteral("x"), QStringLiteral("y")});
+        ComboBoxSettingCard card(&item, FluentIcon::Home, QStringLiteral("Title"), QString(),
+                                 {QStringLiteral("X"), QStringLiteral("Y")});
         QCOMPARE(card.comboBox()->minimumWidth(), 0);
         card.resize(600, card.height());
         card.show();
@@ -367,16 +410,16 @@ class SettingsTest : public QObject
 
         FluentQt::FolderListSettingCard card(QStringList(), FluentQt::FluentIcon::Folder, QStringLiteral("Folders"),
                                              QString(), directory.path());
-        QSignalSpy folderAddedSpy(&card, &FluentQt::FolderListSettingCard::folderAdded);
-        QSignalSpy foldersChangedSpy(&card, &FluentQt::FolderListSettingCard::foldersChanged);
+        // Python's only signal is folderChanged(folders).
+        QSignalSpy folderChangedSpy(&card, &FluentQt::FolderListSettingCard::folderChanged);
 
         QCOMPARE(card.dialogDirectory(), directory.path());
         QVERIFY(card.addFolder(directory.path()));
-        QCOMPARE(folderAddedSpy.count(), 1);
         QCOMPARE(card.folders(), QStringList({QDir::cleanPath(directory.path())}));
-        QCOMPARE(foldersChangedSpy.count(), 1);
+        QCOMPARE(folderChangedSpy.count(), 1);
+        QCOMPARE(folderChangedSpy.last().at(0).toStringList(), card.folders());
         QVERIFY(!card.addFolder(directory.path()));
-        QCOMPARE(folderAddedSpy.count(), 1);
+        QCOMPARE(folderChangedSpy.count(), 1);
 
         const QString nextDirectory = QDir::homePath();
         card.setDialogDirectory(nextDirectory);
@@ -386,7 +429,6 @@ class SettingsTest : public QObject
         // removed the folder on the first click.
         QVERIFY(card.addFolder(nextDirectory));
         QCOMPARE(card.folderItems().size(), 2);
-        QSignalSpy folderRemovedSpy(&card, &FluentQt::FolderListSettingCard::folderRemoved);
         const auto answerConfirmDialog = [](bool confirm) {
             QTimer::singleShot(0, [confirm]() {
                 for (QWidget *widget : QApplication::topLevelWidgets()) {
@@ -404,13 +446,13 @@ class SettingsTest : public QObject
         answerConfirmDialog(false);
         card.folderItems().first()->removeButton()->click();
         QCOMPARE(card.folderItems().size(), 2);
-        QCOMPARE(folderRemovedSpy.count(), 0);
+        QCOMPARE(folderChangedSpy.count(), 2);
         answerConfirmDialog(true);
         card.folderItems().first()->removeButton()->click();
         QCOMPARE(card.folders(), QStringList({QDir::cleanPath(nextDirectory)}));
         QCOMPARE(card.folderItems().size(), 1);
-        QCOMPARE(folderRemovedSpy.count(), 1);
-        QCOMPARE(foldersChangedSpy.count(), 3);
+        QCOMPARE(folderChangedSpy.count(), 3);
+        QCOMPARE(folderChangedSpy.last().at(0).toStringList(), card.folders());
     }
 
     void nestedExpandCardsKeepHeadersAnchoredDuringAnimation_data()

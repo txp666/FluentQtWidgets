@@ -197,23 +197,6 @@ void bindSwitchSettingCard(SwitchSettingCard *card, ConfigItem *item)
     });
 }
 
-void bindComboBoxSettingCard(ComboBoxSettingCard *card, OptionsConfigItem *item,
-                             const std::function<QVariant(int)> &indexToValue,
-                             const std::function<int(const QVariant &)> &valueToIndex)
-{
-    if (!card || !item) {
-        return;
-    }
-
-    card->setCurrentIndex(valueToIndex(item->value()));
-    QObject::connect(card, &ComboBoxSettingCard::currentIndexChanged, item,
-                     [item, indexToValue](int index) { item->setValue(indexToValue(index)); });
-    QObject::connect(item, &ConfigItem::valueChanged, card, [card, valueToIndex](const QVariant &value) {
-        const QSignalBlocker blocker(card);
-        card->setCurrentIndex(valueToIndex(value));
-    });
-}
-
 void bindColorSettingCard(ColorSettingCard *card, ColorConfigItem *item)
 {
     if (!card || !item) {

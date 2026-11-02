@@ -314,7 +314,7 @@ class GalleryTranslationTest : public QObject
         }
         QVERIFY(languageCard != nullptr);
 
-        languageCard->setCurrentIndex(0);
+        languageCard->comboBox()->setCurrentIndex(0);
 
         GalleryWindow *newWindow = nullptr;
         QTRY_VERIFY([&]() {

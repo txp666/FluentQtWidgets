@@ -3,7 +3,6 @@
 #include <FluentQtWidgets/Global.h>
 #include <FluentQtWidgets/Theme.h>
 
-#include <functional>
 
 #include <QtCore/QObject>
 #include <QtCore/QStringList>
@@ -13,7 +12,6 @@
 namespace FluentQt {
 
 class SwitchSettingCard;
-class ComboBoxSettingCard;
 class ColorSettingCard;
 class CustomColorSettingCard;
 class RangeSettingCard;
@@ -124,9 +122,6 @@ class FQW_API ConfigItemRegistry : public QObject
 };
 
 FQW_API void bindSwitchSettingCard(SwitchSettingCard *card, ConfigItem *item);
-FQW_API void bindComboBoxSettingCard(ComboBoxSettingCard *card, OptionsConfigItem *item,
-                                     const std::function<QVariant(int)> &indexToValue,
-                                     const std::function<int(const QVariant &)> &valueToIndex);
 FQW_API void bindColorSettingCard(ColorSettingCard *card, ColorConfigItem *item);
 FQW_API void bindCustomColorSettingCard(CustomColorSettingCard *card, ColorConfigItem *item);
 FQW_API void bindRangeSettingCard(RangeSettingCard *card, RangeConfigItem *item);

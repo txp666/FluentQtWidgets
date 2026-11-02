@@ -34,7 +34,9 @@ class QWheelEvent;
 
 namespace FluentQt {
 
+class AcrylicComboBox;
 class ComboBox;
+class OptionsConfigItem;
 class HyperlinkButton;
 class IconWidget;
 class ExpandLayout;
@@ -252,35 +254,54 @@ class FQW_API RangeSettingCard : public SettingCard
     QLabel *m_valueLabel = nullptr;
 };
 
+// Python's ComboBoxSettingCard: a combo box with one text per option of the config item, which it
+// keeps in step with the item both ways.
 class FQW_API ComboBoxSettingCard : public SettingCard
 {
     Q_OBJECT
 
   public:
-    ComboBoxSettingCard(const QIcon &icon, const QString &title, const QString &content = QString(),
+    ComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon, const QString &title,
+                        const QString &content = QString(), const QStringList &texts = QStringList(),
                         QWidget *parent = nullptr);
-    ComboBoxSettingCard(FluentIcon icon, const QString &title, const QString &content = QString(),
+    ComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon, const QString &title,
+                        const QString &content = QString(), const QStringList &texts = QStringList(),
                         QWidget *parent = nullptr);
-    ComboBoxSettingCard(const QStringList &items, const QIcon &icon, const QString &title,
-                        const QString &content = QString(), QWidget *parent = nullptr);
-    ComboBoxSettingCard(const QStringList &items, FluentIcon icon, const QString &title,
-                        const QString &content = QString(), QWidget *parent = nullptr);
 
     ComboBox *comboBox() const;
-    int currentIndex() const;
-    QString currentText() const;
+    OptionsConfigItem *configItem() const;
 
   public slots:
-    void addItem(const QString &text, const QVariant &userData = QVariant());
-    void addItems(const QStringList &texts);
-    void setCurrentIndex(int index);
-
-  signals:
-    void currentIndexChanged(int index);
-    void currentTextChanged(const QString &text);
+    // Selects the option's text and sets the config item; an option the card does not list is ignored.
+    void setValue(const QVariant &value);
 
   private:
     ComboBox *m_comboBox = nullptr;
+    OptionsConfigItem *m_configItem = nullptr;
+};
+
+// Python's AcrylicComboBoxSettingCard: ComboBoxSettingCard with an AcrylicComboBox.
+class FQW_API AcrylicComboBoxSettingCard : public SettingCard
+{
+    Q_OBJECT
+
+  public:
+    AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon, const QString &title,
+                               const QString &content = QString(), const QStringList &texts = QStringList(),
+                               QWidget *parent = nullptr);
+    AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon, const QString &title,
+                               const QString &content = QString(), const QStringList &texts = QStringList(),
+                               QWidget *parent = nullptr);
+
+    AcrylicComboBox *comboBox() const;
+    OptionsConfigItem *configItem() const;
+
+  public slots:
+    void setValue(const QVariant &value);
+
+  private:
+    AcrylicComboBox *m_comboBox = nullptr;
+    OptionsConfigItem *m_configItem = nullptr;
 };
 
 class FQW_API ColorPickerButton : public QToolButton
@@ -605,7 +626,7 @@ class FQW_API FolderItem : public QWidget
 class FQW_API FolderListSettingCard : public ExpandSettingCard
 {
     Q_OBJECT
-    Q_PROPERTY(QStringList folders READ folders WRITE setFolders NOTIFY foldersChanged)
+    Q_PROPERTY(QStringList folders READ folders WRITE setFolders NOTIFY folderChanged)
     Q_PROPERTY(QString dialogDirectory READ dialogDirectory WRITE setDialogDirectory)
 
   public:
@@ -629,9 +650,8 @@ class FQW_API FolderListSettingCard : public ExpandSettingCard
     void chooseFolder();
 
   signals:
-    void foldersChanged(const QStringList &folders);
-    void folderAdded(const QString &folder);
-    void folderRemoved(const QString &folder);
+    // Python's folderChanged: the list after a folder was added or removed.
+    void folderChanged(const QStringList &folders);
 
   private:
     void rebuildFolderItems();

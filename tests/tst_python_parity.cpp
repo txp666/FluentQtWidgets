@@ -5,6 +5,7 @@
 // maximumSize in tests/data/python_sizes.json. This test builds the same widgets the same way and
 // compares. See tools/parity/README.md.
 
+#include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
 #include <FluentQtWidgets/DateTime/DatePicker.h>
 #include <FluentQtWidgets/DateTime/TimePicker.h>
@@ -486,7 +487,11 @@ const Factories &factories()
                                           content);
         };
         f["ComboBoxSettingCard/icon+text"] = [=](const QString &t, QWidget *) {
-            return new ComboBoxSettingCard(options, FluentIcon::Mail, t, content);
+            auto *item = new OptionsConfigItem(QStringLiteral("Parity"), QStringLiteral("Combo"), QStringLiteral("a"),
+                                               {QStringLiteral("a"), QStringLiteral("b")});
+            auto *card = new ComboBoxSettingCard(item, FluentIcon::Mail, t, content, options);
+            item->setParent(card);
+            return card;
         };
         f["ColorSettingCard/icon+text"] = [=](const QString &t, QWidget *) {
             return new ColorSettingCard(red, FluentIcon::Mail, t, content);

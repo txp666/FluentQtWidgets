@@ -653,25 +653,26 @@ class GalleryPagesTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&window));
         QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
-        FluentQt::ComboBoxSettingCard *themeModeCard = nullptr;
-        const auto comboCards = window.findChildren<FluentQt::ComboBoxSettingCard *>();
-        for (FluentQt::ComboBoxSettingCard *card : comboCards) {
-            if (card->title() == QStringLiteral("Application theme")) {
+        // Python's Gallery picks the theme with an OptionsSettingCard.
+        FluentQt::OptionsSettingCard *themeModeCard = nullptr;
+        const auto optionCards = window.findChildren<FluentQt::OptionsSettingCard *>();
+        for (FluentQt::OptionsSettingCard *card : optionCards) {
+            if (card->card() && card->card()->title() == QStringLiteral("Application theme")) {
                 themeModeCard = card;
                 break;
             }
         }
         QVERIFY(themeModeCard != nullptr);
 
-        QCOMPARE(themeModeCard->currentIndex(), 0);
+        QCOMPARE(themeModeCard->value().toInt(), static_cast<int>(FluentQt::Theme::Light));
 
         manager->setTheme(FluentQt::Theme::Dark);
         QCOMPARE(config->themeMode(), FluentQt::Theme::Dark);
-        QCOMPARE(themeModeCard->currentIndex(), 1);
+        QCOMPARE(themeModeCard->value().toInt(), static_cast<int>(FluentQt::Theme::Dark));
 
         manager->setTheme(FluentQt::Theme::Auto);
         QCOMPARE(config->themeMode(), FluentQt::Theme::Auto);
-        QCOMPARE(themeModeCard->currentIndex(), 2);
+        QCOMPARE(themeModeCard->value().toInt(), static_cast<int>(FluentQt::Theme::Auto));
 
         config->setThemeMode(previousConfigTheme);
         config->save();

@@ -2,6 +2,7 @@
 
 #include "../core/FontUtils_p.h"
 
+#include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/Dialogs/ColorDialog.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/Layout/FlowLayout.h>
@@ -13,9 +14,9 @@
 #include <FluentQtWidgets/Widgets/IconWidget.h>
 #include <FluentQtWidgets/Widgets/Label.h>
 #include <FluentQtWidgets/Widgets/LineEdit.h>
+#include <FluentQtWidgets/Widgets/ScrollArea.h>
 #include <FluentQtWidgets/Widgets/Selection.h>
 #include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
 #include <FluentQtWidgets/Widgets/SwitchButton.h>
 
 #include <QtCore/QAbstractAnimation>
@@ -667,63 +668,92 @@ void RangeSettingCard::updateValueLabel(int value)
     }
 }
 
-ComboBoxSettingCard::ComboBoxSettingCard(const QIcon &icon, const QString &title, const QString &content,
-                                         QWidget *parent)
-    : SettingCard(icon, title, content, parent)
+namespace {
+
+// Python's ComboBoxSettingCard.__init__: one item per text and option, the item's value selected,
+// and the card and the item kept in step.
+template <typename Card>
+void initOptionsComboBox(Card *card, ComboBox *comboBox, OptionsConfigItem *configItem, const QStringList &texts)
+{
+    card->actionLayout()->addWidget(comboBox, 0, Qt::AlignRight);
+    if (!configItem) {
+        return;
+    }
+
+    const QVariantList options = configItem->options();
+    for (int i = 0; i < qMin(texts.size(), options.size()); ++i) {
+        comboBox->addItem(texts.at(i), QIcon(), options.at(i));
+    }
+    comboBox->setCurrentIndex(comboBox->findData(configItem->value()));
+
+    QObject::connect(comboBox, &ComboBox::currentIndexChanged, card, [comboBox, configItem](int index) {
+        if (index >= 0) {
+            configItem->setValue(comboBox->itemData(index));
+        }
+    });
+    QObject::connect(configItem, &ConfigItem::valueChanged, card,
+                     [card](const QVariant &value) { card->setValue(value); });
+}
+
+void setOptionsComboBoxValue(ComboBox *comboBox, OptionsConfigItem *configItem, const QVariant &value)
+{
+    const int index = comboBox->findData(value);
+    if (index < 0) {
+        return;
+    }
+    comboBox->setCurrentIndex(index);
+    if (configItem) {
+        configItem->setValue(value);
+    }
+}
+
+} // namespace
+
+ComboBoxSettingCard::ComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon, const QString &title,
+                                         const QString &content, const QStringList &texts, QWidget *parent)
+    : SettingCard(icon, title, content, parent), m_configItem(configItem)
 {
     m_comboBox = new ComboBox(this);
-    actionLayout()->addWidget(m_comboBox, 0, Qt::AlignRight);
-
-    connect(m_comboBox, &ComboBox::currentIndexChanged, this,
-            &ComboBoxSettingCard::currentIndexChanged);
-    connect(m_comboBox, &ComboBox::currentTextChanged, this, &ComboBoxSettingCard::currentTextChanged);
-
+    initOptionsComboBox(this, m_comboBox, configItem, texts);
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxSettingCard"));
 }
 
-ComboBoxSettingCard::ComboBoxSettingCard(FluentIcon icon, const QString &title, const QString &content, QWidget *parent)
-    : ComboBoxSettingCard(FluentQt::icon(icon), title, content, parent)
-{
-}
-
-ComboBoxSettingCard::ComboBoxSettingCard(const QStringList &items, const QIcon &icon, const QString &title,
-                                         const QString &content, QWidget *parent)
-    : ComboBoxSettingCard(icon, title, content, parent)
-{
-    addItems(items);
-}
-
-ComboBoxSettingCard::ComboBoxSettingCard(const QStringList &items, FluentIcon icon, const QString &title,
-                                         const QString &content, QWidget *parent)
-    : ComboBoxSettingCard(items, FluentQt::icon(icon), title, content, parent)
+ComboBoxSettingCard::ComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon, const QString &title,
+                                         const QString &content, const QStringList &texts, QWidget *parent)
+    : ComboBoxSettingCard(configItem, FluentQt::icon(icon), title, content, texts, parent)
 {
 }
 
 ComboBox *ComboBoxSettingCard::comboBox() const { return m_comboBox; }
 
-int ComboBoxSettingCard::currentIndex() const { return m_comboBox ? m_comboBox->currentIndex() : -1; }
+OptionsConfigItem *ComboBoxSettingCard::configItem() const { return m_configItem; }
 
-QString ComboBoxSettingCard::currentText() const { return m_comboBox ? m_comboBox->currentText() : QString(); }
+void ComboBoxSettingCard::setValue(const QVariant &value) { setOptionsComboBoxValue(m_comboBox, m_configItem, value); }
 
-void ComboBoxSettingCard::addItem(const QString &text, const QVariant &userData)
+AcrylicComboBoxSettingCard::AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon,
+                                                       const QString &title, const QString &content,
+                                                       const QStringList &texts, QWidget *parent)
+    : SettingCard(icon, title, content, parent), m_configItem(configItem)
 {
-    if (m_comboBox) {
-        m_comboBox->addItem(text, QIcon(), userData);
-    }
+    m_comboBox = new AcrylicComboBox(this);
+    initOptionsComboBox(this, m_comboBox, configItem, texts);
+    FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxSettingCard"));
 }
 
-void ComboBoxSettingCard::addItems(const QStringList &texts)
+AcrylicComboBoxSettingCard::AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon,
+                                                       const QString &title, const QString &content,
+                                                       const QStringList &texts, QWidget *parent)
+    : AcrylicComboBoxSettingCard(configItem, FluentQt::icon(icon), title, content, texts, parent)
 {
-    if (m_comboBox) {
-        m_comboBox->addItems(texts);
-    }
 }
 
-void ComboBoxSettingCard::setCurrentIndex(int index)
+AcrylicComboBox *AcrylicComboBoxSettingCard::comboBox() const { return m_comboBox; }
+
+OptionsConfigItem *AcrylicComboBoxSettingCard::configItem() const { return m_configItem; }
+
+void AcrylicComboBoxSettingCard::setValue(const QVariant &value)
 {
-    if (m_comboBox) {
-        m_comboBox->setCurrentIndex(index);
-    }
+    setOptionsComboBoxValue(m_comboBox, m_configItem, value);
 }
 
 ColorPickerButton::ColorPickerButton(const QColor &color, QWidget *parent) : QToolButton(parent)
@@ -1708,7 +1738,7 @@ void FolderListSettingCard::setFolders(const QStringList &folders)
 
     m_folders = uniqueFolders;
     rebuildFolderItems();
-    emit foldersChanged(m_folders);
+    emit folderChanged(m_folders);
 }
 
 void FolderListSettingCard::setDialogDirectory(const QString &directory) { m_dialogDirectory = directory; }
@@ -1720,8 +1750,7 @@ bool FolderListSettingCard::addFolder(const QString &folder)
     }
     m_folders.append(folder);
     insertFolderItem(folder);
-    emit folderAdded(folder);
-    emit foldersChanged(m_folders);
+    emit folderChanged(m_folders);
     return true;
 }
 
@@ -1740,8 +1769,7 @@ bool FolderListSettingCard::removeFolder(const QString &folder)
         item->deleteLater();
     }
     refreshExpandedGeometry();
-    emit folderRemoved(folder);
-    emit foldersChanged(m_folders);
+    emit folderChanged(m_folders);
     return true;
 }
 
