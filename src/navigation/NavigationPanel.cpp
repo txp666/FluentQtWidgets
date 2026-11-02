@@ -399,12 +399,8 @@ void NavigationPanel::setExpandWidth(int width)
     }
 }
 
-void NavigationPanel::setMinimumExpandWidth(int width)
-{
-    if (width > kCompactWidth) {
-        m_minimumExpandWidth = width;
-    }
-}
+// Any width, as in Python: 0 lets the panel expand in place in a window of any size.
+void NavigationPanel::setMinimumExpandWidth(int width) { m_minimumExpandWidth = width; }
 
 void NavigationPanel::setMenuButtonVisible(bool visible)
 {

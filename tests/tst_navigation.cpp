@@ -626,6 +626,22 @@ class NavigationTest : public QObject
         theme->setTheme(previousTheme);
     }
 
+    // Python takes any minimum expand width; the port ignored values up to 48, so 0 could not
+    // keep a narrow window's panel expanding in place instead of as a menu.
+    void navigationPanelAcceptsAnyMinimumExpandWidth()
+    {
+        QWidget window;
+        window.resize(400, 600);
+        auto *panel = new FluentQt::NavigationPanel(&window);
+        panel->setMinimumExpandWidth(0);
+        QCOMPARE(panel->minimumExpandWidth(), 0);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        panel->expand(false);
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+        QVERIFY(!panel->isMenu());
+    }
+
     void navigationBarTracksItemsAndCommands()
     {
         FluentQt::NavigationBar bar;
