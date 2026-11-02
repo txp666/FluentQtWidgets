@@ -1,7 +1,10 @@
 #pragma once
 
+#include <FluentQtWidgets/Config.h>
+
 #include <QtCore/QStringList>
 #include <QtCore/QtGlobal>
+#include <QtGui/QFont>
 #include <QtGui/QFontDatabase>
 #include <QtWidgets/QApplication>
 
@@ -76,6 +79,17 @@ inline QStringList resolvedFontFamilies(const QStringList &families)
     }
 
     return resolved;
+}
+
+// Python's getFont(): the configured Fluent families at a pixel size, set in code so that a later
+// setFont() still works, which a style sheet font would override.
+inline QFont fluentFont(int pixelSize, QFont::Weight weight = QFont::Normal)
+{
+    QFont font;
+    font.setFamilies(resolvedFontFamilies(FluentConfig::instance()->fontFamilies()));
+    font.setPixelSize(pixelSize);
+    font.setWeight(weight);
+    return font;
 }
 
 } // namespace FluentQt::Private

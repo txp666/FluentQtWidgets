@@ -457,6 +457,24 @@ class ComboBoxTest : public QObject
         }
     }
 
+    // Python sets the combo boxes' font in code (setFont(self): the Fluent families at 14 px) and
+    // leaves it out of combo_box.qss, so setFont() works; a style sheet font overrides it.
+    void comboBoxesTakeTheirFontInCode()
+    {
+        ComboBox combo;
+        AcrylicComboBox acrylic;
+        ModelComboBox model;
+        for (QPushButton *button : std::initializer_list<QPushButton *>{&combo, &acrylic, &model}) {
+            button->ensurePolished();
+            QCOMPARE(button->font().pixelSize(), 14);
+            QFont font = button->font();
+            font.setPixelSize(20);
+            button->setFont(font);
+            button->ensurePolished();
+            QCOMPARE(button->font().pixelSize(), 20);
+        }
+    }
+
     void editableCombosClearButtonClearsText()
     {
         EditableComboBox combo;

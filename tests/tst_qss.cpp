@@ -55,11 +55,12 @@ class QssTest : public QObject
                           {QStringLiteral("selection-color: black;"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"][transparent=\"true\"]:focus"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"][transparent=\"false\"]:focus")});
-        addStyleSheetRows(
-            "combo box", QStringLiteral("combo_box.qss"), kBothThemes,
-            {QStringLiteral("QPushButton[fqw=\"ComboBox\"]"), QStringLiteral("QPushButton[fqw=\"ModelComboBox\"]"),
-             QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("[isPlaceholderText=\"true\"]")},
-            {QStringLiteral("QLineEdit")});
+        addStyleSheetRows("combo box", QStringLiteral("combo_box.qss"), kBothThemes,
+                          {QStringLiteral("QPushButton[fqw=\"ComboBox\"]"),
+                           QStringLiteral("QPushButton[fqw=\"ModelComboBox\"]"),
+                           QStringLiteral("[isPlaceholderText=\"true\"]")},
+                          // Python sets the font in code; a sheet font would override setFont().
+                          {QStringLiteral("QLineEdit"), QStringLiteral("font:")});
         addStyleSheetRows("calendar picker", QStringLiteral("calendar_picker.qss"), kBothThemes,
                           {QStringLiteral("QFrame[fqw=\"CalendarView\"]"),
                            QStringLiteral("QPushButton[calendarTitle=\"true\"]"),
@@ -69,9 +70,9 @@ class QssTest : public QObject
         // Python metrics; radio buttons are styled with the buttons, not the check boxes.
         addStyleSheetRows("check box", QStringLiteral("check_box.qss"), kBothThemes,
                           {QStringLiteral("QCheckBox[fqw=\"CheckBox\"] {"), QStringLiteral("min-width: 28px;"),
-                           QStringLiteral("min-height: 22px;"), QStringLiteral("font: 14px --FontFamilies;"),
-                           QStringLiteral("margin-left: 1px;"), QStringLiteral("QCheckBox[fqw=\"CheckBox\"]:disabled")},
-                          {QStringLiteral("QRadioButton[fqw=\"RadioButton\"]")});
+                           QStringLiteral("min-height: 22px;"), QStringLiteral("margin-left: 1px;"),
+                           QStringLiteral("QCheckBox[fqw=\"CheckBox\"]:disabled")},
+                          {QStringLiteral("QRadioButton[fqw=\"RadioButton\"]"), QStringLiteral("font:")});
         addStyleSheetRows("radio button", QStringLiteral("button.qss"), kBothThemes,
                           {QStringLiteral("QRadioButton[fqw=\"RadioButton\"] {"),
                            QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("max-height: 24px;"),

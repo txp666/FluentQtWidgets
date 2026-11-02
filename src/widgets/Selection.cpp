@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Selection.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -64,6 +66,7 @@ CheckBox::CheckBox(const QString &text, QWidget *parent) : QCheckBox(text, paren
 
 void CheckBox::init()
 {
+    setFont(Private::fluentFont(14));
     setCursor(Qt::PointingHandCursor);
     setAttribute(Qt::WA_MacShowFocusRect, false);
     FluentStyleSheet::setRole(this, QStringLiteral("CheckBox"));

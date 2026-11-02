@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/ComboBox.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
@@ -198,6 +200,7 @@ ComboBox::ComboBox(QWidget *parent)
     , m_arrowAni(new ArrowAnimation(this))
 {
     setCursor(Qt::PointingHandCursor);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBox"));
 
     connect(m_arrowAni, &ArrowAnimation::yChanged, this, [this](qreal) { update(); });
@@ -1151,6 +1154,7 @@ ModelComboBox::ModelComboBox(QWidget *parent)
     , m_arrowAni(new ArrowAnimation(this))
 {
     setCursor(Qt::PointingHandCursor);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("ModelComboBox"));
     setModel(new QStandardItemModel(this));
 

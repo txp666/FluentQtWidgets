@@ -1063,6 +1063,20 @@ class BasicInputTest : public QObject
         QCOMPARE(toolActionSpy.count(), 1);
     }
 
+    // Python sets the check box font in code (setFont(self)) and comments it out of check_box.qss,
+    // so setFont() works; a style sheet font overrides it.
+    void checkBoxTakesItsFontInCode()
+    {
+        FluentQt::CheckBox checkBox(QStringLiteral("Check"));
+        checkBox.ensurePolished();
+        QCOMPARE(checkBox.font().pixelSize(), 14);
+        QFont font = checkBox.font();
+        font.setPixelSize(20);
+        checkBox.setFont(font);
+        checkBox.ensurePolished();
+        QCOMPARE(checkBox.font().pixelSize(), 20);
+    }
+
     void checkBoxSelfPaintsFluentIndicatorAndText()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
