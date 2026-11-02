@@ -390,6 +390,35 @@ class DateTimeTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python's CalendarView is a 338x383 popup holding a 314x355 panel inside 12/8/12/20 margins,
+    // with a drop shadow and a line under the header; the fast view's pages are the same panel.
+    // The port painted the whole 340x385 widget, without shadow or line, and left the fast pages
+    // transparent over the flyout's rgb(248, 248, 248).
+    void calendarViewsDrawPythonPanel()
+    {
+        FluentQt::CalendarView view(nullptr, false);
+        view.show();
+        FluentQt::FastCalendarView fastView;
+        fastView.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+        QVERIFY(QTest::qWaitForWindowExposed(&fastView));
+
+        QCOMPARE(view.size(), QSize(338, 383));
+        auto *panel = view.findChild<QFrame *>(QStringLiteral("calendarPanel"));
+        QVERIFY(panel != nullptr);
+        QCOMPARE(panel->geometry(), QRect(12, 8, 314, 355));
+        QVERIFY(qobject_cast<QGraphicsDropShadowEffect *>(panel->graphicsEffect()) != nullptr);
+
+        const QImage image = view.grab().toImage().scaled(view.size());
+        QVERIFY(image.pixelColor(2, 2).alpha() < 40);
+        QCOMPARE(image.pixelColor(12 + 157, 8 + 30), QColor(255, 255, 255));
+        QCOMPARE(image.pixelColor(12 + 157, 8 + 51), QColor(240, 240, 240));
+
+        const QImage fastImage = fastView.grab().toImage().scaled(fastView.size());
+        QCOMPARE(fastImage.pixelColor(157, 30), QColor(255, 255, 255));
+        QCOMPARE(fastImage.pixelColor(157, 51), QColor(240, 240, 240));
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;

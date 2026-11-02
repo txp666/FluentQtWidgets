@@ -16,7 +16,7 @@
 #include <QtGui/QShowEvent>
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsOpacityEffect>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -63,6 +63,16 @@ class CalendarScrollButton final : public QToolButton
     FluentIcon m_icon;
 };
 
+// Python's ScrollViewBase draws a 1 px top border between the calendar header and its items.
+QWidget *createCalendarSeparator(QWidget *parent)
+{
+    auto *separator = new QWidget(parent);
+    separator->setObjectName(QStringLiteral("calendarSeparator"));
+    separator->setAttribute(Qt::WA_StyledBackground);
+    separator->setFixedHeight(1);
+    return separator;
+}
+
 } // namespace
 
 CalendarView::CalendarView(QWidget *parent) : CalendarView(parent, true) {}
@@ -76,12 +86,24 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
     setAttribute(Qt::WA_DeleteOnClose, popup);
     FluentStyleSheet::setRole(this, QStringLiteral("CalendarView"));
 
-    auto *effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(effect);
-    effect->setOpacity(1);
+    auto *outerLayout = new QVBoxLayout(this);
+    outerLayout->setContentsMargins(12, 8, 12, 20);
+    outerLayout->setSpacing(0);
 
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(12, 8, 12, 20);
+    // Python draws the calendar on a 314x355 frame inside these margins, with a drop shadow that
+    // the margins make room for.
+    auto *panel = new QFrame(this);
+    panel->setObjectName(QStringLiteral("calendarPanel"));
+    panel->setFixedSize(314, 355);
+    auto *shadow = new QGraphicsDropShadowEffect(panel);
+    shadow->setBlurRadius(30);
+    shadow->setOffset(0, 8);
+    shadow->setColor(QColor(0, 0, 0, 30));
+    panel->setGraphicsEffect(shadow);
+    outerLayout->addWidget(panel);
+
+    auto *layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
     auto *headerLayout = new QHBoxLayout;
@@ -116,9 +138,10 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
     headerLayout->addWidget(m_upButton);
     headerLayout->addWidget(m_downButton);
     layout->addLayout(headerLayout);
+    layout->addWidget(createCalendarSeparator(panel));
 
-    m_stackedWidget = new QStackedWidget(this);
-    m_stackedWidget->setFixedSize(314, 305);
+    m_stackedWidget = new QStackedWidget(panel);
+    m_stackedWidget->setFixedSize(312, 302);
     layout->addWidget(m_stackedWidget);
     createDayPage();
     createMonthPage();
@@ -177,9 +200,7 @@ void CalendarView::exec(const QPoint &pos, bool animated)
     adjustSize();
     const QPoint targetPos = clampedPosition(pos);
     if (!animated) {
-        if (auto *effect = qobject_cast<QGraphicsOpacityEffect *>(graphicsEffect())) {
-            effect->setOpacity(1);
-        }
+        setWindowOpacity(1);
         move(targetPos);
         show();
         raise();
@@ -188,15 +209,15 @@ void CalendarView::exec(const QPoint &pos, bool animated)
 
     const QRect endGeometry(targetPos, size());
     setGeometry(endGeometry.translated(0, -8));
-    if (auto *effect = qobject_cast<QGraphicsOpacityEffect *>(graphicsEffect())) {
-        effect->setOpacity(0);
-        auto *opacityAnimation = new QPropertyAnimation(effect, "opacity", this);
-        opacityAnimation->setDuration(150);
-        opacityAnimation->setEasingCurve(QEasingCurve::OutQuad);
-        opacityAnimation->setStartValue(0.0);
-        opacityAnimation->setEndValue(1.0);
-        opacityAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-    }
+    // Python fades the popup window itself; an opacity effect here would nest the panel's
+    // shadow effect inside it, which Qt cannot grab or render.
+    setWindowOpacity(0);
+    auto *opacityAnimation = new QPropertyAnimation(this, "windowOpacity", this);
+    opacityAnimation->setDuration(150);
+    opacityAnimation->setEasingCurve(QEasingCurve::OutQuad);
+    opacityAnimation->setStartValue(0.0);
+    opacityAnimation->setEndValue(1.0);
+    opacityAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 
     auto *slideAnimation = new QPropertyAnimation(this, "geometry", this);
     slideAnimation->setDuration(150);
@@ -317,14 +338,8 @@ void CalendarView::wheelEvent(QWheelEvent *event)
 
 void CalendarView::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event)
-
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    painter.setPen(dark ? QColor(255, 255, 255, 26) : QColor(0, 0, 0, 26));
-    painter.setBrush(dark ? QColor(37, 37, 37) : QColor(255, 255, 255));
-    painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), 8, 8);
+    // The calendar panel paints itself from the style sheet; the margins around it stay clear.
+    QFrame::paintEvent(event);
 }
 
 QToolButton *CalendarView::createNavigationButton(FluentIcon icon, const QString &objectName)
@@ -360,7 +375,7 @@ void CalendarView::createDayPage()
     auto *weekDayGroup = new QWidget(m_dayPage);
     weekDayGroup->setObjectName(QStringLiteral("weekDayGroup"));
     auto *weekDayLayout = new QHBoxLayout(weekDayGroup);
-    weekDayLayout->setContentsMargins(3, 12, 3, 12);
+    weekDayLayout->setContentsMargins(3, 12, 3, 9);
     weekDayLayout->setSpacing(0);
     const QStringList weekDays = {tr("Mo"), tr("Tu"), tr("We"), tr("Th"), tr("Fr"), tr("Sa"), tr("Su")};
     for (int i = 0; i < weekDays.size(); ++i) {
@@ -403,7 +418,7 @@ void CalendarView::createMonthPage()
     pageLayout->setSpacing(0);
 
     auto *grid = new QGridLayout(m_monthGridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -431,7 +446,7 @@ void CalendarView::createYearPage()
     pageLayout->setSpacing(0);
 
     auto *grid = new QGridLayout(m_yearGridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -786,6 +801,7 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
     headerLayout->addWidget(*upButton, 0, Qt::AlignVCenter);
     headerLayout->addWidget(*downButton, 0, Qt::AlignVCenter);
     layout->addLayout(headerLayout);
+    layout->addWidget(createCalendarSeparator(page));
 
     *bodyLayout = new QVBoxLayout;
     (*bodyLayout)->setContentsMargins(0, 0, 0, 0);
@@ -813,7 +829,7 @@ void FastCalendarView::createDayPage()
     auto *weekDayGroup = new QWidget(m_dayView);
     weekDayGroup->setObjectName(QStringLiteral("weekDayGroup"));
     auto *weekDayLayout = new QHBoxLayout(weekDayGroup);
-    weekDayLayout->setContentsMargins(3, 12, 3, 12);
+    weekDayLayout->setContentsMargins(3, 12, 3, 9);
     weekDayLayout->setSpacing(0);
     const QStringList weekDays = {tr("Mo"), tr("Tu"), tr("We"), tr("Th"), tr("Fr"), tr("Sa"), tr("Su")};
     for (const QString &day : weekDays) {
@@ -861,7 +877,7 @@ void FastCalendarView::createMonthPage()
     auto *gridWidget = new QWidget(m_monthView);
     gridWidget->setObjectName(QStringLiteral("monthGrid"));
     auto *grid = new QGridLayout(gridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -896,7 +912,7 @@ void FastCalendarView::createYearPage()
     auto *gridWidget = new QWidget(m_yearView);
     gridWidget->setObjectName(QStringLiteral("yearGrid"));
     auto *grid = new QGridLayout(gridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {

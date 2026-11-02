@@ -31,9 +31,19 @@ QPushButton[fqw="CalendarPicker"][hasDate="true"] {
 }
 
 QFrame[fqw="CalendarView"] {
+    background: transparent;
+    border: none;
+}
+
+QFrame[fqw="CalendarView"] QFrame#calendarPanel {
     background-color: rgb(255, 255, 255);
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+}
+
+QFrame[fqw="CalendarView"] QWidget#calendarSeparator,
+QFrame[fqw="FastCalendarPage"] QWidget#calendarSeparator {
+    background-color: rgb(240, 240, 240);
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarTitle="true"] {
@@ -156,8 +166,9 @@ QFrame[fqw="FastCalendarView"] {
 }
 
 QFrame[fqw="FastCalendarPage"] {
-    background: transparent;
-    border: none;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
 }
 
 QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarTitle="true"] {
