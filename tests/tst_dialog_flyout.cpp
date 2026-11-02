@@ -52,7 +52,7 @@ class DialogFlyoutTest : public QObject
         m_globalState.reset();
     }
 
-    void dialogsUseFluentFramelessButtons()
+    void dialogsBuildFramelessViewsAndEmitResults()
     {
         FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
         QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("DialogPopup"));
@@ -399,7 +399,7 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(rejected.count(), 0);
     }
 
-    void colorPickerButtonUsesFluentPopup()
+    void colorDialogSizesAndCommitsOnlyOnAccept()
     {
         FluentQt::ColorDialog alphaDialog(QColor(QStringLiteral("#5012aaa2")),
                                           QStringLiteral("Background Color"), nullptr, true);
@@ -528,7 +528,7 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(changedSpy.takeFirst().at(0).toStringList(), QStringList{QStringLiteral("/tmp/podcasts")});
     }
 
-    void flyoutExposesPythonStyleViewAndFactoryApi()
+    void flyoutFactoriesSetPopupModeAndCloseOnOutsideClick()
     {
         QWidget target;
         target.resize(80, 32);

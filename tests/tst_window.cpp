@@ -108,7 +108,7 @@ class WindowTest : public QObject
         delete album;
     }
 
-    void fluentWindowHistoryNavigation()
+    void fluentWindowGoBackReturnsToPreviousInterface()
     {
         FluentQt::FluentWindow window;
         auto *home = new QWidget;
@@ -207,7 +207,7 @@ class WindowTest : public QObject
         QCOMPARE(splitWindow.titleBar()->property("navigationBackground").toBool(), false);
     }
 
-    void fluentWindowExposesMicaApi()
+    void fluentWindowMicaFollowsPlatformAvailability()
     {
         FluentQt::FluentWindow window;
         QCOMPARE(window.isMicaEffectEnabled(), false);

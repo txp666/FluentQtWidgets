@@ -677,7 +677,7 @@ class DateTimeTest : public QObject
         QVERIFY(selectedFastDay->property("selected").toBool());
     }
 
-    void pickerBaseExposesPythonStyleColumnsAndPanel()
+    void pickerPanelTracksColumnValuesAndConfirms()
     {
         FluentQt::PickerColumnFormatter formatter;
         QCOMPARE(formatter.encode(QVariant(QStringLiteral("June"))), QStringLiteral("June"));
@@ -911,7 +911,7 @@ class DateTimeTest : public QObject
         QCoreApplication::removeTranslator(&chineseTranslator);
     }
 
-    void pickerPopupsUseListColumns()
+    void pickersOpenTheirPanelsAndApplyTheChoice()
     {
         FluentQt::CalendarPicker calendarPicker;
         calendarPicker.show();
@@ -1059,7 +1059,7 @@ class DateTimeTest : public QObject
         QTRY_VERIFY(timePanelGuard.isNull());
     }
 
-    void cycleListWidgetMatchesPythonPickerColumnBehavior()
+    void cycleListWidgetCyclesLongListsAndStopsShortOnes()
     {
         FluentQt::CycleListWidget shortList(QStringList{QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("C")},
                                             QSize(50, 20), Qt::AlignCenter);

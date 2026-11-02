@@ -57,7 +57,7 @@ class ViewTest : public QObject
         m_globalState.reset();
     }
 
-    void itemViewsExposeFluentState()
+    void itemViewsExposeRolesDelegatesAndOverlayPolicies()
     {
         FluentQt::ListWidget list;
         list.addItems({QStringLiteral("First"), QStringLiteral("Second")});
@@ -553,7 +553,7 @@ class ViewTest : public QObject
                                                                      secondColor.name(QColor::HexArgb))));
     }
 
-    void treeCheckBoxPaintsInsideStyleIndicatorRect()
+    void treeCheckBoxSitsLeftOfTheText()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 

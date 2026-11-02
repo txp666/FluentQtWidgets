@@ -520,7 +520,7 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
-    void proButtonVariantsExposeRolesAndSeverity()
+    void portOnlyButtonsExposeRolesAndSeverity()
     {
         HyperlinkToolButton hyperlink(icon(FluentIcon::GitHub), QStringLiteral("https://example.com"));
         QCOMPARE(hyperlink.property("fqw").toString(), QStringLiteral("HyperlinkToolButton"));
@@ -648,7 +648,7 @@ class BasicInputTest : public QObject
         verifyArrowAnimation(&animatedPrimaryTool);
     }
 
-    void dropDownButtonPopupUsesRoundMenuSizing()
+    void dropDownButtonMenuIsAtLeastButtonWideAndTriggers()
     {
         FluentQt::DropDownPushButton button(QStringLiteral("Actions"));
         button.resize(180, 32);
@@ -1130,7 +1130,7 @@ class BasicInputTest : public QObject
         QVERIFY(customTextPixels > 0);
     }
 
-    void switchButtonExposesPythonParityApiAndThemeTextStyle()
+    void switchButtonTracksTextIndicatorAndColours()
     {
         FluentQt::SwitchButton button(QStringLiteral("Disabled"), nullptr, FluentQt::IndicatorPosition::Right);
         QCOMPARE(button.property("fqw").toString(), QStringLiteral("SwitchButton"));
@@ -1383,7 +1383,7 @@ class BasicInputTest : public QObject
         }
     }
 
-    void slidersTrackPythonParityGeometryAndClicking()
+    void sliderHandleGeometryAndClickToValue()
     {
         FluentQt::Slider slider(Qt::Horizontal);
         slider.setRange(0, 100);

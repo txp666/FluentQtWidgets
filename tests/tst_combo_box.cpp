@@ -218,7 +218,7 @@ class ComboBoxTest : public QObject
         QVERIFY(graySum / sampled < 130);
     }
 
-    void comboBoxPlaceholderAndInsertMatchPythonBehavior()
+    void comboPlaceholderShowsUntilSelectionAndInsertClampsIndex()
     {
         FluentQt::ComboBox combo;
         combo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});

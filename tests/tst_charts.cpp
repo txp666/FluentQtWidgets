@@ -304,7 +304,7 @@ class ChartsTest : public QObject
         QCOMPARE(plot.points().last().y(), 3.0);
     }
 
-    void realtimePlotWidgetBatchesMultiSeriesSamples()
+    void realtimePlotWidgetClampsRefreshRateAndBatchesSeries()
     {
         FluentQt::RealtimePlotWidget plot;
         QCOMPARE(plot.refreshRate(), 60);

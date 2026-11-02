@@ -512,7 +512,7 @@ class NavigationTest : public QObject
 
     // As in Python: a click on an unselected, selectable parent opens it and never closes it, and
     // a click on the arrow toggles it without selecting the item.
-    void navigationTreeParentClicksFollowPython()
+    void navigationTreeRowClickOpensAndArrowClickToggles()
     {
         FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Folder"));
         root.insertChild(-1, new FluentQt::NavigationTreeWidget(QIcon(), QStringLiteral("Child")));
@@ -742,7 +742,7 @@ class NavigationTest : public QObject
         QVERIFY(!history.canGoBack(&stack));
     }
 
-    void navigationControlsTrackCurrentItems()
+    void pivotSegmentedAndBreadcrumbTrackCurrentItems()
     {
         FluentQt::Pivot pivot;
         QVERIFY(pivot.addItem(QStringLiteral("home"), QStringLiteral("Home")) != nullptr);

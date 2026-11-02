@@ -285,7 +285,7 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Quit"), QStringLiteral("Quit"));
     }
 
-    void languageReloadDoesNotDeleteStackWindow()
+    void languageChangeReopensGalleryAndKeepsOldWindowAlive()
     {
         auto *app = qobject_cast<QApplication *>(QCoreApplication::instance());
         QVERIFY(app != nullptr);

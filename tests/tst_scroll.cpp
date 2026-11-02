@@ -198,7 +198,7 @@ class ScrollTest : public QObject
         QCoreApplication::processEvents();
     }
 
-    void scrollAreasExposeFluentPolicies()
+    void scrollBarsAndScrollAreasExposePythonApi()
     {
         FluentQt::ScrollBar bar(Qt::Vertical);
         QCOMPARE(bar.property("fqw").toString(), QStringLiteral("ScrollBar"));

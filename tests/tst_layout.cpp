@@ -137,7 +137,7 @@ class LayoutTest : public QObject
         QCOMPARE(layout->count(), 2);
     }
 
-    void adaptiveAndExpandLayoutsMatchPythonGeometry()
+    void adaptiveFlowAndExpandLayoutsPlaceWidgets()
     {
         QWidget adaptiveParent;
         FluentQt::AdaptiveFlowLayout adaptiveLayout(&adaptiveParent);
@@ -208,7 +208,7 @@ class LayoutTest : public QObject
         QCOMPARE(expandLayout.count(), 1);
     }
 
-    void vBoxLayoutTracksWidgetsLikePythonReference()
+    void vBoxLayoutAddRemoveDeleteKeepWidgetList()
     {
         QWidget parent;
         FluentQt::VBoxLayout layout(&parent);
@@ -260,7 +260,7 @@ class LayoutTest : public QObject
         QCOMPARE(layout->widgets().size(), 0);
     }
 
-    void separatorsMatchPythonMetricsAndThemeColors()
+    void separatorsAreThreePixelsAndPaintInBothThemes()
     {
         auto render = [](QWidget &widget, const QColor &background) {
             widget.ensurePolished();

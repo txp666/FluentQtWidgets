@@ -146,7 +146,7 @@ class TextTest : public QObject
         QCOMPARE(remoteAvatar.size(), QSize(96, 96));
     }
 
-    void pixmapLabelHandlesEmptyAndHighDpiPixmapPainting()
+    void pixmapLabelPaintsAndSizesToItsPixmap()
     {
         FluentQt::PixmapLabel label;
         label.resize(24, 24);
@@ -384,7 +384,7 @@ class TextTest : public QObject
         manager->setTheme(previousTheme);
     }
 
-    void lineEditExposesPythonStylePropertiesAndActionHelpers()
+    void lineEditPlacesActionButtonsAndCompleterMenus()
     {
         FluentQt::LineEdit editor;
         QCOMPARE(editor.property("fqw").toString(), QStringLiteral("LineEdit"));
@@ -467,7 +467,7 @@ class TextTest : public QObject
         QCOMPARE(editor.textMargins().right(), 0);
     }
 
-    void editContextMenusExposePythonStyleActions()
+    void editMenusOfferActionsForSelectionAndClipboard()
     {
         auto actionTexts = [](FluentQt::RoundMenu &menu) {
             QStringList texts;
@@ -634,7 +634,7 @@ class TextTest : public QObject
         QCOMPARE(menu.menuActions().size(), 3);
     }
 
-    void spinBoxesExposePythonParityControlApi()
+    void spinBoxesTrackErrorReadOnlyAndAcceleration()
     {
         auto verifySharedState = [](auto &spin, const QString &role) {
             QCOMPARE(spin.property("fqw").toString(), role);

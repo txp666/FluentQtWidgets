@@ -75,7 +75,7 @@ class StatusInfoTest : public QObject
         m_globalState.reset();
     }
 
-    void infoBarExposesPythonIconApiAndWidgets()
+    void infoBarTracksIconSeverityAndFactories()
     {
         FluentQt::InfoBarIconWidget iconWidget(FluentQt::InfoBarIcon::Information);
         QCOMPARE(iconWidget.icon(), FluentQt::InfoBarIcon::Information);
@@ -700,7 +700,7 @@ class StatusInfoTest : public QObject
         QTRY_VERIFY(tip.isNull());
     }
 
-    void progressIndicatorsExposePythonParityApi()
+    void progressIndicatorsTrackColoursAnimationsAndStates()
     {
         FluentQt::ProgressBar bar(nullptr, false);
         QCOMPARE(bar.property("fqw").toString(), QStringLiteral("ProgressBar"));
@@ -873,7 +873,7 @@ class StatusInfoTest : public QObject
         QVERIFY2(qAbs(share - 0.5) <= 0.03, qPrintable(QString::number(share)));
     }
 
-    void wrappedTextKeepsSurrogatePairsTogether()
+    void infoBarWrapKeepsSurrogatePairsTogether()
     {
         QWidget parent;
         parent.resize(400, 300);
