@@ -34,7 +34,7 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 </table>
 
 <p align="center">
-  <img src="docs/images/gallery/PixPin_2026-07-02_11-23-30.gif" alt="FluentQtWidgets Gallery 演示" width="860">
+  <img src="docs/images/gallery/gallery-tour.gif" alt="FluentQtWidgets Gallery 演示" width="860">
 </p>
 
 <table>

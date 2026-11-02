@@ -34,7 +34,7 @@ It is a **C++/Qt Widgets port** of the Python [PyQt-Fluent-Widgets](https://gith
 </table>
 
 <p align="center">
-  <img src="docs/images/gallery/PixPin_2026-07-02_11-23-30.gif" alt="FluentQtWidgets Gallery demo" width="860">
+  <img src="docs/images/gallery/gallery-tour.gif" alt="FluentQtWidgets Gallery demo" width="860">
 </p>
 
 <table>

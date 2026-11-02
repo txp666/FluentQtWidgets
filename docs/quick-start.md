@@ -12,8 +12,9 @@ How to build FluentQtWidgets, run the Gallery and the examples, and use the libr
 
 ## Build
 
-The CMake options are `FQW_BUILD_EXAMPLES` (on by default), `FQW_BUILD_TESTS` (off by default) and
-`FQW_BUILD_SHARED` (on by default). Any generator works:
+The CMake options are `FQW_BUILD_EXAMPLES` (on by default), `FQW_BUILD_TESTS` (off by default),
+`FQW_BUILD_SHARED` (on by default) and `FQW_BUILD_SCREENSHOTS` (off by default; the README image renderers in
+`tools/screenshots`). Any generator works:
 
 ```bash
 cmake -S . -B build -DCMAKE_PREFIX_PATH=<path-to-qt> -DFQW_BUILD_TESTS=ON

@@ -58,6 +58,9 @@ Only add assets with clear licensing. Resources copied from PyQt-Fluent-Widgets 
 recorded in `THIRD_PARTY_NOTICES.md`. Do not import demo music, photos, fonts or third-party screenshots without a
 licence note.
 
+The README screenshots and the Gallery tour GIF are rendered by `tools/screenshots`
+([README](tools/screenshots/README.md)); render them again there when a change alters what they show.
+
 ## Validation Checklist
 
 - Builds on at least one Qt 6 kit, and the tests pass (`ctest --preset debug --output-on-failure`)

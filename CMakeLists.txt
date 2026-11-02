@@ -44,6 +44,7 @@ endif()
 option(FQW_BUILD_SHARED "Build FluentQtWidgets as a shared library" ON)
 option(FQW_BUILD_EXAMPLES "Build examples" ON)
 option(FQW_BUILD_TESTS "Build tests" OFF)
+option(FQW_BUILD_SCREENSHOTS "Build the tools that render the README screenshots" OFF)
 set(FQW_QT_MAJOR_VERSION "6" CACHE STRING "Qt major version to use")
 set_property(CACHE FQW_QT_MAJOR_VERSION PROPERTY STRINGS 6 5)
 
@@ -355,6 +356,10 @@ if(FQW_BUILD_EXAMPLES)
     add_subdirectory(examples/text)
     add_subdirectory(examples/view)
     add_subdirectory(examples/window)
+endif()
+
+if(FQW_BUILD_SCREENSHOTS)
+    add_subdirectory(tools/screenshots)
 endif()
 
 if(FQW_BUILD_TESTS)
