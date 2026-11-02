@@ -217,9 +217,7 @@ class MenuTest : public QObject
         QVERIFY(item);
         QTRY_VERIFY(item->width() > 20);
 
-        QImage image(item->size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        item->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QImage image = FqwTest::render(item, Qt::transparent, QWidget::DrawChildren);
         int left = image.width();
         int right = -1;
         int strongest = 0;

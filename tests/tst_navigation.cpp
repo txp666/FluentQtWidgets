@@ -243,9 +243,7 @@ class NavigationTest : public QObject
 
         QVERIFY(!navigation.panel()->property("transparent").toBool());
 
-        QImage image(navigation.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        navigation.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QImage image = FqwTest::render(navigation, Qt::transparent, QWidget::DrawChildren);
         QCOMPARE(image.pixelColor(8, 100).alpha(), 0);
 
         theme->setTheme(previousTheme);
@@ -323,9 +321,7 @@ class NavigationTest : public QObject
         item.resize(40, 36);
 
         auto iconCenterX = [](QWidget *widget) {
-            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            widget->render(&image);
+            const QImage image = FqwTest::render(widget);
 
             int left = image.width();
             int right = -1;
@@ -356,9 +352,7 @@ class NavigationTest : public QObject
 
         auto renderedChannels = [&item, theme](FluentQt::Theme value) {
             theme->setTheme(value);
-            QImage image(item.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            item.render(&image);
+            const QImage image = FqwTest::render(item);
 
             int paintedPixels = 0;
             int channelTotal = 0;
@@ -449,9 +443,7 @@ class NavigationTest : public QObject
     void navigationTextIsClippedNotElidedAsInPython()
     {
         const auto inkAtCapHeight = [](QWidget *widget, int from, int to) {
-            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::white);
-            widget->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(widget, Qt::white, QWidget::DrawChildren);
             for (int x = from; x < to; ++x) {
                 for (int y = 9; y < 17; ++y) {
                     if (qGray(image.pixel(x, y)) < 160) {
@@ -558,9 +550,7 @@ class NavigationTest : public QObject
         QCOMPARE(child->indicatorRect(), QRectF(28, 10, 3, 16));
 
         child->setSelected(true);
-        QImage image(child->size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        child->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QImage image = FqwTest::render(child, Qt::transparent, QWidget::DrawChildren);
         const QColor accent = theme->accentColor();
         const QColor indicator = image.pixelColor(29, 18);
         QVERIFY(qAbs(indicator.red() - accent.red()) < 8 && qAbs(indicator.green() - accent.green()) < 8);
@@ -581,9 +571,7 @@ class NavigationTest : public QObject
 
         // Hidden, so the window system adds no enter or leave events of its own.
         const auto rowAlpha = [&root]() {
-            QImage image(root.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            root.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(root, Qt::transparent, QWidget::DrawChildren);
             return image.pixelColor(150, 18).alpha();
         };
 
@@ -849,9 +837,7 @@ class NavigationTest : public QObject
 
         // Painted 6 px lower: the red icon's top edge moves from y = 13 to 19 or so.
         const auto iconTop = [home]() {
-            QImage image(home->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            home->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(home, Qt::transparent, QWidget::DrawChildren);
             for (int y = 0; y < image.height(); ++y) {
                 for (int x = 22; x < 42; ++x) {
                     const QColor c = image.pixelColor(x, y);
@@ -886,9 +872,7 @@ class NavigationTest : public QObject
         bar.setCurrentItem(QStringLiteral("home"));
 
         const auto strongestAlpha = [](QWidget *item) {
-            QImage image(item->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            item->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(item, Qt::transparent, QWidget::DrawChildren);
             int strongest = 0;
             for (int y = 13; y < 33; ++y) {
                 for (int x = 22; x < 42; ++x) {
@@ -1150,9 +1134,7 @@ class NavigationTest : public QObject
 
         // The icon sits in the middle, as a ToolButton draws it.
         auto *plain = new SegmentedToolItem(icon(FluentIcon::Mail, QColor(Qt::red)));
-        QImage image(plain->size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        plain->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QImage image = FqwTest::render(plain, Qt::transparent, QWidget::DrawChildren);
         QRect ink;
         for (int y = 0; y < image.height(); ++y) {
             for (int x = 0; x < image.width(); ++x) {
@@ -1268,9 +1250,7 @@ class NavigationTest : public QObject
         bar.setCurrentIndex(1);
         bar.show();
         QVERIFY(QTest::qWaitForWindowExposed(&bar));
-        QImage image(bar.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        bar.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QImage image = FqwTest::render(bar, Qt::transparent, QWidget::DrawChildren);
         const QPoint origin = bar.tabItem(1)->mapTo(&bar, QPoint());
         QCOMPARE(image.pixelColor(origin + QPoint(60, 30)), QColor(0, 0, 255));
         bool redText = false;
@@ -1302,9 +1282,7 @@ class NavigationTest : public QObject
             const QPoint addPos = bar.addButton()->mapTo(&bar, QPoint());
             QCOMPARE(addPos.x(), 5 + 2 * 240 + 5 + 3);
 
-            QImage image(bar.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            bar.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(bar, Qt::transparent, QWidget::DrawChildren);
             const QPoint origin = selected->mapTo(&bar, QPoint());
             const QColor card = image.pixelColor(origin + QPoint(60, 18));
             const int grey = theme == Theme::Dark ? 40 : 249;

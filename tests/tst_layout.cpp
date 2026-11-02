@@ -262,14 +262,6 @@ class LayoutTest : public QObject
 
     void separatorsAreThreePixelsAndPaintInBothThemes()
     {
-        auto render = [](QWidget &widget, const QColor &background) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(background);
-            widget.render(&pixmap);
-            return pixmap.toImage();
-        };
-
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
         FluentQt::HorizontalSeparator horizontal;
@@ -277,7 +269,7 @@ class LayoutTest : public QObject
         QCOMPARE(horizontal.property("fqw").toString(), QStringLiteral("HorizontalSeparator"));
         QCOMPARE(horizontal.height(), 3);
 
-        QImage horizontalImage = render(horizontal, Qt::white);
+        QImage horizontalImage = FqwTest::render(horizontal, Qt::white);
         int lightPaintedPixels = 0;
         for (int y = 0; y < horizontalImage.height(); ++y) {
             for (int x = 0; x < horizontalImage.width(); ++x) {
@@ -294,7 +286,7 @@ class LayoutTest : public QObject
         QCOMPARE(vertical.property("fqw").toString(), QStringLiteral("VerticalSeparator"));
         QCOMPARE(vertical.width(), 3);
 
-        QImage verticalImage = render(vertical, Qt::white);
+        QImage verticalImage = FqwTest::render(vertical, Qt::white);
         int verticalPaintedPixels = 0;
         for (int y = 0; y < verticalImage.height(); ++y) {
             for (int x = 0; x < verticalImage.width(); ++x) {
@@ -307,7 +299,7 @@ class LayoutTest : public QObject
         QVERIFY(verticalPaintedPixels > 0);
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Dark);
-        horizontalImage = render(horizontal, Qt::black);
+        horizontalImage = FqwTest::render(horizontal, Qt::black);
         int darkPaintedPixels = 0;
         for (int y = 0; y < horizontalImage.height(); ++y) {
             for (int x = 0; x < horizontalImage.width(); ++x) {

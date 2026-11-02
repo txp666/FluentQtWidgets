@@ -73,11 +73,6 @@ class BasicInputTest : public QObject
                                               + primary.iconSize().width() + 32);
         QCOMPARE(primary.minimumSizeHint(), primary.sizeHint());
 
-        auto filledIcon = [](const QColor &color) {
-            QPixmap pixmap(16, 16);
-            pixmap.fill(color);
-            return QIcon(pixmap);
-        };
 
         FluentQt::PushButton dynamicButton(QStringLiteral("Dynamic"));
         QVERIFY(dynamicButton.metaObject()->indexOfProperty("isPressed") >= 0);
@@ -85,7 +80,7 @@ class BasicInputTest : public QObject
         QVERIFY(!dynamicButton.isPressed());
         QVERIFY(!dynamicButton.isHover());
         QCOMPARE(dynamicButton.property("hasIcon").toBool(), false);
-        dynamicButton.setIcon(filledIcon(Qt::red));
+        dynamicButton.setIcon(FqwTest::solidIcon(Qt::red));
         QCOMPARE(dynamicButton.property("hasIcon").toBool(), true);
         dynamicButton.setIcon(QIcon());
         QCOMPARE(dynamicButton.property("hasIcon").toBool(), false);
@@ -99,7 +94,7 @@ class BasicInputTest : public QObject
         QVERIFY(link.metaObject()->indexOfProperty("isPressed") >= 0);
         QVERIFY(link.metaObject()->indexOfProperty("isHover") >= 0);
         QCOMPARE(link.property("hasIcon").toBool(), false);
-        link.setIcon(filledIcon(Qt::green));
+        link.setIcon(FqwTest::solidIcon(Qt::green));
         QCOMPARE(link.property("hasIcon").toBool(), true);
         link.setIcon(QIcon());
         QCOMPARE(link.property("hasIcon").toBool(), false);
@@ -110,7 +105,7 @@ class BasicInputTest : public QObject
         QTest::mouseRelease(&stateLink, Qt::LeftButton);
         QVERIFY(!stateLink.isPressed());
 
-        FluentQt::ToolButton pressedTool(filledIcon(Qt::blue));
+        FluentQt::ToolButton pressedTool(FqwTest::solidIcon(Qt::blue));
         QVERIFY(pressedTool.metaObject()->indexOfProperty("isPressed") >= 0);
         QVERIFY(pressedTool.metaObject()->indexOfProperty("isHover") >= 0);
         QVERIFY(!pressedTool.isPressed());
@@ -122,7 +117,7 @@ class BasicInputTest : public QObject
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
         FluentQt::PrimaryPushButton tintedPrimary(QStringLiteral("Primary"));
-        tintedPrimary.setIcon(filledIcon(Qt::red));
+        tintedPrimary.setIcon(FqwTest::solidIcon(Qt::red));
         QCOMPARE(tintedPrimary.property("hasIcon").toBool(), true);
 
         // The icon keeps its own colour; the accent style tints only the text.
@@ -305,12 +300,6 @@ class BasicInputTest : public QObject
     {
         auto *manager = ThemeManager::instance();
         const Theme previousTheme = manager->theme();
-        const auto render = [](QWidget *button, const QColor &backdrop) {
-            QImage image(button->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(backdrop);
-            button->render(&image);
-            return image;
-        };
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             const bool dark = theme == Theme::Dark;
@@ -324,7 +313,7 @@ class BasicInputTest : public QObject
             const QPoint beside(arrow.left() - 3, button.height() / 2);
 
             // The arrow's most covered pixel when enabled, and how much it covers.
-            const QImage enabled = render(&button, backdrop);
+            const QImage enabled = FqwTest::render(&button, backdrop);
             const int enabledBack = qGray(enabled.pixel(beside));
             QPoint strongest;
             int strongestDelta = 0;
@@ -341,7 +330,7 @@ class BasicInputTest : public QObject
             QVERIFY(coverage > 0.3);
 
             button.setEnabled(false);
-            const QImage disabled = render(&button, backdrop);
+            const QImage disabled = FqwTest::render(&button, backdrop);
             const int disabledBack = qGray(disabled.pixel(beside));
             const qreal opacity =
                 qAbs(qGray(disabled.pixel(strongest)) - disabledBack) / (coverage * qAbs(arrowGray - disabledBack));
@@ -351,7 +340,7 @@ class BasicInputTest : public QObject
             primary.ensurePolished();
             primary.resize(primary.sizeHint());
             primary.setEnabled(false);
-            const QImage primaryImage = render(&primary, backdrop);
+            const QImage primaryImage = FqwTest::render(&primary, backdrop);
             const int primaryBack = qGray(primaryImage.pixel(beside));
             int brightest = 0;
             for (int y = arrow.top(); y <= arrow.bottom(); ++y) {
@@ -588,28 +577,9 @@ class BasicInputTest : public QObject
 
         auto averageArrowGray = [](QWidget &widget, int minimumGray, int maximumGray) {
             widget.resize(160, 32);
-            widget.ensurePolished();
-
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-
-            const QImage image = pixmap.toImage();
+            const QImage image = FqwTest::render(widget);
             const QRect arrowRect(widget.width() - 22, widget.height() / 2 - 5, 10, 10);
-            int sampled = 0;
-            int graySum = 0;
-            for (int y = arrowRect.top(); y <= arrowRect.bottom(); ++y) {
-                for (int x = arrowRect.left(); x <= arrowRect.right(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    const int gray = qGray(color.rgb());
-                    if (color.alpha() > 0 && gray >= minimumGray && gray <= maximumGray) {
-                        ++sampled;
-                        graySum += gray;
-                    }
-                }
-            }
-
-            return sampled > 0 ? graySum / sampled : -1;
+            return FqwTest::averageGray(image, arrowRect, minimumGray, maximumGray);
         };
 
         FluentQt::DropDownPushButton button(QStringLiteral("Email"));
@@ -696,27 +666,9 @@ class BasicInputTest : public QObject
     void splitButtonsExposePrimaryVariantsAndDropRoles()
     {
         auto averageSplitArrowGray = [](QToolButton *button, int minimumGray, int maximumGray) {
-            button->ensurePolished();
-
-            QPixmap pixmap(button->size());
-            pixmap.fill(Qt::transparent);
-            button->render(&pixmap);
-
-            const QImage image = pixmap.toImage();
+            const QImage image = FqwTest::render(button);
             const QRect arrowRect((image.width() - 10) / 2, image.height() / 2 - 5, 10, 10);
-            int sampled = 0;
-            int graySum = 0;
-            for (int y = arrowRect.top(); y <= arrowRect.bottom(); ++y) {
-                for (int x = arrowRect.left(); x <= arrowRect.right(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    const int gray = qGray(color.rgb());
-                    if (color.alpha() > 0 && gray >= minimumGray && gray <= maximumGray) {
-                        ++sampled;
-                        graySum += gray;
-                    }
-                }
-            }
-            return sampled > 0 ? graySum / sampled : -1;
+            return FqwTest::averageGray(image, arrowRect, minimumGray, maximumGray);
         };
 
         auto solidIcon = [](const QColor &color) {
@@ -732,13 +684,7 @@ class BasicInputTest : public QObject
         };
 
         auto countPixelsNear = [](QToolButton *button, const QColor &expected) {
-            button->ensurePolished();
-
-            QPixmap pixmap(button->size());
-            pixmap.fill(Qt::transparent);
-            button->render(&pixmap);
-
-            const QImage image = pixmap.toImage();
+            const QImage image = FqwTest::render(button);
             int matched = 0;
             for (int y = 0; y < image.height(); ++y) {
                 for (int x = 0; x < image.width(); ++x) {
@@ -1000,14 +946,6 @@ class BasicInputTest : public QObject
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
-        auto render = [](QWidget &widget) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-            return pixmap.toImage();
-        };
-
         FluentQt::CheckBox checkBox(QStringLiteral("Fluent CheckBox"));
         QVERIFY(checkBox.metaObject()->indexOfProperty("lightCheckedColor") >= 0);
         QVERIFY(checkBox.metaObject()->indexOfProperty("darkCheckedColor") >= 0);
@@ -1022,7 +960,7 @@ class BasicInputTest : public QObject
         checkBox.resize(160, 24);
         checkBox.setChecked(true);
 
-        QImage image = render(checkBox);
+        QImage image = FqwTest::render(checkBox);
         const QRect indicatorRect(1, 3, 18, 18);
         int accentPixels = 0;
         int whiteIconPixels = 0;
@@ -1050,7 +988,7 @@ class BasicInputTest : public QObject
 
         checkBox.setTristate(true);
         checkBox.setCheckState(Qt::PartiallyChecked);
-        image = render(checkBox);
+        image = FqwTest::render(checkBox);
         whiteIconPixels = 0;
         for (int y = indicatorRect.top(); y <= indicatorRect.bottom(); ++y) {
             for (int x = indicatorRect.left(); x <= indicatorRect.right(); ++x) {
@@ -1064,7 +1002,7 @@ class BasicInputTest : public QObject
 
         checkBox.setCheckState(Qt::Unchecked);
         checkBox.setTextColor(QColor(QStringLiteral("#cc1122")), QColor(QStringLiteral("#22cc11")));
-        image = render(checkBox);
+        image = FqwTest::render(checkBox);
         const QRect textRect(28, 0, image.width() - 28, image.height());
         int customTextPixels = 0;
         for (int y = textRect.top(); y <= textRect.bottom(); ++y) {
@@ -1081,14 +1019,6 @@ class BasicInputTest : public QObject
     void radioButtonSelfPaintsFluentIndicatorAndText()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
-
-        auto render = [](QWidget &widget) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-            return pixmap.toImage();
-        };
 
         FluentQt::RadioButton radio(QStringLiteral("Fluent RadioButton"));
         QVERIFY(radio.metaObject()->indexOfProperty("lightIndicatorColor") >= 0);
@@ -1107,7 +1037,7 @@ class BasicInputTest : public QObject
         QCOMPARE(radio.darkIndicatorColor(), QColor(QStringLiteral("#22cc11")));
         radio.setTextColor(QColor(QStringLiteral("#3355cc")), QColor(QStringLiteral("#22cc11")));
 
-        const QImage image = render(radio);
+        const QImage image = FqwTest::render(radio);
         const QRect indicatorRect(1, 1, 21, 22);
         int customIndicatorPixels = 0;
         int customTextPixels = 0;
@@ -1181,11 +1111,7 @@ class BasicInputTest : public QObject
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
         auto sampleTrackColor = [indicator]() {
-            indicator->ensurePolished();
-            QPixmap pixmap(indicator->size());
-            pixmap.fill(Qt::transparent);
-            indicator->render(&pixmap);
-            return pixmap.toImage().pixelColor(32, indicator->height() / 2);
+            return FqwTest::render(indicator).pixelColor(32, indicator->height() / 2);
         };
         auto fuzzyCompareColor = [](const QColor &actual, const QColor &expected) {
             return qAbs(actual.red() - expected.red()) <= 2 && qAbs(actual.green() - expected.green()) <= 2 &&

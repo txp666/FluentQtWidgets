@@ -509,9 +509,7 @@ class DialogFlyoutTest : public QObject
         box.setMaskColor(QColor(0, 0, 0, 0));
         box.setGeometry(parent.rect());
         box.layout()->activate();
-        QImage image(box.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        box.render(&image, QPoint(), QRegion(), QWidget::DrawWindowBackground);
+        const QImage image = FqwTest::render(box, Qt::transparent, QWidget::DrawWindowBackground);
 
         const QRect frame = box.widget()->geometry();
         const int x = frame.center().x();
@@ -1347,10 +1345,7 @@ class DialogFlyoutTest : public QObject
         QVERIFY(qobject_cast<QGraphicsDropShadowEffect *>(bubble->graphicsEffect()) != nullptr);
         bubble->setGraphicsEffect(nullptr);
 
-        QImage image(bubble->size(), QImage::Format_ARGB32_Premultiplied);
-        QVERIFY(!image.isNull());
-        image.fill(Qt::transparent);
-        bubble->render(&image);
+        const QImage image = FqwTest::render(bubble);
 
         QVERIFY(qAlpha(image.pixel(0, 0)) < 32);
 

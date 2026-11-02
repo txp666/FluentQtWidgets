@@ -192,30 +192,11 @@ class ComboBoxTest : public QObject
         FluentQt::ComboBox combo;
         combo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
         combo.resize(160, 32);
-        combo.ensurePolished();
-
-        QPixmap pixmap(combo.size());
-        pixmap.fill(Qt::transparent);
-        combo.render(&pixmap);
-
-        const QImage image = pixmap.toImage();
+        const QImage image = FqwTest::render(combo);
         const QRect arrowRect(combo.width() - 22, combo.height() / 2 - 5, 10, 10);
-        int sampled = 0;
-        int graySum = 0;
-        for (int y = arrowRect.top(); y <= arrowRect.bottom(); ++y) {
-            for (int x = arrowRect.left(); x <= arrowRect.right(); ++x) {
-                const QColor color = image.pixelColor(x, y);
-                const int gray = qGray(color.rgb());
-                if (color.alpha() > 0 && gray < 180) {
-                    ++sampled;
-                    graySum += gray;
-                }
-            }
-        }
-
-        QVERIFY(sampled > 0);
-        QVERIFY(graySum / sampled > 40);
-        QVERIFY(graySum / sampled < 130);
+        const int gray = FqwTest::averageGray(image, arrowRect, 0, 179);
+        QVERIFY(gray > 40);
+        QVERIFY(gray < 130);
     }
 
     void comboPlaceholderShowsUntilSelectionAndInsertClampsIndex()

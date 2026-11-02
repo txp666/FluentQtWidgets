@@ -156,13 +156,6 @@ class DateTimeTest : public QObject
     // own border colours, `:pressed` never matched a QFrame, and the column colours drifted.
     void dateAndTimePickersUsePythonColours()
     {
-        const auto render = [](QWidget *widget) {
-            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::black);
-            widget->render(&image, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
-            return image;
-        };
-
         auto *manager = FluentQt::ThemeManager::instance();
         const FluentQt::Theme previousTheme = manager->theme();
         manager->setTheme(FluentQt::Theme::Light);
@@ -179,11 +172,11 @@ class DateTimeTest : public QObject
         for (QFrame *picker : {static_cast<QFrame *>(datePicker), static_cast<QFrame *>(timePicker)}) {
             const QString name = QString::fromLatin1(picker->metaObject()->className());
             const QPoint probe(picker->width() - 5, picker->height() / 2);
-            const QImage released = render(picker);
+            const QImage released = FqwTest::render(picker, Qt::black);
             releasedImages.append(released);
             QTest::mousePress(picker, Qt::LeftButton, Qt::NoModifier, probe);
             QVERIFY(picker->property("pressed").toBool());
-            const QImage pressed = render(picker);
+            const QImage pressed = FqwTest::render(picker, Qt::black);
             QVERIFY2(pressed.pixelColor(probe).red() < released.pixelColor(probe).red() - 40, qPrintable(name));
             QCOMPARE(picker->size(), released.size());
             // Undo the press by hand: a release would open the panel.
@@ -196,9 +189,7 @@ class DateTimeTest : public QObject
             QVERIFY(!columns.isEmpty());
             QPushButton *column = columns.first();
             const auto darkestText = [column]() {
-                QImage image(column->size(), QImage::Format_ARGB32_Premultiplied);
-                image.fill(Qt::white);
-                column->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+                const QImage image = FqwTest::render(column, Qt::white, QWidget::DrawChildren);
                 int darkest = 255;
                 for (int y = 0; y < image.height(); ++y) {
                     for (int x = 0; x < image.width() - 2; ++x) {
@@ -1200,9 +1191,7 @@ class DateTimeTest : public QObject
                 QFrame *view = panel.view();
                 view->setGraphicsEffect(nullptr);
                 view->show();
-                QImage image(view->size(), QImage::Format_ARGB32_Premultiplied);
-                image.fill(Qt::transparent);
-                view->render(&image);
+                const QImage image = FqwTest::render(view);
                 const QWidget *horizontal = panel.horizontalSeparatorWidget();
                 QCOMPARE(image.pixelColor(horizontal->geometry().center()), line);
                 const auto separators = view->findChildren<FluentQt::SeparatorWidget *>();
@@ -1232,9 +1221,7 @@ class DateTimeTest : public QObject
             FluentQt::ScrollButton *button = panel.listWidgets().first()->upButton();
             QCOMPARE(button->fluentIcon(), FluentQt::FluentIcon::CareUpSolid);
             button->show();
-            QImage image(button->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            button->render(&image);
+            const QImage image = FqwTest::render(button);
             QCOMPARE(image.pixelColor(10, button->height() / 2), plate);
         }
         manager->setTheme(previousTheme);

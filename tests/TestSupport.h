@@ -7,14 +7,18 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
+#include <QtCore/QTemporaryDir>
 #include <QtGui/QColor>
+#include <QtGui/QIcon>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
+#include <QtGui/QPixmap>
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
 
 #include <functional>
+#include <memory>
 
 namespace FqwTest {
 
@@ -38,6 +42,14 @@ class GlobalState
         m_micaEnabled = config->isMicaEnabled();
         m_acrylicBlurRadius = config->acrylicBlurRadius();
         m_autoUpdateEnabled = config->isAutoUpdateEnabled();
+    }
+
+    // Points the configuration at a file in a temporary directory, so that code which saves it (the
+    // Gallery's setting cards) never writes the user's real configuration file.
+    void useTemporaryConfigFile()
+    {
+        m_configDir = std::make_unique<QTemporaryDir>();
+        FluentQt::FluentConfig::instance()->setFileName(m_configDir->filePath(QStringLiteral("fluentqtwidgets.json")));
     }
 
     GlobalState(const GlobalState &) = delete;
@@ -80,6 +92,7 @@ class GlobalState
     bool m_micaEnabled = false;
     int m_acrylicBlurRadius = 0;
     bool m_autoUpdateEnabled = false;
+    std::unique_ptr<QTemporaryDir> m_configDir;
 };
 
 // Only the posted deleteLater() calls.
@@ -140,14 +153,47 @@ inline QWidget *findVisibleTopLevelByRole(const QString &role)
     return nullptr;
 }
 
-// The widget painted at one image pixel per logical pixel, on a transparent background.
-inline QImage render(QWidget &widget, const QColor &background = Qt::transparent)
+// The visible widget with the given Fluent role anywhere in the application, top-level or not, or nullptr.
+// Mask dialogs (MessageBox, MessageBoxBase, Dialog's mask, ColorDialog...) are child overlays of their
+// parent window, which findVisibleTopLevelByRole() cannot see.
+inline QWidget *findVisibleWidgetByRole(const QString &role)
+{
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget *widget : widgets) {
+        if (widget->isVisible() && widget->property("fqw").toString() == role) {
+            return widget;
+        }
+    }
+    return nullptr;
+}
+
+// The visible widget of type T anywhere in the application, top-level or not, or nullptr.
+template <typename T> T *findVisibleWidget()
+{
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget *widget : widgets) {
+        if (auto *candidate = qobject_cast<T *>(widget); candidate && candidate->isVisible()) {
+            return candidate;
+        }
+    }
+    return nullptr;
+}
+
+// The widget painted at one image pixel per logical pixel, on a transparent background by default.
+inline QImage render(QWidget &widget, const QColor &background = Qt::transparent,
+                     QWidget::RenderFlags flags = QWidget::DrawWindowBackground | QWidget::DrawChildren)
 {
     widget.ensurePolished();
     QImage image(widget.size(), QImage::Format_ARGB32_Premultiplied);
     image.fill(background);
-    widget.render(&image);
+    widget.render(&image, QPoint(), QRegion(), flags);
     return image;
+}
+
+inline QImage render(QWidget *widget, const QColor &background = Qt::transparent,
+                     QWidget::RenderFlags flags = QWidget::DrawWindowBackground | QWidget::DrawChildren)
+{
+    return render(*widget, background, flags);
 }
 
 // How many pixels of the image (or of one area of it) match.
@@ -170,6 +216,46 @@ inline int countPixels(const QImage &image, const std::function<bool(const QColo
 inline bool hasPaintedPixel(const QImage &image)
 {
     return countPixels(image, [](const QColor &color) { return color.alpha() > 0; }) > 0;
+}
+
+// The average grey of the painted pixels of one area whose grey lies in [minimumGray, maximumGray], or -1
+// when there are none. Used to tell an icon's colour from the background around it.
+inline int averageGray(const QImage &image, const QRect &area, int minimumGray, int maximumGray)
+{
+    const QRect bounds = area.intersected(image.rect());
+    int sampled = 0;
+    int graySum = 0;
+    for (int y = bounds.top(); y <= bounds.bottom(); ++y) {
+        for (int x = bounds.left(); x <= bounds.right(); ++x) {
+            const QColor color = image.pixelColor(x, y);
+            const int gray = qGray(color.rgb());
+            if (color.alpha() > 0 && gray >= minimumGray && gray <= maximumGray) {
+                ++sampled;
+                graySum += gray;
+            }
+        }
+    }
+    return sampled > 0 ? graySum / sampled : -1;
+}
+
+// Closes every top-level widget of type T and runs the deletions that causes.
+template <typename T> void closeTopLevels()
+{
+    const auto widgets = QApplication::topLevelWidgets();
+    for (QWidget *widget : widgets) {
+        if (auto *candidate = qobject_cast<T *>(widget)) {
+            candidate->close();
+        }
+    }
+    drainDeferredDeletes();
+}
+
+// A 16 x 16 icon filled with one colour, easy to find in a rendered widget.
+inline QIcon solidIcon(const QColor &color)
+{
+    QPixmap pixmap(16, 16);
+    pixmap.fill(color);
+    return QIcon(pixmap);
 }
 
 // A text resource or file, or an empty string when it cannot be read.

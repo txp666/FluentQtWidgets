@@ -253,18 +253,10 @@ class TextTest : public QObject
     void labelTextColorWinsOverStyleSheet()
     {
         auto countPixels = [](QWidget &widget, const QColor &target) {
-            const QImage image = widget.grab().toImage();
-            int count = 0;
-            for (int y = 0; y < image.height(); ++y) {
-                for (int x = 0; x < image.width(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    if (qAbs(color.red() - target.red()) < 40 && qAbs(color.green() - target.green()) < 40 &&
-                        qAbs(color.blue() - target.blue()) < 40) {
-                        ++count;
-                    }
-                }
-            }
-            return count;
+            return FqwTest::countPixels(widget.grab().toImage(), [&target](const QColor &color) {
+                return qAbs(color.red() - target.red()) < 40 && qAbs(color.green() - target.green()) < 40 &&
+                       qAbs(color.blue() - target.blue()) < 40;
+            });
         };
 
         auto *manager = ThemeManager::instance();
@@ -309,44 +301,20 @@ class TextTest : public QObject
 
     void lineEditButtonKeepsActionIconsInFluentPaintPath()
     {
-        auto filledIcon = [](const QColor &color) {
-            QPixmap pixmap(16, 16);
-            pixmap.fill(color);
-            return QIcon(pixmap);
-        };
 
-        auto countPixels = [](QWidget &widget, const std::function<bool(const QColor &)> &predicate) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-
-            const QImage image = pixmap.toImage();
-            int count = 0;
-            for (int y = 0; y < image.height(); ++y) {
-                for (int x = 0; x < image.width(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    if (color.alpha() > 0 && predicate(color)) {
-                        ++count;
-                    }
-                }
-            }
-            return count;
-        };
-
-        FluentQt::LineEditButton button(filledIcon(Qt::red));
+        FluentQt::LineEditButton button(FqwTest::solidIcon(Qt::red));
         button.resize(31, 23);
 
-        QAction action(filledIcon(Qt::red), QStringLiteral("Action"), &button);
+        QAction action(FqwTest::solidIcon(Qt::red), QStringLiteral("Action"), &button);
         button.setAction(&action);
         QVERIFY(button.icon().isNull());
-        QVERIFY(countPixels(button, [](const QColor &color) {
+        QVERIFY(FqwTest::countPixels(FqwTest::render(button), [](const QColor &color) {
                     return color.red() > 200 && color.green() < 80 && color.blue() < 80;
                 }) > 80);
 
-        action.setIcon(filledIcon(Qt::green));
+        action.setIcon(FqwTest::solidIcon(Qt::green));
         QVERIFY(button.icon().isNull());
-        QVERIFY(countPixels(button, [](const QColor &color) {
+        QVERIFY(FqwTest::countPixels(FqwTest::render(button), [](const QColor &color) {
                     return color.green() > 120 && color.red() < 80 && color.blue() < 80;
                 }) > 80);
 

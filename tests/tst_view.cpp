@@ -448,9 +448,7 @@ class ViewTest : public QObject
     {
         auto *manager = ThemeManager::instance();
         auto centerAlpha = [](QWidget &card) {
-            QImage image(card.size(), QImage::Format_ARGB32);
-            image.fill(Qt::transparent);
-            card.render(&image);
+            const QImage image = FqwTest::render(card);
             return image.pixelColor(image.rect().center()).alpha();
         };
         auto enter = [](QWidget &card) {
@@ -799,9 +797,7 @@ class ViewTest : public QObject
             if (!QTest::qWaitFor([&] { return view.nextButtonOpacity() == 1.0; })) {
                 return -1;
             }
-            QImage image(view.size(), QImage::Format_ARGB32);
-            image.fill(Qt::white);
-            view.render(&image);
+            const QImage image = FqwTest::render(view, Qt::white);
             int darkest = 255;
             for (int y = next.top(); y <= next.bottom(); ++y) {
                 for (int x = next.left(); x <= next.right(); ++x) {

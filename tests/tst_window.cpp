@@ -500,9 +500,7 @@ class WindowTest : public QObject
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        window.render(&image);
+        const QImage image = FqwTest::render(window);
 
         const QPoint stackTopLeft = window.stackedWidget()->mapTo(&window, QPoint(0, 0));
         const QColor roundedCorner = image.pixelColor(stackTopLeft + QPoint(1, 1));
@@ -574,9 +572,7 @@ class WindowTest : public QObject
             QCOMPARE(button->size(), QSize(46, 32));
             QCOMPARE(button->iconSize(), QSize(10, 10));
 
-            QImage image(button->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            button->render(&image);
+            const QImage image = FqwTest::render(button);
 
             QVERIFY(FqwTest::hasPaintedPixel(image));
         }

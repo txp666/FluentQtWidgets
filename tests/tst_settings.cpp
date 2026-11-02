@@ -187,9 +187,7 @@ class SettingsTest : public QObject
             QCOMPARE(card->contentLabel()->palette().color(QPalette::WindowText),
                      dark ? QColor(208, 208, 208) : QColor(96, 96, 96));
 
-            QImage image(card->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            card->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(card, Qt::transparent, QWidget::DrawChildren);
             QCOMPARE(image.pixelColor(card->width() / 2, 35).alpha(), dark ? 13 : 170);
             // The 1 px pen sits on the inset rectangle, half a pixel inside the edge; the old style
             // sheet border filled the outermost column.
@@ -316,9 +314,7 @@ class SettingsTest : public QObject
             ColorSettingCard card(QColor(Qt::red), FluentIcon::Home, QStringLiteral("Accent"));
             ColorPickerButton *picker = card.colorPicker();
             QCOMPARE(picker->title(), QStringLiteral("Accent"));
-            QImage image(picker->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            picker->render(&image, QPoint(), QRegion(), QWidget::RenderFlags());
+            const QImage image = FqwTest::render(picker, Qt::transparent, QWidget::RenderFlags());
             const QColor edge = image.pixelColor(picker->width() / 2, 0);
             if (theme == Theme::Dark) {
                 QVERIFY2(edge.alpha() < 20, qPrintable(edge.name(QColor::HexArgb)));

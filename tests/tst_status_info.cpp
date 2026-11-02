@@ -91,9 +91,7 @@ class StatusInfoTest : public QObject
         iconWidget.setIcon(FluentQt::icon(FluentQt::FluentIcon::GitHub));
         QVERIFY(!iconWidget.customIcon().isNull());
 
-        QImage image(iconWidget.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        iconWidget.render(&image);
+        const QImage image = FqwTest::render(iconWidget);
         QVERIFY(FqwTest::hasPaintedPixel(image));
 
         FluentQt::InfoBar bar(FluentQt::InfoBarIcon::Information, QStringLiteral("Title"),
@@ -302,9 +300,7 @@ class StatusInfoTest : public QObject
             badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
             badge.ensurePolished();
             badge.adjustSize();
-            QImage image(badge.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            badge.render(&image);
+            const QImage image = FqwTest::render(badge);
             int darkest = 255;
             int lightest = 0;
             for (int y = 0; y < image.height(); ++y) {
@@ -336,9 +332,7 @@ class StatusInfoTest : public QObject
         IconInfoBadge badge(FluentIcon::Accept, InfoLevel::Attention);
         badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
         const auto iconExtremes = [&badge]() {
-            QImage image(badge.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            badge.render(&image);
+            const QImage image = FqwTest::render(badge);
             int darkest = 255;
             int lightest = 0;
             for (int y = 4; y < 12; ++y) {
@@ -449,9 +443,7 @@ class StatusInfoTest : public QObject
         auto *manager = ThemeManager::instance();
         const Theme previousTheme = manager->theme();
         const auto paintedValues = [](QWidget *widget, const QRect &area) {
-            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            widget->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QImage image = FqwTest::render(widget, Qt::transparent, QWidget::DrawChildren);
             int lightest = 0;
             int darkest = 255;
             for (int y = area.top(); y <= area.bottom(); ++y) {
@@ -656,9 +648,7 @@ class StatusInfoTest : public QObject
             tip.ensurePolished();
             tip.container()->ensurePolished();
             tip.adjustSize();
-            QImage image(tip.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            tip.render(&image);
+            const QImage image = FqwTest::render(tip);
             const QRect container = tip.container()->geometry();
             const QColor pixel = image.pixelColor(container.left() + 4, container.center().y());
             QCOMPARE(pixel.rgb(), background.rgb());
