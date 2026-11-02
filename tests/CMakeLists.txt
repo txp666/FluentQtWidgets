@@ -56,6 +56,12 @@ endif()
 fqw_add_widget_test(tst_python_parity)
 target_compile_definitions(tst_python_parity PRIVATE FQW_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 set_tests_properties(tst_python_parity PROPERTIES LABELS "python_parity;smoke")
+# The test runs offscreen on every platform; deployments such as windeployqt's carry only the native
+# platform plugin, so point it at Qt's own platform plugins.
+if(TARGET ${FQW_QT_PACKAGE}::QOffscreenIntegrationPlugin)
+    set_property(TEST tst_python_parity APPEND PROPERTY ENVIRONMENT
+                 "QT_QPA_PLATFORM_PLUGIN_PATH=$<TARGET_FILE_DIR:${FQW_QT_PACKAGE}::QOffscreenIntegrationPlugin>")
+endif()
 set_tests_properties(tst_qss PROPERTIES LABELS "qss;smoke")
 
 if(WIN32)

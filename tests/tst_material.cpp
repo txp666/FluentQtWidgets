@@ -161,7 +161,11 @@ class MaterialTest : public QObject
         const QString path = dir.filePath(QStringLiteral("acrylic.png"));
         QVERIFY(lcgImage(300, 150).save(path));
 
+        // A child of a host, not a window: Windows keeps top-level windows at least about 120 px wide.
+        QWidget host;
+        host.resize(400, 300);
         FluentQt::AcrylicLabel label(2, QColor(105, 114, 168, 102));
+        label.setParent(&host);
         QVERIFY(qobject_cast<QLabel *>(&label) != nullptr);
         QCOMPARE(label.blurRadius(), 2);
         QVERIFY(!label.maxBlurSize().isValid());
@@ -174,7 +178,8 @@ class MaterialTest : public QObject
         QVERIFY(!texture->noiseImage().isNull());
         QVERIFY(texture->testAttribute(Qt::WA_TranslucentBackground));
 
-        label.show();
+        host.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&host));
         label.setImage(path);
         QCOMPARE(label.imagePath(), path);
         QTRY_VERIFY(!label.blurPixmap().isNull());

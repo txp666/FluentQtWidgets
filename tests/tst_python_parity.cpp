@@ -44,6 +44,7 @@
 #include <FluentQtWidgets/Widgets/SwitchButton.h>
 #include <FluentQtWidgets/Widgets/TabView.h>
 #include <FluentQtWidgets/Widgets/TeachingTip.h>
+#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonDocument>
@@ -852,7 +853,10 @@ class PythonParityTest : public QObject
 // AA_Use96Dpi is ignored by the styles on macOS, so there is no native setup that matches.
 int main(int argc, char *argv[])
 {
-    qputenv("QT_QPA_PLATFORM", "offscreen:configfile=" FQW_TEST_DATA_DIR "/parity_offscreen.json");
+    // Qt splits platform arguments at colons, so a Windows drive letter would cut an absolute path in two:
+    // pass the config file relative to the data directory instead.
+    QDir::setCurrent(QStringLiteral(FQW_TEST_DATA_DIR));
+    qputenv("QT_QPA_PLATFORM", "offscreen:configfile=parity_offscreen.json");
     qunsetenv("QT_SCALE_FACTOR");
     QApplication app(argc, argv);
     PythonParityTest test;

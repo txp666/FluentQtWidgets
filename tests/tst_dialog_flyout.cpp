@@ -764,12 +764,24 @@ class DialogFlyoutTest : public QObject
             }
 
             alphaDialogInspected = true;
+            // A failed check returns from here: close the dialog then, or its event loop never ends.
+            const auto closeOnFailure = qScopeGuard([alphaPopupDialog]() {
+                if (alphaPopupDialog->isVisible()) {
+                    alphaPopupDialog->cancelButton()->click();
+                }
+            });
             QCOMPARE(alphaPopupDialog->titleLabel()->text(), QStringLiteral("Choose color"));
             QCOMPARE(alphaPopupDialog->color().name(), QStringLiteral("#112233"));
-            QCOMPARE(alphaPopupDialog->widget()->size(), QSize(488, 736));
+            // Like Python's, the dialog shrinks to a short window and scrolls; the full 736 px needs the
+            // host's 800 px, which a small screen (Windows CI's) cuts short.
+            if (alphaPopupDialog->window()->height() >= 800) {
+                QCOMPARE(alphaPopupDialog->widget()->size(), QSize(488, 736));
+                QCOMPARE(alphaPopupDialog->scrollArea()->verticalScrollBar()->maximum(), 0);
+            } else {
+                QVERIFY(alphaPopupDialog->widget()->height() <= alphaPopupDialog->window()->height());
+            }
             QCOMPARE(alphaPopupDialog->scrollWidget()->size(), QSize(440, 600));
             QCOMPARE(alphaPopupDialog->buttonGroup()->size(), QSize(486, 81));
-            QCOMPARE(alphaPopupDialog->scrollArea()->verticalScrollBar()->maximum(), 0);
             QVERIFY(!alphaPopupDialog->opacityLineEdit()->isHidden());
             alphaPopupDialog->setColor(QColor(QStringLiteral("#80445566")));
             alphaPopupDialog->yesButton()->click();
@@ -1263,10 +1275,14 @@ class DialogFlyoutTest : public QObject
             QVERIFY(content);
             QVERIFY(!content->wordWrap());
             QVERIFY(!view.findChild<QLabel *>(QStringLiteral("titleLabel"))->wordWrap());
-            // One line, as tall as its text: the font's height where it has every glyph, the label's own
-            // hint where a fallback font draws some of them.
-            QCOMPARE(content->height(), FqwTest::hasPythonMeasurementFont(content) ? content->fontMetrics().height()
-                                                                                   : content->sizeHint().height());
+            // One line, as tall as its text. With Python's font that is the font's height; with others (a
+            // fallback font drawing some glyphs, Linux CI) only "at least its hint, under two lines" holds.
+            if (FqwTest::hasPythonMeasurementFont(content)) {
+                QCOMPARE(content->height(), content->fontMetrics().height());
+            } else {
+                QVERIFY(content->height() >= content->sizeHint().height());
+                QVERIFY(content->height() < 2 * content->fontMetrics().height());
+            }
             auto *image = view.findChild<FluentQt::ImageLabel *>();
             QVERIFY(image);
             if (tail == FluentQt::TeachingTipTailPosition::Bottom) {

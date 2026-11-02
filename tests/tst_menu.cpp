@@ -183,10 +183,12 @@ class MenuTest : public QObject
             const QSize hint = menu->layout()->sizeHint();
             menu->adjustSize();
             menu->move(available.right() - 10, available.bottom() - 10);
+            // adjustPosition() runs as the menu is shown; whether the platform then exposes a menu parked
+            // in the screen corner (Windows CI does not) is not what this checks.
             menu->show();
-            QVERIFY(QTest::qWaitForWindowExposed(menu));
-            QCOMPARE(menu->x(), available.right() - (hint.width() + 5));
-            QCOMPARE(menu->y(), available.bottom() - 10 - hint.height() + menu->layout()->contentsMargins().bottom());
+            QTRY_COMPARE(menu->x(), available.right() - (hint.width() + 5));
+            QTRY_COMPARE(menu->y(),
+                         available.bottom() - 10 - hint.height() + menu->layout()->contentsMargins().bottom());
             menu->hide();
         }
     }

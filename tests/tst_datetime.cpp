@@ -1280,7 +1280,10 @@ class DateTimeTest : public QObject
         column->setSelectedItem(QStringLiteral("10"));
         const int row = column->currentCycleIndex();
         QCOMPARE(column->currentItem()->text(), QStringLiteral("10"));
-        QVERIFY(qAbs(column->verticalScrollBar()->value() - 37 * (row - column->visibleNumber() / 2)) <= 1);
+        // Some styles (Windows) only size the scroll range when the column is shown.
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        QTRY_VERIFY(qAbs(column->verticalScrollBar()->value() - 37 * (row - column->visibleNumber() / 2)) <= 1);
     }
 
   private:
