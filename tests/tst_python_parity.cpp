@@ -105,8 +105,7 @@ const std::vector<Expectation> kPending = {
     // Buttons
     {"ColorPickerButton/default", "sizeHint.w sizeHint.h", "hint 27x27, Python 24x23 (both fixed in size)"},
     // Selection
-    {"Slider/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h", "default orientation horizontal, Python's (QSlider's) vertical"},
-    {"ClickableSlider/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.h", "default orientation horizontal, Python's (QSlider's) vertical"},
+    {"ClickableSlider/default", "size.w sizeHint.w minimumSize.w", "slider.qss's min-width: 24px; Python applies no style sheet"},
     // Combo boxes
     // Spin boxes, date and time
     {"SpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},

@@ -1354,6 +1354,15 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python's Slider(parent) and ClickableSlider(parent) keep QSlider's vertical default.
+    void slidersDefaultToVerticalAsQSliderDoes()
+    {
+        const Slider slider;
+        QCOMPARE(slider.orientation(), Qt::Vertical);
+        const ClickableSlider clickable;
+        QCOMPARE(clickable.orientation(), Qt::Vertical);
+    }
+
     // The hint's thickness is the style's, capped at the 22 px handle: Python's QSlider hint is 22
     // in Qt 5's macOS style and 20 in Fusion at 100 DPI, but Qt 6's macOS style hints 25.
     void sliderHintIsNoThickerThanItsHandle()

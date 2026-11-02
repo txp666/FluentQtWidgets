@@ -119,10 +119,7 @@ void SliderHandle::paintEvent(QPaintEvent * /*event*/)
 // Slider
 // ============================================================================
 
-Slider::Slider(QWidget *parent) : QSlider(Qt::Horizontal, parent)
-{
-    postInit();
-}
+Slider::Slider(QWidget *parent) : QSlider(parent) { postInit(); }
 
 Slider::Slider(Qt::Orientation orientation, QWidget *parent) : QSlider(orientation, parent)
 {
@@ -332,7 +329,7 @@ void Slider::resizeEvent(QResizeEvent *event)
 // ClickableSlider
 // ============================================================================
 
-ClickableSlider::ClickableSlider(QWidget *parent) : QSlider(Qt::Horizontal, parent)
+ClickableSlider::ClickableSlider(QWidget *parent) : QSlider(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("ClickableSlider"));
 }
