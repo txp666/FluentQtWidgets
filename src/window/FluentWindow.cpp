@@ -33,6 +33,8 @@
 
 #include <functional>
 
+#include <functional>
+
 #if defined(Q_OS_WIN)
 #include <windows.h>
 #include <windowsx.h>
@@ -115,16 +117,6 @@ void updateRoundedWindowMask(QWidget *widget)
     path.addRoundedRect(QRectF(widget->rect()), kWindowCornerRadius, kWindowCornerRadius);
     widget->setMask(QRegion(path.toFillPolygon().toPolygon()));
 #endif
-}
-
-void setTitleBarNavigationBackground(FluentTitleBar *titleBar, bool visible)
-{
-    if (!titleBar) {
-        return;
-    }
-
-    titleBar->setProperty("navigationBackground", visible);
-    FluentStyleSheet::polish(titleBar);
 }
 
 // Python's title bars place the window icon and title differently: FluentTitleBar starts at its
@@ -327,16 +319,11 @@ void enableWindowAnimation(QWidget *) {}
 void syncDwmWindowAttributes(QWidget *, bool, bool = false) {}
 #endif
 
-QColor windowBackgroundColor()
+// Python's FluentWidget background without Mica: the light or dark colour of the window, which also
+// shows through the transparent title bar and navigation interface.
+QColor windowBackgroundColor(const QColor &light, const QColor &dark)
 {
-    return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(32, 32, 32) : QColor(249, 249, 249);
-}
-
-// FluentWindow's surface around the page stack: behind the navigation interface (transparent, as
-// Python's) and the title bar, in the colour of the title bar's navigation background.
-QColor navigationBackgroundColor()
-{
-    return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(32, 32, 32) : QColor(243, 243, 243);
+    return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? dark : light;
 }
 
 QColor micaHitTestBackgroundColor()
@@ -387,7 +374,8 @@ void beginThemeRefresh(QWidget *window, bool micaEnabled, QTimer *refresh)
 class NavigationCornerBackdrop final : public QWidget
 {
   public:
-    NavigationCornerBackdrop(QWidget *parent, QStackedWidget *stack) : QWidget(parent), m_stack(stack)
+    NavigationCornerBackdrop(QWidget *parent, QStackedWidget *stack, std::function<QColor()> color)
+        : QWidget(parent), m_stack(stack), m_color(std::move(color))
     {
         setAttribute(Qt::WA_TranslucentBackground, true);
         setAttribute(Qt::WA_TransparentForMouseEvents, true);
@@ -432,11 +420,10 @@ class NavigationCornerBackdrop final : public QWidget
         outside.addRect(QRectF(rect()));
         outside.addPath(surface);
 
-        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing, true);
         painter.setPen(Qt::NoPen);
-        painter.fillPath(outside, dark ? QColor(32, 32, 32) : QColor(243, 243, 243));
+        painter.fillPath(outside, m_color());
     }
 
   private:
@@ -448,6 +435,7 @@ class NavigationCornerBackdrop final : public QWidget
     }
 
     QPointer<QStackedWidget> m_stack;
+    std::function<QColor()> m_color;
 };
 
 } // namespace
@@ -679,7 +667,6 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     m_frameless = std::make_unique<FramelessWindowHelper>(this);
     m_history = new NavigationHistory(this);
     m_titleBar = new FluentTitleBar(this);
-    setTitleBarNavigationBackground(m_titleBar, true);
     setTitleBarIconPlacement(m_titleBar, 0, 0, 4);
     m_frameless->setTitleBar(m_titleBar);
 
@@ -702,7 +689,7 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     m_widgetLayout->addWidget(m_stackedWidget);
     layout->addWidget(m_navigation);
     layout->addLayout(m_widgetLayout, 1);
-    new NavigationCornerBackdrop(m_container, m_stackedWidget);
+    new NavigationCornerBackdrop(m_container, m_stackedWidget, [this]() { return backgroundColor(); });
     setCentralWidget(m_container);
 
     connect(m_navigation->panel(), &NavigationPanel::itemClicked, this, [this](const QString &routeKey) {
@@ -866,6 +853,23 @@ QWidget *FluentWindow::findInterface(const QString &routeKey) const
 
 bool FluentWindow::isMicaEffectEnabled() const { return m_isMicaEnabled; }
 
+QColor FluentWindow::lightBackgroundColor() const { return m_lightBackgroundColor; }
+
+QColor FluentWindow::darkBackgroundColor() const { return m_darkBackgroundColor; }
+
+QColor FluentWindow::backgroundColor() const
+{
+    return m_isMicaEnabled ? micaHitTestBackgroundColor()
+                           : windowBackgroundColor(m_lightBackgroundColor, m_darkBackgroundColor);
+}
+
+void FluentWindow::setCustomBackgroundColor(const QColor &light, const QColor &dark)
+{
+    m_lightBackgroundColor = light;
+    m_darkBackgroundColor = dark;
+    update();
+}
+
 void FluentWindow::setMicaEffectEnabled(bool enabled)
 {
     const bool nextEnabled = enabled && isMicaEffectAvailable();
@@ -959,7 +963,7 @@ void FluentWindow::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setPen(Qt::NoPen);
-    const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
+    const QColor background = backgroundColor();
     painter.setBrush(background);
 
     QPainterPath path;
@@ -976,13 +980,6 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     }
     painter.drawPath(path);
 #endif
-
-    // The navigation's strip, left of the page stack, in the title bar's navigation colour.
-    if (!m_isMicaEnabled && m_stackedWidget) {
-        const int stackLeft = m_stackedWidget->mapTo(this, QPoint(0, 0)).x();
-        painter.setClipPath(path);
-        painter.fillRect(QRect(0, 0, stackLeft, height()), navigationBackgroundColor());
-    }
 }
 
 void FluentWindow::resizeEvent(QResizeEvent *event)
@@ -1071,7 +1068,6 @@ void FluentWindow::updateWindowMask()
 
 SplitFluentWindow::SplitFluentWindow(QWidget *parent) : FluentWindow(parent)
 {
-    setTitleBarNavigationBackground(titleBar(), false);
     setTitleBarIconPlacement(titleBar(), 46 + 12, 0, 5);
     setTitleBarLeftMargin(0);
     setContentTopMargin(0);
@@ -1146,6 +1142,23 @@ QString MSFluentWindow::currentRouteKey() const
 }
 
 bool MSFluentWindow::isMicaEffectEnabled() const { return m_isMicaEnabled; }
+
+QColor MSFluentWindow::lightBackgroundColor() const { return m_lightBackgroundColor; }
+
+QColor MSFluentWindow::darkBackgroundColor() const { return m_darkBackgroundColor; }
+
+QColor MSFluentWindow::backgroundColor() const
+{
+    return m_isMicaEnabled ? micaHitTestBackgroundColor()
+                           : windowBackgroundColor(m_lightBackgroundColor, m_darkBackgroundColor);
+}
+
+void MSFluentWindow::setCustomBackgroundColor(const QColor &light, const QColor &dark)
+{
+    m_lightBackgroundColor = light;
+    m_darkBackgroundColor = dark;
+    update();
+}
 
 void MSFluentWindow::setMicaEffectEnabled(bool enabled)
 {
@@ -1312,7 +1325,7 @@ void MSFluentWindow::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setPen(Qt::NoPen);
-    const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
+    const QColor background = backgroundColor();
     painter.setBrush(background);
 
 #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)

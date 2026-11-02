@@ -117,6 +117,11 @@ class FQW_API FluentWindow : public QMainWindow
     QWidget *currentInterface() const;
     QString currentRouteKey() const;
     bool isMicaEffectEnabled() const;
+    // Python's FluentWindowBase colours without Mica: rgb(240, 244, 249) light, rgb(32, 32, 32) dark.
+    QColor lightBackgroundColor() const;
+    QColor darkBackgroundColor() const;
+    QColor backgroundColor() const;
+    void setCustomBackgroundColor(const QColor &light, const QColor &dark);
 
   public slots:
     void setMicaEffectEnabled(bool enabled);
@@ -163,6 +168,8 @@ class FQW_API FluentWindow : public QMainWindow
     int m_titleBarLeftMargin = -1;
     int m_contentTopMargin = 48;
     bool m_isMicaEnabled = false;
+    QColor m_lightBackgroundColor = QColor(240, 244, 249);
+    QColor m_darkBackgroundColor = QColor(32, 32, 32);
 };
 
 class FQW_API SplitFluentWindow : public FluentWindow
@@ -187,6 +194,11 @@ class FQW_API MSFluentWindow : public QMainWindow
     QWidget *currentInterface() const;
     QString currentRouteKey() const;
     bool isMicaEffectEnabled() const;
+    // Python's FluentWindowBase colours without Mica: rgb(240, 244, 249) light, rgb(32, 32, 32) dark.
+    QColor lightBackgroundColor() const;
+    QColor darkBackgroundColor() const;
+    QColor backgroundColor() const;
+    void setCustomBackgroundColor(const QColor &light, const QColor &dark);
 
     int addSubInterface(QWidget *widget, const QIcon &icon, const QString &text,
                         const QIcon &selectedIcon = QIcon(),
@@ -228,6 +240,8 @@ class FQW_API MSFluentWindow : public QMainWindow
     std::unique_ptr<FramelessWindowHelper> m_frameless;
     QList<QString> m_routeOrder;
     bool m_isMicaEnabled = false;
+    QColor m_lightBackgroundColor = QColor(240, 244, 249);
+    QColor m_darkBackgroundColor = QColor(32, 32, 32);
 };
 
 } // namespace FluentQt

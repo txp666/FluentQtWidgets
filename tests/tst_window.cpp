@@ -240,7 +240,6 @@ class WindowTest : public QObject
         normalWindow.show();
         QVERIFY(QTest::qWaitForWindowExposed(&normalWindow));
         QVERIFY(normalWindow.titleBar()->x() >= FluentQt::NavigationPanel::kCompactWidth);
-        QCOMPARE(normalWindow.titleBar()->property("navigationBackground").toBool(), true);
 
         FluentQt::SplitFluentWindow splitWindow;
         splitWindow.resize(480, 360);
@@ -248,7 +247,60 @@ class WindowTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&splitWindow));
         QCOMPARE(splitWindow.titleBar()->x(), 0);
         QCOMPARE(splitWindow.titleBar()->width(), splitWindow.width());
-        QCOMPARE(splitWindow.titleBar()->property("navigationBackground").toBool(), false);
+    }
+
+    // Python's FluentWindowBase paints the whole window rgb(240, 244, 249) (rgb(32, 32, 32) dark)
+    // without Mica; the title bar and the navigation interface are transparent over it. The port
+    // painted the window rgb(249, 249, 249) and the title bar and navigation strip rgb(243, 243, 243).
+    void fluentWindowsPaintPythonsBackground()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        FluentQt::FluentWindow fluent;
+        FluentQt::SplitFluentWindow split;
+        FluentQt::MSFluentWindow ms;
+        const QList<QMainWindow *> windows{&fluent, &split, &ms};
+        for (QMainWindow *window : windows) {
+            window->resize(900, 620);
+            window->show();
+            QVERIFY(QTest::qWaitForWindowExposed(window));
+        }
+        const auto sample = [](QMainWindow *window, const QPoint &point) {
+            return window->grab().toImage().pixelColor(point);
+        };
+        for (const auto &[theme, expected] : {std::pair{FluentQt::Theme::Light, QColor(240, 244, 249)},
+                                              std::pair{FluentQt::Theme::Dark, QColor(32, 32, 32)}}) {
+            manager->setTheme(theme);
+            QCoreApplication::processEvents();
+            for (QMainWindow *window : windows) {
+                // The top left corner, the navigation below its last item and the title bar right of
+                // its title (SplitFluentWindow's page stack runs under its title bar, as in Python).
+                QList<QPoint> points{QPoint(20, 4), QPoint(20, window->height() - 120)};
+                if (window != &split) {
+                    points << QPoint(window->width() / 2, 4);
+                }
+                for (const QPoint &point : points) {
+                    const QColor actual = sample(window, point);
+                    const QByteArray label =
+                        QStringLiteral("%1 (%2) at %3,%4: %5")
+                            .arg(QLatin1String(window->metaObject()->className()), FluentQt::themeName(theme))
+                            .arg(point.x())
+                            .arg(point.y())
+                            .arg(actual.name())
+                            .toUtf8();
+                    QVERIFY2(actual == expected, label.constData());
+                }
+            }
+        }
+        QCOMPARE(fluent.lightBackgroundColor(), QColor(240, 244, 249));
+        QCOMPARE(ms.darkBackgroundColor(), QColor(32, 32, 32));
+
+        // Python's setCustomBackgroundColor() on the window.
+        manager->setTheme(FluentQt::Theme::Light);
+        fluent.setCustomBackgroundColor(QColor(10, 20, 30), QColor(40, 50, 60));
+        ms.setCustomBackgroundColor(QColor(10, 20, 30), QColor(40, 50, 60));
+        QCoreApplication::processEvents();
+        QCOMPARE(sample(&fluent, QPoint(fluent.width() / 2, 4)), QColor(10, 20, 30));
+        QCOMPARE(sample(&ms, QPoint(ms.width() / 2, 4)), QColor(10, 20, 30));
     }
 
     void fluentWindowMicaFollowsPlatformAvailability()
@@ -416,7 +468,7 @@ class WindowTest : public QObject
         QStackedWidget *stack = window.stackedWidget();
         QVERIFY(stack);
         const QPoint stackOrigin = stack->mapTo(&window, QPoint(0, 0));
-        const QColor navigationSurface(243, 243, 243);
+        const QColor navigationSurface(240, 244, 249);
         QImage rendered(window.size(), QImage::Format_ARGB32_Premultiplied);
         rendered.fill(Qt::transparent);
         window.render(&rendered);
@@ -428,7 +480,7 @@ class WindowTest : public QObject
         QCoreApplication::processEvents();
         rendered.fill(Qt::transparent);
         window.render(&rendered);
-        QCOMPARE(rendered.pixelColor(stackOrigin), QColor(249, 249, 249));
+        QCOMPARE(rendered.pixelColor(stackOrigin), navigationSurface);
 
         theme->setTheme(previousTheme);
     }
@@ -959,10 +1011,11 @@ class WindowTest : public QObject
         const QString navigationSheet = window.navigationInterface()->styleSheet();
         const QString stackSheet = stack->styleSheet();
         const auto titleBarColor = [&window]() {
-            const QImage image = window.titleBar()->grab().toImage();
-            return image.pixelColor(image.width() / 2, 2);
+            const QImage image = window.grab().toImage();
+            const QPoint centre = window.titleBar()->geometry().center();
+            return image.pixelColor(centre.x(), window.titleBar()->y() + 2);
         };
-        QCOMPARE(titleBarColor(), QColor(243, 243, 243));
+        QCOMPARE(titleBarColor(), QColor(240, 244, 249));
 
         manager->setTheme(FluentQt::Theme::Dark);
         QCOMPARE(window.styleSheet(), windowSheet);
