@@ -17,6 +17,7 @@ class QLabel;
 class QVBoxLayout;
 class QHBoxLayout;
 class QPropertyAnimation;
+class QVariantAnimation;
 class QGraphicsDropShadowEffect;
 
 namespace FluentQt {
@@ -64,11 +65,21 @@ protected:
     virtual QColor selectedBackgroundColor() const;
     QColor borderColor() const;
 
+    // The background of the current state, or the colour on the way to it while it fades in.
+    QColor backgroundColor() const;
+    // Fades the background to the current state's colour, as Python's BackgroundAnimationWidget.
+    void updateBackgroundColor();
+
     bool m_hover = false;
     bool m_pressed = false;
     bool m_selected = false;
     int m_borderRadius = 5;
     bool m_clickEnabled = false;
+
+  private:
+    QColor stateBackgroundColor() const;
+
+    QVariantAnimation *m_backgroundAni = nullptr;
 };
 
 class FQW_API SimpleCardWidget : public CardWidget
@@ -80,6 +91,9 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+
+    QColor hoverBackgroundColor() const override;
+    QColor pressedBackgroundColor() const override;
 };
 
 class FQW_API ElevatedCardWidget : public SimpleCardWidget

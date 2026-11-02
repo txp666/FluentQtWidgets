@@ -517,6 +517,57 @@ class ViewTest : public QObject
         QCOMPARE(header.layout()->count(), 3);
     }
 
+    // As Python's BackgroundAnimationWidget, a card fades its background to the state's colour in
+    // 120 ms, shows the pressed colour on any press, and simple and elevated cards paint the colour
+    // of their state. The port switched at once, pressed only clickable cards, and painted simple and
+    // elevated cards in their normal colour whatever the state.
+    void cardsFadeToTheirStateColours()
+    {
+        auto *manager = ThemeManager::instance();
+        auto centerAlpha = [](QWidget &card) {
+            QImage image(card.size(), QImage::Format_ARGB32);
+            image.fill(Qt::transparent);
+            card.render(&image);
+            return image.pixelColor(image.rect().center()).alpha();
+        };
+        auto enter = [](QWidget &card) {
+            QEnterEvent event(QPointF(10, 10), QPointF(10, 10), QPointF(10, 10));
+            QApplication::sendEvent(&card, &event);
+        };
+
+        manager->setTheme(Theme::Light);
+        CardWidget card;
+        card.resize(100, 60);
+        QCOMPARE(centerAlpha(card), 170);
+        enter(card);
+        QVERIFY(centerAlpha(card) > 150);
+        QTRY_COMPARE(centerAlpha(card), 64);
+
+        // Without its shadow effect, which render() would draw in place of the card.
+        ElevatedCardWidget elevated;
+        elevated.setGraphicsEffect(nullptr);
+        elevated.resize(100, 60);
+        QCOMPARE(centerAlpha(elevated), 170);
+        enter(elevated);
+        QTRY_COMPARE(centerAlpha(elevated), 255);
+
+        SimpleCardWidget simple;
+        simple.resize(100, 60);
+        enter(simple);
+        QTest::qWait(200);
+        QCOMPARE(centerAlpha(simple), 170);
+
+        manager->setTheme(Theme::Dark);
+        CardWidget dark;
+        dark.resize(100, 60);
+        dark.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dark));
+        QVERIFY(!dark.isClickEnabled());
+        QTest::mousePress(&dark, Qt::LeftButton, Qt::NoModifier, QPoint(50, 30));
+        QTRY_COMPARE(centerAlpha(dark), 8);
+        QTest::mouseRelease(&dark, Qt::LeftButton, Qt::NoModifier, QPoint(50, 30));
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

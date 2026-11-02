@@ -8,6 +8,7 @@
 
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QVariantAnimation>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/QEnterEvent>
 #endif
@@ -40,6 +41,10 @@ CardWidget::CardWidget(QWidget *parent) : QFrame(parent)
     setAttribute(Qt::WA_StyledBackground, true);
     setAutoFillBackground(false);
     FluentStyleSheet::setRole(this, QStringLiteral("CardWidget"));
+
+    m_backgroundAni = new QVariantAnimation(this);
+    m_backgroundAni->setDuration(120);
+    connect(m_backgroundAni, &QVariantAnimation::valueChanged, this, qOverload<>(&QWidget::update));
 }
 
 int CardWidget::borderRadius() const { return m_borderRadius; }
@@ -87,7 +92,7 @@ void CardWidget::enterEvent(QEvent *event)
     // Trigger style transition
     style()->unpolish(this);
     style()->polish(this);
-    update();
+    updateBackgroundColor();
     QFrame::enterEvent(event);
 }
 
@@ -98,18 +103,17 @@ void CardWidget::leaveEvent(QEvent *event)
     // Trigger style transition
     style()->unpolish(this);
     style()->polish(this);
-    update();
+    updateBackgroundColor();
     QFrame::leaveEvent(event);
 }
 
 void CardWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && m_clickEnabled) {
-        m_pressed = true;
-        style()->unpolish(this);
-        style()->polish(this);
-        update();
-    }
+    // As in Python, any press shows the pressed colour, whether or not the card is clickable.
+    m_pressed = true;
+    style()->unpolish(this);
+    style()->polish(this);
+    updateBackgroundColor();
     QFrame::mousePressEvent(event);
 }
 
@@ -118,11 +122,11 @@ void CardWidget::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton && m_clickEnabled && m_pressed && rect().contains(event->pos())) {
         emit clicked();
     }
-    if (event->button() == Qt::LeftButton && m_pressed) {
+    if (m_pressed) {
         m_pressed = false;
         style()->unpolish(this);
         style()->polish(this);
-        update();
+        updateBackgroundColor();
     }
     QFrame::mouseReleaseEvent(event);
 }
@@ -152,6 +156,46 @@ QColor CardWidget::selectedBackgroundColor() const
         return derivedThemeColor(themeColor(), ThemeColor::Light1, theme);
     }
     return themeColor();
+}
+
+QColor CardWidget::stateBackgroundColor() const
+{
+    if (m_pressed) {
+        return pressedBackgroundColor();
+    }
+    if (m_hover) {
+        return hoverBackgroundColor();
+    }
+    return normalBackgroundColor();
+}
+
+QColor CardWidget::backgroundColor() const
+{
+    if (m_selected) {
+        return selectedBackgroundColor();
+    }
+    if (m_backgroundAni->state() == QAbstractAnimation::Running) {
+        return m_backgroundAni->currentValue().value<QColor>();
+    }
+    return stateBackgroundColor();
+}
+
+void CardWidget::updateBackgroundColor()
+{
+    // Start from the colour shown now: the fade's, or the end of the last one. The colours of a
+    // finished fade are read again at paint time, so a theme change shows at once.
+    QColor start = m_backgroundAni->state() == QAbstractAnimation::Running
+                       ? m_backgroundAni->currentValue().value<QColor>()
+                       : m_backgroundAni->endValue().value<QColor>();
+    const QColor end = stateBackgroundColor();
+    m_backgroundAni->stop();
+    if (!start.isValid()) {
+        start = normalBackgroundColor();
+    }
+    m_backgroundAni->setStartValue(start);
+    m_backgroundAni->setEndValue(end);
+    m_backgroundAni->start();
+    update();
 }
 
 QColor CardWidget::borderColor() const
@@ -209,15 +253,7 @@ void CardWidget::paintEvent(QPaintEvent *)
     // Draw background
     painter.setPen(Qt::NoPen);
     const QRect backgroundRect = rect().adjusted(1, 1, -1, -1);
-    QColor bg = normalBackgroundColor();
-    if (m_selected) {
-        bg = selectedBackgroundColor();
-    } else if (m_pressed) {
-        bg = pressedBackgroundColor();
-    } else if (m_hover) {
-        bg = hoverBackgroundColor();
-    }
-    painter.setBrush(bg);
+    painter.setBrush(backgroundColor());
     painter.drawRoundedRect(backgroundRect, r, r);
 }
 
@@ -234,7 +270,7 @@ void SimpleCardWidget::paintEvent(QPaintEvent * /*event*/)
 {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing);
-    painter.setBrush(CardWidget::normalBackgroundColor());
+    painter.setBrush(backgroundColor());
 
     if (isDarkTheme()) {
         painter.setPen(QColor(0, 0, 0, 48));
@@ -245,6 +281,10 @@ void SimpleCardWidget::paintEvent(QPaintEvent * /*event*/)
     const int r = borderRadius();
     painter.drawRoundedRect(rect().adjusted(1, 1, -1, -1), r, r);
 }
+
+QColor SimpleCardWidget::hoverBackgroundColor() const { return normalBackgroundColor(); }
+
+QColor SimpleCardWidget::pressedBackgroundColor() const { return normalBackgroundColor(); }
 
 // ==========================================
 // ElevatedCardWidget
