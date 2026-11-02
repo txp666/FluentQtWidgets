@@ -61,6 +61,9 @@ CommandButton::CommandButton(QWidget *parent) : TransparentToggleToolButton(pare
     setCheckable(false);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     setIconSize(QSize(16, 16));
+    QFont buttonFont = font();
+    buttonFont.setPixelSize(12);
+    setFont(buttonFont);
     FluentStyleSheet::setRole(this, QStringLiteral("CommandButton"));
     installEventFilter(new CommandToolTipFilter(this));
 }
@@ -654,6 +657,9 @@ void CommandBar::init()
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("CommandBar"));
+    QFont barFont = font();
+    barFont.setPixelSize(12);
+    setFont(barFont);
     m_overflowButton = new MoreActionsButton(this);
     m_overflowButton->hide();
     connect(m_overflowButton, &QToolButton::clicked, this, &CommandBar::showHiddenActionsMenu);

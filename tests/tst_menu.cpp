@@ -74,6 +74,7 @@
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QTableWidgetItem>
+#include <QtWidgets/QToolButton>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
@@ -416,6 +417,23 @@ class MenuTest : public QObject
         QVERIFY(view.isMenuVisible());
         view.setMenuDropDown(false);
         QVERIFY(!view.commandBar()->isMenuDropDown());
+    }
+
+    void commandBarUsesTwelvePixelText()
+    {
+        // qfluentwidgets sets 12 px on CommandButton and on CommandBar, which hands its font to
+        // the buttons it creates; the overflow button is a CommandButton too.
+        FluentQt::CommandBar bar;
+        QCOMPARE(bar.font().pixelSize(), 12);
+        bar.setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        bar.addAction(FluentQt::FluentIcon::Add, QStringLiteral("Add"));
+        bar.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
+        const QList<FluentQt::CommandButton *> buttons = bar.findChildren<FluentQt::CommandButton *>();
+        QCOMPARE(buttons.size(), 2);
+        for (FluentQt::CommandButton *button : buttons) {
+            QCOMPARE(button->font().pixelSize(), 12);
+        }
+        QCOMPARE(FluentQt::CommandButton().font().pixelSize(), 12);
     }
 
     void commandBarOverflowMenuOpensAndClosesSafely()
