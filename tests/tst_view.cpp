@@ -216,6 +216,44 @@ class ViewTest : public QObject
         QVERIFY(delegateShowsRowSelected(table.delegate(), 3));
     }
 
+    // As in Python, a horizontal header is 33 px plus its borders whatever the label, and its
+    // sections are split by one line: no left border, none right of the last. The port's scoped
+    // section rule outranked the `:horizontal` and `:last` rules, which drew a line on both sides of
+    // every section, and its `min-height` let a multi-line label grow the header.
+    void tableHeaderKeepsThePythonSections()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            for (const bool bordered : {false, true}) {
+                TableWidget table;
+                table.setBorderVisible(bordered);
+                table.setColumnCount(2);
+                table.setRowCount(2);
+                table.setHorizontalHeaderLabels({QStringLiteral("A\nB\nC"), QString()});
+                table.show();
+                QVERIFY(QTest::qWaitForWindowExposed(&table));
+                QCOMPARE(table.horizontalHeader()->height(), bordered ? 34 : 35);
+
+                table.setHorizontalHeaderLabels({QString(), QString()});
+                QHeaderView *header = table.horizontalHeader();
+                const QImage image = header->grab().toImage();
+                const qreal ratio = image.devicePixelRatio();
+                const int y = image.height() / 2;
+                QList<int> lines;
+                bool previous = false;
+                for (int x = 0; x < image.width(); ++x) {
+                    const bool drawn = image.pixelColor(x, y).alpha() > 0;
+                    if (drawn && !previous) {
+                        lines.append(qRound(x / ratio));
+                    }
+                    previous = drawn;
+                }
+                QCOMPARE(lines, QList<int>{header->sectionSize(0) - 1});
+            }
+        }
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
