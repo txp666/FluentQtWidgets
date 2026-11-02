@@ -131,10 +131,6 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
-    m_acceptButton->setAutoDefault(false);
-    m_acceptButton->setDefault(false);
-    m_cancelButton->setAutoDefault(false);
-    m_cancelButton->setDefault(false);
     m_acceptButton->setFocus();
     m_buttonLayout->addWidget(m_acceptButton, 1, Qt::AlignVCenter);
     m_buttonLayout->addWidget(m_cancelButton, 1, Qt::AlignVCenter);
@@ -536,10 +532,6 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
-    m_acceptButton->setAutoDefault(false);
-    m_acceptButton->setDefault(false);
-    m_cancelButton->setAutoDefault(false);
-    m_cancelButton->setDefault(false);
     m_acceptButton->setFocus();
 
     m_vBoxLayout = new QVBoxLayout(m_widget);

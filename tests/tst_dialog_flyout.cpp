@@ -302,6 +302,35 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(messageDialogView->property("fqw").toString(), QStringLiteral("MessageDialog"));
     }
 
+    void returnKeyAcceptsDialogsLikePython()
+    {
+        // The buttons keep QPushButton's autoDefault, as in qfluentwidgets, so Return on the
+        // focused OK button accepts the dialog.
+        QWidget parent;
+        parent.resize(600, 400);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        QVERIFY(box.yesButton()->autoDefault());
+        QVERIFY(box.cancelButton()->autoDefault());
+        QSignalSpy boxAccepted(&box, &QDialog::accepted);
+        box.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&box));
+        QCOMPARE(box.yesButton()->height(), 32);
+        QTest::keyClick(box.yesButton(), Qt::Key_Return);
+        QTRY_COMPARE(boxAccepted.count(), 1);
+
+        FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        QVERIFY(dialog.yesButton()->autoDefault());
+        QVERIFY(dialog.cancelButton()->autoDefault());
+        QSignalSpy dialogAccepted(&dialog, &QDialog::accepted);
+        dialog.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+        QTest::keyClick(dialog.yesButton(), Qt::Key_Return);
+        QTRY_COMPARE(dialogAccepted.count(), 1);
+    }
+
     void galleryDialogKeepsItsContentOnOneLineAndCentred()
     {
         QWidget dialogParent;
