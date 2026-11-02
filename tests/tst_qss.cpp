@@ -175,6 +175,37 @@ class QssTest : public QObject
         addRow("ClickableSlider", FluentStyleSheetSource::Slider);
     }
 
+    // Python's class-name selectors (`RoundMenu`, `FlipView`) never match the port's classes, which
+    // live in the FluentQt namespace; the sheets select by role instead.
+    void styleSheetsUseNoPythonClassSelectors()
+    {
+        static const QRegularExpression comment(QStringLiteral("/\\*.*?\\*/"),
+                                                QRegularExpression::DotMatchesEverythingOption);
+        static const QRegularExpression ruleStart(QStringLiteral("([^{}]*)\\{"));
+        static const QRegularExpression notTypes(QStringLiteral("\\[[^\\]]*\\]|::?[\\w-]+|#[\\w-]+"));
+        static const QRegularExpression pythonClass(QStringLiteral("\\b(?!Q)[A-Z]\\w*"));
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            for (int i = 0; i <= static_cast<int>(FluentStyleSheetSource::ExpandSettingCard); ++i) {
+                const auto source = static_cast<FluentStyleSheetSource>(i);
+                QString qss = FluentStyleSheet::loadSource(source, theme);
+                qss.remove(comment);
+                for (const QRegularExpressionMatch &rule : ruleStart.globalMatch(qss)) {
+                    QString selectors = rule.captured(1);
+                    selectors.remove(notTypes);
+                    QVERIFY2(!pythonClass.match(selectors).hasMatch(),
+                             qPrintable(styleSheetSourceName(source) + QStringLiteral(": ") + rule.captured(1)));
+                }
+            }
+        }
+    }
+
+    void rolesUseTheirStyleSheet()
+    {
+        QFETCH(QString, role);
+        QFETCH(int, source);
+        QCOMPARE(static_cast<int>(styleSheetSourceForRole(role)), source);
+    }
+
     // Python's sheets use only --ThemeColor* tokens, all derived per theme by ThemeColor.color().
     void styleSheetsOnlyUseThemeColorTokens()
     {
