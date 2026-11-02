@@ -10,7 +10,7 @@ QFrame#iconCard > QLabel {
 }
 
 QFrame#iconCard[isSelected=true] {
-    background-color: @accentColor;
+    background-color: --ThemeColorPrimary;
 }
 
 QFrame#iconCard[isSelected=true] > QLabel {
