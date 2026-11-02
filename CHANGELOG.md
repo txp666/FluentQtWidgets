@@ -2,15 +2,49 @@
 
 ## Unreleased
 
+Every widget was compared with PyQt-Fluent-Widgets 1.11.3, the reference the port follows, and the differences were fixed. A new test now keeps the sizes in line.
+
+### API changes
+
+- `themeColor()` and `derivedThemeColor(…, ThemeColor::Primary, …)` give the colour for the current theme, as Python's `themeColor()` does: lighter in dark mode (`#009faa` becomes `#29f1ff`). Every accent painted by the library uses it. Style sheets use `--ThemeColorPrimary`; the port-only `@accentColor` token is gone.
+- `Slider(parent)` and `ClickableSlider(parent)` are vertical by default, like `QSlider` and the Python classes. Pass `Qt::Horizontal` to get a horizontal slider.
+- `RangeSettingCard::slider()` returns the self-painted `Slider *`, not a `ClickableSlider *`.
+- `ClickableSlider` has no style sheet of its own, as in Python. `FluentStyleSheetSource::Slider` gives the Fluent look to any `QSlider` it is applied to.
+- `FluentStyleSheetSource::ProgressBar` and `FluentStyleSheetSource::RadioButton` are removed, along with other style sheet rules and roles that nothing used.
+- `IconWidget` fills its rect and has no size hint, as in Python. Call `setIconSize()` for a fixed size.
+- `NavigationPanel::setMinimumExpandWidth()` accepts any width. With `0`, the panel expands in place at any window width.
+- New `CheckableSystemTrayMenu`, from qfluentwidgets: a checkable menu for tray icons, without the right and bottom shadow margins.
+
+### Size and look
+
+- Buttons: tool buttons, calendar pickers, primary and checked buttons are as tall as push buttons (33 px), and the 32 px minimums Python doesn't have are gone. The port-only buttons (`Filled*`, `Outlined*`, `Text*`, `LuminaPushButton`, `Round*`, `Chip`, `Tag`) share the Fluent button box: push variants are 33 px tall and tool variants 38 × 32. Disabled split buttons use Python's divider colour.
+- Inputs: line edits are 33 px tall; editable combo boxes use the line-edit style; sliders are as thick as their 22 px handle, in native styles too; combo-box arrows dip on press and fade when disabled.
+- Text: labels use Python's black and white text, caption labels included, and `setTextColor()` wins over the label style sheet. The avatar initial uses the regular font weight. The multi-line focus line runs along the bottom of the editor.
+- Date and time: pickers take their size from their columns and use Python's frame, text colours, separators, scroll buttons and 33 px panel buttons. Panels open only on a click, at Python's position, centred on a value chosen before they are shown. Calendar panels, cells, year pages, title, weekdays and navigation carets look as in Python. Reset buttons show the cancel icon.
+- Dialogs and popups: dialog titles, the message box frame and selected text look as in Python. Return accepts a dialog, and dialog buttons have no 96 px minimum. Flyout views and teaching tips are drawn and sized as in Python, and unanimated flyouts open above their target. Command bar buttons use 12 px text and the bar's font; an empty bar no longer collapses.
+- Menus: the submenu arrow is drawn as in Python; ordinary menus hide their overlay scroll bar; "Select all" in the edit menus has no icon; fade-in pull-up menus stop where Python's do.
+- Tooltips and status: tooltips no longer take focus when they appear, keep long text on one line and use Python's background and shadow. Item view tooltips stay on the screen. Dark-theme badge text is black. State tooltip icons use the opposite theme. Progress ring text is 14 px. Icon badges recolour on theme changes. Info badges and progress rings take Python's size hints.
+- Navigation: tree items, the panel's border and separators, navigation bar items and item headers are laid out and animated as in Python, and the indicators use Python's curves. Tabs and the tab bar have Python's heights and painting. The pivot keeps its indicator when the first selection is made while hidden.
+- Views: table and tree headers use the Python section style. List, table and tree items use a 13 px font, Python's text and check box positions, and the Python tree row height. Tables select several rows with Ctrl and Shift. Lists have no extra viewport margins. Bordered tables have square corners. A table's row indicator is hidden while it is scrolled sideways.
+- Cards and scrolling: `HeaderCardWidget` titles use a 15 px font. Card backgrounds fade between states. An elevated card shows its shadow only under the mouse. `SimpleCardWidget` has no layout. Pips pagers and flip views use Python's sizes, buttons and fades, and the transition stacks use Python's easing curves.
+- Settings: setting cards and group titles are drawn as in Python. The switch card puts its On/Off text left of the switch. The combo box card keeps the combo box's own width. Expandable cards use plain labels. Colour pickers are outlined and their dialog has a title. The folder list card asks before removing a folder.
+- Windows: title bars place their buttons, icon and title as in Python.
+- `HeaderCardWidget` and `GroupHeaderCardWidget` titles follow theme changes.
+- `MessageBox` widens for buttons added to `buttonLayout()`, so a third button such as "Don't save" no longer overlaps the others.
+
 ### Behaviour fixes
 
-- `HeaderCardWidget` and `GroupHeaderCardWidget` titles follow theme changes. The title is a plain label under the card's style sheet, which is the same in both themes, so it kept the colour of the theme the card was created in (dark text on a dark card after switching to the dark theme). It now has a style sheet of its own that the theme switch replaces. `tst_view` covers it.
-- Drop-down and pull-up menus (combo boxes, drop-down buttons, submenus) no longer flash when they open. The window started half its height away from its place and moved there, with a mask hiding the part past its end edge, but the mask was only set on the first animation tick: a frame drawn before that showed the whole menu above the combo box, which on Windows happened often. The window now opens at its end position and the list slides inside it, clipped by the window's own edge, with no mask. Pull-up menus rise from their bottom edge instead of sliding over the button. Menus also open where they are placed on macOS, where a popup whose native window `show()` creates could come up 20 px higher. `tst_menu` covers it.
-- `MessageBox` widens for buttons added to `buttonLayout()`. Its width came from the title and message alone (at least 280 px), so a third button, such as "Don't save", overlapped the other two. The width now covers the button row as well and is worked out again when the box is shown, after callers have added their buttons. `tst_dialog_flyout` covers it.
+- Drop-down and pull-up menus (combo boxes, drop-down buttons, submenus) open without flashing on every platform: the window opens at its end position and the list slides inside it. Pull-up menus rise from their bottom edge. On macOS, menus open where they are placed and no longer settle 32 px low with their last row cut off.
+- The arrow keys move through a line edit's completer menu while typing continues in the edit.
 
-### Documentation
+### Tests and tools
 
-- The README comes in Chinese (`README.md`) and English (`README_EN.md`), each with screenshots in its own language, a feature overview and a minimal example. `docs/README_zh.md`, an older copy of the Chinese README, is removed. Gallery packages include both READMEs.
+- `tst_python_parity` compares the size, size hint, minimum and maximum size of every widget the port shares with qfluentwidgets 1.11.3 (206 rows) with measurements of the Python original. `tools/parity/measure_python.py` regenerates those measurements. See `tools/parity/README.md`.
+
+### Project
+
+- FluentQtWidgets has its own logo, a small Fluent window, in place of the copy of PyQt-Fluent-Widgets' "W" logo. It is used for the Gallery, its app icons and the login example. The README screenshots show it.
+- The README comes in Chinese (`README.md`) and English (`README_EN.md`), and Gallery packages include both. The guides describe the current API: `docs/controls.md` replaces `docs/controls-basic.md`, the build steps live in `docs/quick-start.md`, and the outdated API roadmap is removed.
 
 ## 0.1.10
 
