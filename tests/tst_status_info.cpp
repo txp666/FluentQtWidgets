@@ -883,8 +883,8 @@ class StatusInfoTest : public QObject
         for (int i = 0; i < 60; ++i) {
             content += QStringLiteral("\U0001F600");
         }
-        auto *bar = InfoBar::info(QStringLiteral("Emoji"), content, Qt::Horizontal, true, -1,
-                                  InfoBarPosition::None, &parent);
+        auto *bar =
+            InfoBar::info(QStringLiteral("Emoji"), content, Qt::Horizontal, true, -1, InfoBarPosition::None, &parent);
         QVERIFY(bar->contentLabel()->text().contains(QLatin1Char('\n')));
         QVERIFY(!hasBrokenSurrogates(bar->contentLabel()->text()));
         QVERIFY(!bar->contentLabel()->text().contains(QChar(0xFFFD)));

@@ -125,7 +125,7 @@ class ScrollTest : public QObject
             area->resize(370, height);
             const QList<QScrollBar *> nativeBars = {area->verticalScrollBar(), area->horizontalScrollBar()};
             const QList<FluentQt::ScrollBar *> overlayBars = {delegate->verticalScrollBar(),
-                                                            delegate->horizontalScrollBar()};
+                                                              delegate->horizontalScrollBar()};
             for (int i = 0; i < nativeBars.size(); ++i) {
                 auto *native = nativeBars.at(i);
                 auto *overlay = overlayBars.at(i);
