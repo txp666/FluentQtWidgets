@@ -76,8 +76,9 @@ public:
     void setDarkGrooveColor(const QColor &color);
     void setThemeColor(const QColor &light, const QColor &dark);
     void setOrientation(Qt::Orientation orientation);
+    QSize sizeHint() const override;
 
-signals:
+  signals:
     void clicked(int value);
 
 protected:

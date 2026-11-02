@@ -190,6 +190,19 @@ void Slider::setOrientation(Qt::Orientation orientation)
     }
 }
 
+// The slider paints itself, so the native style's groove thickness (25 px in Qt 6's macOS style)
+// means nothing; Python's comes out as its 22 px handle in every style it was measured in.
+QSize Slider::sizeHint() const
+{
+    QSize hint = QSlider::sizeHint();
+    if (orientation() == Qt::Horizontal) {
+        hint.setHeight(m_handle->height());
+    } else {
+        hint.setWidth(m_handle->width());
+    }
+    return hint;
+}
+
 void Slider::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() != Qt::LeftButton) {
