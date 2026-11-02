@@ -106,6 +106,8 @@ class DateTimeTest : public QObject
                                         .arg(QString::fromLatin1(widget->metaObject()->className()))
                                         .arg(widget->height())
                                         .arg(push->height())));
+                // Python sets no minimum: the height comes from the style sheet's padding alone.
+                QCOMPARE(widget->minimumSize(), QSize(0, 0));
             }
         }
         manager->setTheme(previousTheme);

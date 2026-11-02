@@ -1163,7 +1163,6 @@ CalendarPicker::CalendarPicker(QWidget *parent) : QPushButton(parent)
 {
     m_dateFormat = QLocale().dateFormat(QLocale::ShortFormat);
 
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     setText(tr("Pick a date"));
     setProperty("hasDate", false);

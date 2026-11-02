@@ -120,8 +120,6 @@ const std::vector<Expectation> kPending = {
     {"CompactTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
     {"CompactDateEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
     {"CompactDateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"CalendarPicker/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"FastCalendarPicker/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
     // Labels and images
     {"IconWidget/default", "size.w size.h sizeHint.w sizeHint.h", "hint 20x20, Python none (0x0 in a layout)"},
     {"IconWidget/icon", "size.w size.h sizeHint.w sizeHint.h", "hint 20x20, Python none (0x0 in a layout)"},
