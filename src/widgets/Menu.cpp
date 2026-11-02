@@ -23,7 +23,6 @@
 #include <QtGui/QShowEvent>
 #include <QtGui/QHideEvent>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QRegion>
 #include <QtGui/QTextLayout>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/QEnterEvent>
@@ -112,17 +111,6 @@ public:
         return QPoint(x, y);
     }
 
-    virtual QSize menuSize() const
-    {
-        if (!isMenuUsable()) {
-            return QSize();
-        }
-        const QMargins m = m_menu->layout()->contentsMargins();
-        const int w = m_menu->view()->width() + m.left() + m.right() + 120;
-        const int h = m_menu->view()->height() + m.top() + m.bottom() + 20;
-        return QSize(qMax(1, w), qMax(1, h));
-    }
-
     virtual void exec(const QPoint &pos) = 0;
 
 protected:
@@ -131,19 +119,37 @@ protected:
         return m_menu && m_menu->layout() && m_menu->view();
     }
 
-    void setSafeMask(int x, int y, int width, int height)
+    // Slides the view in from `offset` pixels above (negative) or below (positive) its place.
+    // The window sits at its end position from the first frame and its own edge clips the view.
+    // Moving the window instead and masking off the part past its end edge showed the whole menu
+    // at the start position until the first animation tick set the mask, a flash on Windows.
+    void slideViewIn(const QPoint &pos, int offset)
     {
-        if (!m_menu || width <= 0 || height <= 0) {
-            return;
-        }
-        m_menu->setMask(QRegion(x, qMax(0, y), qMax(1, width), qMax(1, height)));
-    }
+        m_menu->setWindowOpacity(1.0);
+        m_menu->move(endPosition(pos));
 
-    void clearSafeMask()
-    {
-        if (m_menu) {
-            m_menu->clearMask();
-        }
+        // Lay the view out for the menu's current size, then keep the layout from putting it
+        // back (show() sends the pending resize event) until the slide is over.
+        QLayout *layout = m_menu->layout();
+        layout->setEnabled(true);
+        layout->invalidate();
+        layout->activate();
+        layout->setEnabled(false);
+        const QPoint home = m_menu->view()->pos();
+
+        m_positionAni->setTargetObject(m_menu->view());
+        m_positionAni->setStartValue(home + QPoint(0, offset));
+        m_positionAni->setEndValue(home);
+        // The shadow around the view is painted by the menu.
+        connect(m_positionAni, &QPropertyAnimation::valueChanged, m_menu, qOverload<>(&QWidget::update));
+        connect(m_positionAni, &QPropertyAnimation::finished, this, [this]() {
+            if (isMenuUsable()) {
+                m_menu->layout()->setEnabled(true);
+                m_menu->layout()->activate();
+            }
+            deleteLater();
+        });
+        m_positionAni->start();
     }
 
     QPointer<RoundMenu> m_menu;
@@ -168,22 +174,7 @@ public:
         if (!isMenuUsable()) {
             return;
         }
-        const QPoint end = endPosition(pos);
-        const int h = m_menu->height() + 5;
-        m_positionAni->setStartValue(end - QPoint(0, h / 2));
-        m_positionAni->setEndValue(end);
-        m_menu->setWindowOpacity(1.0);
-
-        connect(m_positionAni, &QPropertyAnimation::valueChanged, this, [this]() {
-            const QSize s = menuSize();
-            const int y = m_positionAni->endValue().toPoint().y() - m_positionAni->currentValue().toPoint().y();
-            setSafeMask(0, y, s.width(), s.height());
-        });
-        connect(m_positionAni, &QPropertyAnimation::finished, this, [this]() {
-            clearSafeMask();
-            deleteLater();
-        });
-        m_positionAni->start();
+        slideViewIn(pos, -(m_menu->height() + 5) / 2);
     }
 };
 
@@ -216,22 +207,7 @@ public:
         if (!isMenuUsable()) {
             return;
         }
-        const QPoint end = endPosition(pos);
-        const int h = m_menu->height() + 5;
-        m_positionAni->setStartValue(end + QPoint(0, h / 2));
-        m_positionAni->setEndValue(end);
-        m_menu->setWindowOpacity(1.0);
-
-        connect(m_positionAni, &QPropertyAnimation::valueChanged, this, [this]() {
-            const QSize s = menuSize();
-            const int y = m_positionAni->endValue().toPoint().y() - m_positionAni->currentValue().toPoint().y();
-            setSafeMask(0, y, s.width(), s.height() - 28);
-        });
-        connect(m_positionAni, &QPropertyAnimation::finished, this, [this]() {
-            clearSafeMask();
-            deleteLater();
-        });
-        m_positionAni->start();
+        slideViewIn(pos, (m_menu->height() + 5) / 2);
     }
 };
 
@@ -257,17 +233,7 @@ public:
         m_opacityAni->setStartValue(0.0);
         m_opacityAni->setEndValue(1.0);
 
-        connect(m_positionAni, &QPropertyAnimation::valueChanged, this, [this]() {
-            const QSize s = menuSize();
-            setSafeMask(0, 0, s.width(), s.height());
-        });
-        connect(m_positionAni, &QPropertyAnimation::finished, this, [this]() {
-            clearSafeMask();
-        });
-        connect(m_group, &QParallelAnimationGroup::finished, this, [this]() {
-            clearSafeMask();
-            deleteLater();
-        });
+        connect(m_group, &QParallelAnimationGroup::finished, this, &QObject::deleteLater);
         m_group->start();
     }
 };
@@ -294,17 +260,7 @@ public:
         m_opacityAni->setStartValue(0.0);
         m_opacityAni->setEndValue(1.0);
 
-        connect(m_positionAni, &QPropertyAnimation::valueChanged, this, [this]() {
-            const QSize s = menuSize();
-            setSafeMask(0, 0, s.width(), s.height());
-        });
-        connect(m_positionAni, &QPropertyAnimation::finished, this, [this]() {
-            clearSafeMask();
-        });
-        connect(m_group, &QParallelAnimationGroup::finished, this, [this]() {
-            clearSafeMask();
-            deleteLater();
-        });
+        connect(m_group, &QParallelAnimationGroup::finished, this, &QObject::deleteLater);
         m_group->start();
     }
 };
@@ -1399,6 +1355,9 @@ QAction *RoundMenu::exec(const QPoint &pos, bool animated, MenuAnimationType ani
     setAnimationType(animationType);
     m_runAnimation = animated && animationType != MenuAnimationType::None;
     m_execPos = pos;
+    // A popup whose native window show() creates can land away from where it was moved (20 px
+    // higher on macOS), and nothing moves the window again during a slide.
+    create();
 
     const MenuAnimationType effectiveAnimation = m_runAnimation ? animationType : MenuAnimationType::None;
     MenuAnimationManager *manager = makeMenuAnimationManager(this, effectiveAnimation);
@@ -1476,7 +1435,6 @@ void RoundMenu::closeEvent(QCloseEvent *event)
 {
     event->accept();
     emit closedSignal();
-    clearMask();
     if (m_view) {
         m_view->clearSelection();
     }
@@ -1513,7 +1471,6 @@ void RoundMenu::hideEvent(QHideEvent *event)
         closeParentMenu();
     }
     m_isHideBySystem = true;
-    clearMask();
     QMenu::hideEvent(event);
 }
 
