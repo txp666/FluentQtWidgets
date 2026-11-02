@@ -253,6 +253,17 @@ def _breadcrumb(t):
 profile("SegmentedToggleToolWidget", "items", _segmented_tools)
 profile("TabBar", "items", _tab_bar)
 profile("BreadcrumbBar", "items", _breadcrumb)
+
+
+def _breadcrumb_item(t):
+    # A non-root item, which paints the chevron in front of its text. The bar sizes its items
+    # (setFont/setSpacing call setText); the constructor alone leaves them 0 x 0.
+    w = qfw.BreadcrumbItem("k1", t, 1)
+    w.setText(t)
+    return w
+
+
+profile("BreadcrumbItem", "text", _breadcrumb_item)
 profile("PivotItem", "text", lambda t: qfw.PivotItem(t))
 profile("SegmentedItem", "text", lambda t: qfw.SegmentedItem(t))
 profile("TabItem", "text", lambda t: qfw.TabItem(t))
@@ -337,7 +348,6 @@ SKIPPED = {
     "ScrollBar": "attached to a scroll area, sized by it",
     "SmoothScrollBar": "attached to a scroll area, sized by it",
     # Not the same kind of thing.
-    "BreadcrumbItem": "a widget in Python, a plain data struct in C++",
 }
 
 

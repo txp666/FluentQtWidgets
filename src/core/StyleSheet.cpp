@@ -343,8 +343,6 @@ FluentStyleSheetSource styleSheetSourceForRole(const QString &role)
         {QStringLiteral("SegmentedToolWidget"), FluentStyleSheetSource::Pivot},
         {QStringLiteral("SegmentedToolItem"), FluentStyleSheetSource::Pivot},
         {QStringLiteral("BreadcrumbBar"), FluentStyleSheetSource::Pivot},
-        {QStringLiteral("BreadcrumbItem"), FluentStyleSheetSource::Pivot},
-        {QStringLiteral("BreadcrumbSeparator"), FluentStyleSheetSource::Label},
         {QStringLiteral("FolderItem"), FluentStyleSheetSource::SettingCard},
         {QStringLiteral("GroupSeparator"), FluentStyleSheetSource::SettingCard},
         {QStringLiteral("GroupWidget"), FluentStyleSheetSource::SettingCard},

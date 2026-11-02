@@ -348,8 +348,10 @@ window->switchTo("home");
 Items are identified by route keys. `addSubInterface()` and `addItem()` take a parent key for nested items, and
 `addItem()` takes `selectable = false` for command items that emit their key without changing the page. The panel
 expands in place when the window is at least `setMinimumExpandWidth()` wide (any width with 0) and opens as a menu
-otherwise. `NavigationBar` buttons are 64 × 58. `BreadcrumbBar` exposes `currentItem`, `currentIndex`, `spacing`,
-`popItem()`, `itemAt()` and `setItemText()`.
+otherwise. `NavigationBar` buttons are 64 × 58. `BreadcrumbBar` paints text-high `BreadcrumbItem` widgets with
+the chevron inside each one (20 px for its 14 px font) and hides the leading items behind an ellipsis menu when they
+do not fit; it exposes `currentItem()`, `currentIndex`, `spacing`, `popItem()`, `item()`, `itemAt()` and
+`setItemText()`.
 
 ```cpp
 auto *tabs = new FluentQt::TabWidget;

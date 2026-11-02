@@ -15,10 +15,6 @@ QLabel[fqw="AvatarWidget"] {
     background: transparent;
 }
 
-QLabel[fqw="BreadcrumbSeparator"] {
-    color: #616161;
-}
-
 QPushButton[fqw="HyperlinkLabel"] {
     color: --ThemeColorPrimary;
     border: none;

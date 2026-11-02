@@ -761,35 +761,179 @@ class NavigationTest : public QObject
         QCOMPARE(segmented.currentItem(), QStringLiteral("week"));
         QCOMPARE(segmented.item(QStringLiteral("day"))->font().pixelSize(), 14);
         QCOMPARE(segmented.item(QStringLiteral("week"))->property("isSelected").toBool(), true);
+    }
 
+    void breadcrumbTracksCurrentItem()
+    {
         FluentQt::BreadcrumbBar breadcrumb;
         QSignalSpy breadcrumbItemSpy(&breadcrumb, &FluentQt::BreadcrumbBar::currentItemChanged);
         QSignalSpy breadcrumbIndexSpy(&breadcrumb, &FluentQt::BreadcrumbBar::currentIndexChanged);
         breadcrumb.addItem(QStringLiteral("root"), QStringLiteral("Root"));
         breadcrumb.addItem(QStringLiteral("child"), QStringLiteral("Child"));
         breadcrumb.addItem(QStringLiteral("leaf"), QStringLiteral("Leaf"));
+        breadcrumb.addItem(QStringLiteral("leaf"), QStringLiteral("Duplicate"));
         QCOMPARE(breadcrumb.count(), 3);
         QCOMPARE(breadcrumb.items().size(), 3);
         QCOMPARE(breadcrumb.currentIndex(), 2);
-        QCOMPARE(breadcrumb.currentItem(), QStringLiteral("leaf"));
-        QCOMPARE(breadcrumb.itemAt(1).key, QStringLiteral("child"));
-        QCOMPARE(breadcrumb.item(QStringLiteral("leaf")).text, QStringLiteral("Leaf"));
+        QCOMPARE(breadcrumb.currentItem()->routeKey(), QStringLiteral("leaf"));
+        QVERIFY(breadcrumb.currentItem()->isSelected());
+        QVERIFY(!breadcrumb.itemAt(1)->isSelected());
+        QCOMPARE(breadcrumb.itemAt(1)->routeKey(), QStringLiteral("child"));
+        QCOMPARE(breadcrumb.itemAt(3), nullptr);
+        QCOMPARE(breadcrumb.item(QStringLiteral("leaf"))->text(), QStringLiteral("Leaf"));
+        QCOMPARE(breadcrumb.item(QStringLiteral("missing")), nullptr);
+        QCOMPARE(breadcrumbItemSpy.size(), 3);
 
         breadcrumb.setSpacing(20);
         QCOMPARE(breadcrumb.spacing(), 20);
+        QCOMPARE(breadcrumb.itemAt(1)->spacing(), 20);
         breadcrumb.setItemText(QStringLiteral("child"), QStringLiteral("Documents"));
-        QCOMPARE(breadcrumb.item(QStringLiteral("child")).text, QStringLiteral("Documents"));
+        QCOMPARE(breadcrumb.item(QStringLiteral("child"))->text(), QStringLiteral("Documents"));
 
+        // Selecting an earlier item drops the trailing ones, as Python does.
+        QPointer<BreadcrumbItem> leaf = breadcrumb.item(QStringLiteral("leaf"));
         breadcrumb.setCurrentItem(QStringLiteral("child"));
         QCOMPARE(breadcrumb.count(), 2);
         QCOMPARE(breadcrumb.currentIndex(), 1);
-        QCOMPARE(breadcrumb.currentItem(), QStringLiteral("child"));
+        QCOMPARE(breadcrumb.currentItem()->routeKey(), QStringLiteral("child"));
         QCOMPARE(breadcrumbItemSpy.takeLast().at(0).toString(), QStringLiteral("child"));
         QCOMPARE(breadcrumbIndexSpy.takeLast().at(0).toInt(), 1);
+        QCOMPARE(breadcrumb.item(QStringLiteral("leaf")), nullptr);
+        FqwTest::drainDeferredDeletes();
+        QVERIFY(leaf.isNull());
 
         breadcrumb.popItem();
-        QCOMPARE(breadcrumb.currentItem(), QStringLiteral("root"));
+        QCOMPARE(breadcrumb.currentItem()->routeKey(), QStringLiteral("root"));
         QCOMPARE(breadcrumb.count(), 1);
+
+        // Python's setCurrentIndex() ignores -1; clear() and a last popItem() reset without signals.
+        const int emitted = static_cast<int>(breadcrumbIndexSpy.size());
+        breadcrumb.setCurrentIndex(-1);
+        QCOMPARE(breadcrumb.currentIndex(), 0);
+        breadcrumb.popItem();
+        QCOMPARE(breadcrumb.count(), 0);
+        QCOMPARE(breadcrumb.currentIndex(), -1);
+        QCOMPARE(breadcrumb.currentItem(), nullptr);
+        QCOMPARE(breadcrumbIndexSpy.size(), emitted);
+    }
+
+    void breadcrumbItemsAreTextHighWithTheChevronInside()
+    {
+        BreadcrumbBar breadcrumb;
+        breadcrumb.addItem(QStringLiteral("home"), QStringLiteral("Home"));
+        breadcrumb.addItem(QStringLiteral("docs"), QStringLiteral("Documents"));
+
+        // Python paints the items itself: no buttons, no separator labels.
+        QVERIFY(breadcrumb.findChildren<QAbstractButton *>().isEmpty());
+        QVERIFY(breadcrumb.findChildren<QLabel *>().isEmpty());
+        QCOMPARE(breadcrumb.font().pixelSize(), 14);
+
+        BreadcrumbItem *home = breadcrumb.itemAt(0);
+        BreadcrumbItem *docs = breadcrumb.itemAt(1);
+        QVERIFY(home->isRoot());
+        QVERIFY(!docs->isRoot());
+        const QFontMetrics metrics(home->font());
+        QCOMPARE(home->height(), metrics.boundingRect(QStringLiteral("Home")).height());
+        QCOMPARE(home->width(), metrics.boundingRect(QStringLiteral("Home")).width() + 2);
+        // The chevron sits inside every item but the root, spacing() px either side of it.
+        QCOMPARE(docs->width(), metrics.boundingRect(QStringLiteral("Documents")).width() + 2 + 2 * 10);
+        QCOMPARE(breadcrumb.height(), home->height());
+        QCOMPARE(breadcrumb.minimumHeight(), breadcrumb.maximumHeight());
+        QVERIFY2(home->height() <= 22, qPrintable(QString::number(home->height())));
+
+        breadcrumb.setSpacing(5);
+        QCOMPARE(docs->width(), metrics.boundingRect(QStringLiteral("Documents")).width() + 2 + 2 * 5);
+
+        // A bigger font grows the items and the ellipsis button with it.
+        QFont big = breadcrumb.font();
+        big.setPixelSize(28);
+        breadcrumb.setFont(big);
+        QCOMPARE(docs->font().pixelSize(), 28);
+        QCOMPARE(docs->height(), QFontMetrics(big).boundingRect(QStringLiteral("Documents")).height());
+        QCOMPARE(breadcrumb.elideButton()->size(), QSize(32, 32));
+    }
+
+    void breadcrumbHidesLeadingItemsBehindTheEllipsis()
+    {
+        QWidget host;
+        auto *breadcrumb = new BreadcrumbBar(&host);
+        for (const QString &text : {QStringLiteral("Home"), QStringLiteral("Documents"), QStringLiteral("Study"),
+                                    QStringLiteral("Folder1"), QStringLiteral("Folder2")}) {
+            breadcrumb->addItem(text, text);
+        }
+        breadcrumb->resize(2000, breadcrumb->height());
+        host.show();
+
+        QVERIFY(!breadcrumb->isElideVisible());
+        QVERIFY(breadcrumb->elideButton()->isHidden());
+        QVERIFY(breadcrumb->hiddenItems().isEmpty());
+        int x = 0;
+        for (BreadcrumbItem *item : breadcrumb->items()) {
+            QVERIFY(item->isVisible());
+            QCOMPARE(item->x(), x);
+            x += item->width();
+        }
+
+        // Too narrow: the ellipsis comes first and the last item always stays.
+        const QList<BreadcrumbItem *> items = breadcrumb->items();
+        const int width = breadcrumb->elideButton()->width() + items[3]->width() + items[4]->width() + 1;
+        breadcrumb->resize(width, breadcrumb->height());
+        QVERIFY(breadcrumb->isElideVisible());
+        QVERIFY(breadcrumb->elideButton()->isVisible());
+        QCOMPARE(breadcrumb->elideButton()->x(), 0);
+        QCOMPARE(breadcrumb->hiddenItems(), (QList<BreadcrumbItem *>{items[0], items[1], items[2]}));
+        QVERIFY(items[0]->isHidden() && items[1]->isHidden() && items[2]->isHidden());
+        QCOMPARE(items[3]->x(), breadcrumb->elideButton()->width());
+        QCOMPARE(items[4]->x(), items[3]->x() + items[3]->width());
+
+        breadcrumb->resize(1, breadcrumb->height());
+        QCOMPARE(breadcrumb->hiddenItems().size(), 4);
+        QVERIFY(items[4]->isVisible());
+
+        // Picking a hidden item drops the trailing ones and shows everything again.
+        breadcrumb->resize(2000, breadcrumb->height());
+        breadcrumb->setCurrentItem(QStringLiteral("Documents"));
+        QCOMPARE(breadcrumb->count(), 2);
+        QVERIFY(breadcrumb->elideButton()->isHidden());
+    }
+
+    void breadcrumbItemsClickAndPaintTheirState()
+    {
+        QWidget host;
+        auto *breadcrumb = new BreadcrumbBar(&host);
+        breadcrumb->addItem(QStringLiteral("home"), QStringLiteral("Home"));
+        breadcrumb->addItem(QStringLiteral("docs"), QStringLiteral("Documents"));
+        breadcrumb->resize(400, breadcrumb->height());
+        host.show();
+
+        BreadcrumbItem *home = breadcrumb->itemAt(0);
+        const auto ink = [](QWidget *widget) {
+            const QImage image = widget->grab().toImage();
+            qint64 total = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    total += 255 - qGray(image.pixel(x, y));
+                }
+            }
+            return total;
+        };
+        const qint64 normal = ink(home);
+        QVERIFY(normal > 0);
+
+        QEnterEvent enter(QPointF(1, 1), QPointF(1, 1), home->mapToGlobal(QPointF(1, 1)));
+        QApplication::sendEvent(home, &enter);
+        QVERIFY(home->isHover());
+        QVERIFY2(ink(home) > normal, "the hovered text is opaque, the normal one 61 %");
+
+        QTest::mousePress(home, Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
+        QVERIFY(home->isPressed());
+        QVERIFY2(ink(home) < normal, "the pressed text is 45 %");
+
+        QSignalSpy changed(breadcrumb, &BreadcrumbBar::currentItemChanged);
+        QTest::mouseRelease(home, Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
+        QCOMPARE(changed.size(), 1);
+        QCOMPARE(breadcrumb->count(), 1);
+        QVERIFY(home->isSelected());
     }
 
     void pivotKeepsDisplayOrder()

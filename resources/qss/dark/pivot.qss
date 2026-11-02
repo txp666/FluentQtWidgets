@@ -44,32 +44,6 @@ QWidget[fqw="BreadcrumbBar"] {
     background-color: transparent;
 }
 
-QPushButton[fqw="BreadcrumbItem"] {
-    padding: 0;
-    color: rgba(255, 255, 255, 0.79);
-    background-color: transparent;
-    border: none;
-    outline: none;
-    margin: 0;
-}
-
-QPushButton[fqw="BreadcrumbItem"]:hover,
-QPushButton[fqw="BreadcrumbItem"][selected="true"] {
-    color: white;
-    background-color: transparent;
-}
-
-QPushButton[fqw="BreadcrumbItem"]:pressed {
-    color: rgba(255, 255, 255, 0.54);
-    background-color: transparent;
-}
-
-QLabel[fqw="BreadcrumbSeparator"] {
-    color: rgba(255, 255, 255, 0.61);
-    background-color: transparent;
-    font: 14px --FontFamilies;
-}
-
 #view {
     background-color: transparent;
 }

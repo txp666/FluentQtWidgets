@@ -495,6 +495,27 @@
    "textDependentHeight": false,
    "textDependentWidth": false
   },
+  "BreadcrumbItem/text": {
+   "maximumSize": [
+    54,
+    20
+   ],
+   "minimumSize": [
+    54,
+    20
+   ],
+   "size": [
+    54,
+    20
+   ],
+   "sizeHint": [
+    -1,
+    -1
+   ],
+   "text": "Button",
+   "textDependentHeight": false,
+   "textDependentWidth": true
+  },
   "CalendarPicker/default": {
    "maximumSize": [
     "max",
@@ -4697,7 +4718,6 @@
   }
  },
  "skipped": {
-  "BreadcrumbItem": "a widget in Python, a plain data struct in C++",
   "CheckableMenu": "pop-up menu",
   "ColorDialog": "top-level dialog",
   "Dialog": "top-level dialog",

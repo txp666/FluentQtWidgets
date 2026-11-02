@@ -125,7 +125,6 @@ const std::vector<Expectation> kIntended = {
     {"SingleDirectionScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "the port's scroll areas are borderless and transparent by default (setFrameShape(NoFrame) and scroll_bar.qss), where Python keeps QScrollArea's 1 px frame and callers remove it with enableTransparentBackground() or a sheet; NavigationBar, NavigationPanel, ColorDialog, FolderListDialog and the gallery rely on the default, so changing it is the owner's call"},
     {"TabBar/default", "sizeHint.w sizeHint.h", "a QWidget holding a QScrollArea, where Python's TabBar is the scroll area itself, so the hint is the inner scroll area's within the bar's layout; the fixed 46 px height and the laid-out size match"},
     {"TabBar/items", "sizeHint.h", "a QWidget holding a QScrollArea, where Python's TabBar is the scroll area itself, so the hint is the inner scroll area's within the bar's layout; the fixed 46 px height and the laid-out size match"},
-    {"BreadcrumbBar/items", "size.w size.h sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "the port lays out item widgets with separate chevrons; Python paints 20 px items with in-item chevrons and fixes the height at 20: a rewrite, left to the owner"},
     {"NavigationBar/default", "size.w minimumSize.w maximumSize.w", "fixed 72 px (64 px buttons plus 4 px margins) for MSFluentWindow; Python's bar is free and takes its window layout's width; Python's MSFluentWindow could not be measured (it crashes offscreen), so left to the owner"},
     {"NavigationInterface/default", "sizeHint.w sizeHint.h minimumSize.w maximumSize.w", "the port's NavigationInterface also holds the page stack (Python's is the panel alone, fixed at 48 when collapsed), so its width is the window's; its 48 px navigation spacer is fixed as Python's widget is"},
     {"NavigationUserCard/default", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
@@ -429,6 +428,11 @@ const Factories &factories()
             for (int i = 0; i < items.size(); ++i) {
                 w->addItem(QStringLiteral("k%1").arg(i), items[i]);
             }
+            return w;
+        };
+        f["BreadcrumbItem/text"] = [](const QString &t, QWidget *) {
+            auto *w = new BreadcrumbItem(QStringLiteral("k1"), t, 1);
+            w->setText(t);
             return w;
         };
         f["PivotItem/text"] = [](const QString &t, QWidget *) { return new PivotItem(t.toLower(), t); };
