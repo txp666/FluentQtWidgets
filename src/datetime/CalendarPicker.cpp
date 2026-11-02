@@ -545,6 +545,9 @@ void CalendarView::refreshYearView()
 
 void CalendarView::switchToDayView()
 {
+    if (m_titleButton) {
+        m_titleButton->setEnabled(true);
+    }
     m_viewMode = ViewMode::Day;
     if (m_stackedWidget && m_dayPage) {
         m_stackedWidget->setCurrentWidget(m_dayPage);
@@ -554,6 +557,9 @@ void CalendarView::switchToDayView()
 
 void CalendarView::switchToMonthView()
 {
+    if (m_titleButton) {
+        m_titleButton->setEnabled(true);
+    }
     const bool fromDayView = m_viewMode == ViewMode::Day;
     m_viewMode = ViewMode::Month;
     if (fromDayView || !m_monthPageDate.isValid()) {
@@ -567,6 +573,10 @@ void CalendarView::switchToMonthView()
 
 void CalendarView::switchToYearView()
 {
+    // Python disables the year view title: there is no view above it.
+    if (m_titleButton) {
+        m_titleButton->setEnabled(false);
+    }
     m_viewMode = ViewMode::Year;
     m_yearPageStart = m_monthPageDate.year() - m_monthPageDate.year() % 10;
     if (m_stackedWidget && m_yearPage) {

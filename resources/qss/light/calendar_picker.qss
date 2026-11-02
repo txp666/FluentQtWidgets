@@ -37,12 +37,28 @@ QFrame[fqw="CalendarView"] {
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarTitle="true"] {
-    color: rgb(32, 32, 32);
-    background: transparent;
+    color: black;
+    background-color: transparent;
     border: none;
-    font: 600 14px --FontFamilies;
-    padding-left: 4px;
+    border-radius: 5px;
+    font: 500 14px --FontFamilies;
+    margin: 0px;
+    padding-left: 8px;
     text-align: left;
+    outline: none;
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarTitle="true"]:hover {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarTitle="true"]:pressed {
+    background-color: rgba(0, 0, 0, 0.024);
+}
+
+QFrame[fqw="CalendarView"] QPushButton[calendarTitle="true"]:disabled {
+    color: rgba(0, 0, 0, 0.4);
+    background-color: transparent;
 }
 
 QFrame[fqw="CalendarView"] QToolButton[calendarNavigation="true"] {
@@ -60,7 +76,7 @@ QFrame[fqw="CalendarView"] QToolButton[calendarNavigation="true"]:pressed {
 }
 
 QFrame[fqw="CalendarView"] QLabel[calendarWeekday="true"] {
-    color: rgba(0, 0, 0, 0.62);
+    color: black;
     background-color: transparent;
     border: none;
     font: 500 12px --FontFamilies;

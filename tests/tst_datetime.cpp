@@ -342,6 +342,54 @@ class DateTimeTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python's calendar title is weight 500 in black/white and disabled in the year view, the
+    // weekday names are black/white, and a dark theme puts them on a rgb(32, 32, 32) strip.
+    void calendarTitleAndWeekdaysUsePythonStyle()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            manager->setTheme(theme);
+            FluentQt::CalendarView view(nullptr, false);
+            view.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&view));
+            QCOMPARE(view.titleButton()->font().weight(), QFont::Medium);
+
+            QLabel *weekday = nullptr;
+            for (QLabel *label : view.findChildren<QLabel *>()) {
+                if (label->property("calendarWeekday").toBool()) {
+                    weekday = label;
+                    break;
+                }
+            }
+            QVERIFY(weekday != nullptr);
+            const QImage image = view.grab().toImage().scaled(view.size());
+            const QRect labelRect(weekday->mapTo(&view, QPoint()), weekday->size());
+            int extreme = theme == FluentQt::Theme::Light ? 255 : 0;
+            for (int y = labelRect.top(); y <= labelRect.bottom(); ++y) {
+                for (int x = labelRect.left(); x <= labelRect.right(); ++x) {
+                    const int red = image.pixelColor(x, y).red();
+                    extreme = theme == FluentQt::Theme::Light ? qMin(extreme, red) : qMax(extreme, red);
+                }
+            }
+            QVERIFY2(theme == FluentQt::Theme::Light ? extreme <= 20 : extreme >= 235,
+                     qPrintable(QString::number(extreme)));
+            if (theme == FluentQt::Theme::Dark) {
+                const QWidget *group = weekday->parentWidget();
+                QCOMPARE(image.pixelColor(group->mapTo(&view, QPoint(1, 1))), QColor(32, 32, 32));
+            }
+
+            QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+            QVERIFY(view.titleButton()->isEnabled());
+            QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+            QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+            QVERIFY(!view.titleButton()->isEnabled());
+            QTest::mouseClick(view.yearButtons().at(5), Qt::LeftButton);
+            QVERIFY(view.titleButton()->isEnabled());
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;
