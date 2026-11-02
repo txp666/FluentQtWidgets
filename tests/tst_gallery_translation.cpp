@@ -24,17 +24,16 @@ class GalleryTranslationTest : public QObject
     Q_OBJECT
 
   private slots:
-    void init() { m_globalState.emplace(); }
+    // The Gallery's setting cards save the configuration: keep it out of the user's file.
+    void init()
+    {
+        m_globalState.emplace();
+        m_globalState->useTemporaryConfigFile();
+    }
 
     void cleanup()
     {
-        const auto widgets = QApplication::topLevelWidgets();
-        for (QWidget *widget : widgets) {
-            if (auto *window = qobject_cast<GalleryWindow *>(widget)) {
-                window->close();
-            }
-        }
-        FqwTest::drainDeferredDeletes();
+        FqwTest::closeTopLevels<GalleryWindow>();
         m_globalState.reset();
     }
 
@@ -336,7 +335,6 @@ class GalleryTranslationTest : public QObject
 
         newWindow->close();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-        FluentQt::FluentConfig::instance()->setLocaleName(previousLocale);
         GalleryTranslation::installTranslators(app, previousLocale);
         QApplication::setQuitOnLastWindowClosed(previousQuitOnLastWindowClosed);
     }
@@ -425,7 +423,6 @@ class GalleryTranslationTest : public QObject
         GalleryTranslation::installTranslators(qApp, QStringLiteral("zh_CN"));
 
         auto *config = FluentQt::FluentConfig::instance();
-        const int previousAcrylicBlurRadius = config->acrylicBlurRadius();
         config->setAcrylicBlurRadius(23);
 
         GalleryWindow window;
@@ -468,8 +465,6 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(acrylicLabel->blurRadius(), 31);
         QCOMPARE(acrylicLabel->blurThread()->blurRadius(), 31);
         QVERIFY(acrylicLabel->blurThread()->wait());
-
-        config->setAcrylicBlurRadius(previousAcrylicBlurRadius);
     }
 
   private:

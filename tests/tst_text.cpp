@@ -333,7 +333,6 @@ class TextTest : public QObject
     void lineEditsKeepThePythonHeight()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             QWidget window;
@@ -349,7 +348,6 @@ class TextTest : public QObject
                 QCOMPARE(edit->height(), 33);
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     void lineEditPlacesActionButtonsAndCompleterMenus()

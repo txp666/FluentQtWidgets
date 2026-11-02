@@ -207,7 +207,6 @@ class BasicInputTest : public QObject
     void toolButtonsAreAsTallAsPushButtons()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             QWidget window;
@@ -245,7 +244,6 @@ class BasicInputTest : public QObject
             }
             QCOMPARE(removeButton->size(), QSize(39, 29));
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python pads the primary buttons and checked toggle buttons as their plain ToolButton or
@@ -255,7 +253,6 @@ class BasicInputTest : public QObject
     void primaryAndCheckedButtonsKeepTheirBasePadding()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             const QIcon mail = icon(FluentIcon::Mail);
@@ -291,7 +288,6 @@ class BasicInputTest : public QObject
             QCOMPARE(hint(&transparentToggleTool), hint(&tool));
             QCOMPARE(hint(&togglePush), uncheckedTogglePush);
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python fades a disabled drop-down button's arrow to 0.6 (light) or 0.43 (dark), not 0.36,
@@ -299,7 +295,6 @@ class BasicInputTest : public QObject
     void disabledDropDownArrowsFadeLikePython()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             const bool dark = theme == Theme::Dark;
@@ -350,7 +345,6 @@ class BasicInputTest : public QObject
             }
             QVERIFY2(brightest > 20, qPrintable(QString::number(brightest)));
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python gives a disabled primary split button's main part a grey right edge, lighter than
@@ -358,7 +352,6 @@ class BasicInputTest : public QObject
     void disabledPrimarySplitButtonsKeepPythonDividerColour()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             const QColor divider = theme == Theme::Dark ? QColor(70, 70, 70) : QColor(195, 195, 195);
@@ -374,7 +367,6 @@ class BasicInputTest : public QObject
                 QCOMPARE(edge.rgb(), divider.rgb());
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python sets no minimum sizes on its buttons and combo boxes; the port's 32 px minimums made
@@ -411,7 +403,6 @@ class BasicInputTest : public QObject
     void pushButtonIconAndTextKeepPythonSpacing()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         manager->setTheme(Theme::Light);
 
         QPixmap pixmap(16, 16);
@@ -505,8 +496,6 @@ class BasicInputTest : public QObject
                  qPrintable(QStringLiteral("Checked toggle icon/text gap is %1 px, expected at least %2 px")
                                 .arg(checkedGap)
                                 .arg(qRound(4 * checkedScale))));
-
-        manager->setTheme(previousTheme);
     }
 
     void portOnlyButtonsExposeRolesAndSeverity()
@@ -1179,7 +1168,6 @@ class BasicInputTest : public QObject
     void slidersAreAsThickAsTheirHandle()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             QWidget window;
@@ -1193,7 +1181,6 @@ class BasicInputTest : public QObject
             QCOMPARE(horizontal->height(), 22);
             QCOMPARE(vertical->width(), 22);
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's Slider(parent) and ClickableSlider(parent) keep QSlider's vertical default.

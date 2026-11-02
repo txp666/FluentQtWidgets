@@ -232,7 +232,6 @@ class NavigationTest : public QObject
     void navigationInterfaceCompactPanelShowsTheWindowWithAcrylicEnabled()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Dark);
 
         FluentQt::NavigationInterface navigation(nullptr, true);
@@ -245,8 +244,6 @@ class NavigationTest : public QObject
 
         const QImage image = FqwTest::render(navigation, Qt::transparent, QWidget::DrawChildren);
         QCOMPARE(image.pixelColor(8, 100).alpha(), 0);
-
-        theme->setTheme(previousTheme);
     }
 
     void navigationPanelMenuButtonTogglesExpansion()
@@ -343,7 +340,6 @@ class NavigationTest : public QObject
     void navigationIconsUseCurrentThemeTint()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
 
         FluentQt::NavigationTreeWidget item(FluentQt::icon(FluentQt::FluentIcon::Menu), QStringLiteral("Menu"));
         item.setAttribute(Qt::WA_TranslucentBackground, true);
@@ -372,8 +368,6 @@ class NavigationTest : public QObject
         const auto lightChannels = renderedChannels(FluentQt::Theme::Light);
         const auto darkChannels = renderedChannels(FluentQt::Theme::Dark);
 
-        theme->setTheme(previousTheme);
-
         QVERIFY(lightChannels.first > 0);
         QVERIFY(darkChannels.first > 0);
         QVERIFY(lightChannels.second / lightChannels.first < 96);
@@ -383,7 +377,6 @@ class NavigationTest : public QObject
     void navigationIconsRemainCompleteAtFractionalDeviceScale()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
 
         constexpr qreal dpr = 1.25;
@@ -433,8 +426,6 @@ class NavigationTest : public QObject
             QVERIFY(qAbs(actualBounds.right() - referenceBounds.right()) <= 1);
             QVERIFY(qAbs(actualBounds.bottom() - referenceBounds.bottom()) <= 1);
         }
-
-        theme->setTheme(previousTheme);
     }
 
     // Python draws long item and avatar names unelided, cut at the edge of the text rect; the
@@ -534,7 +525,6 @@ class NavigationTest : public QObject
     void navigationTreeChildrenAreIndentedInsideFullWidthRows()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
 
         FluentQt::NavigationTreeWidget root(FluentQt::icon(FluentQt::FluentIcon::Folder), QStringLiteral("Folder"));
@@ -555,8 +545,6 @@ class NavigationTest : public QObject
         const QColor indicator = image.pixelColor(29, 18);
         QVERIFY(qAbs(indicator.red() - accent.red()) < 8 && qAbs(indicator.green() - accent.green()) < 8);
         QVERIFY(image.pixelColor(1, 18).alpha() < 40);
-
-        theme->setTheme(previousTheme);
     }
 
     // An expanded parent holds its children, so the pointer stays "in" it over a child; the port
@@ -614,7 +602,6 @@ class NavigationTest : public QObject
     void navigationPanelKeepsPythonBorderAndSeparator()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         for (const FluentQt::Theme mode : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
             theme->setTheme(mode);
             QWidget window;
@@ -635,7 +622,6 @@ class NavigationTest : public QObject
             panel->collapse(false);
             QCOMPARE(separator->size(), QSize(48, 3));
         }
-        theme->setTheme(previousTheme);
     }
 
     // Python takes any minimum expand width; the port ignored values up to 48, so 0 could not
@@ -861,7 +847,6 @@ class NavigationTest : public QObject
     void navigationBarDimsUnselectedItemsAsInPython()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
         FluentQt::NavigationBar bar;
         bar.addItem(QStringLiteral("home"), FluentQt::icon(FluentQt::FluentIcon::Home, FluentQt::Theme::Light),
@@ -886,7 +871,6 @@ class NavigationTest : public QObject
         };
         QVERIFY(strongestAlpha(help) <= 160);
         QVERIFY(strongestAlpha(help) > 0);
-        theme->setTheme(previousTheme);
     }
 
     void navigationHistoryRemoveCollapsesDuplicates()
@@ -1188,7 +1172,6 @@ class NavigationTest : public QObject
     void tabBarKeepsThePythonSizes()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             TabBar bar;
@@ -1204,7 +1187,6 @@ class NavigationTest : public QObject
             }
             QCOMPARE(bar.addButton()->size(), QSize(32, 24));
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python paints its tabs: the selected one is a 249/40 grey card with a grey bottom edge and
@@ -1266,7 +1248,6 @@ class NavigationTest : public QObject
     void tabBarPaintsAndPlacesTabsAsPython()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             TabBar bar;
@@ -1292,7 +1273,6 @@ class NavigationTest : public QObject
                      qPrintable(bottom.name()));
             QCOMPARE(image.pixelColor(780, 23).alpha(), 0);
         }
-        manager->setTheme(previousTheme);
     }
 
     void tabWidgetsTrackPagesAndRoutes()

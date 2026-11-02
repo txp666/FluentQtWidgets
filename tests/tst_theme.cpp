@@ -84,7 +84,6 @@ class ThemeTest : public QObject
         QVERIFY(app != nullptr);
 
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QPalette previousPalette = app->palette();
 
         manager->setTheme(FluentQt::Theme::Light);
@@ -100,7 +99,6 @@ class ThemeTest : public QObject
         QCOMPARE(app->palette().color(QPalette::ButtonText), QColor(32, 32, 32));
         QCOMPARE(app->palette().color(QPalette::WindowText), QColor(32, 32, 32));
 
-        manager->setTheme(previousTheme);
         app->setPalette(previousPalette);
     }
 
@@ -110,7 +108,6 @@ class ThemeTest : public QObject
         QVERIFY(app != nullptr);
 
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QPalette previousPalette = app->palette();
 
         QPalette testPalette = app->palette();
@@ -124,7 +121,6 @@ class ThemeTest : public QObject
 
         app->setPalette(previousPalette);
         manager->systemThemeListener()->refresh();
-        manager->setTheme(previousTheme);
     }
 
     void themeColorPaletteMatchesReference()

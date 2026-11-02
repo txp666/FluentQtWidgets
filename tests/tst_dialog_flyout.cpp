@@ -528,7 +528,6 @@ class DialogFlyoutTest : public QObject
     void dialogFadeInDropsOpacityEffectBeforeButtonHover()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         manager->setTheme(FluentQt::Theme::Light);
 
         FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
@@ -562,8 +561,6 @@ class DialogFlyoutTest : public QObject
         QVERIFY2(hoverKeepsButtonPainted(dialog.cancelButton()),
                  "Dialog cancel button should stay painted after hover");
         QVERIFY(qobject_cast<QGraphicsOpacityEffect *>(dialog.graphicsEffect()) == nullptr);
-
-        manager->setTheme(previousTheme);
     }
 
     void maskedDialogFadeKeepsNativeWindowOpaque()

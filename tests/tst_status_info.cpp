@@ -293,7 +293,6 @@ class StatusInfoTest : public QObject
     void infoBadgeTextFollowsPythonThemeColour()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         for (const Theme theme : {Theme::Light, Theme::Dark}) {
             manager->setTheme(theme);
             InfoBadge badge(QStringLiteral("88"), InfoLevel::Info);
@@ -318,7 +317,6 @@ class StatusInfoTest : public QObject
                 QVERIFY2(lightest > 200, qPrintable(QString::number(lightest)));
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python renders a Fluent icon badge's icon in the opposite theme each time it paints, so it
@@ -327,7 +325,6 @@ class StatusInfoTest : public QObject
     void iconInfoBadgeIconFollowsThemeChanges()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         manager->setTheme(Theme::Light);
         IconInfoBadge badge(FluentIcon::Accept, InfoLevel::Attention);
         badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
@@ -348,7 +345,6 @@ class StatusInfoTest : public QObject
 
         manager->setTheme(Theme::Dark);
         QVERIFY2(iconExtremes().first < 86, qPrintable(QString::number(iconExtremes().first)));
-        manager->setTheme(previousTheme);
     }
 
     void deletedInfoBadgeTakesItsManager()
@@ -441,7 +437,6 @@ class StatusInfoTest : public QObject
     void stateToolTipIconsUseTheOppositeTheme()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         const auto paintedValues = [](QWidget *widget, const QRect &area) {
             const QImage image = FqwTest::render(widget, Qt::transparent, QWidget::DrawChildren);
             int lightest = 0;
@@ -483,7 +478,6 @@ class StatusInfoTest : public QObject
                          qPrintable(QStringLiteral("%1 on %2").arg(tickDark).arg(background)));
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     void stateToolTipStopsSpinningWhileHidden()
@@ -639,7 +633,6 @@ class StatusInfoTest : public QObject
     void toolTipUsesPythonBackground()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         const QList<QPair<Theme, QColor>> cases = {{Theme::Light, QColor(249, 249, 249)},
                                                    {Theme::Dark, QColor(43, 43, 43)}};
         for (const auto &[theme, background] : cases) {
@@ -653,7 +646,6 @@ class StatusInfoTest : public QObject
             const QColor pixel = image.pixelColor(container.left() + 4, container.center().y());
             QCOMPARE(pixel.rgb(), background.rgb());
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's item view tooltip goes through the same screen clamp as every other tooltip, so

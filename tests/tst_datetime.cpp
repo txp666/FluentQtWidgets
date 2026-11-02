@@ -84,7 +84,6 @@ class DateTimeTest : public QObject
     void calendarPickersAreAsTallAsPushButtons()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
             manager->setTheme(theme);
             QWidget window;
@@ -109,7 +108,6 @@ class DateTimeTest : public QObject
                 QCOMPARE(widget->minimumSize(), QSize(0, 0));
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's pickers are exactly as big as their 30 px columns (a time picker is 240x30). The
@@ -118,7 +116,6 @@ class DateTimeTest : public QObject
     void dateAndTimePickersAreAsBigAsTheirColumns()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
             manager->setTheme(theme);
             QWidget window;
@@ -148,7 +145,6 @@ class DateTimeTest : public QObject
             QCOMPARE(pickers.at(2)->width(), 240);
             QCOMPARE(pickers.at(3)->width(), 240);
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python styles both pickers as PickerBase: the same border, a pressed background while the
@@ -157,7 +153,6 @@ class DateTimeTest : public QObject
     void dateAndTimePickersUsePythonColours()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         manager->setTheme(FluentQt::Theme::Light);
         QWidget window;
         auto *layout = new QHBoxLayout(&window);
@@ -215,7 +210,6 @@ class DateTimeTest : public QObject
             QCOMPARE(releasedImages.at(0).pixelColor(releasedImages.at(0).width() - 5, y),
                      releasedImages.at(1).pixelColor(releasedImages.at(1).width() - 5, y));
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's pickers open their panel on clicked(); pressing one and releasing off it does not.
@@ -299,7 +293,6 @@ class DateTimeTest : public QObject
     void calendarNavigationButtonsPaintPythonCarets()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QList<QPair<FluentQt::Theme, int>> cases = {{FluentQt::Theme::Light, 0x5e},
                                                           {FluentQt::Theme::Dark, 0x9c}};
         for (const auto &[theme, grey] : cases) {
@@ -331,7 +324,6 @@ class DateTimeTest : public QObject
                 QVERIFY2(closest <= 4, qPrintable(QString::number(closest)));
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's calendar title is weight 500 in black/white and disabled in the year view, the
@@ -339,7 +331,6 @@ class DateTimeTest : public QObject
     void calendarTitleAndWeekdaysUsePythonStyle()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
             manager->setTheme(theme);
             FluentQt::CalendarView view(nullptr, false);
@@ -379,7 +370,6 @@ class DateTimeTest : public QObject
             QTest::mouseClick(view.yearButtons().at(5), Qt::LeftButton);
             QVERIFY(view.titleButton()->isEnabled());
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's CalendarView is a 338x383 popup holding a 314x355 panel inside 12/8/12/20 margins,
@@ -1176,7 +1166,6 @@ class DateTimeTest : public QObject
     void pickerPanelsDrawTheirSeparators()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QList<QPair<FluentQt::Theme, QColor>> cases = {{FluentQt::Theme::Light, QColor(234, 234, 234)},
                                                              {FluentQt::Theme::Dark, QColor(61, 61, 61)}};
         for (const auto &[theme, line] : cases) {
@@ -1202,7 +1191,6 @@ class DateTimeTest : public QObject
                 QCOMPARE(image.pixelColor((*vertical)->geometry().center()), line);
             }
         }
-        manager->setTheme(previousTheme);
     }
 
     // Python's column scroll buttons are solid carets on an opaque rounded plate that hides the
@@ -1210,7 +1198,6 @@ class DateTimeTest : public QObject
     void cycleListScrollButtonsHideTheItemUnderThem()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QList<QPair<FluentQt::Theme, QColor>> cases = {{FluentQt::Theme::Light, QColor(249, 249, 249)},
                                                              {FluentQt::Theme::Dark, QColor(44, 44, 44)}};
         for (const auto &[theme, plate] : cases) {
@@ -1224,7 +1211,6 @@ class DateTimeTest : public QObject
             const QImage image = FqwTest::render(button);
             QCOMPARE(image.pixelColor(10, button->height() / 2), plate);
         }
-        manager->setTheme(previousTheme);
     }
 
     // A picker panel selects its value before it is shown. The column's viewport then still had

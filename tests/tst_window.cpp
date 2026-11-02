@@ -411,7 +411,6 @@ class WindowTest : public QObject
     void titleBarsPlaceIconTitleAndButtonsAsPython()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         for (const FluentQt::Theme mode : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
             theme->setTheme(mode);
             FluentQt::FluentWindow fluent;
@@ -447,13 +446,11 @@ class WindowTest : public QObject
                 }
             }
         }
-        theme->setTheme(previousTheme);
     }
 
     void navigationStackRoundedCornerUsesNavigationBackdrop()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
 
         FluentQt::FluentWindow window;
@@ -481,14 +478,11 @@ class WindowTest : public QObject
         rendered.fill(Qt::transparent);
         window.render(&rendered);
         QCOMPARE(rendered.pixelColor(stackOrigin), navigationSurface);
-
-        theme->setTheme(previousTheme);
     }
 
     void fluentWindowNavigationStackUsesRoundedTopLeftCorner()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Dark);
 
         FluentQt::FluentWindow window;
@@ -505,7 +499,6 @@ class WindowTest : public QObject
         const QPoint stackTopLeft = window.stackedWidget()->mapTo(&window, QPoint(0, 0));
         const QColor roundedCorner = image.pixelColor(stackTopLeft + QPoint(1, 1));
         const QColor stackBody = image.pixelColor(stackTopLeft + QPoint(16, 16));
-        theme->setTheme(previousTheme);
 
         QCOMPARE(roundedCorner.alpha(), 255);
         QCOMPARE(roundedCorner.red(), 32);

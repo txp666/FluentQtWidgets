@@ -31,7 +31,6 @@ class IconTest : public QObject
         // One file per theme (the black and the white Add glyph); a QIcon of either file keeps
         // its colour, the themed icon has to switch when the theme does.
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QString lightPath = FluentQt::iconPath(FluentQt::FluentIcon::Add, FluentQt::Theme::Light);
         const QString darkPath = FluentQt::iconPath(FluentQt::FluentIcon::Add, FluentQt::Theme::Dark);
         QVERIFY(lightPath != darkPath);
@@ -45,8 +44,6 @@ class IconTest : public QObject
         QCOMPARE(themed.pixmap(QSize(24, 24), 1.0).toImage(), lightImage);
         manager->setTheme(FluentQt::Theme::Dark);
         QCOMPARE(themed.pixmap(QSize(24, 24), 1.0).toImage(), darkImage);
-
-        manager->setTheme(previousTheme);
     }
 
     void iconPathUsesFluentResourceNames()
