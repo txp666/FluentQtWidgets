@@ -142,6 +142,26 @@ class MenuTest : public QObject
         delete menuWithExternalLifetime;
     }
 
+    // Python force-hides the overlay scroll bars of every menu but ComboBoxMenu, which shows the
+    // vertical one.
+    void onlyComboBoxMenusShowTheOverlayScrollBar()
+    {
+        const auto forceHidden = [](QWidget *view) {
+            QMap<Qt::Orientation, bool> hidden;
+            for (FluentQt::SmoothScrollBar *bar :
+                 view->findChildren<FluentQt::SmoothScrollBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+                hidden[bar->orientation()] = bar->isForceHidden();
+            }
+            return hidden;
+        };
+        FluentQt::RoundMenu menu;
+        QCOMPARE(forceHidden(menu.view()).value(Qt::Vertical, false), true);
+        QCOMPARE(forceHidden(menu.view()).value(Qt::Horizontal, false), true);
+        FluentQt::ComboBoxMenu comboMenu;
+        QCOMPARE(forceHidden(comboMenu.view()).value(Qt::Vertical, true), false);
+        QCOMPARE(forceHidden(comboMenu.view()).value(Qt::Horizontal, false), true);
+    }
+
     void menuClearRemovesSeparators()
     {
         RoundMenu menu;

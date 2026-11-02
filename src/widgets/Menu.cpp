@@ -352,7 +352,11 @@ MenuActionListWidget::MenuActionListWidget(QWidget *parent) : QListWidget(parent
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setItemDelegate(new ShortcutMenuItemDelegate(this));
-    new SmoothScrollDelegate(this);
+    // Python sets these policies after creating its delegate, which turns them into force-hiding its
+    // overlay scroll bars: an ordinary menu shows none (ComboBoxMenu shows the vertical one).
+    auto *scrollDelegate = new SmoothScrollDelegate(this);
+    scrollDelegate->verticalScrollBar()->setForceHidden(true);
+    scrollDelegate->horizontalScrollBar()->setForceHidden(true);
     FluentStyleSheet::setRole(this, QStringLiteral("MenuActionListWidget"));
 
     // Resize once the rows are gone. (Qt 6.8 dropped the rowsRemoved() virtual, and sizing in

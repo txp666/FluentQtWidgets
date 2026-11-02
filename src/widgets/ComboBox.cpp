@@ -7,6 +7,7 @@
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
+#include <FluentQtWidgets/Widgets/ScrollArea.h>
 
 #include <QtCore/QEasingCurve>
 #include <QtCore/QPropertyAnimation>
@@ -640,12 +641,28 @@ void ComboBox::onDropMenuClosed()
 // ComboBoxMenu
 // ============================================================================
 
+namespace {
+
+// Python's ComboBoxMenu sets ScrollBarAsNeeded, which its scroll delegate turns into showing the
+// overlay scroll bar that every other menu force-hides.
+void showVerticalOverlayScrollBar(QWidget *view)
+{
+    for (SmoothScrollBar *bar : view->findChildren<SmoothScrollBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+        if (bar->orientation() == Qt::Vertical) {
+            bar->setForceHidden(false);
+        }
+    }
+}
+
+} // namespace
+
 ComboBoxMenu::ComboBoxMenu(QWidget *parent)
     : RoundMenu(QString(), parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxMenu"));
     view()->setViewportPadding(0, 2, 0, 6);
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    showVerticalOverlayScrollBar(view());
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setObjectName(QStringLiteral("comboListWidget"));
     setItemHeight(33);
@@ -663,6 +680,7 @@ AcrylicComboBoxMenu::AcrylicComboBoxMenu(QWidget *parent) : ComboBoxMenu(parent)
     listWidget->setViewportPadding(0, 2, 0, 6);
     setMenuView(listWidget);
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    showVerticalOverlayScrollBar(view());
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setObjectName(QStringLiteral("comboListWidget"));
     setItemHeight(33);
