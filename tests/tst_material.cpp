@@ -393,6 +393,7 @@ class MaterialTest : public QObject
     // tip's transparent style (border rgba(0, 0, 0, 0.06)) over a blurred capture of the screen.
     void acrylicToolTipUsesAnAcrylicContainer()
     {
+        FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
         QWidget window;
         window.resize(300, 200);
         FluentQt::ToolTip plain(QStringLiteral("Hello tooltip"), &window);
@@ -421,10 +422,10 @@ class MaterialTest : public QObject
         // The border is Python's faint dark line, not a light one.
         const QColor border = rendered.pixelColor(0, container->height() / 2);
         QVERIFY2(border.alpha() < 40 && border.red() < 60, qPrintable(border.name(QColor::HexArgb)));
-        // Inside it, the acrylic tint.
-        const QColor inside = rendered.pixelColor(container->width() / 2, container->height() / 2);
+        // Inside it, left of the label, the acrylic tint.
+        const QColor inside = rendered.pixelColor(4, container->height() / 2);
         QCOMPARE(inside.alpha(), 255);
-        QVERIFY(inside.red() > 230);
+        QVERIFY2(inside.red() > 230, qPrintable(inside.name(QColor::HexArgb)));
     }
 
     void acrylicToolTipCapturesTheScreenWhenShown()
