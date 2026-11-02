@@ -757,6 +757,29 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(titleOnly.iconWidget()->size(), QSize(36, 36));
     }
 
+    void unanimatedFlyoutOpensAboveItsTarget()
+    {
+        // qfluentwidgets' DummyFlyoutAnimationManager places the flyout above the target's left
+        // edge: target.mapToGlobal((-margins.left, -height + margins.bottom - 8)), less the 4 px
+        // every manager takes off y.
+        QWidget window;
+        window.resize(400, 400);
+        const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+        window.move(available.center() - QPoint(200, 200));
+        auto *target = new QWidget(&window);
+        target->setGeometry(150, 300, 60, 30);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        auto *flyout = Flyout::make(new FlyoutView(QStringLiteral("Title"), QStringLiteral("Content")), target, &window,
+                                    FlyoutAnimationType::None);
+        const QMargins m = flyout->layout()->contentsMargins();
+        const QPoint expected =
+            target->mapToGlobal(QPoint(-m.left(), -flyout->sizeHint().height() + m.bottom() - 8)) - QPoint(0, 4);
+        QCOMPARE(flyout->pos(), expected);
+        flyout->close();
+    }
+
     void flyoutReusesItsAnimationManager()
     {
         QWidget target;

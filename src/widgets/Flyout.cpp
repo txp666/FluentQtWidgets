@@ -263,6 +263,15 @@ class DummyFlyoutAnimationManager : public FlyoutAnimationManager
 public:
     using FlyoutAnimationManager::FlyoutAnimationManager;
 
+    QPoint position(QWidget *target) const override
+    {
+        if (!m_flyout || !target) {
+            return QPoint();
+        }
+        const QMargins m = m_flyout->layout() ? m_flyout->layout()->contentsMargins() : QMargins();
+        return target->mapToGlobal(QPoint(-m.left(), -m_flyout->sizeHint().height() + m.bottom() - 8));
+    }
+
     void exec(const QPoint &pos) override
     {
         if (m_flyout) {
