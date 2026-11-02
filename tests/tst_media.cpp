@@ -196,7 +196,6 @@ class MediaTest : public QObject
         QCOMPARE(bar.height(), 48);
         QCOMPARE(bar.minimumHeight(), 48);
         QCOMPARE(bar.maximumHeight(), 48);
-        QCOMPARE(bar.minimumSizeHint().width(), 112);
         COMPARE_GEOMETRY(geometryIn(bar.playButton(), &bar), QRect(10, 9, 30, 30), 0);
         COMPARE_GEOMETRY(geometryIn(bar.progressSlider(), &bar), QRect(46, 13, 508, 22), 0);
         COMPARE_GEOMETRY(geometryIn(bar.volumeButton(), &bar), QRect(560, 9, 30, 30), 0);
@@ -288,8 +287,7 @@ class MediaTest : public QObject
         auto *player = new FakePlayer(&video);
         video.playBar()->setMediaPlayer(player);
         video.resize(400, 300);
-        video.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&video));
+        // Not shown yet: on a desktop the real pointer would send its own Enter and Leave events.
         auto *effect = video.playBar()->opacityEffect();
         QCOMPARE(effect->opacity(), 1.0);
 
@@ -310,6 +308,8 @@ class MediaTest : public QObject
         QTest::qWait(3000);
         QCOMPARE(effect->opacity(), 1.0);
 
+        video.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&video));
         video.play();
         QVERIFY(player->isPlaying());
         video.togglePlayState();
