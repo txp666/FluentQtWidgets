@@ -14,7 +14,6 @@ QTableView[fqw="TableView"][isBorderVisible="true"],
 QTableView[fqw="TableWidget"][isBorderVisible="true"],
 QTableWidget[fqw="TableWidget"][isBorderVisible="true"] {
     border: 1px solid rgba(255, 255, 255, 0.082);
-    border-radius: 6px;
 }
 
 QTableView[fqw="TableView"]::item,

@@ -386,6 +386,27 @@ class ViewTest : public QObject
         QVERIFY(!indicatorShown());
     }
 
+    // Python draws a table's border with square corners until setBorderRadius() rounds them; the
+    // port rounded them by 6 px.
+    void tableBorderHasSquareCorners()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            TableWidget table;
+            table.setBorderVisible(true);
+            table.setRowCount(2);
+            table.setColumnCount(2);
+            table.resize(300, 200);
+            table.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&table));
+            const QImage image = table.grab().toImage();
+            QVERIFY(image.pixelColor(0, 0).alpha() > 0);
+
+            table.setBorderRadius(8);
+            QCOMPARE(table.grab().toImage().pixelColor(0, 0).alpha(), 0);
+        }
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
