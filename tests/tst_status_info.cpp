@@ -435,7 +435,7 @@ class StatusInfoTest : public QObject
         QVERIFY(tip.shadowEffect() != nullptr);
         QCOMPARE(tip.shadowEffect()->blurRadius(), 25.0);
         QCOMPARE(tip.shadowEffect()->offset(), QPointF(0, 5));
-        QCOMPARE(tip.shadowEffect()->color(), QColor(0, 0, 0, 60));
+        QCOMPARE(tip.shadowEffect()->color(), QColor(0, 0, 0, 50));
         QVERIFY(!(tip.windowFlags() & Qt::WindowStaysOnTopHint));
         QVERIFY(tip.label() != nullptr);
         QCOMPARE(tip.label()->objectName(), QStringLiteral("contentLabel"));
@@ -544,6 +544,30 @@ class StatusInfoTest : public QObject
         QVERIFY(!tip.label()->wordWrap());
         QCOMPARE(tip.height(), oneLineHeight);
         QVERIFY(tip.width() > tip.label()->fontMetrics().horizontalAdvance(longText));
+    }
+
+    // Python fills the tooltip with rgb(249, 249, 249) in the light theme and rgb(43, 43, 43)
+    // in the dark one; the port's light tooltip was a darker rgb(243, 243, 243).
+    void toolTipUsesPythonBackground()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        const QList<QPair<Theme, QColor>> cases = {{Theme::Light, QColor(249, 249, 249)},
+                                                   {Theme::Dark, QColor(43, 43, 43)}};
+        for (const auto &[theme, background] : cases) {
+            manager->setTheme(theme);
+            ToolTip tip(QStringLiteral("Hi"));
+            tip.ensurePolished();
+            tip.container()->ensurePolished();
+            tip.adjustSize();
+            QImage image(tip.size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            tip.render(&image);
+            const QRect container = tip.container()->geometry();
+            const QColor pixel = image.pixelColor(container.left() + 4, container.center().y());
+            QCOMPARE(pixel.rgb(), background.rgb());
+        }
+        manager->setTheme(previousTheme);
     }
 
     void toolTipShowTextCleansUpAfterItself()

@@ -47,7 +47,7 @@ ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
 
     m_shadowEffect = new QGraphicsDropShadowEffect(this);
     m_shadowEffect->setBlurRadius(25);
-    m_shadowEffect->setColor(QColor(0, 0, 0, 60));
+    m_shadowEffect->setColor(QColor(0, 0, 0, 50));
     m_shadowEffect->setOffset(0, 5);
     m_container->setGraphicsEffect(m_shadowEffect);
 
