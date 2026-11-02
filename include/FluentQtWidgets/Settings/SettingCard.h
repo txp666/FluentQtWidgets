@@ -80,6 +80,7 @@ class FQW_API SettingCard : public QFrame
 
   protected:
     void changeEvent(QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
     QVBoxLayout *outerLayout() const;
 
   private:

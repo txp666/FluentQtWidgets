@@ -206,6 +206,21 @@ void SettingCard::changeEvent(QEvent *event)
     QFrame::changeEvent(event);
 }
 
+void SettingCard::paintEvent(QPaintEvent *)
+{
+    // Python paints the card itself; a style sheet border would also shrink the contents by 1 px.
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (ThemeManager::instance()->effectiveTheme() == Theme::Dark) {
+        painter.setBrush(QColor(255, 255, 255, 13));
+        painter.setPen(QColor(0, 0, 0, 50));
+    } else {
+        painter.setBrush(QColor(255, 255, 255, 170));
+        painter.setPen(QColor(0, 0, 0, 19));
+    }
+    painter.drawRoundedRect(rect().adjusted(1, 1, -1, -1), 6, 6);
+}
+
 QVBoxLayout *SettingCard::outerLayout() const { return m_outerLayout; }
 
 void SettingCard::init()
@@ -218,11 +233,11 @@ void SettingCard::init()
     m_iconLabel->setScaledContents(false);
     m_iconLabel->setVisible(false);
 
-    m_titleLabel = new BodyLabel(this);
-    m_titleLabel->setObjectName(QStringLiteral("SettingCardTitle"));
+    // Plain labels, as in Python: setting_card.qss gives them their fonts and colours.
+    m_titleLabel = new QLabel(this);
 
-    m_contentLabel = new CaptionLabel(this);
-    m_contentLabel->setObjectName(QStringLiteral("SettingCardContent"));
+    m_contentLabel = new QLabel(this);
+    m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
     m_contentLabel->setWordWrap(false);
     m_contentLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -392,8 +407,11 @@ PushSettingCard::PushSettingCard(ButtonStyle style, const QString &buttonText, c
                                  const QString &content, QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_button = style == ButtonStyle::Primary ? static_cast<QPushButton *>(new PrimaryPushButton(buttonText, this))
-                                             : static_cast<QPushButton *>(new PushButton(buttonText, this));
+    // A plain QPushButton, as in Python: setting_card.qss styles it, and a primary one by its name.
+    m_button = new QPushButton(buttonText, this);
+    if (style == ButtonStyle::Primary) {
+        m_button->setObjectName(QStringLiteral("primaryButton"));
+    }
     actionLayout()->addWidget(m_button, 0, Qt::AlignRight);
     connect(m_button, &QPushButton::clicked, this, &PushSettingCard::clicked);
 
@@ -499,10 +517,8 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, const QI
                                    const QString &content, QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_valueLabel = new CaptionLabel(this);
-    m_valueLabel->setObjectName(QStringLiteral("SettingCardValue"));
-    m_valueLabel->setMinimumWidth(32);
-    m_valueLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_valueLabel = new QLabel(this);
+    m_valueLabel->setObjectName(QStringLiteral("valueLabel"));
 
     m_slider = new ClickableSlider(Qt::Horizontal, this);
     m_slider->setMinimumWidth(268);
@@ -563,7 +579,8 @@ void RangeSettingCard::setRange(int minimum, int maximum)
 void RangeSettingCard::updateValueLabel(int value)
 {
     if (m_valueLabel) {
-        m_valueLabel->setText(QString::number(value));
+        m_valueLabel->setNum(value);
+        m_valueLabel->adjustSize();
     }
 }
 
