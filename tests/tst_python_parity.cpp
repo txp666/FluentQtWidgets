@@ -87,10 +87,14 @@ struct Expectation
     const char *reason;
 };
 
-// Deliberate differences, for a Qt/C++/platform reason. The listed metrics are not compared. Empty so far:
-// every difference found has no reason in Qt, C++ or the platform, so it is pending.
+// Deliberate differences, for a Qt/C++/platform reason. The listed metrics are not compared.
 const std::vector<Expectation> kIntended = {
     // clang-format off
+    // Date and time pickers stay QFrames (a QPushButton base would change the public API).
+    {"DatePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
+    {"ZhDatePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
+    {"TimePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
+    {"AMTimePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
     // clang-format on
 };
 
@@ -99,73 +103,12 @@ const std::vector<Expectation> kIntended = {
 const std::vector<Expectation> kPending = {
     // clang-format off
     // Buttons
-    {"PushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PrimaryPushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PrimaryPushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PrimaryPushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentPushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentPushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentPushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"ToggleButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"ToggleButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"ToggleButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TogglePushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TogglePushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TogglePushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentTogglePushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentTogglePushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentTogglePushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PillPushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PillPushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PillPushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"DropDownPushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"DropDownPushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"DropDownPushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PrimaryDropDownPushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PrimaryDropDownPushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"PrimaryDropDownPushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentDropDownPushButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentDropDownPushButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TransparentDropDownPushButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"HyperlinkButton/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"HyperlinkButton/icon+text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"HyperlinkButton/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"ToolButton/default", "minimumSize.w minimumSize.h", "code sets a 32x32 minimum, Python none"},
-    {"ToolButton/icon", "minimumSize.w minimumSize.h", "code sets a 32x32 minimum, Python none"},
-    {"PrimaryToolButton/default", "size.w sizeHint.w minimumSize.w minimumSize.h", "7 px wider than Python; and a 32x32 minimum (Qt 6's QToolButton hint is 6 px larger, see qtBaseline)"},
-    {"PrimaryToolButton/icon", "size.w sizeHint.w minimumSize.w minimumSize.h", "7 px wider than Python; and a 32x32 minimum (Qt 6's QToolButton hint is 6 px larger, see qtBaseline)"},
-    {"TransparentToolButton/default", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"TransparentToolButton/icon", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"ToggleToolButton/default", "minimumSize.w minimumSize.h", "code sets a 32x32 minimum, Python none"},
-    {"ToggleToolButton/icon", "minimumSize.w minimumSize.h", "code sets a 32x32 minimum, Python none"},
-    {"TransparentToggleToolButton/default", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"TransparentToggleToolButton/icon", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"PillToolButton/default", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"PillToolButton/icon", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"DropDownToolButton/default", "minimumSize.w minimumSize.h", "code sets a 56x32 minimum, Python none"},
-    {"DropDownToolButton/icon", "minimumSize.w minimumSize.h", "code sets a 56x32 minimum, Python none"},
-    {"PrimaryDropDownToolButton/default", "size.w sizeHint.w minimumSize.w minimumSize.h", "56 wide (hint 45) where Python is 60; and a 56x32 minimum, Python none"},
-    {"PrimaryDropDownToolButton/icon", "size.w sizeHint.w minimumSize.w minimumSize.h", "56 wide (hint 45) where Python is 60; and a 56x32 minimum, Python none"},
-    {"TransparentDropDownToolButton/default", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"TransparentDropDownToolButton/icon", "size.h minimumSize.w minimumSize.h", "32 px tall where Python is 30; and a 32x32 minimum, Python none"},
-    {"PrimarySplitToolButton/default", "size.w sizeHint.w", "8 px wider than Python (SplitToolButton matches)"},
-    {"PrimarySplitToolButton/icon", "size.w sizeHint.w", "8 px wider than Python (SplitToolButton matches)"},
-    {"CommandButton/default", "minimumSize.w minimumSize.h", "code sets a 32x32 minimum, Python none"},
-    {"CommandButton/icon", "minimumSize.w minimumSize.h", "code sets a 32x32 minimum, Python none"},
     {"ColorPickerButton/default", "sizeHint.w sizeHint.h", "hint 27x27, Python 24x23 (both fixed in size)"},
     // Selection
     {"Slider/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h", "default orientation horizontal, Python's (QSlider's) vertical"},
-    {"Slider/horizontal", "size.h sizeHint.h minimumSize.h", "24 px tall, Python 22 (hint 20)"},
+    {"Slider/horizontal", "sizeHint.h", "hint 22 px tall, Python 20; the size matches at 22"},
     {"ClickableSlider/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.h", "default orientation horizontal, Python's (QSlider's) vertical"},
     // Combo boxes
-    {"ComboBox/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"ComboBox/items", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"ModelComboBox/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"EditableComboBox/default", "size.w sizeHint.w sizeHint.h", "22 px wider than Python, hint 35 px tall vs 24 (fixed height matches)"},
-    {"EditableComboBox/items", "size.w sizeHint.w sizeHint.h", "22 px wider than Python, hint 35 px tall vs 24 (fixed height matches)"},
-    {"EditableModelComboBox/default", "size.w sizeHint.w sizeHint.h", "22 px wider than Python, hint 35 px tall vs 24 (fixed height matches)"},
     // Spin boxes, date and time
     {"SpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
     {"DoubleSpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
@@ -177,10 +120,6 @@ const std::vector<Expectation> kPending = {
     {"CompactTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
     {"CompactDateEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
     {"CompactDateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"DatePicker/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.w maximumSize.h", "fixed 322x32, Python 300x30; hint is the fixed size, Python's the button's"},
-    {"ZhDatePicker/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.w maximumSize.h", "fixed 262x32, Python 240x30; hint is the fixed size, Python's the button's"},
-    {"TimePicker/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.w maximumSize.h", "fixed 242x32, Python 240x30; hint is the fixed size, Python's the button's"},
-    {"AMTimePicker/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.w maximumSize.h", "fixed 242x32, Python 240x30; hint is the fixed size, Python's the button's"},
     {"CalendarPicker/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
     {"FastCalendarPicker/default", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
     // Labels and images
@@ -205,23 +144,13 @@ const std::vector<Expectation> kPending = {
     {"SmoothScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
     {"SingleDirectionScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
     // Cards
-    {"SimpleCardWidget/default", "size.w size.h sizeHint.w sizeHint.h", "hint 32x32, Python none (0x0 in a layout); CardWidget matches"},
-    {"ElevatedCardWidget/default", "size.w size.h sizeHint.w sizeHint.h", "hint 32x32, Python none (0x0 in a layout); CardWidget matches"},
-    {"HeaderCardWidget/default", "size.w sizeHint.w", "2-3 px wider than Python with no title"},
-    {"HeaderCardWidget/text", "size.w sizeHint.w", "title font 15 pt (21 px at 100 DPI), Python 15 px"},
-    {"GroupHeaderCardWidget/default", "size.w sizeHint.w", "2-3 px wider than Python with no title"},
     // Command bar
     {"CommandBar/default", "size.w size.h", "laid out at 0 px wide (0x0 empty) though its hint matches; Python 100 px"},
     {"CommandBar/items", "size.w", "laid out at 0 px wide (0x0 empty) though its hint matches; Python 100 px"},
     {"CommandBarView/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.h", "12x12 and fixed 12 px tall, Python 112x42"},
     // Navigation
-    {"Pivot/items", "minimumSize.h", "32 px minimum height, Python 46"},
-    {"PivotItem/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"SegmentedItem/text", "minimumSize.h", "code sets a 32 px minimum height, Python none"},
-    {"TabBar/default", "size.w sizeHint.w sizeHint.h", "128 px wide and hint 128x93, Python 93 and 45x24"},
-    {"TabBar/items", "size.w sizeHint.w sizeHint.h", "219 px wide for two tabs, Python 525 (its tabs take their 240 px hint); hint 93 px tall vs 46"},
-    {"TabItem/text", "size.w sizeHint.w sizeHint.h", "71x32 hint, Python 240x36 (the tab's maximum width)"},
-    {"TabWidget/default", "size.w sizeHint.w", "128 px wide, Python 93"},
+    {"TabBar/default", "sizeHint.w sizeHint.h", "hint 93x93, Python 45x24; the size matches"},
+    {"TabBar/items", "sizeHint.h", "hint 93 px tall, Python 46; the fixed 46 px height matches"},
     {"BreadcrumbBar/items", "size.w size.h sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "hint 149x32 and free height; Python has no hint and fixes the height at 20"},
     {"NavigationBar/default", "size.w minimumSize.w maximumSize.w", "fixed 72 px wide, Python free (93)"},
     {"NavigationInterface/default", "sizeHint.w sizeHint.h minimumSize.w maximumSize.w", "free width, Python fixed at 48 when collapsed; hint 49x1, Python none"},
@@ -231,17 +160,9 @@ const std::vector<Expectation> kPending = {
     {"NavigationItemHeader/text", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
     {"NavigationAvatarWidget/text", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
     // Flyout contents
-    {"FlyoutView/text", "size.h sizeHint.h", "70 px tall, Python 68"},
     // Setting cards
-    {"SettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "+22 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
-    {"SwitchSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "+6 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
-    {"PushSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "-42 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
-    {"PrimaryPushSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "+6 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
-    {"HyperlinkCard/icon+text", "size.w sizeHint.w sizeHint.h", "+6 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
-    {"RangeSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "+21 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
+    {"SettingCard/icon+text", "size.w sizeHint.w", "16 px wider than Python (121 vs 105); the fixed height matches"},
     {"OptionsSettingCard/icon+text", "sizeHint.h", "hint 105 px tall, Python 208 (collapsed size matches)"},
-    {"ComboBoxSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "+85 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
-    {"ColorSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "+6 px wide vs Python; hint 39 px tall vs 36 (fixed height matches)"},
     {"CustomColorSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "27 px narrower, hint 179 px tall vs 353 (collapsed height matches)"},
     {"ExpandGroupSettingCard/icon+text", "sizeHint.h", "hint 20 px tall, Python 3 (collapsed size matches)"},
     {"SimpleExpandGroupSettingCard/icon+text", "sizeHint.h", "hint 20 px tall, Python 3 (collapsed size matches)"},
