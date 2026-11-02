@@ -1601,6 +1601,24 @@ QSize SystemTrayMenu::sizeHint() const
 }
 
 // ==========================================
+// CheckableSystemTrayMenu
+// ==========================================
+
+CheckableSystemTrayMenu::CheckableSystemTrayMenu(QWidget *parent) : CheckableMenu(parent) {}
+
+CheckableSystemTrayMenu::CheckableSystemTrayMenu(const QString &title, QWidget *parent, MenuIndicatorType indicatorType)
+    : CheckableMenu(title, parent, indicatorType)
+{
+}
+
+QSize CheckableSystemTrayMenu::sizeHint() const
+{
+    const QMargins m = layout()->contentsMargins();
+    const QSize s = layout()->sizeHint();
+    return QSize(s.width() - m.right() + 5, s.height() - m.bottom());
+}
+
+// ==========================================
 // Acrylic menus
 // ==========================================
 

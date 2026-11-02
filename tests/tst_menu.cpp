@@ -212,6 +212,21 @@ class MenuTest : public QObject
         }
     }
 
+    void checkableSystemTrayMenuSizesLikeTheTrayMenu()
+    {
+        // qfluentwidgets has CheckableSystemTrayMenu: a CheckableMenu with SystemTrayMenu's size
+        // hint, which drops the right and bottom shadow margins but keeps 5 px on the right.
+        FluentQt::CheckableSystemTrayMenu menu(QString(), nullptr, FluentQt::MenuIndicatorType::Radio);
+        QVERIFY(qobject_cast<FluentQt::CheckableMenu *>(&menu));
+        QVERIFY(qobject_cast<FluentQt::RadioIndicatorMenuItemDelegate *>(menu.view()->itemDelegate()));
+        menu.addCheckableAction(QStringLiteral("Option"), true);
+        const QMargins m = menu.layout()->contentsMargins();
+        const QSize s = menu.layout()->sizeHint();
+        QCOMPARE(menu.sizeHint(), QSize(s.width() - m.right() + 5, s.height() - m.bottom()));
+        FluentQt::CheckableSystemTrayMenu checkMenu;
+        QVERIFY(qobject_cast<FluentQt::CheckIndicatorMenuItemDelegate *>(checkMenu.view()->itemDelegate()));
+    }
+
     void menuExecAndWaitReturnsTriggeredAction()
     {
         // macOS closes a popup at once while the application has no window up yet.

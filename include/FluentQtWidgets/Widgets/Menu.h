@@ -313,6 +313,18 @@ public:
     QSize sizeHint() const override;
 };
 
+class FQW_API CheckableSystemTrayMenu : public CheckableMenu
+{
+    Q_OBJECT
+
+  public:
+    explicit CheckableSystemTrayMenu(QWidget *parent = nullptr);
+    explicit CheckableSystemTrayMenu(const QString &title, QWidget *parent = nullptr,
+                                     MenuIndicatorType indicatorType = MenuIndicatorType::Check);
+
+    QSize sizeHint() const override;
+};
+
 // --- Acrylic menus ---
 class FQW_API AcrylicMenuActionListWidget : public MenuActionListWidget
 {
