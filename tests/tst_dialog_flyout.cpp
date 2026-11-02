@@ -317,7 +317,8 @@ class DialogFlyoutTest : public QObject
         QSignalSpy boxAccepted(&box, &QDialog::accepted);
         box.show();
         QVERIFY(QTest::qWaitForWindowExposed(&box));
-        QCOMPARE(box.yesButton()->height(), 32);
+        // The button row neither stretches nor squeezes the buttons (32 px in Python's font).
+        QCOMPARE(box.yesButton()->height(), box.yesButton()->sizeHint().height());
         QTest::keyClick(box.yesButton(), Qt::Key_Return);
         QTRY_COMPARE(boxAccepted.count(), 1);
 

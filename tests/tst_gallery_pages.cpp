@@ -369,7 +369,8 @@ class GalleryPagesTest : public QObject
         QVERIFY(table != nullptr);
         QCOMPARE(table->rowCount(), 60);
         QCOMPARE(table->columnCount(), 5);
-        QCOMPARE(table->selectionMode(), QAbstractItemView::SingleSelection);
+        // Python's TableFrame keeps the table's default, which selects several rows.
+        QCOMPARE(table->selectionMode(), QAbstractItemView::ExtendedSelection);
         QCOMPARE(table->selectionBehavior(), QAbstractItemView::SelectRows);
         QVERIFY(table->alternatingRowColors());
         QCOMPARE(table->horizontalHeader()->sectionResizeMode(0), QHeaderView::Interactive);
