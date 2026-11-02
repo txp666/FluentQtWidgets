@@ -327,6 +327,30 @@ class TextTest : public QObject
         QVERIFY(!button.isPressed());
     }
 
+    // LineEdit fixes its height at 33 px, as in Python. A style sheet's min-height sizes the
+    // content box, so the old `min-height: 32px` plus the borders raised it to 34.
+    void lineEditsKeepThePythonHeight()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QList<QLineEdit *> edits = {new LineEdit(&window), new SearchLineEdit(&window),
+                                              new PasswordLineEdit(&window)};
+            for (QLineEdit *edit : edits) {
+                layout->addWidget(edit, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+            for (const QLineEdit *edit : edits) {
+                QCOMPARE(edit->height(), 33);
+            }
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void lineEditExposesPythonStylePropertiesAndActionHelpers()
     {
         FluentQt::LineEdit editor;

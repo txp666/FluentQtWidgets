@@ -8,7 +8,6 @@ QPlainTextEdit[fqw="PlainTextEdit"],
 QTextBrowser[fqw="TextBrowser"] {
     color: white;
     font: 14px --FontFamilies;
-    min-height: 32px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-bottom: 1px solid rgba(255, 255, 255, 0.5442);
     border-radius: 5px;
