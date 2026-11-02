@@ -210,12 +210,35 @@ class FQW_API MessageBox : public MessageBoxBase
     QLabel *m_messageLabel = nullptr;
 };
 
-class FQW_API MessageDialog : public MessageBox
+// qfluentwidgets' Win10-style message dialog: plain labels and buttons placed by hand on a
+// masked, square centre widget, styled by message_dialog.qss.
+class FQW_API MessageDialog : public MaskDialogBase
 {
     Q_OBJECT
+    Q_PROPERTY(QLabel *titleLabel READ titleLabel)
+    Q_PROPERTY(QLabel *contentLabel READ contentLabel)
+    Q_PROPERTY(QPushButton *yesButton READ yesButton)
+    Q_PROPERTY(QPushButton *cancelButton READ cancelButton)
 
   public:
-    MessageDialog(const QString &title, const QString &message, QWidget *parent = nullptr);
+    MessageDialog(const QString &title, const QString &content, QWidget *parent = nullptr);
+
+    QLabel *titleLabel() const;
+    QLabel *contentLabel() const;
+    QPushButton *yesButton() const;
+    QPushButton *cancelButton() const;
+
+  signals:
+    void yesSignal();
+    void cancelSignal();
+
+  private:
+    void adjustLayout();
+
+    QLabel *m_titleLabel = nullptr;
+    QLabel *m_contentLabel = nullptr;
+    QPushButton *m_yesButton = nullptr;
+    QPushButton *m_cancelButton = nullptr;
 };
 
 } // namespace FluentQt

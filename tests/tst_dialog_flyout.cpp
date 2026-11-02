@@ -218,11 +218,37 @@ class DialogFlyoutTest : public QObject
         QTest::mouseClick(maskedBox.windowMask(), Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
         QTRY_COMPARE(maskRejectedSpy.count(), 1);
 
-        FluentQt::MessageDialog messageDialog(QStringLiteral("Title"), QStringLiteral("Message"));
+        // qfluentwidgets' Win10-style MessageDialog: hand-placed plain labels and buttons.
+        FluentQt::MessageDialog messageDialog(
+            QStringLiteral("This is a message dialog with mask"),
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this."),
+            &maskParent);
         QCOMPARE(messageDialog.property("fqw").toString(), QStringLiteral("MessageDialog"));
-        auto *messageDialogView = messageDialog.findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
-        QVERIFY(messageDialogView != nullptr);
-        QCOMPARE(messageDialogView->property("fqw").toString(), QStringLiteral("MessageDialog"));
+        QCOMPARE(messageDialog.widget()->property("fqw").toString(), QStringLiteral("MessageDialog"));
+        QCOMPARE(messageDialog.windowMask()->objectName(), QStringLiteral("windowMask"));
+        QVERIFY(qobject_cast<FluentQt::PushButton *>(messageDialog.yesButton()) == nullptr);
+        QCOMPARE(messageDialog.contentLabel()->text().count(QLatin1Char('\n')), 1);
+        QCOMPARE(messageDialog.titleLabel()->pos(), QPoint(24, 24));
+        QCOMPARE(messageDialog.contentLabel()->pos(), QPoint(24, 56));
+        const QSize messageDialogSize = messageDialog.widget()->size();
+        QCOMPARE(messageDialogSize.width(), 48 + messageDialog.contentLabel()->width());
+        QCOMPARE(messageDialogSize.height(), 56 + messageDialog.contentLabel()->height() + 92);
+        const int buttonWidth = (messageDialogSize.width() - 54) / 2;
+        QCOMPARE(messageDialog.yesButton()->geometry(), QRect(24, messageDialogSize.height() - 56, buttonWidth, 32));
+        QCOMPARE(messageDialog.cancelButton()->geometry(),
+                 QRect(messageDialogSize.width() - 24 - buttonWidth, messageDialogSize.height() - 56, buttonWidth, 32));
+        if (QFontInfo(messageDialog.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
+            // Measured natively from qfluentwidgets 1.11.3 on macOS.
+            QCOMPARE(messageDialogSize, QSize(510, 188));
+            QCOMPARE(messageDialog.titleLabel()->size(), QSize(298, 26));
+        }
+        QSignalSpy messageDialogYesSpy(&messageDialog, &FluentQt::MessageDialog::yesSignal);
+        QSignalSpy messageDialogAcceptedSpy(&messageDialog, &QDialog::accepted);
+        messageDialog.show();
+        messageDialog.yesButton()->click();
+        QCOMPARE(messageDialogYesSpy.count(), 1);
+        QTRY_COMPARE(messageDialogAcceptedSpy.count(), 1);
     }
 
     void returnKeyAcceptsDialogsLikePython()

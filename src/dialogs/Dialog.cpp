@@ -734,11 +734,61 @@ void MessageBox::adjustMessageSize()
     m_widget->setFixedSize(m_widget->minimumSizeHint());
 }
 
-MessageDialog::MessageDialog(const QString &title, const QString &message, QWidget *parent)
-    : MessageBox(title, message, parent)
+MessageDialog::MessageDialog(const QString &title, const QString &content, QWidget *parent) : MaskDialogBase(parent)
 {
+    setWindowTitle(title);
     FluentStyleSheet::setRole(this, QStringLiteral("MessageDialog"));
     setCenterWidgetRole(QStringLiteral("MessageDialog"));
+
+    m_titleLabel = new QLabel(title, m_widget);
+    m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_contentLabel = new QLabel(m_widget);
+    m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
+    m_contentLabel->setText(Private::wrapText(content, 71));
+    m_yesButton = new QPushButton(tr("OK"), m_widget);
+    m_cancelButton = new QPushButton(tr("Cancel"), m_widget);
+    m_windowMask->setObjectName(QStringLiteral("windowMask"));
+
+    m_widget->setMaximumWidth(540);
+    m_titleLabel->move(24, 24);
+    m_contentLabel->move(24, 56);
+    adjustLayout();
+
+    connect(m_yesButton, &QPushButton::clicked, this, [this]() {
+        if (!isFinishing()) {
+            emit yesSignal();
+            accept();
+        }
+    });
+    connect(m_cancelButton, &QPushButton::clicked, this, [this]() {
+        if (!isFinishing()) {
+            emit cancelSignal();
+            reject();
+        }
+    });
+}
+
+QLabel *MessageDialog::titleLabel() const { return m_titleLabel; }
+
+QLabel *MessageDialog::contentLabel() const { return m_contentLabel; }
+
+QPushButton *MessageDialog::yesButton() const { return m_yesButton; }
+
+QPushButton *MessageDialog::cancelButton() const { return m_cancelButton; }
+
+void MessageDialog::adjustLayout()
+{
+    // The style sheet sets the label fonts, so polish before measuring.
+    m_widget->ensurePolished();
+    m_titleLabel->ensurePolished();
+    m_contentLabel->ensurePolished();
+    m_titleLabel->adjustSize();
+    m_contentLabel->adjustSize();
+    m_widget->setFixedSize(48 + m_contentLabel->width(), m_contentLabel->y() + m_contentLabel->height() + 92);
+    m_yesButton->resize((m_widget->width() - 54) / 2, 32);
+    m_cancelButton->resize(m_yesButton->width(), 32);
+    m_yesButton->move(24, m_widget->height() - 56);
+    m_cancelButton->move(m_widget->width() - 24 - m_cancelButton->width(), m_widget->height() - 56);
 }
 
 } // namespace FluentQt
