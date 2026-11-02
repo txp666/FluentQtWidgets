@@ -162,6 +162,18 @@ bool consumeIgnoredToggle(bool *ignoreNextToggle, const QElapsedTimer &closedTim
     return closedTimer.isValid() && closedTimer.elapsed() <= QApplication::doubleClickInterval();
 }
 
+// Python's TranslateYAnimation: the arrow dips 2 px while the mouse is pressed on the combo box
+// and springs back when it is released, each time from wherever it is.
+void animateArrow(ArrowAnimation *animation, qreal endValue, int duration, QEasingCurve::Type easing)
+{
+    animation->stop();
+    animation->setStartValue(animation->y());
+    animation->setEndValue(endValue);
+    animation->setDuration(duration);
+    animation->setEasingCurve(easing);
+    animation->start();
+}
+
 void paintComboBoxArrow(QPainter *painter, const QRectF &rect)
 {
     if (!painter) {
@@ -494,10 +506,12 @@ bool ComboBox::event(QEvent *e)
         break;
     case QEvent::MouseButtonPress:
         m_isPressed = true;
+        animateArrow(m_arrowAni, 2.0, 150, QEasingCurve::OutQuad);
         update();
         break;
     case QEvent::MouseButtonRelease:
         m_isPressed = false;
+        animateArrow(m_arrowAni, 0.0, 500, QEasingCurve::OutElastic);
         update();
         break;
     default:
@@ -531,16 +545,6 @@ void ComboBox::showComboMenu()
     if (m_items.isEmpty()) {
         return;
     }
-
-    // Start arrow animation (press: endValue=2, duration=150ms, OutQuad)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(2.0);
-    m_arrowAni->setDuration(150);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutQuad);
-    m_arrowAni->setDirection(QAbstractAnimation::Forward);
-    m_arrowAni->start();
 
     auto *menu = createComboMenu();
     m_dropMenu = menu;
@@ -594,16 +598,6 @@ void ComboBox::closeComboMenu()
         return;
     }
 
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
-
     m_dropMenu->close();
     m_dropMenu = nullptr;
     m_ignoreNextToggle = false;
@@ -634,15 +628,6 @@ void ComboBox::onItemClicked(int index)
 
 void ComboBox::onDropMenuClosed()
 {
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
     m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
@@ -1508,10 +1493,12 @@ bool ModelComboBox::event(QEvent *event)
         break;
     case QEvent::MouseButtonPress:
         m_isPressed = true;
+        animateArrow(m_arrowAni, 2.0, 150, QEasingCurve::OutQuad);
         update();
         break;
     case QEvent::MouseButtonRelease:
         m_isPressed = false;
+        animateArrow(m_arrowAni, 0.0, 500, QEasingCurve::OutElastic);
         update();
         break;
     default:
@@ -1544,16 +1531,6 @@ void ModelComboBox::showComboMenu()
         return;
     }
 
-    // Start arrow animation (press: endValue=2, duration=150ms, OutQuad)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(2.0);
-    m_arrowAni->setDuration(150);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutQuad);
-    m_arrowAni->setDirection(QAbstractAnimation::Forward);
-    m_arrowAni->start();
-
     auto *menu = createComboMenu();
     m_dropMenu = menu;
 
@@ -1573,15 +1550,6 @@ void ModelComboBox::closeComboMenu()
     if (!m_dropMenu) {
         return;
     }
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
     m_dropMenu->close();
     m_dropMenu = nullptr;
     m_ignoreNextToggle = false;
@@ -1612,15 +1580,6 @@ void ModelComboBox::onItemClicked(int index)
 
 void ModelComboBox::onDropMenuClosed()
 {
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
     m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;

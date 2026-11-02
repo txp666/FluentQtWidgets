@@ -209,6 +209,39 @@ class ComboBoxTest : public QObject
         QTRY_VERIFY(acrylicCombo.dropMenu() == nullptr);
     }
 
+    // As Python's TranslateYAnimation, the arrow dips 2 px while the mouse is down and springs back
+    // on release, even as the menu opens. The port moved it with the menu instead: down while the
+    // menu was open, then back without the spring, and not at all when there was nothing to show.
+    void comboArrowDipsWhilePressedNotWhileTheMenuIsOpen()
+    {
+        FluentQt::ComboBox combo;
+        FluentQt::ModelComboBox modelCombo;
+        combo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
+        modelCombo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
+        const std::initializer_list<std::pair<QPushButton *, FluentQt::ArrowAnimation *>> combos = {
+            {&combo, combo.arrowAni()}, {&modelCombo, modelCombo.arrowAni()}};
+        for (const auto &[button, arrow] : combos) {
+            button->resize(160, 33);
+            button->show();
+            QVERIFY(QTest::qWaitForWindowExposed(button));
+            const QPoint center = button->rect().center();
+
+            QTest::mousePress(button, Qt::LeftButton, Qt::NoModifier, center);
+            QCOMPARE(arrow->duration(), 150);
+            QCOMPARE(arrow->easingCurve().type(), QEasingCurve::OutQuad);
+            QTRY_COMPARE(arrow->y(), 2.0);
+
+            QTest::mouseRelease(button, Qt::LeftButton, Qt::NoModifier, center);
+            QCOMPARE(arrow->duration(), 500);
+            QCOMPARE(arrow->easingCurve().type(), QEasingCurve::OutElastic);
+            QTRY_VERIFY(FqwTest::findVisibleTopLevel<FluentQt::ComboBoxMenu>() != nullptr);
+            QTRY_COMPARE(arrow->state(), QAbstractAnimation::Stopped);
+            QCOMPARE(arrow->y(), 0.0);
+            FqwTest::findVisibleTopLevel<FluentQt::ComboBoxMenu>()->close();
+            button->hide();
+        }
+    }
+
     void comboBoxArrowUsesPythonLightTint()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
