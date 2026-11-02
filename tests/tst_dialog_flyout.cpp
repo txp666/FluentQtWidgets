@@ -808,6 +808,35 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(button->parentWidget(), &richView);
     }
 
+    void teachingTipViewSizesTextAndImageLikePython()
+    {
+        // In qfluentwidgets the labels do not word-wrap (TextWrap breaks long text into lines),
+        // and the image is scaled to the full width (or, beside the text, the full height) of the
+        // text row, so it spans the view inside its 1 px margins.
+        QPixmap pixmap(300, 150);
+        pixmap.fill(Qt::red);
+        for (const auto tail : {FluentQt::TeachingTipTailPosition::Bottom, FluentQt::TeachingTipTailPosition::Left}) {
+            FluentQt::TeachingTipView view(QStringLiteral("Title text"),
+                                           QStringLiteral("Content text that is fairly long"),
+                                           FluentQt::icon(FluentQt::FluentIcon::Info), pixmap, true, tail);
+            view.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&view));
+            view.adjustSize();
+            auto *content = view.findChild<QLabel *>(QStringLiteral("contentLabel"));
+            QVERIFY(content);
+            QVERIFY(!content->wordWrap());
+            QVERIFY(!view.findChild<QLabel *>(QStringLiteral("titleLabel"))->wordWrap());
+            QCOMPARE(content->height(), content->fontMetrics().height());
+            auto *image = view.findChild<FluentQt::ImageLabel *>();
+            QVERIFY(image);
+            if (tail == FluentQt::TeachingTipTailPosition::Bottom) {
+                QCOMPARE(image->width(), view.width() - 2);
+            } else {
+                QCOMPARE(image->height(), view.height() - 2);
+            }
+        }
+    }
+
     void teachingTipTracksTargetAndTail()
     {
         QWidget target;

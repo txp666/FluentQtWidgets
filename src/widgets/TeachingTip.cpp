@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/TeachingTip.h>
 
+#include "../core/TextWrap_p.h"
+
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -12,6 +14,7 @@
 #include <QtCore/QStringList>
 #include <QtCore/QTimer>
 #include <QtGui/QCloseEvent>
+#include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
@@ -63,45 +66,6 @@ QString tailPositionName(TeachingTipTailPosition position)
 bool isDarkTheme()
 {
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-}
-
-int maxTipImageWidth()
-{
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const int screenWidth = screen ? screen->availableGeometry().width() : 1100;
-    return qMax(220, qMin(900, screenWidth - 200));
-}
-
-int maxTipImageHeight()
-{
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const int screenHeight = screen ? screen->availableGeometry().height() : 700;
-    return qMax(120, qMin(520, screenHeight - 200));
-}
-
-QString wrapTipText(const QString &text, int maxChars)
-{
-    if (maxChars <= 0 || text.size() <= maxChars) {
-        return text;
-    }
-
-    QStringList lines;
-    QString remaining = text;
-    while (remaining.size() > maxChars) {
-        int breakIndex = maxChars;
-        for (int i = maxChars; i >= maxChars / 2; --i) {
-            if (i < remaining.size() && remaining.at(i).isSpace()) {
-                breakIndex = i;
-                break;
-            }
-        }
-        lines.append(remaining.left(breakIndex).trimmed());
-        remaining = remaining.mid(breakIndex).trimmed();
-    }
-    if (!remaining.isEmpty()) {
-        lines.append(remaining);
-    }
-    return lines.join(QLatin1Char('\n'));
 }
 
 QColor bubbleBackgroundColor()
@@ -402,11 +366,11 @@ TeachingTipView::TeachingTipView(const QString &title, const QString &content, Q
 
     m_titleLabel = new QLabel(this);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
-    m_titleLabel->setWordWrap(true);
+    m_titleLabel->setWordWrap(false);
 
     m_contentLabel = new QLabel(this);
     m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
-    m_contentLabel->setWordWrap(true);
+    m_contentLabel->setWordWrap(false);
 
     m_closeButton = new TransparentToolButton(icon(FluentIcon::Close), this);
     m_closeButton->setFixedSize(32, 32);
@@ -547,16 +511,19 @@ void TeachingTipView::updateImageLayout()
     if (m_contentLabel) {
         m_contentLabel->setVisible(!m_content.isEmpty());
     }
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const int screenWidth = screen ? screen->availableGeometry().width() : 1100;
+    QScreen *screen = QGuiApplication::screenAt(QCursor::pos());
+    if (!screen) {
+        screen = QGuiApplication::primaryScreen();
+    }
+    const int screenWidth = screen ? screen->geometry().width() : 1100;
     const int textWidth = qMin(900, screenWidth - 200);
     if (m_titleLabel) {
         const int chars = qMax(qMin(textWidth / 10, 120), 30);
-        m_titleLabel->setText(wrapTipText(m_title, chars));
+        m_titleLabel->setText(Private::wrapText(m_title, chars));
     }
     if (m_contentLabel) {
         const int chars = qMax(qMin(textWidth / 9, 120), 30);
-        m_contentLabel->setText(wrapTipText(m_content, chars));
+        m_contentLabel->setText(Private::wrapText(m_content, chars));
     }
 
     if (m_iconWidget && (m_title.isEmpty() || m_content.isEmpty())) {
@@ -585,7 +552,7 @@ void TeachingTipView::updateImageLayout()
 
     const TeachingTipImagePosition imagePosition = imagePositionForTail(m_tailHint);
     if (imagePosition == TeachingTipImagePosition::Top || imagePosition == TeachingTipImagePosition::Bottom) {
-        const int width = qMax(1, qMin(m_viewLayout->sizeHint().width() - 2, maxTipImageWidth()));
+        const int width = qMax(1, m_viewLayout->sizeHint().width());
         m_imageLabel->scaledToWidth(width);
         if (imagePosition == TeachingTipImagePosition::Top) {
             m_imageLabel->setBorderRadius(8, 8, 0, 0);
@@ -597,7 +564,7 @@ void TeachingTipView::updateImageLayout()
             m_rootLayout->addWidget(m_imageLabel);
         }
     } else {
-        const int height = qMax(1, qMin(m_viewLayout->sizeHint().height() - 2, maxTipImageHeight()));
+        const int height = qMax(1, m_viewLayout->sizeHint().height());
         m_imageLabel->scaledToHeight(height);
         if (imagePosition == TeachingTipImagePosition::Left) {
             m_imageLabel->setBorderRadius(8, 0, 8, 0);
