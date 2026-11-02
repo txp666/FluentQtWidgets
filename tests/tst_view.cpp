@@ -1404,6 +1404,29 @@ class ViewTest : public QObject
         QCOMPARE(pager.pipButtons().size(), 0);
     }
 
+    // Python fixes a pips pager's 12 px thickness at once and its length (visible pips x 12 plus two
+    // 15 px button margins) when the page or visible number is set.
+    void pipsPagerFixesItsSizeAsPythonDoes()
+    {
+        FluentQt::HorizontalPipsPager horizontal;
+        QCOMPARE(horizontal.minimumHeight(), 12);
+        QCOMPARE(horizontal.maximumHeight(), 12);
+        QCOMPARE(horizontal.minimumWidth(), 0);
+        QCOMPARE(horizontal.maximumWidth(), QWIDGETSIZE_MAX);
+        horizontal.setPageNumber(8);
+        QCOMPARE(horizontal.minimumSize(), QSize(90, 12));
+        QCOMPARE(horizontal.maximumSize(), QSize(90, 12));
+        horizontal.setVisibleNumber(3);
+        QCOMPARE(horizontal.maximumSize(), QSize(66, 12));
+
+        FluentQt::VerticalPipsPager vertical;
+        QCOMPARE(vertical.maximumWidth(), 12);
+        QCOMPARE(vertical.maximumHeight(), QWIDGETSIZE_MAX);
+        vertical.setPageNumber(5);
+        QCOMPARE(vertical.minimumSize(), QSize(12, 90));
+        QCOMPARE(vertical.maximumSize(), QSize(12, 90));
+    }
+
     void pipsPagerReportsOnlyRealIndexChanges()
     {
         PipsPager pager;

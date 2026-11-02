@@ -106,6 +106,12 @@ const std::vector<Expectation> kIntended = {
     {"CompactTimeEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
     {"CompactDateEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
     {"CompactDateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    // PipsPager paints its pips as child buttons, not as QListWidget items.
+    {"PipsPager/default", "size.w sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
+    {"HorizontalPipsPager/default", "size.w sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
+    {"HorizontalPipsPager/items", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
+    {"VerticalPipsPager/default", "size.h sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
+    {"VerticalPipsPager/items", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
     // clang-format on
 };
 
@@ -120,11 +126,6 @@ const std::vector<Expectation> kPending = {
     // Labels and images
     // Status and info
     // Paging, scrolling, views
-    {"PipsPager/default", "size.w sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "90 px long where Python keeps QListWidget's 256x192 hint; Python fixes the 12 px thickness"},
-    {"HorizontalPipsPager/default", "size.w sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "90 px long where Python keeps QListWidget's 256x192 hint; Python fixes the 12 px thickness"},
-    {"HorizontalPipsPager/items", "sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.w maximumSize.h", "no fixed size (Python fixes 90x12 for 5 pages); hint 90x12 vs QListWidget's 256x192"},
-    {"VerticalPipsPager/default", "size.h sizeHint.w sizeHint.h minimumSize.w maximumSize.w", "90 px long where Python keeps QListWidget's 256x192 hint; Python fixes the 12 px thickness"},
-    {"VerticalPipsPager/items", "sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.w maximumSize.h", "no fixed size (Python fixes 90x12 for 5 pages); hint 90x12 vs QListWidget's 256x192"},
     {"FlipView/default", "sizeHint.w sizeHint.h", "hint 480x270, Python QListWidget's 256x192"},
     {"HorizontalFlipView/default", "sizeHint.w sizeHint.h", "hint 480x270, Python QListWidget's 256x192"},
     {"VerticalFlipView/default", "sizeHint.w sizeHint.h", "hint 480x270, Python QListWidget's 256x192"},
