@@ -575,6 +575,39 @@ class NavigationTest : public QObject
         QVERIFY(!panel->isMenu());
     }
 
+    // Python's setExpandWidth() also sets NavigationWidget.EXPAND_WIDTH to the width minus 10, so
+    // the items fill the wider panel; the port widened only the panel.
+    void navigationPanelExpandWidthWidensItems()
+    {
+        QWidget window;
+        window.resize(1200, 600);
+        auto *panel = new FluentQt::NavigationPanel(&window);
+        auto *home = panel->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        auto *child = panel->addItem(QStringLiteral("child"), QIcon(), QStringLiteral("Child"),
+                                     FluentQt::NavigationItemPosition::Scroll, QStringLiteral("home"));
+        QFrame *separator = panel->addSeparator();
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        panel->setExpandWidth(42);
+        QCOMPARE(panel->expandWidth(), FluentQt::NavigationPanel::kExpandWidth);
+
+        panel->setExpandWidth(280);
+        QCOMPARE(home->expandWidth(), 270);
+        QCOMPARE(child->expandWidth(), 270);
+        panel->expand(false);
+        QCOMPARE(panel->width(), 280);
+        QCOMPARE(home->width(), 270);
+        QCOMPARE(separator->width(), 280);
+
+        // Already expanded: the items follow at once, and later items take the width too.
+        panel->setExpandWidth(400);
+        QCOMPARE(home->width(), 390);
+        QCOMPARE(separator->width(), 400);
+        auto *later = panel->addItem(QStringLiteral("later"), QIcon(), QStringLiteral("Later"));
+        QCOMPARE(later->width(), 390);
+    }
+
     // Python's ScaleSlideAnimation: the indicator first stretches for 200 ms to cover both items,
     // then shrinks into the new one by 600 ms. The port slid it in 100 ms without stretching.
     void pivotIndicatorSquashesAndStretchesAsInPython()

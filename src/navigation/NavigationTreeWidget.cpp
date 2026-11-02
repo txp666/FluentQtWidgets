@@ -60,7 +60,21 @@ bool NavigationWidget::isAboutSelected() const { return m_aboutSelected; }
 
 QRectF NavigationWidget::indicatorRect() const { return QRectF(0, 10, 3, 16); }
 
-QSize NavigationWidget::sizeHint() const { return QSize(m_compacted ? kCompactWidth : kExpandWidth, kItemHeight); }
+QSize NavigationWidget::sizeHint() const { return QSize(m_compacted ? kCompactWidth : m_expandWidth, kItemHeight); }
+
+int NavigationWidget::expandWidth() const { return m_expandWidth; }
+
+void NavigationWidget::setExpandWidth(int width)
+{
+    if (m_expandWidth == width) {
+        return;
+    }
+
+    m_expandWidth = width;
+    if (!m_compacted) {
+        setCompacted(false);
+    }
+}
 
 void NavigationWidget::setRouteKey(const QString &routeKey) { m_routeKey = routeKey; }
 
@@ -251,7 +265,7 @@ void NavigationAvatarWidget::setAvatar(const QImage &avatar)
 void NavigationAvatarWidget::setCompacted(bool compacted)
 {
     m_compacted = compacted;
-    setFixedSize(compacted ? kCompactWidth : kExpandWidth, kItemHeight);
+    setFixedSize(compacted ? kCompactWidth : m_expandWidth, kItemHeight);
     updateAvatarGeometry();
     update();
 }
@@ -347,7 +361,7 @@ void NavigationUserCard::setCompacted(bool compacted)
         setFixedSize(kCompactWidth, kItemHeight);
     } else {
         m_avatar->setRadius(32);
-        setFixedSize(kExpandWidth, 80);
+        setFixedSize(m_expandWidth, 80);
     }
     updateAvatarGeometry();
     update();
@@ -438,7 +452,7 @@ void NavigationItemHeader::setCompacted(bool compacted)
 {
     m_compacted = compacted;
     m_heightAnimation->stop();
-    setFixedWidth(compacted ? kCompactWidth : kExpandWidth);
+    setFixedWidth(compacted ? kCompactWidth : m_expandWidth);
     if (!compacted) {
         show();
     }
@@ -618,6 +632,7 @@ void NavigationTreeWidget::setIcon(const QIcon &icon)
 void NavigationTreeWidget::setCompacted(bool compacted)
 {
     if (m_compacted == compacted) {
+        updateFixedSize(); // a new expand width
         return;
     }
 
@@ -814,12 +829,12 @@ QSize NavigationTreeWidget::sizeHint() const
             height += child->sizeHint().height() + 4;
         }
     }
-    return QSize(m_compacted ? kCompactWidth : kExpandWidth, height);
+    return QSize(m_compacted ? kCompactWidth : m_expandWidth, height);
 }
 
 void NavigationTreeWidget::updateFixedSize()
 {
-    setFixedSize(m_compacted ? kCompactWidth : kExpandWidth, sizeHint().height());
+    setFixedSize(m_compacted ? kCompactWidth : m_expandWidth, sizeHint().height());
 }
 
 void NavigationTreeWidget::relayoutChildren()

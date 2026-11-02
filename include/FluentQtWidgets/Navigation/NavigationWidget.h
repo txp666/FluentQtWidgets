@@ -43,6 +43,10 @@ class FQW_API NavigationWidget : public QWidget
     bool isAboutSelected() const;
     virtual QRectF indicatorRect() const;
     QSize sizeHint() const override;
+    // The width when expanded: kExpandWidth, or the panel's expand width minus 10 (Python's
+    // NavigationWidget.EXPAND_WIDTH, which NavigationPanel.setExpandWidth() sets).
+    int expandWidth() const;
+    void setExpandWidth(int width);
 
   public slots:
     void setRouteKey(const QString &routeKey);
@@ -69,6 +73,7 @@ class FQW_API NavigationWidget : public QWidget
     void drawHoverBackground(QPainter *painter);
 
     QString m_routeKey;
+    int m_expandWidth = kExpandWidth;
     bool m_selectable = true;
     bool m_compacted = true;
     bool m_selected = false;

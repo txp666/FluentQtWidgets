@@ -129,8 +129,15 @@ class NavigationSeparator : public QFrame
 
     void setCompacted(bool compacted)
     {
-        setFixedSize(compacted ? 48 : NavigationWidget::kExpandWidth + 10, 3);
+        m_compacted = compacted;
+        setFixedSize(compacted ? 48 : m_expandWidth, 3);
         update();
+    }
+
+    void setExpandWidth(int width)
+    {
+        m_expandWidth = width;
+        setCompacted(m_compacted);
     }
 
   protected:
@@ -145,6 +152,10 @@ class NavigationSeparator : public QFrame
         painter.setPen(pen);
         painter.drawLine(0, 1, width(), 1);
     }
+
+  private:
+    int m_expandWidth = NavigationPanel::kExpandWidth;
+    bool m_compacted = true;
 };
 
 } // namespace
@@ -231,6 +242,7 @@ NavigationWidget *NavigationPanel::insertWidget(int index, const QString &routeK
     }
 
     widget->setRouteKey(routeKey);
+    widget->setExpandWidth(m_expandWidth - 10);
     widget->setCompacted(m_displayMode == NavigationDisplayMode::Compact);
 
     NavigationItemEntry entry;
@@ -293,6 +305,7 @@ NavigationUserCard *NavigationPanel::addUserCard(const QString &routeKey, const 
 QFrame *NavigationPanel::addSeparator(NavigationItemPosition position)
 {
     auto *separator = new NavigationSeparator(this);
+    separator->setExpandWidth(m_expandWidth);
     separator->setCompacted(m_displayMode == NavigationDisplayMode::Compact);
     FluentStyleSheet::setRole(separator, QStringLiteral("NavigationSeparator"));
 
@@ -367,10 +380,22 @@ void NavigationPanel::setIndicatorAnimationEnabled(bool enabled)
     m_indicatorAnimationEnabled = enabled;
 }
 
+// Python sets NavigationWidget.EXPAND_WIDTH to width - 10, so every item (and separator) widens
+// with the panel; here each one of this panel's.
 void NavigationPanel::setExpandWidth(int width)
 {
-    if (width > kCompactWidth) {
-        m_expandWidth = width;
+    if (width <= 42) {
+        return;
+    }
+
+    m_expandWidth = width;
+    for (NavigationWidget *widget : findChildren<NavigationWidget *>()) {
+        widget->setExpandWidth(width - 10);
+    }
+    for (QFrame *frame : findChildren<QFrame *>()) {
+        if (auto *separator = dynamic_cast<NavigationSeparator *>(frame)) {
+            separator->setExpandWidth(width);
+        }
     }
 }
 
