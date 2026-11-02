@@ -265,6 +265,49 @@ class BasicInputTest : public QObject
         QCOMPARE(hyperlink.url(), QUrl(QStringLiteral(FQW_REPOSITORY_URL)));
     }
 
+    // A style sheet's min-height sizes the content box, so the tool buttons' old
+    // `min-height: 32px` grew them to 45 px with padding and border, against 33 for a push
+    // button, and stretched the folder list's fixed 39x29 remove button too.
+    void toolButtonsAreAsTallAsPushButtons()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            auto *push = new DropDownPushButton(icon(FluentIcon::Mail), QStringLiteral("Email"), &window);
+            layout->addWidget(push, 0, Qt::AlignTop);
+            const QList<QToolButton *> tools = {
+                new ToolButton(icon(FluentIcon::Mail), &window),
+                new DropDownToolButton(icon(FluentIcon::Mail), &window),
+                new PrimaryDropDownToolButton(icon(FluentIcon::Mail), &window),
+                new TransparentToolButton(icon(FluentIcon::Mail), &window),
+                new TransparentDropDownToolButton(icon(FluentIcon::Mail), &window),
+                new ToggleToolButton(icon(FluentIcon::Mail), &window),
+            };
+            for (QToolButton *tool : tools) {
+                layout->addWidget(tool, 0, Qt::AlignTop);
+            }
+            auto *removeButton = new ToolButton(icon(FluentIcon::Close), &window);
+            FluentStyleSheet::setRole(removeButton, QStringLiteral("FolderRemoveButton"));
+            removeButton->setFixedSize(39, 29);
+            layout->addWidget(removeButton, 0, Qt::AlignTop);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (const QToolButton *tool : tools) {
+                QVERIFY2(tool->height() >= 32 && qAbs(tool->height() - push->height()) <= 1,
+                         qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
+                                        .arg(tool->property("fqw").toString())
+                                        .arg(tool->height())
+                                        .arg(push->height())));
+            }
+            QCOMPARE(removeButton->size(), QSize(39, 29));
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void pushButtonIconAndTextKeepPythonSpacing()
     {
         auto *manager = ThemeManager::instance();
