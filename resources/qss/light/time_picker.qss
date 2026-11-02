@@ -4,7 +4,6 @@ QFrame[fqw="TimePicker"] {
     border: 1px solid rgba(0, 0, 0, 0.073);
     border-bottom: 1px solid rgba(0, 0, 0, 0.183);
     border-radius: 5px;
-    min-height: 32px;
     outline: none;
 }
 

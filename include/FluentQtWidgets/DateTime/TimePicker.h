@@ -80,6 +80,7 @@ class FQW_API TimePicker : public QFrame
     void timeChanged(const QTime &time);
 
   protected:
+    bool event(QEvent *event) override;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
 #else

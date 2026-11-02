@@ -110,6 +110,45 @@ class DateTimeTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python's pickers are exactly as big as their 30 px columns (a time picker is 240x30). The
+    // port's min-height (QSS and code), DatePicker's 10 px side padding and the QFrame border
+    // turned into contents margins made them 32 px tall and up to 22 px wider.
+    void dateAndTimePickersAreAsBigAsTheirColumns()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QList<QFrame *> pickers = {new FluentQt::DatePicker(&window), new FluentQt::ZhDatePicker(&window),
+                                             new FluentQt::TimePicker(&window), new FluentQt::AMTimePicker(&window)};
+            for (QFrame *picker : pickers) {
+                layout->addWidget(picker, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (QFrame *picker : pickers) {
+                int columnsWidth = 0;
+                for (QPushButton *column : pickerButtons(picker)) {
+                    QCOMPARE(column->y(), 0);
+                    columnsWidth += column->width();
+                }
+                const QString name = QString::fromLatin1(picker->metaObject()->className());
+                QVERIFY2(picker->size() == QSize(columnsWidth, 30),
+                         qPrintable(QStringLiteral("%1 is %2x%3, its columns %4x30")
+                                        .arg(name)
+                                        .arg(picker->width())
+                                        .arg(picker->height())
+                                        .arg(columnsWidth)));
+            }
+            QCOMPARE(pickers.at(2)->width(), 240);
+            QCOMPARE(pickers.at(3)->width(), 240);
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;

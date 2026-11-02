@@ -4,6 +4,7 @@
 
 #include <QtCore/QCalendar>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QEvent>
 #include <QtCore/QLocale>
 #include <QtCore/QPoint>
 #include <QtGui/QFontMetrics>
@@ -113,7 +114,6 @@ DatePicker::DatePicker(QWidget *parent, DateFormat format, bool isMonthTight)
     m_dayName = tr("day");
     m_defaultDigitFormatter = new DigitFormatter(this);
     m_defaultMonthFormatter = new MonthFormatter(this);
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     FluentStyleSheet::setRole(this, QStringLiteral("DatePicker"));
     rebuildColumns();
@@ -222,6 +222,26 @@ void DatePicker::setDayFormatter(PickerColumnFormatter *formatter)
         m_dayButton->setFormatter(dayFormatter());
     }
     updateColumnDisplay();
+}
+
+bool DatePicker::event(QEvent *event)
+{
+    const bool result = QFrame::event(event);
+    // Python's picker is a QPushButton, whose style-sheet border is drawn over the columns. A
+    // QFrame turns that border into contents margins whenever it is polished, restyled or
+    // reparented, which inset the columns and made the picker 2 px wider and taller than them.
+    switch (event->type()) {
+    case QEvent::Polish:
+    case QEvent::StyleChange:
+    case QEvent::ParentChange:
+        if (contentsMargins() != QMargins()) {
+            setContentsMargins(QMargins());
+        }
+        break;
+    default:
+        break;
+    }
+    return result;
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)

@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/StyleSheet.h>
 
+#include <QtCore/QEvent>
 #include <QtCore/QPoint>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QMouseEvent>
@@ -71,7 +72,6 @@ TimePicker::TimePicker(QWidget *parent, bool showSeconds, bool useAmPm)
     m_defaultFormatters[SecondColumn] = new MiniuteFormatter(this);
     m_defaultFormatters[PeriodColumn] = new AMPMFormatter(this);
 
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     FluentStyleSheet::setRole(this, QStringLiteral("TimePicker"));
     rebuildColumns();
@@ -160,6 +160,26 @@ void TimePicker::setColumnFormatter(int index, PickerColumnFormatter *formatter)
     m_columnFormatters[index] = formatter;
     rebuildColumns();
     updateColumnDisplay();
+}
+
+bool TimePicker::event(QEvent *event)
+{
+    const bool result = QFrame::event(event);
+    // Python's picker is a QPushButton, whose style-sheet border is drawn over the columns. A
+    // QFrame turns that border into contents margins whenever it is polished, restyled or
+    // reparented, which inset the columns and made the picker 2 px wider and taller than them.
+    switch (event->type()) {
+    case QEvent::Polish:
+    case QEvent::StyleChange:
+    case QEvent::ParentChange:
+        if (contentsMargins() != QMargins()) {
+            setContentsMargins(QMargins());
+        }
+        break;
+    default:
+        break;
+    }
+    return result;
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)

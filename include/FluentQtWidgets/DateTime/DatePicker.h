@@ -107,6 +107,7 @@ class FQW_API DatePicker : public QFrame
     void dateChanged(const QDate &date);
 
   protected:
+    bool event(QEvent *event) override;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) override;
 #else

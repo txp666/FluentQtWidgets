@@ -1,10 +1,8 @@
 QFrame[fqw="DatePicker"] {
     color: black;
-    min-height: 32px;
     border: 1px solid rgba(0, 0, 0, 13);
     border-bottom: 1px solid rgba(0, 0, 0, 100);
     border-radius: 5px;
-    padding: 0px 10px;
     background-color: rgba(255, 255, 255, 0.7);
 }
 
