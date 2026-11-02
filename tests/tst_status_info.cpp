@@ -688,7 +688,7 @@ class StatusInfoTest : public QObject
         QTRY_VERIFY(tip.isNull());
     }
 
-    void progressIndicatorsTrackColoursAnimationsAndStates()
+    void progressBarTracksValuePauseAndError()
     {
         FluentQt::ProgressBar bar(nullptr, false);
         QCOMPARE(bar.property("fqw").toString(), QStringLiteral("ProgressBar"));
@@ -722,7 +722,10 @@ class StatusInfoTest : public QObject
         bar.setError(false);
         QCOMPARE(bar.isError(), false);
         QCOMPARE(bar.isPaused(), false);
+    }
 
+    void indeterminateProgressBarTracksPauseAndError()
+    {
         FluentQt::IndeterminateProgressBar indeterminateBar(nullptr, false);
         QCOMPARE(indeterminateBar.property("fqw").toString(), QStringLiteral("IndeterminateProgressBar"));
         QVERIFY(indeterminateBar.metaObject()->indexOfProperty("lightBarColor") >= 0);
@@ -754,7 +757,10 @@ class StatusInfoTest : public QObject
         indeterminateBar.setError(true);
         QCOMPARE(indeterminateBar.isError(), true);
         QCOMPARE(indeterminateBar.isStarted(), false);
+    }
 
+    void progressRingKeepsQProgressBarHintAndText()
+    {
         FluentQt::ProgressRing ring(nullptr, false);
         QCOMPARE(ring.property("fqw").toString(), QStringLiteral("ProgressRing"));
         // Python fixes the size but keeps QProgressBar's hint.
@@ -779,7 +785,10 @@ class StatusInfoTest : public QObject
         QCOMPARE(ring.val(), 72.0);
         ring.setTextVisible(true);
         QCOMPARE(ring.isTextVisible(), true);
+    }
 
+    void indeterminateProgressRingTracksStrokeAndState()
+    {
         FluentQt::IndeterminateProgressRing indeterminateRing(nullptr, false);
         QCOMPARE(indeterminateRing.property("fqw").toString(), QStringLiteral("IndeterminateProgressRing"));
         QCOMPARE(indeterminateRing.strokeWidth(), 6);

@@ -48,11 +48,14 @@ class TextTest : public QObject
         m_globalState.reset();
     }
 
-    void avatarWidgetTracksTextImageAndRadius()
+    void displayLabelHasItsRole()
     {
         FluentQt::DisplayLabel display(QStringLiteral("Display"));
         QCOMPARE(display.property("fqw").toString(), QStringLiteral("DisplayLabel"));
+    }
 
+    void imageLabelLoadsPixmapsAndPathsAndEmitsClicked()
+    {
         QPixmap imagePixmap(10, 8);
         imagePixmap.fill(Qt::blue);
         FluentQt::ImageLabel imageLabel(imagePixmap);
@@ -74,7 +77,10 @@ class TextTest : public QObject
         QSignalSpy imageClickSpy(&imageLabel, &FluentQt::ImageLabel::clicked);
         QTest::mouseRelease(&imageLabel, Qt::LeftButton);
         QCOMPARE(imageClickSpy.count(), 1);
+    }
 
+    void avatarWidgetRadiusSetsItsSizeAndFont()
+    {
         FluentQt::AvatarWidget avatar;
         avatar.setText(QStringLiteral("Fluent"));
         QCOMPARE(avatar.property("fqw").toString(), QStringLiteral("AvatarWidget"));
@@ -92,23 +98,36 @@ class TextTest : public QObject
         QCOMPARE(avatar.font().weight(), QFont::Normal);
         avatar.setRadius(8);
         QCOMPARE(avatar.font().pixelSize(), 8);
-        avatar.setRadius(18);
+    }
 
+    void avatarWidgetKeepsBothBackgroundColours()
+    {
+        FluentQt::AvatarWidget avatar;
         avatar.setBackgroundColor(QColor(QStringLiteral("#112233")), QColor(QStringLiteral("#445566")));
         QCOMPARE(avatar.lightBackgroundColor(), QColor(QStringLiteral("#112233")));
         QCOMPARE(avatar.darkBackgroundColor(), QColor(QStringLiteral("#445566")));
+    }
 
+    void avatarWidgetTakesPixmapsAndPaths()
+    {
+        FluentQt::AvatarWidget avatar;
+        avatar.setRadius(18);
         QPixmap pixmap(12, 12);
         pixmap.fill(Qt::red);
         avatar.setPixmap(pixmap);
         QVERIFY(!avatar.imagePixmap().isNull());
         QCOMPARE(avatar.size(), QSize(36, 36));
 
+        QTemporaryDir imageDir;
+        QVERIFY(imageDir.isValid());
         const QString avatarPath = imageDir.filePath(QStringLiteral("avatar.png"));
         QVERIFY(pixmap.save(avatarPath));
         FluentQt::AvatarWidget pathAvatar(avatarPath);
         QVERIFY(!pathAvatar.imagePixmap().isNull());
+    }
 
+    void avatarWidgetLoadsHttpImages()
+    {
         QImage remoteImage(14, 10, QImage::Format_ARGB32_Premultiplied);
         remoteImage.fill(QColor(12, 34, 56));
         QByteArray remotePng;

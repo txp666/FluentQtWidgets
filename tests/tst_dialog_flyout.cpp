@@ -56,7 +56,7 @@ class DialogFlyoutTest : public QObject
         m_globalState.reset();
     }
 
-    void dialogsBuildFramelessViewsAndEmitResults()
+    void dialogEmitsYesAndAcceptsLikePython()
     {
         FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
         QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("DialogPopup"));
@@ -125,13 +125,19 @@ class DialogFlyoutTest : public QObject
         dialog.acceptButton()->click();
         QCOMPARE(acceptedSpy.count(), 1);
         QCOMPARE(yesSpy.count(), 1);
+    }
 
+    void dialogCanHideItsButtons()
+    {
         FluentQt::Dialog hiddenButtonDialog(QStringLiteral("Title"), QStringLiteral("Message"));
         hiddenButtonDialog.hideYesButton();
         QVERIFY(!hiddenButtonDialog.yesButton()->isVisible());
         hiddenButtonDialog.hideCancelButton();
         QVERIFY(!hiddenButtonDialog.cancelButton()->isVisible());
+    }
 
+    void messageBoxBaseValidatesBeforeAccepting()
+    {
         FluentQt::MessageBoxBase customBase;
         customBase.viewLayout()->addWidget(new FluentQt::LineEdit(customBase.widget()));
         QCOMPARE(customBase.widget(), customBase.view());
@@ -161,7 +167,10 @@ class DialogFlyoutTest : public QObject
         validatingDialog.yesButton()->click();
         QTRY_COMPARE(validatingAcceptedSpy.count(), 1);
         QCOMPARE(validatingYesSpy.count(), 1);
+    }
 
+    void messageBoxEmitsItsResultSignals()
+    {
         FluentQt::MessageBox messageBox(QStringLiteral("Title"), QStringLiteral("Message"));
         QCOMPARE(messageBox.property("fqw").toString(), QStringLiteral("MessageBoxPopup"));
         messageBox.setClosableOnMaskClicked(true);
@@ -195,7 +204,10 @@ class DialogFlyoutTest : public QObject
         QTest::mouseClick(messageBox.cancelButton(), Qt::LeftButton);
         QTRY_COMPARE(rejectedSpy.count(), 1);
         QCOMPARE(cancelSpy.count(), 1);
+    }
 
+    void messageBoxWithAParentIsAChildOverlay()
+    {
         QWidget maskParent;
         maskParent.resize(520, 360);
         maskParent.show();
@@ -220,8 +232,13 @@ class DialogFlyoutTest : public QObject
         QSignalSpy maskRejectedSpy(&maskedBox, &QDialog::rejected);
         QTest::mouseClick(maskedBox.windowMask(), Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
         QTRY_COMPARE(maskRejectedSpy.count(), 1);
+    }
 
+    void messageDialogPlacesPlainLabelsAndButtons()
+    {
         // qfluentwidgets' Win10-style MessageDialog: hand-placed plain labels and buttons.
+        QWidget maskParent;
+        maskParent.resize(640, 420);
         FluentQt::MessageDialog messageDialog(
             QStringLiteral("This is a message dialog with mask"),
             QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "

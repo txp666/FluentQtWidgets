@@ -466,14 +466,17 @@ class DateTimeTest : public QObject
         QCOMPARE(fastPicker.date(), selected);
     }
 
-    void calendarViewExposesPythonStyleLowLevelControls()
+    void calendarViewIsAFramelessPopupByDefault()
     {
         FluentQt::CalendarView popupProbe;
         QVERIFY(popupProbe.testAttribute(Qt::WA_DeleteOnClose));
         popupProbe.setAttribute(Qt::WA_DeleteOnClose, false);
         QVERIFY(popupProbe.windowFlags() & Qt::FramelessWindowHint);
         QVERIFY(popupProbe.windowFlags() & Qt::NoDropShadowWindowHint);
+    }
 
+    void calendarViewExposesItsPagesAndButtons()
+    {
         FluentQt::CalendarView view(nullptr, false);
         QCOMPARE(view.property("fqw").toString(), QStringLiteral("CalendarView"));
         QVERIFY(view.testAttribute(Qt::WA_TranslucentBackground));
@@ -496,7 +499,11 @@ class DateTimeTest : public QObject
         QVERIFY(std::all_of(dayButtons.cbegin(), dayButtons.cend(), [](QPushButton *button) {
             return button && button->property("calendarItem").toBool() && button->property("calendarDay").toBool();
         }));
+    }
 
+    void calendarViewNavigatesBetweenDayMonthAndYearPages()
+    {
+        FluentQt::CalendarView view(nullptr, false);
         const QDate selected(2024, 6, 23);
         QSignalSpy changedSpy(&view, &FluentQt::CalendarView::dateChanged);
         view.setDate(selected);
@@ -553,7 +560,11 @@ class DateTimeTest : public QObject
         sendWheel(&view, 120);
         QCOMPARE(view.yearButtons().first()->property("date").toDate(), yearPage2025);
         QVERIFY(FqwTest::waitForAnimations(&view));
+        QCOMPARE(changedSpy.count(), 0);
+    }
 
+    void calendarViewPopupSlidesDownWhileFadingIn()
+    {
         FluentQt::CalendarView animatedView;
         animatedView.setAttribute(Qt::WA_DeleteOnClose, false);
         const QPoint popupPos(240, 240);
@@ -566,7 +577,13 @@ class DateTimeTest : public QObject
         }
         QTRY_COMPARE(animatedView.pos(), popupTargetPos);
         animatedView.hide();
+    }
 
+    void calendarViewResetClearsTheDateWithoutDateChanged()
+    {
+        FluentQt::CalendarView view(nullptr, false);
+        view.setDate(QDate(2024, 6, 23));
+        QSignalSpy changedSpy(&view, &FluentQt::CalendarView::dateChanged);
         view.setResetEnabled(true);
         QVERIFY(view.isResetEnabled());
         QSignalSpy resetSpy(&view, &FluentQt::CalendarView::resetted);
@@ -574,7 +591,11 @@ class DateTimeTest : public QObject
         QVERIFY(!view.date().isValid());
         QCOMPARE(resetSpy.count(), 1);
         QCOMPARE(changedSpy.count(), 0);
+    }
 
+    void calendarViewWeekdaysStayEnglishAbbreviations()
+    {
+        FluentQt::CalendarView view(nullptr, false);
         auto weekdayTexts = [&view]() {
             QStringList texts;
             const auto labels = view.findChildren<QLabel *>();
@@ -592,7 +613,10 @@ class DateTimeTest : public QObject
         view.setLocale(QLocale(QLocale::Chinese, QLocale::China));
         const QStringList chineseWeekdays = weekdayTexts();
         QCOMPARE(chineseWeekdays, englishWeekdays);
+    }
 
+    void fastCalendarViewExposesItsPagesAndButtons()
+    {
         FluentQt::FastCalendarView fastView;
         QCOMPARE(fastView.property("fqw").toString(), QStringLiteral("FastCalendarView"));
         QCOMPARE(FluentQt::styleSheetSourceForRole(QStringLiteral("FastCalendarPage")),
@@ -620,6 +644,11 @@ class DateTimeTest : public QObject
             return button && button->property("fastCalendarItem").toBool() &&
                    button->property("date").toDate().isValid();
         }));
+    }
+
+    void fastCalendarViewNavigatesBetweenPages()
+    {
+        FluentQt::FastCalendarView fastView;
         fastView.setDate(QDate(2024, 6, 23));
         QCOMPARE(fastView.date(), QDate(2024, 6, 23));
         auto *fastDayTitle = fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"));
@@ -635,10 +664,9 @@ class DateTimeTest : public QObject
         QTest::mouseClick(fastMonthTitle, Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.yearView());
         sendWheel(&fastView, -120);
-        // Python counts the rows of four from a century before this year.
-        const int fastFirstYear = QDate::currentDate().year() - 100;
-        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(),
-                 QDate(2020 - ((2020 - fastFirstYear) % 4), 1, 1));
+        // The decade page of the 2020s, in rows of four (calendarYearPagesFollowPython checks where they start).
+        const int fastFirstYear = fastView.yearButtons().first()->property("date").toDate().year();
+        QVERIFY(fastFirstYear <= 2020 && fastFirstYear + 16 > 2029);
         QPushButton *fastYear2024 = nullptr;
         for (QPushButton *button : fastView.yearButtons()) {
             if (button->property("date").toDate() == QDate(2024, 1, 1)) {

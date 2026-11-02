@@ -24,6 +24,20 @@
 
 using namespace FluentQt;
 
+// A 16 x 16 icon of one colour in a rounded square, the shape a drop icon has.
+static QIcon roundedIcon(const QColor &color)
+{
+    QPixmap pixmap(16, 16);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(color);
+    painter.setPen(Qt::NoPen);
+    painter.drawRoundedRect(QRectF(2, 2, 12, 12), 2, 2);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 class BasicInputTest : public QObject
 {
     Q_OBJECT
@@ -652,24 +666,57 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryToolButton.menu(), &menu);
     }
 
-    void splitButtonsExposePrimaryVariantsAndDropRoles()
+    void splitDropButtonsHavePythonsFixedSize()
+    {
+        FluentQt::SplitDropButton plainDrop;
+        QCOMPARE(plainDrop.property("fqw").toString(), QStringLiteral("SplitDropButton"));
+        plainDrop.ensurePolished();
+        QCOMPARE(plainDrop.sizeHint().width(), 31);
+        QVERIFY(plainDrop.maximumHeight() > plainDrop.minimumHeight());
+        QCOMPARE(plainDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+        QCOMPARE(plainDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
+        QCOMPARE(plainDrop.iconSize(), QSize(10, 10));
+        QCOMPARE(plainDrop.arrowOffset(), 0.0);
+        QVERIFY(!plainDrop.hasCustomDropIcon());
+
+        FluentQt::PrimarySplitDropButton primaryDrop;
+        QCOMPARE(primaryDrop.property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
+        primaryDrop.ensurePolished();
+        QCOMPARE(primaryDrop.sizeHint().width(), 31);
+        QVERIFY(primaryDrop.maximumHeight() > primaryDrop.minimumHeight());
+        QCOMPARE(primaryDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+        QCOMPARE(primaryDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
+    }
+
+    void splitWidgetBaseSwapsItsDropButtonAndContent()
+    {
+        FluentQt::SplitWidgetBase splitBase;
+        auto *replacementDrop = new QToolButton;
+        splitBase.setDropButton(replacementDrop);
+        QCOMPARE(splitBase.dropButton(), replacementDrop);
+        splitBase.setDropIcon(roundedIcon(QColor(1, 120, 200)));
+        splitBase.setDropIconSize(QSize(9, 9));
+        QCOMPARE(replacementDrop->iconSize(), QSize(9, 9));
+        QSignalSpy baseDropSpy(&splitBase, &FluentQt::SplitWidgetBase::dropDownClicked);
+        QTest::mouseClick(replacementDrop, Qt::LeftButton);
+        QCOMPARE(baseDropSpy.count(), 1);
+        auto *firstContent = new QLabel(QStringLiteral("First"));
+        auto *secondContent = new QLabel(QStringLiteral("Second"));
+        QPointer<QWidget> firstContentGuard(firstContent);
+        splitBase.setWidget(firstContent);
+        splitBase.setWidget(secondContent);
+        QCOMPARE(splitBase.contentWidget(), secondContent);
+        QVERIFY(firstContentGuard);
+        QVERIFY(firstContent->isHidden());
+        QCOMPARE(firstContent->parentWidget(), &splitBase);
+    }
+
+    void splitButtonsTintTheirDropArrowsAndIcons()
     {
         auto averageSplitArrowGray = [](QToolButton *button, int minimumGray, int maximumGray) {
             const QImage image = FqwTest::render(button);
             const QRect arrowRect((image.width() - 10) / 2, image.height() / 2 - 5, 10, 10);
             return FqwTest::averageGray(image, arrowRect, minimumGray, maximumGray);
-        };
-
-        auto solidIcon = [](const QColor &color) {
-            QPixmap pixmap(16, 16);
-            pixmap.fill(Qt::transparent);
-            QPainter painter(&pixmap);
-            painter.setRenderHint(QPainter::Antialiasing);
-            painter.setBrush(color);
-            painter.setPen(Qt::NoPen);
-            painter.drawRoundedRect(QRectF(2, 2, 12, 12), 2, 2);
-            painter.end();
-            return QIcon(pixmap);
         };
 
         auto countPixelsNear = [](QToolButton *button, const QColor &expected) {
@@ -699,45 +746,6 @@ class BasicInputTest : public QObject
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
-        FluentQt::SplitDropButton plainDrop;
-        QCOMPARE(plainDrop.property("fqw").toString(), QStringLiteral("SplitDropButton"));
-        plainDrop.ensurePolished();
-        QCOMPARE(plainDrop.sizeHint().width(), 31);
-        QVERIFY(plainDrop.maximumHeight() > plainDrop.minimumHeight());
-        QCOMPARE(plainDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-        QCOMPARE(plainDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
-        QCOMPARE(plainDrop.iconSize(), QSize(10, 10));
-        QCOMPARE(plainDrop.arrowOffset(), 0.0);
-        QVERIFY(!plainDrop.hasCustomDropIcon());
-
-        FluentQt::PrimarySplitDropButton primaryDrop;
-        QCOMPARE(primaryDrop.property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
-        primaryDrop.ensurePolished();
-        QCOMPARE(primaryDrop.sizeHint().width(), 31);
-        QVERIFY(primaryDrop.maximumHeight() > primaryDrop.minimumHeight());
-        QCOMPARE(primaryDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-        QCOMPARE(primaryDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
-
-        FluentQt::SplitWidgetBase splitBase;
-        auto *replacementDrop = new QToolButton;
-        splitBase.setDropButton(replacementDrop);
-        QCOMPARE(splitBase.dropButton(), replacementDrop);
-        splitBase.setDropIcon(solidIcon(QColor(1, 120, 200)));
-        splitBase.setDropIconSize(QSize(9, 9));
-        QCOMPARE(replacementDrop->iconSize(), QSize(9, 9));
-        QSignalSpy baseDropSpy(&splitBase, &FluentQt::SplitWidgetBase::dropDownClicked);
-        QTest::mouseClick(replacementDrop, Qt::LeftButton);
-        QCOMPARE(baseDropSpy.count(), 1);
-        auto *firstContent = new QLabel(QStringLiteral("First"));
-        auto *secondContent = new QLabel(QStringLiteral("Second"));
-        QPointer<QWidget> firstContentGuard(firstContent);
-        splitBase.setWidget(firstContent);
-        splitBase.setWidget(secondContent);
-        QCOMPARE(splitBase.contentWidget(), secondContent);
-        QVERIFY(firstContentGuard);
-        QVERIFY(firstContent->isHidden());
-        QCOMPARE(firstContent->parentWidget(), &splitBase);
-
         FluentQt::SplitPushButton splitPush(QStringLiteral("Normal"));
         QVERIFY(splitPush.metaObject()->indexOfProperty("icon") >= 0);
         QVERIFY(splitPush.metaObject()->indexOfProperty("iconSize") >= 0);
@@ -749,7 +757,7 @@ class BasicInputTest : public QObject
         QCOMPARE(splitPush.dropButton()->height(), qMax(32, splitPush.button()->sizeHint().height()));
         QCOMPARE(splitPush.dropButton()->height(), splitPush.button()->height());
         QCOMPARE(splitPush.dropButton()->width(), 31);
-        splitPush.setIcon(solidIcon(QColor(16, 32, 48)));
+        splitPush.setIcon(roundedIcon(QColor(16, 32, 48)));
         splitPush.setIconSize(QSize(18, 18));
         QCOMPARE(splitPush.iconSize(), QSize(18, 18));
         QCOMPARE(splitPush.button()->iconSize(), QSize(18, 18));
@@ -757,7 +765,7 @@ class BasicInputTest : public QObject
         const int normalGray = averageSplitArrowGray(splitPush.dropButton(), 40, 180);
         QVERIFY(normalGray > 40);
         QVERIFY(normalGray <= 180);
-        splitPush.setDropIcon(solidIcon(QColor(220, 20, 60)));
+        splitPush.setDropIcon(roundedIcon(QColor(220, 20, 60)));
         splitPush.setDropIconSize(QSize(14, 14));
         QCOMPARE(splitPush.dropButton()->iconSize(), QSize(14, 14));
         auto *splitDropButton = qobject_cast<FluentQt::SplitDropButton *>(splitPush.dropButton());
@@ -777,7 +785,7 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryPush.dropButton()->height(), qMax(32, primaryPush.button()->sizeHint().height()));
         QCOMPARE(primaryPush.dropButton()->height(), primaryPush.button()->height());
         QCOMPARE(primaryPush.dropButton()->width(), 31);
-        primaryPush.setIcon(solidIcon(QColor(20, 80, 160)));
+        primaryPush.setIcon(roundedIcon(QColor(20, 80, 160)));
         primaryPush.setIconSize(QSize(19, 19));
         QCOMPARE(primaryPush.iconSize(), QSize(19, 19));
         QCOMPARE(primaryPush.button()->iconSize(), QSize(19, 19));
@@ -785,7 +793,7 @@ class BasicInputTest : public QObject
         const int primaryGray = averageSplitArrowGray(primaryPush.dropButton(), 220, 255);
         QVERIFY(primaryGray > 170);
         QVERIFY(primaryGray > normalGray + 40);
-        primaryPush.setDropIcon(solidIcon(QColor(30, 144, 255)));
+        primaryPush.setDropIcon(roundedIcon(QColor(30, 144, 255)));
         primaryPush.setDropIconSize(QSize(12, 12));
         QCOMPARE(primaryPush.dropButton()->iconSize(), QSize(12, 12));
         QVERIFY(countPixelsNear(primaryPush.dropButton(), QColor(30, 144, 255)) > 25);
@@ -806,10 +814,15 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryTool.iconSize(), QSize(17, 17));
         QCOMPARE(primaryTool.button()->iconSize(), QSize(17, 17));
         QVERIFY(!primaryTool.icon().isNull());
-        primaryTool.setDropIcon(solidIcon(QColor(80, 200, 120)));
+        primaryTool.setDropIcon(roundedIcon(QColor(80, 200, 120)));
         primaryTool.setDropIconSize(QSize(11, 11));
         QCOMPARE(primaryTool.dropButton()->iconSize(), QSize(11, 11));
+    }
 
+    void splitButtonsOpenTheirFlyoutsBelowTheButton()
+    {
+        FluentQt::SplitPushButton splitPush(QStringLiteral("Normal"));
+        FluentQt::PrimarySplitPushButton primaryPush(QStringLiteral("Primary"));
         FluentQt::RoundMenu splitPushMenu(&splitPush);
         QAction *splitAction = splitPushMenu.addAction(QStringLiteral("Crazy Diamond"));
         QObject::connect(splitAction, &QAction::triggered, &splitPush,
@@ -893,7 +906,7 @@ class BasicInputTest : public QObject
         QCOMPARE(splitToolAlias.iconSize(), QSize(15, 15));
         QCOMPARE(splitToolAlias.button()->iconSize(), QSize(15, 15));
         QVERIFY(!splitToolAlias.icon().isNull());
-        splitToolAlias.setDropIcon(solidIcon(QColor(255, 165, 0)));
+        splitToolAlias.setDropIcon(roundedIcon(QColor(255, 165, 0)));
         splitToolAlias.setDropIconSize(QSize(13, 13));
         QCOMPARE(splitToolAlias.dropButton()->iconSize(), QSize(13, 13));
 
