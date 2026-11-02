@@ -401,32 +401,41 @@ class DateTimeTest : public QObject
         QCOMPARE(fastImage.pixelColor(157, 51), QColor(240, 240, 240));
     }
 
-    // Python's CalendarView year page for 2025 starts at the 12-year page from (this year - 100)
-    // and is titled with the decade most of its 16 years fall in; the fast view's decade pages
-    // start their rows of four counted from that same first year.
+    // The year pages depend on the current year: both views count their years from (this year - 100), the
+    // CalendarView in pages of 12 and the fast view in rows of 4, so the pages repeat every 12 years. Measured
+    // with qfluentwidgets 1.11.3 for the current years 2026 to 2037 (QDate.currentDate() patched), opening
+    // the year page of 1 June 2025: the first year on the CalendarView's page, its title, and the first year
+    // on the FastCalendarView's decade page.
     void calendarYearPagesFollowPython()
     {
-        const int firstYear = QDate::currentDate().year() - 100;
+        struct YearPage
+        {
+            int firstYear;
+            const char *title;
+            int fastFirstYear;
+        };
+        // Indexed by the current year % 12.
+        static const YearPage python[12] = {
+            {2024, "2030 - 2040", 2020}, {2025, "2030 - 2040", 2017}, {2014, "2020 - 2030", 2018},
+            {2015, "2020 - 2030", 2019}, {2016, "2020 - 2030", 2020}, {2017, "2020 - 2030", 2017},
+            {2018, "2020 - 2030", 2018}, {2019, "2020 - 2030", 2019}, {2020, "2020 - 2030", 2020},
+            {2021, "2020 - 2030", 2017}, {2022, "2020 - 2030", 2018}, {2023, "2030 - 2040", 2019},
+        };
+        const YearPage &expected = python[QDate::currentDate().year() % 12];
+
         FluentQt::CalendarView view(nullptr, false);
         view.setDate(QDate(2025, 6, 1));
         view.titleButton()->click();
         view.titleButton()->click();
         QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
-        const int pageStart = firstYear + (2025 - firstYear) / 12 * 12;
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(pageStart, 1, 1));
-        int decadeCount = 0;
-        for (int year = pageStart; year < pageStart + 16; ++year) {
-            decadeCount += year / 10 == pageStart / 10 ? 1 : 0;
-        }
-        const int decade = decadeCount >= 16 - decadeCount ? pageStart / 10 * 10 : pageStart / 10 * 10 + 10;
-        QCOMPARE(view.title(), QStringLiteral("%1 - %2").arg(decade).arg(decade + 10));
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(expected.firstYear, 1, 1));
+        QCOMPARE(view.title(), QString::fromLatin1(expected.title));
 
         FluentQt::FastCalendarView fastView;
         fastView.setDate(QDate(2025, 6, 1));
         fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
         fastView.monthView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
-        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(),
-                 QDate(2020 - ((2020 - firstYear) % 4), 1, 1));
+        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(), QDate(expected.fastFirstYear, 1, 1));
     }
 
     void calendarPickerTracksDateAndReset()
