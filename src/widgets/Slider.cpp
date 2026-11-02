@@ -136,7 +136,9 @@ QPoint Slider::pressedPos() const { return m_pressedPos; }
 void Slider::postInit()
 {
     m_handle = new SliderHandle(this);
-    FluentStyleSheet::setRole(this, QStringLiteral("Slider"));
+    // Python applies no style sheet to Slider, which paints itself; slider.qss would make it
+    // 24 px thick instead of its handle's 22.
+    setProperty("fqw", QStringLiteral("Slider"));
     setOrientation(orientation());
 
     // The handle accepts its own press, so Slider::mousePressEvent() never sees it. Its moves
