@@ -1,6 +1,5 @@
 // Labels, line edits and completers, spin boxes and multi-line editors.
 
-#include <algorithm>
 #include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
@@ -34,7 +33,6 @@
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/FluentWindow.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
-#include <functional>
 #include <QtCore/QBuffer>
 #include <QtCore/QEasingCurve>
 #include <QtCore/QFile>
@@ -44,6 +42,7 @@
 #include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
+#include <QtCore/QtMath>
 #include <QtGui/QAction>
 #include <QtGui/QClipboard>
 #include <QtGui/QColor>
@@ -76,6 +75,8 @@
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyleOptionSlider>
 #include <QtWidgets/QTableWidgetItem>
+#include <algorithm>
+#include <functional>
 
 #include "TestSupport.h"
 
@@ -632,6 +633,8 @@ class TextTest : public QObject
         QApplication::sendEvent(&menu, &up);
         QCOMPARE(menu.view()->currentRow(), 0);
 
+        // On macOS the Up key also took the edit's cursor to the start, as it does in Python.
+        lineEdit.end(false);
         QKeyEvent letter(QEvent::KeyPress, Qt::Key_L, Qt::NoModifier, QStringLiteral("l"));
         QApplication::sendEvent(&menu, &letter);
         QCOMPARE(lineEdit.text(), QStringLiteral("al"));
@@ -959,10 +962,12 @@ class TextTest : public QObject
                     }
                 }
             }
-            QCOMPARE(top, 88);
-            QCOMPARE(bottom, 89);
-            QVERIFY2(left <= 3, qPrintable(QString::number(left)));
-            QVERIFY2(right >= 236, qPrintable(QString::number(right)));
+            // In device pixels: the last two rows of the box, all but the rounded ends.
+            const qreal dpr = image.devicePixelRatio();
+            QVERIFY2(top >= qFloor(88 * dpr) - 1, qPrintable(QString::number(top)));
+            QCOMPARE(bottom, image.height() - 1);
+            QVERIFY2(left <= qCeil(3 * dpr), qPrintable(QString::number(left)));
+            QVERIFY2(right >= image.width() - 1 - qCeil(3 * dpr), qPrintable(QString::number(right)));
         };
 
         FluentQt::TextEdit textEdit;
