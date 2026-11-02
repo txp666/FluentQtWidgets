@@ -35,6 +35,20 @@ using namespace FluentQt;
 
 namespace {
 
+bool hasBrokenSurrogates(const QString &text)
+{
+    for (qsizetype i = 0; i < text.size(); ++i) {
+        const QChar ch = text.at(i);
+        if (ch.isHighSurrogate() && (i + 1 >= text.size() || !text.at(i + 1).isLowSurrogate())) {
+            return true;
+        }
+        if (ch.isLowSurrogate() && (i == 0 || !text.at(i - 1).isHighSurrogate())) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Reads the manager's per-parent bar lists without instantiating the abstract class.
 struct InfoBarManagerPeek : InfoBarManager
 {
@@ -857,6 +871,23 @@ class StatusInfoTest : public QObject
         }
         const qreal share = qreal(filled) / image.width();
         QVERIFY2(qAbs(share - 0.5) <= 0.03, qPrintable(QString::number(share)));
+    }
+
+    void wrappedTextKeepsSurrogatePairsTogether()
+    {
+        QWidget parent;
+        parent.resize(400, 300);
+        // The leading letter puts every surrogate pair on an odd offset, so a cut by UTF-16 code
+        // units at an even line width lands inside a pair.
+        QString content = QStringLiteral("a");
+        for (int i = 0; i < 60; ++i) {
+            content += QStringLiteral("\U0001F600");
+        }
+        auto *bar = InfoBar::info(QStringLiteral("Emoji"), content, Qt::Horizontal, true, -1,
+                                  InfoBarPosition::None, &parent);
+        QVERIFY(bar->contentLabel()->text().contains(QLatin1Char('\n')));
+        QVERIFY(!hasBrokenSurrogates(bar->contentLabel()->text()));
+        QVERIFY(!bar->contentLabel()->text().contains(QChar(0xFFFD)));
     }
 
   private:

@@ -12,7 +12,7 @@ endfunction()
 # One suite per area of the Gallery.
 foreach(test IN ITEMS
         tst_theme tst_qss tst_config tst_basic_input tst_combo_box tst_text tst_status_info tst_dialog_flyout
-        tst_menu tst_navigation tst_view tst_layout tst_settings tst_window tst_material tst_charts tst_datetime)
+        tst_menu tst_navigation tst_view tst_scroll tst_icon tst_layout tst_settings tst_window tst_material tst_charts tst_datetime)
     fqw_add_widget_test(${test})
 endforeach()
 

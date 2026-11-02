@@ -1001,6 +1001,67 @@ class WindowTest : public QObject
         QCOMPARE(stack.animationInfos().size(), 1);
     }
 
+    // The transition curves of Python's stacked widgets. The port swapped the entrance transition's
+    // in and out curves, used the out curve for every drill-in scale and faded both linearly.
+    void transitionStacksUseThePythonCurves()
+    {
+        auto bezier = [](qreal x1, qreal y1, qreal x2, qreal y2) {
+            QEasingCurve curve(QEasingCurve::BezierSpline);
+            curve.addCubicBezierSegment(QPointF(x1, y1), QPointF(x2, y2), QPointF(1.0, 1.0));
+            return curve;
+        };
+        auto sameCurve = [](const QEasingCurve &actual, const QEasingCurve &expected) {
+            for (const qreal progress : {0.25, 0.5, 0.75}) {
+                if (qAbs(actual.valueForProgress(progress) - expected.valueForProgress(progress)) > 1e-6) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        auto animationOf = [](QObject *owner, QObject *target, const QByteArray &property) {
+            for (QPropertyAnimation *animation : owner->findChildren<QPropertyAnimation *>()) {
+                if (animation->targetObject() == target && animation->propertyName() == property) {
+                    return animation;
+                }
+            }
+            return static_cast<QPropertyAnimation *>(nullptr);
+        };
+        const QEasingCurve fluentIn = bezier(0.1, 0.9, 0.2, 1.0);
+        const QEasingCurve fluentOut = bezier(0.7, 0.0, 1.0, 0.5);
+
+        EntranceTransitionStackedWidget entrance;
+        entrance.resize(120, 80);
+        entrance.addWidget(new QWidget);
+        QWidget *entranceNext = new QWidget;
+        entrance.addWidget(entranceNext);
+        entrance.setCurrentIndex(1, 300, false);
+        QPropertyAnimation *slideIn = animationOf(&entrance, entranceNext, "pos");
+        QPropertyAnimation *fadeOut = animationOf(&entrance, entrance.currentSnapshot()->graphicsEffect(), "opacity");
+        QVERIFY(slideIn && fadeOut);
+        QVERIFY(sameCurve(slideIn->easingCurve(), fluentIn));
+        QVERIFY(sameCurve(fadeOut->easingCurve(), fluentOut));
+
+        for (const bool back : {false, true}) {
+            DrillInTransitionStackedWidget drill;
+            drill.resize(120, 80);
+            drill.addWidget(new QWidget);
+            drill.addWidget(new QWidget);
+            if (back) {
+                drill.setAnimationEnabled(false);
+                drill.setCurrentIndex(1);
+                drill.setAnimationEnabled(true);
+            }
+            drill.setCurrentIndex(back ? 0 : 1, 333, back);
+            QPropertyAnimation *scaleIn = animationOf(&drill, drill.nextSnapshot(), "geometry");
+            QPropertyAnimation *scaleOut = animationOf(&drill, drill.currentSnapshot(), "geometry");
+            QPropertyAnimation *fadeIn = animationOf(&drill, drill.nextSnapshot()->graphicsEffect(), "opacity");
+            QVERIFY(scaleIn && scaleOut && fadeIn);
+            QVERIFY(sameCurve(scaleIn->easingCurve(), back ? bezier(0.12, 0.0, 0.0, 1.0) : fluentIn));
+            QVERIFY(sameCurve(scaleOut->easingCurve(), fluentIn));
+            QVERIFY(sameCurve(fadeIn->easingCurve(), bezier(0.17, 0.17, 0.0, 1.0)));
+        }
+    }
+
   private:
     std::optional<FqwTest::GlobalState> m_globalState;
 };

@@ -184,6 +184,15 @@ class ConfigTest : public QObject
         QCOMPARE(config->downloadFolder(), QStringLiteral("app/download"));
     }
 
+    void repositoryLinksUseConfiguredProjectUrl()
+    {
+        QCOMPARE(FluentQt::repositoryUrl(), QStringLiteral(FQW_REPOSITORY_URL));
+        QCOMPARE(FluentQt::repositoryIssuesUrl(), QStringLiteral(FQW_REPOSITORY_URL "/issues"));
+        QCOMPARE(FluentQt::repositoryDocsUrl(), QStringLiteral(FQW_REPOSITORY_URL "/tree/main/docs"));
+        QCOMPARE(FluentQt::repositoryExampleUrl(), QStringLiteral(FQW_REPOSITORY_URL "/tree/main/examples"));
+        QVERIFY(!FluentQt::repositoryUrl().contains(QStringLiteral("github.com/FluentQtWidgets/FluentQtWidgets")));
+    }
+
   private:
     std::optional<FqwTest::GlobalState> m_globalState;
 };

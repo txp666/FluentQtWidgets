@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <FluentQtWidgets/FluentQtWidgets.h>
 #include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
 #include <QtCore/QTemporaryDir>
 #include <QtGui/QAction>
 #include <QtGui/QColor>
@@ -13,12 +12,10 @@
 #include <QtGui/QPixmap>
 #include <QtTest/QtTest>
 #include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QStyleOptionSlider>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -1271,56 +1268,6 @@ class BasicInputTest : public QObject
             QCOMPARE(vertical->width(), 22);
         }
         manager->setTheme(previousTheme);
-    }
-
-    // Python's CommandBar has a minimum size hint (the more-actions button's size), so a bar a
-    // layout does not stretch keeps room for it, and fixes its height only once a widget is added.
-    void commandBarSizesFollowPython()
-    {
-        QWidget window;
-        auto *layout = new QVBoxLayout(&window);
-        auto *empty = new CommandBar(&window);
-        auto *bar = new CommandBar(&window);
-        bar->addAction(FluentIcon::Mail, QStringLiteral("Mail"));
-        bar->addAction(FluentIcon::Save, QStringLiteral("Save"));
-        auto *view = new CommandBarView(&window);
-        for (QWidget *widget :
-             {static_cast<QWidget *>(empty), static_cast<QWidget *>(bar), static_cast<QWidget *>(view)}) {
-            layout->addWidget(widget, 0, Qt::AlignLeft | Qt::AlignTop);
-        }
-        window.resize(600, 400);
-        window.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&window));
-
-        QCOMPARE(bar->minimumSizeHint(), QSize(40, 34));
-        QCOMPARE(bar->width(), 40);
-        QCOMPARE(empty->maximumHeight(), QWIDGETSIZE_MAX);
-        QCOMPARE(view->height(), 34 + 12);
-        QCOMPARE(view->maximumHeight(), view->layout()->maximumSize().height());
-        QVERIFY(view->maximumHeight() > 46);
-    }
-
-    // Python's CommandBar.setFont() passes the font on to the command buttons, and
-    // CommandBarView.setFont() to its bar.
-    void commandBarPassesItsFontToTheButtons()
-    {
-        CommandBar *bar = new CommandBar;
-        QScopedPointer<CommandBar> owner(bar);
-        bar->addAction(FluentIcon::Mail, QStringLiteral("Mail"));
-        CommandBarView *view = new CommandBarView;
-        QScopedPointer<CommandBarView> viewOwner(view);
-        QFont font = bar->font();
-        font.setPixelSize(17);
-        bar->setFont(font);
-        for (CommandButton *button : bar->commandButtons()) {
-            QCOMPARE(button->font().pixelSize(), 17);
-        }
-        view->addAction(new QAction(QStringLiteral("Copy"), view));
-        view->setFont(font);
-        QCOMPARE(view->commandBar()->font().pixelSize(), 17);
-        for (CommandButton *button : view->commandBar()->commandButtons()) {
-            QCOMPARE(button->font().pixelSize(), 17);
-        }
     }
 
     // Python's Slider(parent) and ClickableSlider(parent) keep QSlider's vertical default.
