@@ -413,6 +413,39 @@ class NavigationTest : public QObject
         theme->setTheme(previousTheme);
     }
 
+    // Python draws long item and avatar names unelided, cut at the edge of the text rect; the
+    // port elided them with an ellipsis. A cut "W" leaves ink at cap height just inside the rect's
+    // edge, where an ellipsis has ink only near the baseline, and nothing passes the edge.
+    void navigationTextIsClippedNotElidedAsInPython()
+    {
+        const auto inkAtCapHeight = [](QWidget *widget, int from, int to) {
+            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::white);
+            widget->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            for (int x = from; x < to; ++x) {
+                for (int y = 9; y < 17; ++y) {
+                    if (qGray(image.pixel(x, y)) < 160) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        const QString longText(60, QLatin1Char('W'));
+
+        NavigationTreeWidget tree(QIcon(), longText, true);
+        tree.setCompacted(false);
+        QCOMPARE(tree.width(), 312);
+        const int treeEdge = tree.width() - 13;
+        QVERIFY(inkAtCapHeight(&tree, treeEdge - 4, treeEdge));
+        QVERIFY(!inkAtCapHeight(&tree, treeEdge + 1, tree.width()));
+
+        NavigationAvatarWidget avatar(longText);
+        avatar.setCompacted(false);
+        QVERIFY(inkAtCapHeight(&avatar, 299 - 4, 299));
+        QVERIFY(!inkAtCapHeight(&avatar, 300, avatar.width()));
+    }
+
     void navigationTreeWidgetArrowRotatesWhenExpanded()
     {
         FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Root"));

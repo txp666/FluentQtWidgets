@@ -286,9 +286,8 @@ void NavigationAvatarWidget::paintEvent(QPaintEvent *event)
     if (!m_compacted && !m_name.isEmpty()) {
         painter.setPen(textColor());
         painter.setFont(font());
-        const QRect textRect(44, 0, width() - 52, height());
-        painter.drawText(textRect, Qt::AlignVCenter,
-                         painter.fontMetrics().elidedText(m_name, Qt::ElideRight, textRect.width()));
+        // Python's rect, unelided: a long name runs on and the widget's edge cuts it.
+        painter.drawText(QRect(44, 0, 255, 36), Qt::AlignVCenter, m_name);
     }
 }
 
@@ -392,8 +391,7 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
     titleFont.setBold(true);
     painter.setFont(titleFont);
     painter.setPen(textColor());
-    painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom,
-                     painter.fontMetrics().elidedText(m_title, Qt::ElideRight, textWidth));
+    painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom, m_title);
 
     if (!m_subtitle.isEmpty()) {
         QFont subtitleFont = font();
@@ -401,8 +399,7 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
         painter.setFont(subtitleFont);
         painter.setPen(textColor(150));
         painter.drawText(QRectF(textX, height() / 2.0 + 2.0, textWidth, height() / 2.0 - 2.0),
-                         Qt::AlignLeft | Qt::AlignTop,
-                         painter.fontMetrics().elidedText(m_subtitle, Qt::ElideRight, textWidth));
+                         Qt::AlignLeft | Qt::AlignTop, m_subtitle);
     }
 }
 
@@ -491,8 +488,7 @@ void NavigationItemHeader::paintEvent(QPaintEvent *event)
     painter.setFont(font());
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     painter.setPen(dark ? QColor(160, 160, 160) : QColor(96, 96, 96));
-    painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter,
-                     painter.fontMetrics().elidedText(m_text, Qt::ElideRight, width() - 16));
+    painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter, m_text);
 }
 
 NavigationToolButton::NavigationToolButton(const QIcon &icon, QWidget *parent)
@@ -804,9 +800,9 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
     if (!m_compacted && !m_text.isEmpty()) {
         painter.setPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
         const int textLeft = (m_icon.isNull() ? 16 : 44) + margins.left();
-        const QRect textRect(textLeft, 0, width() - 13 - textLeft - margins.right(), kItemHeight);
-        painter.drawText(textRect, Qt::AlignVCenter,
-                         painter.fontMetrics().elidedText(m_text, Qt::ElideRight, textRect.width()));
+        // Python's rect, unelided: a long text runs on and the widget's edge cuts it.
+        const QRectF textRect(textLeft, 0, width() - 13 - textLeft - margins.right(), kItemHeight);
+        painter.drawText(textRect, Qt::AlignVCenter, m_text);
     }
 
     if (!m_compacted && !m_children.isEmpty()) {
@@ -816,7 +812,12 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         const QIcon arrowIcon =
             dark ? FluentQt::icon(FluentIcon::ArrowDown, Theme::Dark)
                  : FluentQt::icon(FluentIcon::ArrowDown, Theme::Light, QColor(QStringLiteral("#646464")));
-        arrowIcon.paint(&painter, QRect(-5, -5, 10, 10));
+        // Python renders the arrow into a 9.6 px square.
+        const QRectF arrowRect(-5, -5, 9.6, 9.6);
+        const qreal dpr = painter.device()->devicePixelRatioF();
+        QPixmap arrow = arrowIcon.pixmap(QSize(10, 10) * dpr);
+        arrow.setDevicePixelRatio(dpr);
+        painter.drawPixmap(arrowRect, arrow, QRectF(QPointF(0, 0), QSizeF(arrow.size())));
         painter.restore();
     }
 }
