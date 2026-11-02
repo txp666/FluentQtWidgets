@@ -575,6 +575,9 @@ class NavigationTest : public QObject
         const QPoint overRow = root.mapToGlobal(QPoint(150, 18));
         QEnterEvent enter(QPointF(150, 18), QPointF(150, 18), QPointF(overRow));
         QCursor::setPos(overRow);
+        if (QCursor::pos() != overRow) {
+            QSKIP("The platform does not let the test move the pointer.");
+        }
         QApplication::sendEvent(&root, &enter);
         QVERIFY(rowAlpha() > 0);
         QCursor::setPos(child->mapToGlobal(QPoint(150, 18)));
