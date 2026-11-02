@@ -10,6 +10,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QTemporaryDir>
 #include <QtGui/QColor>
+#include <QtGui/QFontInfo>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QIcon>
 #include <QtGui/QImage>
@@ -55,6 +56,14 @@
     } while (false)
 
 namespace FqwTest {
+
+// Python's sizes in these tests were measured on macOS, where the Fluent font families resolve to PingFang SC.
+// Text-dependent pixel values hold only where a widget gets that font; elsewhere (CI on Linux and Windows)
+// tests check font-independent relations instead.
+inline bool hasPythonMeasurementFont(const QWidget *widget)
+{
+    return QFontInfo(widget->font()).family() == QLatin1String("PingFang SC");
+}
 
 // Whether a plain window becomes maximized when asked. Probed once, with a widget of no Fluent class, so a
 // library bug cannot turn a failing maximize test into a skip.

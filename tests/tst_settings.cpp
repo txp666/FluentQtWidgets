@@ -229,8 +229,10 @@ class SettingsTest : public QObject
         QCOMPARE(push->button()->metaObject(), &QPushButton::staticMetaObject);
         QCOMPARE(primary->button()->objectName(), QStringLiteral("primaryButton"));
         const QFontMetrics metrics(push->button()->font());
-        QCOMPARE(push->button()->width(), metrics.horizontalAdvance(QStringLiteral("Push")) + 2 * 36 + 2);
-        QCOMPARE(primary->button()->width(), metrics.horizontalAdvance(QStringLiteral("Push")) + 2 * 12 + 2);
+        // Text plus Python's padding and border, within the pixel the text's fractional width rounds to.
+        QVERIFY(qAbs(push->button()->width() - (metrics.horizontalAdvance(QStringLiteral("Push")) + 2 * 36 + 2)) <= 1);
+        QVERIFY(qAbs(primary->button()->width() - (metrics.horizontalAdvance(QStringLiteral("Push")) + 2 * 12 + 2)) <=
+                1);
         QCOMPARE(push->button()->height(), primary->button()->height());
         QCOMPARE(range->valueLabel()->font().pixelSize(), 14);
         QCOMPARE(range->valueLabel()->objectName(), QStringLiteral("valueLabel"));
@@ -605,16 +607,25 @@ class SettingsTest : public QObject
         card.resize(640, card.height());
         card.show();
         QVERIFY(QTest::qWaitForWindowExposed(&card));
-        // expand_setting_card.qss gives it Python's 5/17 px padding.
-        QCOMPARE(button->sizeHint().height(), 32);
+        // Python's sizes follow the text, so they were measured with PingFang SC (see hasPythonMeasurementFont).
+        const bool measured = FqwTest::hasPythonMeasurementFont(button);
+        if (measured) {
+            // expand_setting_card.qss gives it Python's 5/17 px padding.
+            QCOMPARE(button->sizeHint().height(), 32);
+        }
         // Measured from Python at 640 px: a 123 x 32 button 44 px from the right, and 244 px
         // expanded offscreen, 232 px on macOS, where the radio buttons are 6 px shorter.
+        const int collapsedHeight = card.height();
         const int radioHeight = QGuiApplication::platformName() == QLatin1String("offscreen") ? 103 : 91;
         card.setExpanded(true);
-        QTRY_COMPARE(card.height(), 70 + radioHeight + 3 + 68);
-        QCOMPARE(button->geometry(), QRect(471, 18, 123, 32));
-        QCOMPARE(card.radioWidget()->geometry(), QRect(0, 0, 638, radioHeight));
-        QCOMPARE(card.customColorWidget()->geometry(), QRect(0, radioHeight + 3, 638, 68));
+        if (measured) {
+            QTRY_COMPARE(card.height(), 70 + radioHeight + 3 + 68);
+            QCOMPARE(button->geometry(), QRect(471, 18, 123, 32));
+            QCOMPARE(card.radioWidget()->geometry(), QRect(0, 0, 638, radioHeight));
+            QCOMPARE(card.customColorWidget()->geometry(), QRect(0, radioHeight + 3, 638, 68));
+        } else {
+            QTRY_VERIFY(card.height() > collapsedHeight);
+        }
         card.customRadioButton()->click();
         QVERIFY(button->isEnabled());
         QCOMPARE(card.choiceLabel()->text(), QStringLiteral("Custom color"));

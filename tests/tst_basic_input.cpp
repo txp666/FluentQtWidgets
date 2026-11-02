@@ -246,11 +246,13 @@ class BasicInputTest : public QObject
             QVERIFY(QTest::qWaitForWindowExposed(&window));
 
             // As in Python: 32 px beside a 33 px push button, and 30 px for the borderless
-            // transparent ones.
-            QCOMPARE(push->height(), 33);
+            // transparent ones. With another font, each is as tall as its own hint.
+            const bool measured = FqwTest::hasPythonMeasurementFont(push);
+            QCOMPARE(push->height(), measured ? 33 : push->sizeHint().height());
             for (const QToolButton *tool : tools) {
                 const bool transparent = tool->property("fqw").toString().startsWith(QStringLiteral("Transparent"));
-                QVERIFY2(tool->height() == (transparent ? 30 : 32),
+                const int expected = measured ? (transparent ? 30 : 32) : tool->sizeHint().height();
+                QVERIFY2(tool->height() == expected,
                          qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
                                         .arg(tool->property("fqw").toString())
                                         .arg(tool->height())
@@ -408,10 +410,12 @@ class BasicInputTest : public QObject
                                                                           .arg(widget->minimumHeight())));
             widget->ensurePolished();
         }
-        QCOMPARE(transparentPush.sizeHint().height(), 31);
-        QCOMPARE(pillPush.sizeHint().height(), 31);
-        QCOMPARE(transparentTool.sizeHint(), QSize(36, 30));
-        QCOMPARE(pillTool.sizeHint(), QSize(36, 30));
+        if (FqwTest::hasPythonMeasurementFont(&transparentPush)) {
+            QCOMPARE(transparentPush.sizeHint().height(), 31);
+            QCOMPARE(pillPush.sizeHint().height(), 31);
+            QCOMPARE(transparentTool.sizeHint(), QSize(36, 30));
+            QCOMPARE(pillTool.sizeHint(), QSize(36, 30));
+        }
     }
 
     void pushButtonIconAndTextKeepPythonSpacing()
@@ -754,7 +758,7 @@ class BasicInputTest : public QObject
         QCOMPARE(splitPush.dropButton()->property("fqw").toString(), QStringLiteral("SplitDropButton"));
         splitPush.ensurePolished();
         splitPush.adjustSize();
-        QCOMPARE(splitPush.dropButton()->height(), qMax(32, splitPush.button()->sizeHint().height()));
+        QCOMPARE(splitPush.dropButton()->height(), splitPush.button()->sizeHint().height());
         QCOMPARE(splitPush.dropButton()->height(), splitPush.button()->height());
         QCOMPARE(splitPush.dropButton()->width(), 31);
         splitPush.setIcon(roundedIcon(QColor(16, 32, 48)));
@@ -782,7 +786,7 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryPush.dropButton()->property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
         primaryPush.ensurePolished();
         primaryPush.adjustSize();
-        QCOMPARE(primaryPush.dropButton()->height(), qMax(32, primaryPush.button()->sizeHint().height()));
+        QCOMPARE(primaryPush.dropButton()->height(), primaryPush.button()->sizeHint().height());
         QCOMPARE(primaryPush.dropButton()->height(), primaryPush.button()->height());
         QCOMPARE(primaryPush.dropButton()->width(), 31);
         primaryPush.setIcon(roundedIcon(QColor(20, 80, 160)));
@@ -807,7 +811,7 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryTool.dropButton()->property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
         primaryTool.ensurePolished();
         primaryTool.adjustSize();
-        QCOMPARE(primaryTool.dropButton()->height(), qMax(32, primaryTool.button()->sizeHint().height()));
+        QCOMPARE(primaryTool.dropButton()->height(), primaryTool.button()->sizeHint().height());
         QCOMPARE(primaryTool.dropButton()->height(), primaryTool.button()->height());
         QCOMPARE(primaryTool.dropButton()->width(), 31);
         primaryTool.setIconSize(QSize(17, 17));

@@ -219,8 +219,10 @@ class MediaTest : public QObject
         QCOMPARE(bar.height(), 102);
         QCOMPARE(bar.maximumHeight(), 102);
         COMPARE_GEOMETRY(geometryIn(bar.progressSlider(), &bar), QRect(5, 9, 590, 22), 0);
-        COMPARE_GEOMETRY(geometryIn(bar.currentTimeLabel(), &bar), QRect(15, 37, 43, 17), 2);
-        COMPARE_GEOMETRY(geometryIn(bar.remainTimeLabel(), &bar), QRect(542, 37, 43, 17), 2);
+        if (FqwTest::hasPythonMeasurementFont(bar.currentTimeLabel())) {
+            COMPARE_GEOMETRY(geometryIn(bar.currentTimeLabel(), &bar), QRect(15, 37, 43, 17), 2);
+            COMPARE_GEOMETRY(geometryIn(bar.remainTimeLabel(), &bar), QRect(542, 37, 43, 17), 2);
+        }
         COMPARE_GEOMETRY(geometryIn(bar.volumeButton(), &bar), QRect(9, 63, 30, 30), 0);
         COMPARE_GEOMETRY(geometryIn(bar.skipBackButton(), &bar), QRect(249, 63, 30, 30), 0);
         COMPARE_GEOMETRY(geometryIn(bar.playButton(), &bar), QRect(285, 63, 30, 30), 0);
@@ -246,7 +248,9 @@ class MediaTest : public QObject
         QCOMPARE(view.size(), QSize(295, 64));
         COMPARE_GEOMETRY(view.muteButton()->geometry(), QRect(10, 17, 30, 30), 0);
         COMPARE_GEOMETRY(view.volumeSlider()->geometry(), QRect(45, 21, 208, 22), 0);
-        COMPARE_GEOMETRY(view.volumeLabel()->geometry(), QRect(261, 24, 15, 17), 2);
+        if (FqwTest::hasPythonMeasurementFont(view.volumeLabel())) {
+            COMPARE_GEOMETRY(view.volumeLabel()->geometry(), QRect(261, 24, 15, 17), 2);
+        }
         QCOMPARE(view.volumeLabel()->text(), QStringLiteral("30"));
 
         view.setVolume(100);

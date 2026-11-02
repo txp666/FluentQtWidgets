@@ -308,9 +308,9 @@ class DialogFlyoutTest : public QObject
         QSignalSpy boxAccepted(&box, &QDialog::accepted);
         box.show();
         QVERIFY(QTest::qWaitForWindowExposed(&box));
-        // The buttons are 32 px tall as in Python: the 81 px row less its 1 px top border and 24 px
-        // margins. Offscreen the Fluent font asks for 33 and Python squeezes them to 32 as well.
-        QCOMPARE(box.yesButton()->height(), 32);
+        // The 81 px row less its 1 px top border and 24 px margins leaves the buttons 32 px, as in
+        // Python: a font that asks for more (33 offscreen) is squeezed to 32, a smaller one keeps its hint.
+        QCOMPARE(box.yesButton()->height(), qMin(box.yesButton()->sizeHint().height(), 32));
         QTest::keyClick(box.yesButton(), Qt::Key_Return);
         QTRY_COMPARE(boxAccepted.count(), 1);
 
@@ -452,8 +452,11 @@ class DialogFlyoutTest : public QObject
                                          : c.title == galleryTitle     ? QSize(770, 218)
                                                                        : QSize(356, 258);
                 if (c.title == QLatin1String("T")) {
-                    // qfluentwidgets' 240 px floor holds; the height is the content's.
-                    QCOMPARE(view.size(), pythonSize);
+                    // qfluentwidgets' 240 px floor holds whatever the font; the height is the content's.
+                    QCOMPARE(view.width(), pythonSize.width());
+                    if (FqwTest::hasPythonMeasurementFont(dialog.contentLabel())) {
+                        QCOMPARE(view.size(), pythonSize);
+                    }
                 } else if (QFontInfo(dialog.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
                     QCOMPARE(dialog.windowTitleLabel()->height(), 29);
                     QCOMPARE(view.size(), pythonSize);
@@ -854,6 +857,9 @@ class DialogFlyoutTest : public QObject
         dialog.show();
         QTRY_VERIFY(dialog.isVisible());
         QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("FolderListDialog"));
+        if (!FqwTest::hasPythonMeasurementFont(dialog.contentLabel())) {
+            QSKIP("Python's FolderListDialog layout follows its text, measured with PingFang SC");
+        }
         QTRY_COMPARE(dialog.widget()->size(), boxSize);
         QCOMPARE(dialog.titleLabel()->geometry(), titleGeometry);
         QCOMPARE(dialog.contentLabel()->geometry(), contentGeometry);
@@ -1257,7 +1263,10 @@ class DialogFlyoutTest : public QObject
             QVERIFY(content);
             QVERIFY(!content->wordWrap());
             QVERIFY(!view.findChild<QLabel *>(QStringLiteral("titleLabel"))->wordWrap());
-            QCOMPARE(content->height(), content->fontMetrics().height());
+            // One line, as tall as its text: the font's height where it has every glyph, the label's own
+            // hint where a fallback font draws some of them.
+            QCOMPARE(content->height(), FqwTest::hasPythonMeasurementFont(content) ? content->fontMetrics().height()
+                                                                                   : content->sizeHint().height());
             auto *image = view.findChild<FluentQt::ImageLabel *>();
             QVERIFY(image);
             if (tail == FluentQt::TeachingTipTailPosition::Bottom) {

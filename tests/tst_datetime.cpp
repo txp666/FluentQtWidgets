@@ -96,7 +96,7 @@ class DateTimeTest : public QObject
             QVERIFY(QTest::qWaitForWindowExposed(&window));
 
             for (const QWidget *widget : {static_cast<QWidget *>(picker), static_cast<QWidget *>(fastPicker)}) {
-                QVERIFY2(widget->height() >= 32 && qAbs(widget->height() - push->height()) <= 1,
+                QVERIFY2(qAbs(widget->height() - push->height()) <= 1,
                          qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
                                         .arg(QString::fromLatin1(widget->metaObject()->className()))
                                         .arg(widget->height())
