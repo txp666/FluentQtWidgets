@@ -141,9 +141,11 @@ QColor NavigationBarPushButton::selectedColor() const
 NavigationBar::NavigationBar(QWidget *parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
-    setFixedWidth(kBarWidth);
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationBar"));
     initLayout();
+    // Not fixed, as in Python: in a window the layout gives it its size hint, 72 px (64 px buttons
+    // and 4 px margins).
+    resize(48, height());
 }
 
 NavigationBarPushButton *NavigationBar::addItem(const QString &routeKey, const QIcon &icon, const QString &text,

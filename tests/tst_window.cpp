@@ -169,11 +169,21 @@ class WindowTest : public QObject
         apps->setObjectName(QStringLiteral("apps"));
 
         QVERIFY(window.windowFlags() & Qt::FramelessWindowHint);
-        QCOMPARE(window.navigationInterface()->width(), FluentQt::NavigationBar::kBarWidth);
+        // Python's MSFluentWindow: the bar is free and the window's layout gives it its hint (72 px
+        // natively on macOS with Fusion); the stack starts there, 48 px down.
+        window.resize(900, 700);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCOMPARE(window.navigationInterface()->minimumWidth(), 0);
         QCOMPARE(window.addSubInterface(home, QIcon(), QStringLiteral("Home")), 0);
         QCOMPARE(window.addSubInterface(apps, QIcon(), QStringLiteral("Apps")), 1);
         QCOMPARE(window.currentRouteKey(), QStringLiteral("home"));
         QVERIFY(window.navigationInterface()->widget(QStringLiteral("home")) != nullptr);
+        FluentQt::NavigationBar *bar = window.navigationInterface();
+        const int barWidth = qMax(bar->sizeHint().width(), bar->minimumSizeHint().width());
+        QVERIFY(barWidth >= 72);
+        QTRY_COMPARE(bar->width(), barWidth);
+        QCOMPARE(window.stackedWidget()->mapTo(&window, QPoint(0, 0)), QPoint(barWidth, 48));
 
         QVERIFY(window.switchTo(QStringLiteral("apps")));
         QCOMPARE(window.currentInterface(), apps);

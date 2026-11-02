@@ -63,8 +63,6 @@ class FQW_API NavigationBar : public QWidget
     Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
   public:
-    static constexpr int kBarWidth = 72;
-
     explicit NavigationBar(QWidget *parent = nullptr);
 
     NavigationBarPushButton *addItem(const QString &routeKey, const QIcon &icon, const QString &text,

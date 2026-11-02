@@ -723,7 +723,12 @@ class NavigationTest : public QObject
 
         QVERIFY(home != nullptr);
         QVERIFY(help != nullptr);
-        QCOMPARE(bar.width(), FluentQt::NavigationBar::kBarWidth);
+        // Free, as Python's: a layout gives it its hint, at least 72 px (64 px buttons and 4 px
+        // margins). The hidden scroll bars' minimum hint can add to that, as in Python, whose
+        // bar measures 72 natively on macOS and 93 offscreen.
+        QCOMPARE(bar.minimumWidth(), 0);
+        QCOMPARE(bar.maximumWidth(), QWIDGETSIZE_MAX);
+        QVERIFY(bar.sizeHint().width() >= 72);
         QCOMPARE(home->size(), QSize(64, 58));
         QCOMPARE(help->isSelectable(), false);
         QCOMPARE(bar.widget(QStringLiteral("home")), home);
