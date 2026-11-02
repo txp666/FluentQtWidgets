@@ -6,6 +6,7 @@
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
 #include <QtCore/QVariantAnimation>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
 #include <QtGui/QPalette>
 #include <QtTest/QtTest>
@@ -572,12 +573,14 @@ class SettingsTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&card));
         // expand_setting_card.qss gives it Python's 5/17 px padding.
         QCOMPARE(button->sizeHint().height(), 32);
-        // Measured from Python at 640 px: 244 px expanded, a 123 x 32 button 44 px from the right.
+        // Measured from Python at 640 px: a 123 x 32 button 44 px from the right, and 244 px
+        // expanded offscreen, 232 px on macOS, where the radio buttons are 6 px shorter.
+        const int radioHeight = QGuiApplication::platformName() == QLatin1String("offscreen") ? 103 : 91;
         card.setExpanded(true);
-        QTRY_COMPARE(card.height(), 244);
+        QTRY_COMPARE(card.height(), 70 + radioHeight + 3 + 68);
         QCOMPARE(button->geometry(), QRect(471, 18, 123, 32));
-        QCOMPARE(card.radioWidget()->geometry(), QRect(0, 0, 638, 103));
-        QCOMPARE(card.customColorWidget()->geometry(), QRect(0, 106, 638, 68));
+        QCOMPARE(card.radioWidget()->geometry(), QRect(0, 0, 638, radioHeight));
+        QCOMPARE(card.customColorWidget()->geometry(), QRect(0, radioHeight + 3, 638, 68));
         card.customRadioButton()->click();
         QVERIFY(button->isEnabled());
         QCOMPARE(card.choiceLabel()->text(), QStringLiteral("Custom color"));
