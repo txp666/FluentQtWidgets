@@ -129,7 +129,8 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     m_buttonLayout->setContentsMargins(24, 24, 24, 24);
     m_buttonLayout->setSpacing(12);
 
-    m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
+    // A plain QPushButton styled by #cancelButton in the dialog sheet, as in Python, not a Fluent PushButton.
+    m_cancelButton = new QPushButton(tr("Cancel"), m_buttonGroup);
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
     m_acceptButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
@@ -556,7 +557,8 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_buttonGroup->setFixedHeight(81);
 
     m_acceptButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
-    m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
+    // A plain QPushButton styled by #cancelButton in the dialog sheet, as in Python, not a Fluent PushButton.
+    m_cancelButton = new QPushButton(tr("Cancel"), m_buttonGroup);
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);

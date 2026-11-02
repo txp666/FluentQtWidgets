@@ -358,7 +358,8 @@ ColorDialog::ColorDialog(const QColor &color, const QString &title, QWidget *par
     m_buttonGroup->setObjectName(QStringLiteral("buttonGroup"));
     m_buttonGroup->setFixedSize(486, 81);
     m_yesButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
-    m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
+    // A plain QPushButton styled by #cancelButton in the dialog sheet, as in Python, not a Fluent PushButton.
+    m_cancelButton = new QPushButton(tr("Cancel"), m_buttonGroup);
     m_yesButton->setObjectName(QStringLiteral("yesButton"));
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
     m_yesButton->setFixedWidth(216);

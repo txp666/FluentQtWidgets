@@ -144,7 +144,6 @@ const std::vector<Expectation> kIntended = {
 // a fix makes the metric match, the row reports XPASS and fails, and the entry must go.
 const std::vector<Expectation> kPending = {
     // clang-format off
-    {"MessageBoxBase/default", "size.w sizeHint.w", "Python's cancel button is a plain QPushButton styled by message_dialog.qss (65 px wide for \"Cancel\"); the port's is a PushButton (71 px), and the two equal-stretch buttons make the box 6 px wider"},
     // clang-format on
 };
 

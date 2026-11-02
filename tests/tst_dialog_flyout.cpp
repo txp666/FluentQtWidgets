@@ -114,7 +114,8 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(dialog.property("cancelButton").value<QPushButton *>(), dialog.cancelButton());
         QCOMPARE(dialog.cancelButton()->objectName(), QStringLiteral("cancelButton"));
         QCOMPARE(dialog.acceptButton()->property("fqw").toString(), QStringLiteral("PrimaryPushButton"));
-        QCOMPARE(dialog.cancelButton()->property("fqw").toString(), QStringLiteral("PushButton"));
+        // A plain QPushButton styled by #cancelButton, as in Python (see dialogCancelButtonsArePlainButtonsLikePython).
+        QVERIFY(dialog.cancelButton()->property("fqw").toString().isEmpty());
         dialog.setContentCopyable(true);
         QVERIFY(dialog.contentLabel()->textInteractionFlags() & Qt::TextSelectableByMouse);
         dialog.setContentCopyable(false);
@@ -269,6 +270,27 @@ class DialogFlyoutTest : public QObject
         messageDialog.yesButton()->click();
         QCOMPARE(messageDialogYesSpy.count(), 1);
         QTRY_COMPARE(messageDialogAcceptedSpy.count(), 1);
+    }
+
+    // Python's dialogs make Cancel a plain QPushButton named cancelButton, styled by the dialog sheet's
+    // #cancelButton rule. A Fluent PushButton brings its own sheet, which wins over that rule and pads it wider.
+    void dialogCancelButtonsArePlainButtonsLikePython()
+    {
+        QWidget parent;
+        parent.resize(800, 600);
+        FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
+        FluentQt::MessageBoxBase base(&parent);
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        FluentQt::MessageDialog messageDialog(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        FluentQt::ColorDialog colorDialog(QColor(Qt::red), QStringLiteral("Colour"), &parent);
+        for (const QPushButton *button :
+             {dialog.cancelButton(), base.cancelButton(), box.cancelButton(), colorDialog.cancelButton()}) {
+            QVERIFY(button != nullptr);
+            QCOMPARE(button->metaObject(), &QPushButton::staticMetaObject);
+            QCOMPARE(button->objectName(), QStringLiteral("cancelButton"));
+        }
+        // Python's MessageDialog styles its buttons by type and leaves them unnamed.
+        QCOMPARE(messageDialog.cancelButton()->metaObject(), &QPushButton::staticMetaObject);
     }
 
     void returnKeyAcceptsDialogsLikePython()
