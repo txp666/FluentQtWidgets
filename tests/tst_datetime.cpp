@@ -419,6 +419,34 @@ class DateTimeTest : public QObject
         QCOMPARE(fastImage.pixelColor(157, 51), QColor(240, 240, 240));
     }
 
+    // Python's CalendarView year page for 2025 starts at the 12-year page from (this year - 100)
+    // and is titled with the decade most of its 16 years fall in; the fast view's decade pages
+    // start their rows of four counted from that same first year.
+    void calendarYearPagesFollowPython()
+    {
+        const int firstYear = QDate::currentDate().year() - 100;
+        FluentQt::CalendarView view(nullptr, false);
+        view.setDate(QDate(2025, 6, 1));
+        view.titleButton()->click();
+        view.titleButton()->click();
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+        const int pageStart = firstYear + (2025 - firstYear) / 12 * 12;
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(pageStart, 1, 1));
+        int decadeCount = 0;
+        for (int year = pageStart; year < pageStart + 16; ++year) {
+            decadeCount += year / 10 == pageStart / 10 ? 1 : 0;
+        }
+        const int decade = decadeCount >= 16 - decadeCount ? pageStart / 10 * 10 : pageStart / 10 * 10 + 10;
+        QCOMPARE(view.title(), QStringLiteral("%1 - %2").arg(decade).arg(decade + 10));
+
+        FluentQt::FastCalendarView fastView;
+        fastView.setDate(QDate(2025, 6, 1));
+        fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
+        fastView.monthView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
+        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(),
+                 QDate(2020 - ((2020 - firstYear) % 4), 1, 1));
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;
@@ -531,11 +559,14 @@ class DateTimeTest : public QObject
         waitCalendarScrollAnimation();
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+        // Python pages the years 12 at a time from a century before this year.
+        const int firstYear = QDate::currentDate().year() - 100;
+        const int yearPage2025 = firstYear + (2025 - firstYear) / 12 * 12;
         sendWheel(&view, -120);
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(2028, 1, 1));
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(yearPage2025 + 12, 1, 1));
         waitCalendarScrollAnimation();
         sendWheel(&view, 120);
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(2020, 1, 1));
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(yearPage2025, 1, 1));
         waitCalendarScrollAnimation();
 
         FluentQt::CalendarView animatedView;
@@ -621,8 +652,18 @@ class DateTimeTest : public QObject
         QTest::mouseClick(fastMonthTitle, Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.yearView());
         sendWheel(&fastView, -120);
-        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(), QDate(2020, 1, 1));
-        QTest::mouseClick(fastView.yearButtons().at(4), Qt::LeftButton);
+        // Python counts the rows of four from a century before this year.
+        const int fastFirstYear = QDate::currentDate().year() - 100;
+        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(),
+                 QDate(2020 - ((2020 - fastFirstYear) % 4), 1, 1));
+        QPushButton *fastYear2024 = nullptr;
+        for (QPushButton *button : fastView.yearButtons()) {
+            if (button->property("date").toDate() == QDate(2024, 1, 1)) {
+                fastYear2024 = button;
+            }
+        }
+        QVERIFY(fastYear2024 != nullptr);
+        QTest::mouseClick(fastYear2024, Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.monthView());
         QTest::mouseClick(fastView.monthButtons().at(5), Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.dayView());

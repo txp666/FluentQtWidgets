@@ -63,6 +63,18 @@ class CalendarScrollButton final : public QToolButton
     FluentIcon m_icon;
 };
 
+// Python's year views list the years from a century before this one.
+int firstCalendarYear() { return QDate::currentDate().year() - 100; }
+
+// Python's CalendarView pages through the years three rows (12 years) at a time from that first
+// year; this is the first year on the page that holds `year`.
+int calendarYearPageStart(int year)
+{
+    const int offset = year - firstCalendarYear();
+    const int page = offset >= 0 ? offset / 12 : -((-offset + 11) / 12);
+    return firstCalendarYear() + page * 12;
+}
+
 // Python's ScrollViewBase draws a 1 px top border between the calendar header and its items.
 QWidget *createCalendarSeparator(QWidget *parent)
 {
@@ -237,7 +249,7 @@ void CalendarView::setDate(const QDate &date)
     if (!m_displayMonth.isValid() || date.isValid()) {
         m_displayMonth = QDate(baseDate.year(), baseDate.month(), 1);
         m_monthPageDate = QDate(baseDate.year(), 1, 1);
-        m_yearPageStart = baseDate.year() - baseDate.year() % 10;
+        m_yearPageStart = calendarYearPageStart(baseDate.year());
     }
     refreshCalendar();
     refreshMonthView();
@@ -284,7 +296,7 @@ void CalendarView::scrollUp()
         m_monthPageDate = m_monthPageDate.addYears(-1);
         refreshMonthView();
     } else {
-        m_yearPageStart -= 10;
+        m_yearPageStart -= 12;
         refreshYearView();
     }
     animateCurrentContent(-1);
@@ -302,7 +314,7 @@ void CalendarView::scrollDown()
         m_monthPageDate = m_monthPageDate.addYears(1);
         refreshMonthView();
     } else {
-        m_yearPageStart += 10;
+        m_yearPageStart += 12;
         refreshYearView();
     }
     animateCurrentContent(1);
@@ -536,14 +548,19 @@ void CalendarView::refreshYearView()
 {
     if (m_yearPageStart <= 0) {
         const QDate page = m_monthPageDate.isValid() ? m_monthPageDate : QDate::currentDate();
-        m_yearPageStart = page.year() - page.year() % 10;
+        m_yearPageStart = calendarYearPageStart(page.year());
     }
 
+    // The page shows 16 years from its start; Python titles it with the decade most of them fall
+    // in (the earlier one on a tie) and dims the years outside that decade.
+    const int visibleStart = m_yearPageStart;
+    const int firstDecade = visibleStart - visibleStart % 10;
+    const int firstDecadeYears = qMin(16, firstDecade + 10 - visibleStart);
+    const int decade = firstDecadeYears >= 16 - firstDecadeYears ? firstDecade : firstDecade + 10;
     if (m_viewMode == ViewMode::Year) {
-        setTitle(QStringLiteral("%1 - %2").arg(m_yearPageStart).arg(m_yearPageStart + 10));
+        setTitle(QStringLiteral("%1 - %2").arg(decade).arg(decade + 10));
     }
 
-    const int visibleStart = m_yearPageStart - m_yearPageStart % 4;
     const int currentYear = QDate::currentDate().year();
     for (int i = 0; i < m_yearButtons.size(); ++i) {
         const int year = visibleStart + i;
@@ -551,7 +568,7 @@ void CalendarView::refreshYearView()
         auto *button = m_yearButtons.at(i);
         button->setText(QString::number(year));
         button->setProperty("date", date);
-        button->setProperty("outOfRange", year < m_yearPageStart || year > m_yearPageStart + 10);
+        button->setProperty("outOfRange", year < decade || year > decade + 10);
         button->setProperty("today", year == currentYear);
         button->setProperty("selected", m_date.isValid() && year == m_date.year());
         FluentStyleSheet::polish(button);
@@ -593,7 +610,7 @@ void CalendarView::switchToYearView()
         m_titleButton->setEnabled(false);
     }
     m_viewMode = ViewMode::Year;
-    m_yearPageStart = m_monthPageDate.year() - m_monthPageDate.year() % 10;
+    m_yearPageStart = calendarYearPageStart(m_monthPageDate.year());
     if (m_stackedWidget && m_yearPage) {
         m_stackedWidget->setCurrentWidget(m_yearPage);
     }
@@ -1024,7 +1041,9 @@ void FastCalendarView::refreshYearView()
     }
 
     m_yearTitleButton->setText(QStringLiteral("%1 - %2").arg(m_yearPageStart).arg(m_yearPageStart + 9));
-    const int visibleStart = m_yearPageStart - m_yearPageStart % 4;
+    // Python lays the years out in rows of four counted from the first year it lists.
+    const int column = ((m_yearPageStart - firstCalendarYear()) % 4 + 4) % 4;
+    const int visibleStart = m_yearPageStart - column;
     const int currentYear = QDate::currentDate().year();
     for (int i = 0; i < m_yearButtons.size(); ++i) {
         const int year = visibleStart + i;
