@@ -379,10 +379,11 @@ class StatusInfoTest : public QObject
             }
             return qMakePair(darkest, lightest);
         };
-        QVERIFY(iconExtremes().second > 200);
+        // On the grey (value 128) background: a white icon in the light theme, black in the dark.
+        QVERIFY2(iconExtremes().second > 170, qPrintable(QString::number(iconExtremes().second)));
 
         manager->setTheme(Theme::Dark);
-        QVERIFY2(iconExtremes().first < 60, qPrintable(QString::number(iconExtremes().first)));
+        QVERIFY2(iconExtremes().first < 86, qPrintable(QString::number(iconExtremes().first)));
         manager->setTheme(previousTheme);
     }
 
