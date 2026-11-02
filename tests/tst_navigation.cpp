@@ -1069,6 +1069,61 @@ class NavigationTest : public QObject
     // Python paints its tabs: the selected one is a 249/40 grey card with a grey bottom edge and
     // no accent line, the strip behind them is transparent, and the add button follows the last
     // tab instead of sitting at the far end of the bar.
+    // Python's TabBar.setTabMinimumWidth(), setTabTextColor() and setTabSelectedBackgroundColor(),
+    // which the port lacked (its minimum was a fixed 64 px).
+    void tabBarTakesPythonTabWidthsAndColors()
+    {
+        TabBar bar;
+        bar.addTab(QStringLiteral("a"), QStringLiteral("Alpha"));
+        bar.addTab(QStringLiteral("b"), QStringLiteral("Beta"));
+        QCOMPARE(bar.tabMinimumWidth(), 64);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 64);
+
+        bar.setTabMinimumWidth(120);
+        QCOMPARE(bar.tabMinimumWidth(), 120);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 120);
+        bar.addTab(QStringLiteral("c"), QStringLiteral("Gamma"));
+        QCOMPARE(bar.tabItem(2)->minimumWidth(), 120);
+
+        // A scrolling bar's tabs keep the maximum width.
+        bar.setScrollable(true);
+        bar.setTabMinimumWidth(100);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), bar.tabMaximumWidth());
+        bar.setScrollable(false);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 100);
+
+        bar.setTabTextColor(1, QColor(Qt::red));
+        QCOMPARE(bar.tabItem(1)->textColor(), QColor(Qt::red));
+        QVERIFY(!bar.tabItem(0)->textColor().isValid());
+        bar.setTabTextColor(9, QColor(Qt::red));
+
+        bar.setTabSelectedBackgroundColor(QColor(0, 0, 255), QColor(0, 255, 0));
+        bar.addTab(QStringLiteral("d"), QStringLiteral("Delta"));
+        for (int i = 0; i < 4; ++i) {
+            QCOMPARE(bar.tabItem(i)->lightSelectedBackgroundColor(), QColor(0, 0, 255));
+            QCOMPARE(bar.tabItem(i)->darkSelectedBackgroundColor(), QColor(0, 255, 0));
+        }
+
+        // Painted: the selected tab's background and the coloured text.
+        bar.resize(800, 46);
+        bar.setCurrentIndex(1);
+        bar.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&bar));
+        QImage image(bar.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        bar.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QPoint origin = bar.tabItem(1)->mapTo(&bar, QPoint());
+        QCOMPARE(image.pixelColor(origin + QPoint(60, 30)), QColor(0, 0, 255));
+        bool redText = false;
+        for (int x = 10; x < 60 && !redText; ++x) {
+            for (int y = 8; y < 28 && !redText; ++y) {
+                const QColor c = image.pixelColor(origin + QPoint(x, y));
+                redText = c.red() > 150 && c.blue() < 100;
+            }
+        }
+        QVERIFY(redText);
+    }
+
     void tabBarPaintsAndPlacesTabsAsPython()
     {
         auto *manager = ThemeManager::instance();

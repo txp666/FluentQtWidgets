@@ -53,7 +53,6 @@ QString closeButtonModeName(TabCloseButtonDisplayMode mode)
 QString generatedRouteKey() { return QUuid::createUuid().toString(QUuid::WithoutBraces); }
 
 const char *kTabMimeType = "application/x-fluent-tab-index";
-constexpr int kTabMinimumWidth = 64;
 
 bool isDarkTheme() { return ThemeManager::instance()->effectiveTheme() == Theme::Dark; }
 
@@ -306,8 +305,27 @@ void TabItem::drawSelectedBackground(QPainter *painter)
     painter->strokePath(path, dark ? topBorderColor : QColor(0, 0, 0, 63));
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(dark ? QColor(40, 40, 40) : QColor(249, 249, 249));
+    painter->setBrush(dark ? m_darkSelectedBackgroundColor : m_lightSelectedBackgroundColor);
     painter->drawRoundedRect(QRectF(rect().adjusted(1, 1, -1, -1)), r, r);
+}
+
+QColor TabItem::textColor() const { return m_textColor; }
+
+void TabItem::setTextColor(const QColor &color)
+{
+    m_textColor = color;
+    update();
+}
+
+QColor TabItem::lightSelectedBackgroundColor() const { return m_lightSelectedBackgroundColor; }
+
+QColor TabItem::darkSelectedBackgroundColor() const { return m_darkSelectedBackgroundColor; }
+
+void TabItem::setSelectedBackgroundColor(const QColor &light, const QColor &dark)
+{
+    m_lightSelectedBackgroundColor = light;
+    m_darkSelectedBackgroundColor = dark;
+    update();
 }
 
 void TabItem::drawNotSelectedBackground(QPainter *painter)
@@ -340,7 +358,7 @@ void TabItem::drawText(QPainter *painter)
         textRect = QRectF(33, 0, width() - (closeVisible ? 70 : 45), height());
     }
 
-    const QColor color = isDarkTheme() ? QColor(Qt::white) : QColor(Qt::black);
+    const QColor color = m_textColor.isValid() ? m_textColor : (isDarkTheme() ? QColor(Qt::white) : QColor(Qt::black));
     const qreal rectWidth = textRect.width();
     QPen pen;
     if (textWidth > rectWidth) {
@@ -429,8 +447,9 @@ int TabBar::insertTab(int index, const QString &routeKey, const QString &text, c
 
     const int boundedIndex = qBound(0, index, count());
     auto *item = new TabItem(key, text, icon, this);
-    item->setMinimumWidth(m_scrollable ? m_tabMaximumWidth : kTabMinimumWidth);
+    item->setMinimumWidth(m_scrollable ? m_tabMaximumWidth : m_tabMinimumWidth);
     item->setMaximumWidth(m_tabMaximumWidth);
+    item->setSelectedBackgroundColor(m_lightSelectedBackgroundColor, m_darkSelectedBackgroundColor);
     item->setCloseButtonDisplayMode(m_closeButtonDisplayMode);
     item->setShadowEnabled(m_tabShadowEnabled);
     item->setProperty("data", QVariant());
@@ -656,6 +675,41 @@ void TabBar::setAddButtonVisible(bool visible)
 
 bool TabBar::isMovable() const { return m_movable; }
 
+int TabBar::tabMinimumWidth() const { return m_tabMinimumWidth; }
+
+// Python's: the tabs of a bar that does not scroll take the new minimum; scrolling ones keep the
+// maximum width.
+void TabBar::setTabMinimumWidth(int width)
+{
+    if (m_tabMinimumWidth == width) {
+        return;
+    }
+
+    m_tabMinimumWidth = width;
+    if (!m_scrollable) {
+        for (TabItem *item : std::as_const(m_items)) {
+            item->setMinimumWidth(width);
+        }
+        updateOverflowButtons();
+    }
+}
+
+void TabBar::setTabTextColor(int index, const QColor &color)
+{
+    if (TabItem *item = m_items.value(index)) {
+        item->setTextColor(color);
+    }
+}
+
+void TabBar::setTabSelectedBackgroundColor(const QColor &light, const QColor &dark)
+{
+    m_lightSelectedBackgroundColor = light;
+    m_darkSelectedBackgroundColor = dark;
+    for (TabItem *item : std::as_const(m_items)) {
+        item->setSelectedBackgroundColor(light, dark);
+    }
+}
+
 bool TabBar::isScrollable() const { return m_scrollable; }
 
 bool TabBar::isTabShadowEnabled() const { return m_tabShadowEnabled; }
@@ -669,7 +723,7 @@ void TabBar::setScrollable(bool scrollable)
     }
 
     m_scrollable = scrollable;
-    const int minWidth = scrollable ? m_tabMaximumWidth : kTabMinimumWidth;
+    const int minWidth = scrollable ? m_tabMaximumWidth : m_tabMinimumWidth;
     for (TabItem *item : m_items) {
         item->setMinimumWidth(minWidth);
     }
@@ -1038,6 +1092,21 @@ void TabWidget::setAddButtonVisible(bool visible) { m_tabBar->setAddButtonVisibl
 bool TabWidget::isMovable() const { return m_tabBar->isMovable(); }
 
 void TabWidget::setMovable(bool movable) { m_tabBar->setMovable(movable); }
+
+void TabWidget::setTabTextColor(int index, const QColor &color) { m_tabBar->setTabTextColor(index, color); }
+
+void TabWidget::setTabSelectedBackgroundColor(const QColor &light, const QColor &dark)
+{
+    m_tabBar->setTabSelectedBackgroundColor(light, dark);
+}
+
+int TabWidget::tabMaximumWidth() const { return m_tabBar->tabMaximumWidth(); }
+
+void TabWidget::setTabMaximumWidth(int width) { m_tabBar->setTabMaximumWidth(width); }
+
+int TabWidget::tabMinimumWidth() const { return m_tabBar->tabMinimumWidth(); }
+
+void TabWidget::setTabMinimumWidth(int width) { m_tabBar->setTabMinimumWidth(width); }
 
 void TabWidget::setCurrentIndex(int index)
 {
