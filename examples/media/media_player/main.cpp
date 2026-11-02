@@ -3,60 +3,53 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QUrl>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QVBoxLayout>
 
 using namespace FluentQt;
 
 namespace {
 
-class PlayBarDemo : public FluentWidget
+class Demo1 : public QWidget
 {
   public:
-    explicit PlayBarDemo(QWidget *parent = nullptr) : FluentWidget(parent)
+    explicit Demo1(QWidget *parent = nullptr) : QWidget(parent)
     {
         ThemeManager::instance()->setTheme(Theme::Dark);
-        setWindowTitle(QStringLiteral("Media Play Bar"));
-        setWindowIcon(icon(FluentIcon::Music));
+        auto *vBoxLayout = new QVBoxLayout(this);
+        resize(500, 300);
 
-        auto *title = new SubtitleLabel(tr("Media play bars"), this);
         auto *simplePlayBar = new SimpleMediaPlayBar(this);
         auto *standardPlayBar = new StandardMediaPlayBar(this);
 
-        simplePlayBar->setSource(QUrl(QStringLiteral("https://files.cnblogs.com/files/blogs/677826/beat.zip?t=1693900324")));
-        standardPlayBar->setSource(QUrl(QStringLiteral("qrc:/media/media_player/resource/aiko-shiawase.mp3")));
+        vBoxLayout->addWidget(simplePlayBar);
+        vBoxLayout->addWidget(standardPlayBar);
 
-        auto *layout = new QVBoxLayout(this);
-        layout->setContentsMargins(24, titleBar()->height() + 24, 24, 24);
-        layout->setSpacing(16);
-        layout->addWidget(title);
-        layout->addStretch(1);
-        layout->addWidget(simplePlayBar);
-        layout->addWidget(standardPlayBar);
-        layout->addStretch(1);
+        // online music
+        simplePlayBar->player()->setSource(
+            QUrl(QStringLiteral("https://files.cnblogs.com/files/blogs/677826/beat.zip?t=1693900324")));
 
-        resize(520, 320);
+        // local music
+        standardPlayBar->player()->setSource(
+            QUrl(QStringLiteral("qrc:/media/media_player/resource/aiko-shiawase.mp3")));
+
+        // standardPlayBar->play();
     }
 };
 
-class VideoDemo : public FluentWidget
+class Demo2 : public QWidget
 {
   public:
-    explicit VideoDemo(QWidget *parent = nullptr) : FluentWidget(parent)
+    explicit Demo2(QWidget *parent = nullptr) : QWidget(parent)
     {
-        setWindowTitle(QStringLiteral("Video Widget"));
-        setWindowIcon(icon(FluentIcon::Video));
-
+        auto *vBoxLayout = new QVBoxLayout(this);
         auto *videoWidget = new VideoWidget(this);
+
         videoWidget->setVideo(QUrl(QStringLiteral("https://media.w3.org/2010/05/sintel/trailer.mp4")));
-
-        auto *layout = new QVBoxLayout(this);
-        layout->setContentsMargins(0, titleBar()->height(), 0, 0);
-        layout->setSpacing(0);
-        layout->addWidget(videoWidget);
-
-        resize(800, 450);
         videoWidget->play();
+
+        vBoxLayout->setContentsMargins(0, 0, 0, 0);
+        vBoxLayout->addWidget(videoWidget);
+        resize(800, 450);
     }
 };
 
@@ -64,14 +57,10 @@ class VideoDemo : public FluentWidget
 
 int main(int argc, char *argv[])
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
     QApplication app(argc, argv);
-    PlayBarDemo playBarDemo;
-    VideoDemo videoDemo;
-    playBarDemo.show();
-    videoDemo.show();
+    Demo1 demo1;
+    demo1.show();
+    Demo2 demo2;
+    demo2.show();
     return app.exec();
 }

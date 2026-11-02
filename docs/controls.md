@@ -452,8 +452,21 @@ label->setImage(":/images/cover.jpg");
 
 Built when Qt Multimedia and MultimediaWidgets are found (`FQW_HAS_MULTIMEDIA`).
 
-`SimpleMediaPlayBar`, `StandardMediaPlayBar` and `VideoWidget` play audio and video through a `QMediaPlayer`
-(`player()`), with Fluent play, volume and progress controls.
+`MediaPlayerBase`, `MediaPlayer`, `MediaPlayBarBase`, `SimpleMediaPlayBar`, `StandardMediaPlayBar`,
+`MediaPlayBarButton`, `PlayButton`, `VolumeButton`, `VolumeView`, `VideoWidget`.
+
+A play bar drives a `MediaPlayerBase` (`player()`, `setMediaPlayer()`): `SimpleMediaPlayBar` is one row of play
+button, progress slider and volume button (`addButton()` adds more), `StandardMediaPlayBar` adds the current and
+remaining time and skip back / forward buttons. The volume button pulls up a flyout with a mute button and a
+volume slider. Each bar creates a `MediaPlayer`, which wraps a `QMediaPlayer` and its `QAudioOutput`
+(`mediaPlayer()`, `audioOutput()`) with a 0–100 volume; subclass `MediaPlayerBase` to put the bars in front of
+another engine. `VideoWidget` shows a video with a `StandardMediaPlayBar` that fades in on hover.
+
+```cpp
+auto *bar = new StandardMediaPlayBar(this);
+bar->player()->setSource(QUrl::fromLocalFile(path));
+bar->play();
+```
 
 ## Theme, style sheets and icons
 

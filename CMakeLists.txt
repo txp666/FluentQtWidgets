@@ -97,7 +97,9 @@ set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/FluentIcon.h
     include/FluentQtWidgets/Layout/FlowLayout.h
     include/FluentQtWidgets/Layout/VBoxLayout.h
+    include/FluentQtWidgets/Multimedia/MediaPlayBar.h
     include/FluentQtWidgets/Multimedia/MediaPlayer.h
+    include/FluentQtWidgets/Multimedia/VideoWidget.h
     include/FluentQtWidgets/Dialogs/ColorDialog.h
     include/FluentQtWidgets/Dialogs/Dialog.h
     include/FluentQtWidgets/Dialogs/FolderListDialog.h
@@ -171,7 +173,9 @@ set(FQW_SOURCES
     src/dialogs/FolderListDialog.cpp
     src/layout/FlowLayout.cpp
     src/layout/VBoxLayout.cpp
+    src/multimedia/MediaPlayBar.cpp
     src/multimedia/MediaPlayer.cpp
+    src/multimedia/VideoWidget.cpp
     src/navigation/BreadcrumbBar.cpp
     src/navigation/NavigationBar.cpp
     src/navigation/NavigationHistory.cpp
@@ -228,8 +232,14 @@ if(APPLE)
 endif()
 
 if(NOT FQW_HAS_MULTIMEDIA)
-    list(REMOVE_ITEM FQW_PUBLIC_HEADERS include/FluentQtWidgets/Multimedia/MediaPlayer.h)
-    list(REMOVE_ITEM FQW_SOURCES src/multimedia/MediaPlayer.cpp)
+    list(REMOVE_ITEM FQW_PUBLIC_HEADERS
+        include/FluentQtWidgets/Multimedia/MediaPlayBar.h
+        include/FluentQtWidgets/Multimedia/MediaPlayer.h
+        include/FluentQtWidgets/Multimedia/VideoWidget.h)
+    list(REMOVE_ITEM FQW_SOURCES
+        src/multimedia/MediaPlayBar.cpp
+        src/multimedia/MediaPlayer.cpp
+        src/multimedia/VideoWidget.cpp)
 endif()
 
 set(FQW_LIBRARY_TYPE STATIC)
