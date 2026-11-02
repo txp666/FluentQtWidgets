@@ -135,6 +135,12 @@ class TextTest : public QObject
         QCOMPARE(avatar.radius(), 18);
         QCOMPARE(avatar.size(), QSize(36, 36));
         QCOMPARE(radiusSpy.count(), 1);
+        // Python's setRadius() sets a regular font whose pixel size is the radius.
+        QCOMPARE(avatar.font().pixelSize(), 18);
+        QCOMPARE(avatar.font().weight(), QFont::Normal);
+        avatar.setRadius(8);
+        QCOMPARE(avatar.font().pixelSize(), 8);
+        avatar.setRadius(18);
 
         avatar.setBackgroundColor(QColor(QStringLiteral("#112233")), QColor(QStringLiteral("#445566")));
         QCOMPARE(avatar.lightBackgroundColor(), QColor(QStringLiteral("#112233")));

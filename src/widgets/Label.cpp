@@ -449,8 +449,8 @@ void AvatarWidget::setRadius(int radius)
     setFixedSize(sizeHint());
 
     QFont avatarFont = font();
-    avatarFont.setPixelSize(qMax(10, m_radius));
-    avatarFont.setWeight(QFont::DemiBold);
+    avatarFont.setPixelSize(m_radius);
+    avatarFont.setWeight(QFont::Normal);
     setFont(avatarFont);
 
     updateGeometry();
