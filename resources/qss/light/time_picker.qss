@@ -84,23 +84,6 @@ QWidget[fqw="SeparatorWidget"] {
     background-color: rgb(234, 234, 234);
 }
 
-QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"] {
-    background-color: transparent;
-    border: none;
-    border-radius: 5px;
-    min-height: 30px;
-    padding: 0px;
-    margin: 0px 2px;
-}
-
-QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"]:hover {
-    background-color: rgba(0, 0, 0, 9);
-}
-
-QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"]:pressed {
-    background-color: rgba(0, 0, 0, 6);
-}
-
 QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"] {
     color: black;
     background-color: transparent;

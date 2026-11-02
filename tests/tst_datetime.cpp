@@ -787,6 +787,26 @@ class DateTimeTest : public QObject
         QCOMPARE(cycleList.currentCycleIndex(), 11);
     }
 
+    // The panel rule gave the accept/reset/cancel buttons `min-height: 30px` and a 2 px margin.
+    // min-height sizes the content box, so the buttons came out 41 px tall instead of Python's 33,
+    // and the panel 8 px taller (Python: a 375 px view for 9 rows of 37 px).
+    void pickerPanelButtonsKeepPythonHeight()
+    {
+        for (const QString &role : {QStringLiteral("TimePickerPanel"), QStringLiteral("DatePickerPanel")}) {
+            FluentQt::PickerPanel panel;
+            panel.setPanelRole(role);
+            panel.setViewRole(role);
+            panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 120);
+            panel.addColumn(QStringList{QStringLiteral("3"), QStringLiteral("4")}, 120);
+            panel.adjustSize();
+            for (QToolButton *button :
+                 {static_cast<QToolButton *>(panel.yesButton()), static_cast<QToolButton *>(panel.cancelButton())}) {
+                QCOMPARE(button->height(), 33);
+            }
+            QCOMPARE(panel.view()->size(), QSize(259, 375));
+        }
+    }
+
     // Python paints the separators between the columns and above the buttons; the port's rule
     // selected QFrame, but SeparatorWidget is a plain QWidget without a styled background.
     void pickerPanelsDrawTheirSeparators()
@@ -919,9 +939,8 @@ class DateTimeTest : public QObject
         QCOMPARE(confirmButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
         QCOMPARE(resetButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
         QCOMPARE(cancelButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
-        QVERIFY(confirmButton->property("pickerOperation").toBool());
-        QVERIFY(resetButton->property("pickerOperation").toBool());
-        QVERIFY(cancelButton->property("pickerOperation").toBool());
+        QCOMPARE(confirmButton->height(), 33);
+        QCOMPARE(cancelButton->height(), 33);
         QCOMPARE(resetButton->isVisible(), resetVisible);
         QVERIFY(confirmButton->text().isEmpty());
         QVERIFY(cancelButton->text().isEmpty());

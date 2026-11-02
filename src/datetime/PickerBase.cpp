@@ -269,7 +269,6 @@ PickerPanel::PickerPanel(QWidget *parent)
     m_resetButton->setObjectName(QStringLiteral("pickerResetButton"));
     m_cancelButton->setObjectName(QStringLiteral("pickerCancelButton"));
     for (auto *button : {m_yesButton, m_resetButton, m_cancelButton}) {
-        button->setProperty("pickerOperation", true);
         button->setFixedHeight(33);
         button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
