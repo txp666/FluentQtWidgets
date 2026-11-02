@@ -5,12 +5,13 @@
 #include <QtGui/QWheelEvent>
 #include <QtTest/QtTest>
 #include <QtWidgets/QFrame>
-#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QGraphicsDropShadowEffect>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QToolButton>
@@ -786,6 +787,22 @@ class DateTimeTest : public QObject
         QCOMPARE(cycleList.currentCycleIndex(), 10);
         QTest::keyClick(&cycleList, Qt::Key_Down);
         QCOMPARE(cycleList.currentCycleIndex(), 11);
+    }
+
+    // A picker panel selects its value before it is shown. The column's viewport then still had
+    // a child widget's default 100x30 size, so the value was scrolled to the top, not the middle.
+    void cycleListWidgetCentresAValueSelectedBeforeShow()
+    {
+        QWidget parent;
+        QStringList hours;
+        for (int hour = 0; hour < 24; ++hour) {
+            hours.append(QString::number(hour));
+        }
+        auto *column = new FluentQt::CycleListWidget(hours, QSize(120, 37), Qt::AlignCenter, &parent);
+        column->setSelectedItem(QStringLiteral("10"));
+        const int row = column->currentCycleIndex();
+        QCOMPARE(column->currentItem()->text(), QStringLiteral("10"));
+        QVERIFY(qAbs(column->verticalScrollBar()->value() - 37 * (row - column->visibleNumber() / 2)) <= 1);
     }
 
   private:

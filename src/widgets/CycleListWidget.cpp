@@ -427,6 +427,10 @@ void CycleListWidget::scrollWithAnimation(int index)
 void CycleListWidget::updateGeometryForVisibleItems()
 {
     setFixedSize(m_itemSize.width() + 8, m_itemSize.height() * m_visibleNumber);
+    // A hidden scroll area lays out its viewport only on show, so until then the viewport keeps
+    // the default size, and setSelectedItem() would centre the item in that. Re-setting the
+    // margins lays the viewport out to the new size now.
+    setViewportMargins(viewportMargins());
 }
 
 } // namespace FluentQt
