@@ -478,6 +478,28 @@ class ViewTest : public QObject
         }
     }
 
+    // Python's tree delegate sizes items as Qt does; the port's inherited the table delegate's 2 px
+    // above and below, which made tree rows 4 px taller than Python's.
+    void treeRowsKeepThePythonHeight()
+    {
+        TreeWidget tree;
+        auto *item = new QTreeWidgetItem(&tree, QStringList{QStringLiteral("MMMM")});
+        const QModelIndex index = tree.indexFromItem(item);
+        // Qt's sizing of the item as the Fluent delegate styles it.
+        struct PlainDelegate : QStyledItemDelegate
+        {
+            TreeItemDelegate *fluent = nullptr;
+            void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+            {
+                fluent->initStyleOption(option, index);
+            }
+        } plain;
+        plain.fluent = tree.delegate();
+        QStyleOptionViewItem option;
+        option.widget = &tree;
+        QCOMPARE(tree.delegate()->sizeHint(option, index), plain.sizeHint(option, index));
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

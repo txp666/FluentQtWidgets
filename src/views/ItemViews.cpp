@@ -503,6 +503,12 @@ void TreeItemDelegate::setHoverIndex(const QModelIndex &index)
     updateDelegateParent(this);
 }
 
+// Unlike the table and list delegates, Python's tree delegate adds no margin to the item's size.
+QSize TreeItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    return QStyledItemDelegate::sizeHint(option, index);
+}
+
 void TreeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItem itemOption(option);
