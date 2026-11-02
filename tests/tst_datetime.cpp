@@ -922,6 +922,20 @@ class DateTimeTest : public QObject
         }
     }
 
+    // Python's PickerPanel.exec() shifts the panel left by its 12 px layout margin, so the view is
+    // centred on the picker, and 4 px up; the port placed the shadow margin there instead.
+    void pickerPanelOpensWherePythonPutsIt()
+    {
+        FluentQt::PickerPanel panel;
+        panel.setAttribute(Qt::WA_DeleteOnClose, false);
+        panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 120);
+        const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+        const QPoint requested = available.topLeft() + QPoint(100, 100);
+        panel.exec(requested, false);
+        QCOMPARE(panel.pos(), requested - QPoint(12, 4));
+        panel.hide();
+    }
+
     // Python paints the separators between the columns and above the buttons; the port's rule
     // selected QFrame, but SeparatorWidget is a plain QWidget without a styled background.
     void pickerPanelsDrawTheirSeparators()

@@ -498,10 +498,13 @@ QPoint PickerPanel::clampedPosition(const QPoint &preferred) const
         return preferred;
     }
 
+    // Python moves the panel left by its layout margin, so the view (not the shadow margin) lines
+    // up with the requested point, and 4 px up; it keeps 5 px of slack at the right and bottom.
     const QRect available = screen->availableGeometry();
+    const QMargins margins = m_hBoxLayout->contentsMargins();
     QPoint pos = preferred;
-    pos.setX(qBound(available.left(), pos.x(), available.right() - width()));
-    pos.setY(qBound(available.top(), pos.y(), available.bottom() - height()));
+    pos.setX(qMax(available.left(), qMin(pos.x() - margins.left(), available.right() - width() - 5)));
+    pos.setY(qMax(available.top(), qMin(pos.y() - 4, available.bottom() - height() + 5)));
     return pos;
 }
 
