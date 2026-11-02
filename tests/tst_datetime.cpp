@@ -302,6 +302,46 @@ class DateTimeTest : public QObject
         }
     }
 
+    // Python's calendar scroll buttons paint a 10 px caret in #5e5e5e (#9c9c9c when dark); the
+    // port showed the plain icon, 16 px and black in CalendarView, black in FastCalendarView.
+    void calendarNavigationButtonsPaintPythonCarets()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        const QList<QPair<FluentQt::Theme, int>> cases = {{FluentQt::Theme::Light, 0x5e},
+                                                          {FluentQt::Theme::Dark, 0x9c}};
+        for (const auto &[theme, grey] : cases) {
+            manager->setTheme(theme);
+            FluentQt::CalendarView view(nullptr, false);
+            view.show();
+            FluentQt::FastCalendarView fastView;
+            fastView.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&view));
+            QVERIFY(QTest::qWaitForWindowExposed(&fastView));
+            auto *fastUp = fastView.dayView()->findChild<QToolButton *>(QStringLiteral("upButton"));
+            for (QToolButton *button : {view.upButton(), fastUp}) {
+                QWidget *window = button->window();
+                QImage image = window->grab(QRect(button->mapTo(window, QPoint()), button->size())).toImage();
+                image = image.scaled(button->size());
+                const QColor background = image.pixelColor(2, 2);
+                QRect caret;
+                int closest = 255;
+                for (int y = 0; y < image.height(); ++y) {
+                    for (int x = 0; x < image.width(); ++x) {
+                        const QColor pixel = image.pixelColor(x, y);
+                        if (qAbs(pixel.red() - background.red()) > 24) {
+                            caret |= QRect(x, y, 1, 1);
+                            closest = qMin(closest, qAbs(pixel.red() - grey));
+                        }
+                    }
+                }
+                QVERIFY2(caret.width() <= 10 && caret.width() >= 8, qPrintable(QString::number(caret.width())));
+                QVERIFY2(closest <= 4, qPrintable(QString::number(closest)));
+            }
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;

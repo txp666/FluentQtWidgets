@@ -9,8 +9,8 @@
 #include <QtCore/QPoint>
 #include <QtCore/QPropertyAnimation>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QPaintEvent>
 #include <QtGui/QGuiApplication>
+#include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QScreen>
 #include <QtGui/QShowEvent>
@@ -23,10 +23,47 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSizePolicy>
 #include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QStyleOptionToolButton>
+#include <QtWidgets/QStylePainter>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 
 namespace FluentQt {
+
+namespace {
+
+// Python's calendar ScrollButton: a transparent tool button that paints its caret itself, 10 px
+// (9 px while pressed) in #5e5e5e, or #9c9c9c on a dark theme.
+class CalendarScrollButton final : public QToolButton
+{
+  public:
+    CalendarScrollButton(FluentIcon icon, QWidget *parent) : QToolButton(parent), m_icon(icon)
+    {
+        setIcon(FluentQt::icon(icon));
+    }
+
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QStylePainter painter(this);
+        QStyleOptionToolButton option;
+        initStyleOption(&option);
+        option.icon = QIcon();
+        painter.drawComplexControl(QStyle::CC_ToolButton, option);
+
+        painter.setRenderHint(QPainter::Antialiasing);
+        const int extent = isDown() ? 9 : 10;
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        const QColor color = dark ? QColor(0x9c, 0x9c, 0x9c) : QColor(0x5e, 0x5e, 0x5e);
+        const QRect iconRect((width() - extent) / 2, (height() - extent) / 2, extent, extent);
+        FluentQt::icon(m_icon, color).paint(&painter, iconRect);
+    }
+
+  private:
+    FluentIcon m_icon;
+};
+
+} // namespace
 
 CalendarView::CalendarView(QWidget *parent) : CalendarView(parent, true) {}
 
@@ -67,9 +104,9 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
         }
     });
 
-    m_resetButton = createNavigationButton(FluentQt::icon(FluentIcon::Cancel), QStringLiteral("resetButton"));
-    m_upButton = createNavigationButton(FluentQt::icon(FluentIcon::CareUpSolid), QStringLiteral("upButton"));
-    m_downButton = createNavigationButton(FluentQt::icon(FluentIcon::CareDownSolid), QStringLiteral("downButton"));
+    m_resetButton = createNavigationButton(FluentIcon::Cancel, QStringLiteral("resetButton"));
+    m_upButton = createNavigationButton(FluentIcon::CareUpSolid, QStringLiteral("upButton"));
+    m_downButton = createNavigationButton(FluentIcon::CareDownSolid, QStringLiteral("downButton"));
     connect(m_resetButton, &QToolButton::clicked, this, &CalendarView::reset);
     connect(m_upButton, &QToolButton::clicked, this, &CalendarView::scrollUp);
     connect(m_downButton, &QToolButton::clicked, this, &CalendarView::scrollDown);
@@ -290,11 +327,10 @@ void CalendarView::paintEvent(QPaintEvent *event)
     painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), 8, 8);
 }
 
-QToolButton *CalendarView::createNavigationButton(const QIcon &icon, const QString &objectName)
+QToolButton *CalendarView::createNavigationButton(FluentIcon icon, const QString &objectName)
 {
-    auto *button = new QToolButton(this);
+    auto *button = new CalendarScrollButton(icon, this);
     button->setCursor(Qt::PointingHandCursor);
-    button->setIcon(icon);
     button->setProperty("calendarNavigation", true);
     button->setObjectName(objectName);
     button->setAutoRaise(true);
@@ -720,10 +756,9 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
     (*titleButton)->setProperty("fastCalendarTitle", true);
 
     const auto createNavButton = [page](FluentIcon iconValue, const QString &name) {
-        auto *button = new QToolButton(page);
+        auto *button = new CalendarScrollButton(iconValue, page);
         button->setObjectName(name);
         button->setCursor(Qt::PointingHandCursor);
-        button->setIcon(icon(iconValue));
         button->setIconSize(QSize(10, 10));
         button->setAutoRaise(true);
         button->setFixedSize(32, 34);
