@@ -190,6 +190,27 @@ class MenuTest : public QObject
         }
     }
 
+    void fadeInMenusRestWhereQfluentwidgetsPutsThem()
+    {
+        // qfluentwidgets ends a fade-in drop-down 4 px above the anchor, like the plain drop-down,
+        // but a fade-in pull-up 15 px below the menu's height, not the plain pull-up's 13.
+        const QPoint anchor = QGuiApplication::primaryScreen()->availableGeometry().center();
+        for (const MenuAnimationType type : {MenuAnimationType::FadeInDropDown, MenuAnimationType::FadeInPullUp}) {
+            RoundMenu menu;
+            for (int i = 0; i < 5; ++i) {
+                menu.addAction(QStringLiteral("Item %1").arg(i));
+            }
+            const QMargins margins = menu.layout()->contentsMargins();
+            menu.exec(anchor, true, type);
+            const int endY =
+                type == MenuAnimationType::FadeInDropDown ? anchor.y() - 4 : anchor.y() - menu.height() + 15;
+            // The window itself slides 8 px, passing other positions on the way: wait for the end.
+            QTest::qWait(400);
+            QCOMPARE(menu.pos(), QPoint(anchor.x() - margins.left(), endY));
+            menu.close();
+        }
+    }
+
     void menuExecAndWaitReturnsTriggeredAction()
     {
         // macOS closes a popup at once while the application has no window up yet.

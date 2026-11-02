@@ -249,6 +249,20 @@ public:
         m_group->addAnimation(m_opacityAni);
     }
 
+    // qfluentwidgets rests this one 2 px lower than the plain pull-up.
+    QPoint endPosition(const QPoint &pos) const override
+    {
+        if (!isMenuUsable()) {
+            return pos;
+        }
+        const QRect rect = screenGeometryAt(pos);
+        const int w = m_menu->width() + 5;
+        const int h = m_menu->height();
+        const int x = qMin(pos.x() - m_menu->layout()->contentsMargins().left(), rect.right() - w);
+        const int y = qMax(pos.y() - h + 15, rect.top() + 4);
+        return QPoint(x, y);
+    }
+
     void exec(const QPoint &pos) override
     {
         if (!isMenuUsable()) {
