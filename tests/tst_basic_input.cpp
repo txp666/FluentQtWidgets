@@ -1354,6 +1354,21 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // The hint's thickness is the style's, capped at the 22 px handle: Python's QSlider hint is 22
+    // in Qt 5's macOS style and 20 in Fusion at 100 DPI, but Qt 6's macOS style hints 25.
+    void sliderHintIsNoThickerThanItsHandle()
+    {
+        for (const Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
+            const Slider slider(orientation);
+            const QSlider plain(orientation);
+            if (orientation == Qt::Horizontal) {
+                QCOMPARE(slider.sizeHint().height(), qMin(plain.sizeHint().height(), 22));
+            } else {
+                QCOMPARE(slider.sizeHint().width(), qMin(plain.sizeHint().width(), 22));
+            }
+        }
+    }
+
     void slidersTrackPythonParityGeometryAndClicking()
     {
         FluentQt::Slider slider(Qt::Horizontal);

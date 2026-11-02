@@ -190,15 +190,16 @@ void Slider::setOrientation(Qt::Orientation orientation)
     }
 }
 
-// The slider paints itself, so the native style's groove thickness (25 px in Qt 6's macOS style)
-// means nothing; Python's comes out as its 22 px handle in every style it was measured in.
+// The slider paints itself, so a style's groove thickness beyond the 22 px handle means nothing:
+// Qt 6's macOS style hints 25 px where Qt 5's (and so Python's) hints 22. Thinner hints stay, as in
+// Python (Fusion's 20 px at 100 DPI).
 QSize Slider::sizeHint() const
 {
     QSize hint = QSlider::sizeHint();
     if (orientation() == Qt::Horizontal) {
-        hint.setHeight(m_handle->height());
+        hint.setHeight(qMin(hint.height(), m_handle->height()));
     } else {
-        hint.setWidth(m_handle->width());
+        hint.setWidth(qMin(hint.width(), m_handle->width()));
     }
     return hint;
 }

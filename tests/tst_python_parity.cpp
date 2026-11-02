@@ -106,7 +106,6 @@ const std::vector<Expectation> kPending = {
     {"ColorPickerButton/default", "sizeHint.w sizeHint.h", "hint 27x27, Python 24x23 (both fixed in size)"},
     // Selection
     {"Slider/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h", "default orientation horizontal, Python's (QSlider's) vertical"},
-    {"Slider/horizontal", "sizeHint.h", "hint 22 px tall, Python 20; the size matches at 22"},
     {"ClickableSlider/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.h", "default orientation horizontal, Python's (QSlider's) vertical"},
     // Combo boxes
     // Spin boxes, date and time
