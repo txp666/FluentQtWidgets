@@ -651,6 +651,30 @@ class NavigationTest : public QObject
         QVERIFY(!tools.contains(QStringLiteral("second")));
     }
 
+    // The Python sizes: 36 px tabs in a 46 px bar. A style sheet's min-height sizes the content
+    // box, so the old `min-height: 34px` with padding and border made tabs 47 px and the bar 77,
+    // and the minimum sizes on the close and add buttons grew them by their borders.
+    void tabBarKeepsThePythonSizes()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            TabBar bar;
+            bar.addTab(QStringLiteral("home"), QStringLiteral("Home"));
+            bar.addTab(QStringLiteral("settings"), QStringLiteral("Settings"));
+            bar.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&bar));
+            QCOMPARE(bar.height(), 46);
+            for (int index = 0; index < bar.count(); ++index) {
+                QCOMPARE(bar.tabItem(index)->height(), 36);
+                QCOMPARE(bar.tabItem(index)->closeButton()->size(), QSize(24, 24));
+            }
+            QCOMPARE(bar.addButton()->size(), QSize(32, 28));
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void tabWidgetsTrackPagesAndRoutes()
     {
         FluentQt::TabBar bar;

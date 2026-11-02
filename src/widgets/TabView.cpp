@@ -208,7 +208,8 @@ void TabItem::init()
 {
     setCheckable(true);
     setCursor(Qt::PointingHandCursor);
-    setMinimumSize(QSize(64, 36));
+    setFixedHeight(36);
+    setMinimumWidth(64);
     setMaximumWidth(240);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setProperty("selected", false);
@@ -613,6 +614,8 @@ void TabBar::dropEvent(QDropEvent *event)
 
 void TabBar::init()
 {
+    // 36 px tabs plus the strip's 5 px margins, as in the Python TabBar.
+    setFixedHeight(46);
     setAcceptDrops(true);
 
     m_layout = new QHBoxLayout(this);

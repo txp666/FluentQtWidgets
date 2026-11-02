@@ -4,8 +4,6 @@ QWidget[fqw="TabBar"] {
 }
 
 QPushButton[fqw="TabItem"] {
-    min-width: 64px;
-    min-height: 34px;
     padding: 5px 32px 5px 12px;
     border: 1px solid transparent;
     border-radius: 6px;
@@ -29,8 +27,6 @@ QPushButton[fqw="TabItem"]:disabled {
 }
 
 QToolButton[fqw="TabCloseButton"] {
-    min-width: 24px;
-    min-height: 24px;
     padding: 0;
     border: 1px solid transparent;
     border-radius: 5px;
@@ -42,8 +38,6 @@ QToolButton[fqw="TabCloseButton"]:hover {
 }
 
 QToolButton[fqw="TabAddButton"] {
-    min-width: 32px;
-    min-height: 28px;
     padding: 0;
     border: 1px solid transparent;
     border-radius: 5px;
