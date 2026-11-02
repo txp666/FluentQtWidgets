@@ -33,6 +33,7 @@ SeparatorWidget::SeparatorWidget(Qt::Orientation orientation, QWidget *parent)
         setFixedWidth(1);
     }
     setProperty("pickerSeparator", true);
+    setAttribute(Qt::WA_StyledBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("SeparatorWidget"));
     FluentStyleSheet::apply(this, FluentStyleSheetSource::TimePicker);
 }

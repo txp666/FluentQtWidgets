@@ -78,11 +78,8 @@ QFrame[fqw="TimePickerPanel"] {
     border-radius: 7px;
 }
 
-QFrame[fqw="TimePickerPanel"] QFrame[pickerSeparator="true"] {
-    color: rgb(61, 61, 61);
+QWidget[fqw="SeparatorWidget"] {
     background-color: rgb(61, 61, 61);
-    max-width: 1px;
-    max-height: 1px;
 }
 
 QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"] {

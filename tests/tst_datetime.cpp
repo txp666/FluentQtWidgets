@@ -787,6 +787,42 @@ class DateTimeTest : public QObject
         QCOMPARE(cycleList.currentCycleIndex(), 11);
     }
 
+    // Python paints the separators between the columns and above the buttons; the port's rule
+    // selected QFrame, but SeparatorWidget is a plain QWidget without a styled background.
+    void pickerPanelsDrawTheirSeparators()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        const QList<QPair<FluentQt::Theme, QColor>> cases = {{FluentQt::Theme::Light, QColor(234, 234, 234)},
+                                                             {FluentQt::Theme::Dark, QColor(61, 61, 61)}};
+        for (const auto &[theme, line] : cases) {
+            manager->setTheme(theme);
+            for (const QString &role : {QStringLiteral("TimePickerPanel"), QStringLiteral("DatePickerPanel")}) {
+                FluentQt::PickerPanel panel;
+                panel.setPanelRole(role);
+                panel.setViewRole(role);
+                panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 80);
+                panel.addColumn(QStringList{QStringLiteral("3"), QStringLiteral("4")}, 80);
+                panel.adjustSize();
+                QFrame *view = panel.view();
+                view->setGraphicsEffect(nullptr);
+                view->show();
+                QImage image(view->size(), QImage::Format_ARGB32_Premultiplied);
+                image.fill(Qt::transparent);
+                view->render(&image);
+                const QWidget *horizontal = panel.horizontalSeparatorWidget();
+                QCOMPARE(image.pixelColor(horizontal->geometry().center()), line);
+                const auto separators = view->findChildren<FluentQt::SeparatorWidget *>();
+                const auto vertical = std::find_if(separators.cbegin(), separators.cend(), [](auto *separator) {
+                    return separator->orientation() == Qt::Vertical;
+                });
+                QVERIFY(vertical != separators.cend());
+                QCOMPARE(image.pixelColor((*vertical)->geometry().center()), line);
+            }
+        }
+        manager->setTheme(previousTheme);
+    }
+
     // Python's column scroll buttons are solid carets on an opaque rounded plate that hides the
     // item under them; the port drew Up/ArrowDown glyphs on a transparent button.
     void cycleListScrollButtonsHideTheItemUnderThem()

@@ -80,13 +80,6 @@ QFrame[fqw="DatePickerPanel"] {
     border-radius: 7px;
 }
 
-QFrame[fqw="DatePickerPanel"] QFrame[pickerSeparator="true"] {
-    color: rgb(234, 234, 234);
-    background-color: rgb(234, 234, 234);
-    max-width: 1px;
-    max-height: 1px;
-}
-
 QFrame[fqw="DatePickerPanel"] QToolButton[pickerOperation="true"] {
     background-color: transparent;
     border: none;
