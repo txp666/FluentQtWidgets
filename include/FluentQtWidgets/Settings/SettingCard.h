@@ -323,9 +323,9 @@ class FQW_API ColorSettingCard : public SettingCard
 
   public:
     ColorSettingCard(const QColor &color, const QIcon &icon, const QString &title, const QString &content = QString(),
-                     QWidget *parent = nullptr);
+                     QWidget *parent = nullptr, bool enableAlpha = false);
     ColorSettingCard(const QColor &color, FluentIcon icon, const QString &title, const QString &content = QString(),
-                     QWidget *parent = nullptr);
+                     QWidget *parent = nullptr, bool enableAlpha = false);
 
     ColorPickerButton *colorPicker() const;
     QColor color() const;

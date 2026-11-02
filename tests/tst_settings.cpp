@@ -499,6 +499,19 @@ class SettingsTest : public QObject
         QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
     }
 
+    void colorSettingCardTakesEnableAlpha()
+    {
+        // Python's ColorSettingCard(configItem, icon, title, content, parent, enableAlpha) hands
+        // enableAlpha to its ColorPickerButton, which then paints and edits the alpha channel.
+        ColorSettingCard opaque(QColor(QStringLiteral("#80112233")), FluentIcon::Palette, QStringLiteral("Accent"));
+        QVERIFY(!opaque.colorPicker()->isAlphaEnabled());
+        ColorSettingCard card(QColor(QStringLiteral("#80112233")), FluentIcon::Palette, QStringLiteral("Accent"),
+                              QStringLiteral("Content"), nullptr, true);
+        QVERIFY(card.colorPicker()->isAlphaEnabled());
+        QCOMPARE(card.colorPicker()->title(), QStringLiteral("Accent"));
+        QCOMPARE(card.color(), QColor(QStringLiteral("#80112233")));
+    }
+
     void customColorCardChoosesColorWithAPushButton()
     {
         // Python's card ends its custom row with a plain "Choose color" QPushButton, enabled only

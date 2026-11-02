@@ -745,10 +745,10 @@ void ColorPickerButton::showColorDialog()
 }
 
 ColorSettingCard::ColorSettingCard(const QColor &color, const QIcon &icon, const QString &title, const QString &content,
-                                   QWidget *parent)
+                                   QWidget *parent, bool enableAlpha)
     : SettingCard(icon, title, content, parent)
 {
-    m_colorPicker = new ColorPickerButton(color, title, this);
+    m_colorPicker = new ColorPickerButton(color, title, this, enableAlpha);
     actionLayout()->addWidget(m_colorPicker, 0, Qt::AlignRight);
     connect(m_colorPicker, &ColorPickerButton::colorChanged, this, &ColorSettingCard::colorChanged);
 
@@ -756,8 +756,8 @@ ColorSettingCard::ColorSettingCard(const QColor &color, const QIcon &icon, const
 }
 
 ColorSettingCard::ColorSettingCard(const QColor &color, FluentIcon icon, const QString &title, const QString &content,
-                                   QWidget *parent)
-    : ColorSettingCard(color, FluentQt::icon(icon), title, content, parent)
+                                   QWidget *parent, bool enableAlpha)
+    : ColorSettingCard(color, FluentQt::icon(icon), title, content, parent, enableAlpha)
 {
 }
 

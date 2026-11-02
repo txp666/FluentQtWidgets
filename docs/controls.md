@@ -220,7 +220,8 @@ group->addSettingCard(new FluentQt::FolderListSettingCard(
 Cards expose their child widgets and Qt signals; binding them to a `ConfigItem` is optional.
 `SwitchSettingCard` shows its On/Off text left of the switch. `RangeSettingCard::slider()` is a `Slider`.
 `ComboBoxSettingCard` keeps the combo box as wide as its items. `ColorDialog` edits hue, brightness, RGB, hex and,
-optionally, opacity; `ColorPickerButton` and the colour cards open it instead of Qt's colour dialog.
+optionally, opacity; `ColorSettingCard`'s `ColorPickerButton` and `CustomColorSettingCard`'s Choose color
+`chooseColorButton()` open it instead of Qt's colour dialog, with alpha when built with `enableAlpha`.
 
 `ExpandSettingCard` is a `QScrollArea` with a `HeaderSettingCard` over the content view: actions go into the
 header, content into `viewLayout()`. Expanding animates the visible height of the view. In a resizable outer
