@@ -373,6 +373,26 @@ class DateTimeTest : public QObject
     // with a drop shadow and a line under the header; the fast view's pages are the same panel.
     // The port painted the whole 340x385 widget, without shadow or line, and left the fast pages
     // transparent over the flyout's rgb(248, 248, 248).
+    // Python keeps the weekday row in a fixed 38 px viewport margin. Laid out by its labels instead, the
+    // row followed the font, and with a smaller one (Linux CI's fallback) the day grid moved up.
+    void calendarWeekdayRowKeepsPythonHeightWhateverTheFont()
+    {
+        FluentQt::CalendarView view(nullptr, false);
+        FluentQt::FastCalendarView fastView;
+        for (QWidget *calendar : {static_cast<QWidget *>(&view), static_cast<QWidget *>(&fastView)}) {
+            const auto labels = calendar->findChildren<QLabel *>(QStringLiteral("weekDayLabel"));
+            QVERIFY(!labels.isEmpty());
+            for (QLabel *label : labels) {
+                label->setStyleSheet(QStringLiteral("font-size: 9px;"));
+            }
+            calendar->show();
+            QVERIFY(QTest::qWaitForWindowExposed(calendar));
+            auto *row = calendar->findChild<QWidget *>(QStringLiteral("weekDayGroup"));
+            QVERIFY(row != nullptr);
+            QCOMPARE(row->height(), 38);
+        }
+    }
+
     void calendarViewsDrawPythonPanel()
     {
         FluentQt::CalendarView view(nullptr, false);

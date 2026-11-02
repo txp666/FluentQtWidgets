@@ -386,6 +386,9 @@ void CalendarView::createDayPage()
 
     auto *weekDayGroup = new QWidget(m_dayPage);
     weekDayGroup->setObjectName(QStringLiteral("weekDayGroup"));
+    // Python keeps the weekday row in a fixed 38 px viewport margin, so the day grid starts in the same place
+    // whatever the font.
+    weekDayGroup->setFixedHeight(38);
     auto *weekDayLayout = new QHBoxLayout(weekDayGroup);
     weekDayLayout->setContentsMargins(3, 12, 3, 9);
     weekDayLayout->setSpacing(0);
@@ -845,6 +848,9 @@ void FastCalendarView::createDayPage()
 
     auto *weekDayGroup = new QWidget(m_dayView);
     weekDayGroup->setObjectName(QStringLiteral("weekDayGroup"));
+    // Python keeps the weekday row in a fixed 38 px viewport margin, so the day grid starts in the same place
+    // whatever the font.
+    weekDayGroup->setFixedHeight(38);
     auto *weekDayLayout = new QHBoxLayout(weekDayGroup);
     weekDayLayout->setContentsMargins(3, 12, 3, 9);
     weekDayLayout->setSpacing(0);
