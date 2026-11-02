@@ -95,6 +95,17 @@ const std::vector<Expectation> kIntended = {
     {"ZhDatePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
     {"TimePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
     {"AMTimePicker/default", "sizeHint.w sizeHint.h", "a QFrame reporting its fixed size; Python's QPushButton hint (38x22) is unused under the same fixed size"},
+    // Spin boxes: Qt 6 lays out a style-sheeted QAbstractSpinBox 8 px wider and hints 5 px taller.
+    {"SpinBox/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"DoubleSpinBox/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"TimeEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"DateEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"DateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"CompactSpinBox/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"CompactDoubleSpinBox/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"CompactTimeEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"CompactDateEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
+    {"CompactDateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "Qt 6 style sheet layout: a plain QSpinBox (NoButtons) given only the sheet's padding 0 80 0 10 and 1 px border hints 115x24 in Qt 5.15, 123x29 in Qt 6.11 (Fusion, 100 DPI); no Fluent code involved. Unstyled, the two agree (31x31 without buttons)"},
     // clang-format on
 };
 
@@ -106,17 +117,6 @@ const std::vector<Expectation> kPending = {
     {"ColorPickerButton/default", "sizeHint.w sizeHint.h", "hint 27x27, Python 24x23 (both fixed in size)"},
     // Selection
     // Combo boxes
-    // Spin boxes, date and time
-    {"SpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"DoubleSpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"TimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"DateEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"DateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"CompactSpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"CompactDoubleSpinBox/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"CompactTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"CompactDateEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
-    {"CompactDateTimeEdit/default", "size.w sizeHint.w sizeHint.h", "8 px wider than Python, hint 29 px tall vs 24 (fixed height matches); Qt 6 alone makes it narrower"},
     // Labels and images
     {"IconWidget/default", "size.w size.h sizeHint.w sizeHint.h", "hint 20x20, Python none (0x0 in a layout)"},
     {"IconWidget/icon", "size.w size.h sizeHint.w sizeHint.h", "hint 20x20, Python none (0x0 in a layout)"},
