@@ -494,6 +494,35 @@ class DialogFlyoutTest : public QObject
         }
     }
 
+    void maskDialogShadowFadesLikePython()
+    {
+        // qfluentwidgets draws the message box's shadow with QGraphicsDropShadowEffect(60, (0, 10),
+        // alpha 50): soft, never darker than the colour's alpha. The port's painted layers each
+        // carried up to that alpha and piled up to a dark slab (alpha ~110) under the box.
+        QWidget parent;
+        parent.resize(800, 600);
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        box.setMaskColor(QColor(0, 0, 0, 0));
+        box.setGeometry(parent.rect());
+        box.layout()->activate();
+        QImage image(box.size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        box.render(&image, QPoint(), QRegion(), QWidget::DrawWindowBackground);
+
+        const QRect frame = box.widget()->geometry();
+        const int x = frame.center().x();
+        int darkest = 0;
+        for (int y = frame.bottom() + 1; y <= frame.bottom() + 10; ++y) {
+            darkest = qMax(darkest, qAlpha(image.pixel(x, y)));
+        }
+        QVERIFY2(darkest > 10, "the box casts a shadow below it");
+        QVERIFY2(darkest <= 56,
+                 qPrintable(QStringLiteral("shadow alpha %1 exceeds the colour's 50 (plus rounding)").arg(darkest)));
+        // It has faded out half the blur radius (30 px) beyond the 10 px offset.
+        QCOMPARE(qAlpha(image.pixel(x, frame.bottom() + 41)), 0);
+        QVERIFY(qAlpha(image.pixel(x, frame.bottom() + 25)) < darkest / 2);
+    }
+
     void dialogFadeInDropsOpacityEffectBeforeButtonHover()
     {
         auto *manager = FluentQt::ThemeManager::instance();
