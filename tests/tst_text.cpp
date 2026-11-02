@@ -75,6 +75,7 @@
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyleOptionSlider>
 #include <QtWidgets/QTableWidgetItem>
+#include <QtWidgets/QVBoxLayout>
 #include <algorithm>
 #include <functional>
 
@@ -935,11 +936,26 @@ class TextTest : public QObject
     // box. Kept over the viewport, it sat 3 px higher and was inset by the padding.
     void multilineFocusLineSpansTheBox()
     {
+        // One window for all three editors: it is activated once, and focus then moves inside it.
+        QWidget window;
+        auto *layout = new QVBoxLayout(&window);
+        FluentQt::TextEdit textEdit(&window);
+        FluentQt::PlainTextEdit plainTextEdit(&window);
+        FluentQt::TextBrowser textBrowser(&window);
+        for (QWidget *editor : {static_cast<QWidget *>(&textEdit), static_cast<QWidget *>(&plainTextEdit),
+                                static_cast<QWidget *>(&textBrowser)}) {
+            editor->setFixedSize(240, 90);
+            layout->addWidget(editor);
+        }
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        window.activateWindow();
+        if (!QTest::qWaitForWindowActive(&window)) {
+            // Natively, macOS keeps another application's window active while it holds the focus.
+            QSKIP("The window cannot become active while another application has the focus");
+        }
+
         auto verifyEditor = [](auto &editor) {
-            editor.resize(240, 90);
-            editor.show();
-            QVERIFY(QTest::qWaitForWindowExposed(&editor));
-            editor.activateWindow();
             editor.setFocus();
             QTRY_VERIFY(editor.hasFocus());
             QCOMPARE(QRect(editor.layer()->mapTo(&editor, QPoint()), editor.layer()->size()), editor.rect());
@@ -970,13 +986,8 @@ class TextTest : public QObject
             QVERIFY2(right >= image.width() - 1 - qCeil(3 * dpr), qPrintable(QString::number(right)));
         };
 
-        FluentQt::TextEdit textEdit;
         verifyEditor(textEdit);
-
-        FluentQt::PlainTextEdit plainTextEdit;
         verifyEditor(plainTextEdit);
-
-        FluentQt::TextBrowser textBrowser;
         verifyEditor(textBrowser);
     }
 
