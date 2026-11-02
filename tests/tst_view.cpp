@@ -500,6 +500,23 @@ class ViewTest : public QObject
         QCOMPARE(tree.delegate()->sizeHint(option, index), plain.sizeHint(option, index));
     }
 
+    // Python's SimpleCardWidget and ElevatedCardWidget come without a layout, so a subclass gives
+    // them its own. The port's had a 16 px VBox layout, which made `new QVBoxLayout(card)` fail.
+    void simpleCardsComeWithoutALayout()
+    {
+        SimpleCardWidget simple;
+        ElevatedCardWidget elevated;
+        QCOMPARE(simple.layout(), nullptr);
+        QCOMPARE(elevated.layout(), nullptr);
+        auto *layout = new QHBoxLayout(&elevated);
+        QCOMPARE(elevated.layout(), layout);
+
+        HeaderCardWidget header;
+        QVERIFY(qobject_cast<QVBoxLayout *>(header.layout()));
+        QCOMPARE(header.layout()->contentsMargins(), QMargins());
+        QCOMPARE(header.layout()->count(), 3);
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

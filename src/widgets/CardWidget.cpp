@@ -227,9 +227,6 @@ void CardWidget::paintEvent(QPaintEvent *)
 
 SimpleCardWidget::SimpleCardWidget(QWidget *parent) : CardWidget(parent)
 {
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(16, 16, 16, 16);
-    layout->setSpacing(8);
     FluentStyleSheet::setRole(this, QStringLiteral("SimpleCardWidget"));
 }
 
@@ -351,11 +348,9 @@ void CardSeparator::paintEvent(QPaintEvent *)
 
 HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 {
-    auto *mainLayout = qobject_cast<QVBoxLayout *>(layout());
-    if (mainLayout) {
-        mainLayout->setContentsMargins(0, 0, 0, 0);
-        mainLayout->setSpacing(0);
-    }
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
 
     m_headerView = new QWidget(this);
     m_headerView->setFixedHeight(48);
@@ -385,11 +380,9 @@ HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
     m_viewLayout = new QHBoxLayout(m_view);
     m_viewLayout->setContentsMargins(24, 24, 24, 24);
 
-    if (mainLayout) {
-        mainLayout->addWidget(m_headerView);
-        mainLayout->addWidget(m_separator);
-        mainLayout->addWidget(m_view);
-    }
+    mainLayout->addWidget(m_headerView);
+    mainLayout->addWidget(m_separator);
+    mainLayout->addWidget(m_view);
 
     FluentStyleSheet::setRole(this, QStringLiteral("HeaderCardWidget"));
 }
