@@ -1,0 +1,5 @@
+{
+ "screens": [
+  {"name": "parity", "x": 0, "y": 0, "width": 800, "height": 600, "logicalDpi": 100, "logicalBaseDpi": 100, "dpr": 1}
+ ]
+}

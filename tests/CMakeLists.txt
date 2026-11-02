@@ -16,6 +16,10 @@ foreach(test IN ITEMS
     fqw_add_widget_test(${test})
 endforeach()
 
+# Sizes against PyQt-Fluent-Widgets 1.11.3, measured by tools/parity/measure_python.py.
+fqw_add_widget_test(tst_python_parity)
+target_compile_definitions(tst_python_parity PRIVATE FQW_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+
 if(WIN32)
     # The native hit tests once more at 150%, where physical and device-independent pixels differ.
     add_test(NAME tst_window_scaled COMMAND tst_window
