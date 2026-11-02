@@ -499,6 +499,36 @@ class SettingsTest : public QObject
         QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
     }
 
+    void disabledSettingIconsFadeLikePython()
+    {
+        // Python's SettingIconWidget paints a disabled icon at 0.36 opacity in its own colours;
+        // the port used the icon's disabled pixmap, which Qt greys out instead.
+        // (0.36 x 255 = 92, give or take the premultiplied rounding.)
+        QPixmap red(16, 16);
+        red.fill(QColor(255, 0, 0));
+        const QIcon icon(red);
+        const auto centre = [](QWidget &widget) {
+            return FqwTest::render(widget).pixelColor(widget.width() / 2, widget.height() / 2);
+        };
+
+        SettingCard card(icon, QStringLiteral("Title"), QStringLiteral("Content"));
+        card.resize(400, card.height());
+        QCOMPARE(centre(*card.iconLabel()), QColor(255, 0, 0));
+        card.setEnabled(false);
+        QColor faded = centre(*card.iconLabel());
+        QCOMPARE(faded.rgb(), QColor(255, 0, 0).rgb());
+        QVERIFY2(qAbs(faded.alpha() - 92) <= 3, qPrintable(QString::number(faded.alpha())));
+        card.setEnabled(true);
+        QCOMPARE(centre(*card.iconLabel()), QColor(255, 0, 0));
+
+        GroupWidget group(icon, QStringLiteral("Group"), QString(), new QWidget);
+        QCOMPARE(centre(*group.iconWidget()), QColor(255, 0, 0));
+        group.setEnabled(false);
+        faded = centre(*group.iconWidget());
+        QCOMPARE(faded.rgb(), QColor(255, 0, 0).rgb());
+        QVERIFY2(qAbs(faded.alpha() - 92) <= 3, qPrintable(QString::number(faded.alpha())));
+    }
+
     void colorSettingCardTakesEnableAlpha()
     {
         // Python's ColorSettingCard(configItem, icon, title, content, parent, enableAlpha) hands

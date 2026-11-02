@@ -60,6 +60,63 @@ QColor normalizedColor(const QColor &color)
     return color.isValid() ? color : ThemeManager::instance()->accentColor();
 }
 
+// Python's SettingIconWidget paints a disabled card's icon at 0.36 opacity, not as the icon's
+// greyed disabled pixmap.
+constexpr qreal kDisabledIconOpacity = 0.36;
+
+// The card's icon label: a QLabel, as the port's API has it, that paints like Python's
+// SettingIconWidget. A disabled QLabel would draw its pixmap greyed by the style instead.
+class SettingIconLabel : public QLabel
+{
+  public:
+    using QLabel::QLabel;
+
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        const QPixmap pix = pixmap();
+#else
+        const QPixmap pix = pixmap(Qt::ReturnByValue);
+#endif
+        if (pix.isNull()) {
+            return;
+        }
+
+        QPainter painter(this);
+        if (!isEnabled()) {
+            painter.setOpacity(kDisabledIconOpacity);
+        }
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        const QSize logicalSize = pix.size() / pix.devicePixelRatio();
+        painter.drawPixmap(QRect(QPoint(), logicalSize)
+                               .translated((width() - logicalSize.width()) / 2, (height() - logicalSize.height()) / 2),
+                           pix);
+    }
+};
+
+// Python's GroupWidget icon is a SettingIconWidget too: the whole icon rect, faded when disabled.
+class SettingIconWidget : public IconWidget
+{
+  public:
+    using IconWidget::IconWidget;
+
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        if (icon().isNull()) {
+            return;
+        }
+
+        QPainter painter(this);
+        if (!isEnabled()) {
+            painter.setOpacity(kDisabledIconOpacity);
+        }
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        icon().paint(&painter, rect());
+    }
+};
+
 class SpaceWidget : public QWidget
 {
   public:
@@ -250,7 +307,7 @@ void SettingCard::init()
     setFrameShape(QFrame::NoFrame);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    m_iconLabel = new QLabel(this);
+    m_iconLabel = new SettingIconLabel(this);
     m_iconLabel->setFixedSize(m_iconSize);
     m_iconLabel->setScaledContents(false);
     m_iconLabel->setVisible(false);
@@ -329,8 +386,7 @@ void SettingCard::refreshIcon()
     }
 
     m_iconLabel->setVisible(true);
-    m_iconLabel->setPixmap(m_icon.pixmap(m_iconSize, devicePixelRatioF(),
-                                         isEnabled() ? QIcon::Normal : QIcon::Disabled));
+    m_iconLabel->setPixmap(m_icon.pixmap(m_iconSize, devicePixelRatioF()));
     if (m_iconSpacer) {
         m_iconSpacer->changeSize(16, 0, QSizePolicy::Fixed, QSizePolicy::Minimum);
     }
@@ -1251,7 +1307,7 @@ GroupWidget::GroupWidget(const QIcon &icon, const QString &title, const QString 
 {
     setMinimumHeight(60);
 
-    m_iconWidget = new IconWidget(icon, this);
+    m_iconWidget = new SettingIconWidget(icon, this);
     m_iconWidget->setFixedSize(16, 16);
 
     m_titleLabel = new QLabel(title, this);
