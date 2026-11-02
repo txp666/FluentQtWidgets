@@ -323,12 +323,13 @@ class ScrollTest : public QObject
         QCOMPARE(area.findChildren<SmoothScrollBar *>().size(), 2);
 
         area.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        QTest::qWait(50);
-        for (SmoothScrollBar *bar : area.findChildren<SmoothScrollBar *>()) {
-            if (bar->orientation() == Qt::Vertical) {
-                QVERIFY(!bar->isVisible());
-            }
-        }
+        const auto verticalBarHidden = [&area]() {
+            const auto bars = area.findChildren<SmoothScrollBar *>();
+            return std::none_of(bars.begin(), bars.end(), [](const SmoothScrollBar *bar) {
+                return bar->orientation() == Qt::Vertical && bar->isVisible();
+            });
+        };
+        QTRY_VERIFY(verticalBarHidden());
     }
 
     // Python's pager keeps its five-pip size with fewer pages, its pips start 15 px in and its

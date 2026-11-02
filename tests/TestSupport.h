@@ -5,22 +5,75 @@
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/Theme.h>
 
+#include <QtCore/QAbstractAnimation>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QTemporaryDir>
 #include <QtGui/QColor>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QIcon>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPixmap>
+#include <QtGui/QScreen>
 #include <QtGui/QWheelEvent>
+#include <QtTest/QTest>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
 
 #include <functional>
 #include <memory>
 
+// Skips the test unless Qt runs on the named platform plugin ("windows", "cocoa", ...): native-API tests
+// need the real plugin, and on another one (offscreen in CI) the window handles are not native.
+#define FQW_REQUIRE_PLATFORM(name)                                                                                     \
+    do {                                                                                                               \
+        if (QGuiApplication::platformName() != QLatin1String(name)) {                                                  \
+            QSKIP("Needs the \"" name "\" platform plugin");                                                           \
+        }                                                                                                              \
+    } while (false)
+
+// Skips the test unless the primary screen has the room a placement test needs around what it places: on a
+// smaller screen the library moves it back on the screen, as it should, and the expected position no
+// longer holds.
+#define FQW_REQUIRE_SCREEN_ROOM(minimumWidth, minimumHeight)                                                           \
+    do {                                                                                                               \
+        const QScreen *fqwScreen = QGuiApplication::primaryScreen();                                                   \
+        if (!fqwScreen || fqwScreen->availableGeometry().width() < (minimumWidth) ||                                   \
+            fqwScreen->availableGeometry().height() < (minimumHeight)) {                                               \
+            QSKIP("The screen is too small for this placement test");                                                  \
+        }                                                                                                              \
+    } while (false)
+
+// Skips the test when the platform does not maximize windows (a bare X server without a window manager,
+// a session that refuses it): a maximize button then has nothing to toggle.
+#define FQW_REQUIRE_MAXIMIZE()                                                                                         \
+    do {                                                                                                               \
+        if (!FqwTest::platformMaximizesWindows()) {                                                                    \
+            QSKIP("This platform does not maximize windows");                                                          \
+        }                                                                                                              \
+    } while (false)
+
 namespace FqwTest {
+
+// Whether a plain window becomes maximized when asked. Probed once, with a widget of no Fluent class, so a
+// library bug cannot turn a failing maximize test into a skip.
+inline bool platformMaximizesWindows()
+{
+    static const bool maximizes = [] {
+        QWidget probe;
+        probe.resize(200, 150);
+        probe.show();
+        if (!QTest::qWaitForWindowExposed(&probe)) {
+            return false;
+        }
+        probe.showMaximized();
+        const bool maximized = QTest::qWaitFor([&probe] { return probe.isMaximized(); }, 2000);
+        probe.close();
+        return maximized;
+    }();
+    return maximizes;
+}
 
 // The theme, the accent colour and the Fluent configuration are global: a test that changes them
 // would change what every later test sees. Saved in init() and put back in cleanup().
@@ -236,6 +289,23 @@ inline int averageGray(const QImage &image, const QRect &area, int minimumGray, 
         }
     }
     return sampled > 0 ? graySum / sampled : -1;
+}
+
+// Waits until no animation owned by the object or its children runs; false if one still runs after the
+// timeout. Call it right after the call that starts the animation.
+inline bool waitForAnimations(const QObject *object, int timeout = 5000)
+{
+    return QTest::qWaitFor(
+        [object] {
+            const auto animations = object->findChildren<QAbstractAnimation *>();
+            for (const QAbstractAnimation *animation : animations) {
+                if (animation->state() != QAbstractAnimation::Stopped) {
+                    return false;
+                }
+            }
+            return true;
+        },
+        timeout);
 }
 
 // Closes every top-level widget of type T and runs the deletions that causes.

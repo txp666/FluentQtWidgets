@@ -573,6 +573,7 @@ class WindowTest : public QObject
 
     void fluentTitleBarTracksWindowStateChanges()
     {
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWidget widget;
         widget.resize(360, 240);
         widget.show();
@@ -594,6 +595,7 @@ class WindowTest : public QObject
 
     void fluentTitleBarMaximizeButtonTogglesWindow()
     {
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWidget widget;
         widget.resize(360, 240);
         widget.show();
@@ -797,6 +799,8 @@ class WindowTest : public QObject
     void framelessWindowMaximizeButtonNativeClickTogglesWindow()
     {
 #if defined(Q_OS_WIN)
+        FQW_REQUIRE_PLATFORM("windows");
+        FQW_REQUIRE_MAXIMIZE();
         QWidget host;
         host.resize(320, 240);
         FluentQt::FluentTitleBar titleBar(&host);
@@ -833,6 +837,8 @@ class WindowTest : public QObject
     void fluentWindowMaximizeButtonUsesNativeWorkArea()
     {
 #if defined(Q_OS_WIN)
+        FQW_REQUIRE_PLATFORM("windows");
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWindow window;
         window.resize(960, 780);
         window.show();
@@ -882,6 +888,8 @@ class WindowTest : public QObject
     void fluentWindowCaptionNativeDoubleClickTogglesWindow()
     {
 #if defined(Q_OS_WIN)
+        FQW_REQUIRE_PLATFORM("windows");
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWindow window;
         window.resize(960, 780);
         window.show();

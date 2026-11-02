@@ -110,6 +110,7 @@ class MenuTest : public QObject
         // the window and masking it flashed the whole menu at the start position on Windows.
         // Run it on the native platform too: on macOS the window's safe area once pushed the
         // view's resting place 32 px down, which the offscreen platform cannot show.
+        FQW_REQUIRE_SCREEN_ROOM(600, 600);
         QWidget window;
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
@@ -147,6 +148,7 @@ class MenuTest : public QObject
     {
         // qfluentwidgets ends a fade-in drop-down 4 px above the anchor, like the plain drop-down,
         // but a fade-in pull-up 15 px below the menu's height, not the plain pull-up's 13.
+        FQW_REQUIRE_SCREEN_ROOM(600, 600);
         const QPoint anchor = QGuiApplication::primaryScreen()->availableGeometry().center();
         for (const MenuAnimationType type : {MenuAnimationType::FadeInDropDown, MenuAnimationType::FadeInPullUp}) {
             RoundMenu menu;
@@ -158,8 +160,7 @@ class MenuTest : public QObject
             const int endY =
                 type == MenuAnimationType::FadeInDropDown ? anchor.y() - 4 : anchor.y() - menu.height() + 15;
             // The window itself slides 8 px, passing other positions on the way: wait for the end.
-            QTest::qWait(400);
-            QCOMPARE(menu.pos(), QPoint(anchor.x() - margins.left(), endY));
+            QTRY_COMPARE(menu.pos(), QPoint(anchor.x() - margins.left(), endY));
             menu.close();
         }
     }

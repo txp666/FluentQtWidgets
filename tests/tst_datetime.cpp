@@ -61,11 +61,6 @@ static void sendWheel(QWidget *target, int deltaY)
     QApplication::sendEvent(target, &event);
 }
 
-static void waitCalendarScrollAnimation()
-{
-    QTest::qWait(450);
-}
-
 class DateTimeTest : public QObject
 {
     Q_OBJECT
@@ -511,10 +506,10 @@ class DateTimeTest : public QObject
 
         view.scrollDown();
         QCOMPARE(view.currentPageDate(), QDate(2024, 7, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         view.scrollUp();
         QCOMPARE(view.currentPageDate(), QDate(2024, 6, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
         QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2024, 1, 1));
@@ -536,29 +531,28 @@ class DateTimeTest : public QObject
         QCOMPARE(view.currentPageDate(), QDate(2025, 6, 1));
         sendWheel(&view, -120);
         QCOMPARE(view.currentPageDate(), QDate(2025, 7, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         sendWheel(&view, 120);
         QCOMPARE(view.currentPageDate(), QDate(2025, 6, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
         sendWheel(&view, -120);
         QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2026, 1, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         sendWheel(&view, 120);
         QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2025, 1, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
-        // Python pages the years 12 at a time from a century before this year.
-        const int firstYear = QDate::currentDate().year() - 100;
-        const int yearPage2025 = firstYear + (2025 - firstYear) / 12 * 12;
+        // Python pages the years 12 at a time (calendarYearPagesFollowPython checks where the pages start).
+        const QDate yearPage2025 = view.yearButtons().first()->property("date").toDate();
         sendWheel(&view, -120);
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(yearPage2025 + 12, 1, 1));
-        waitCalendarScrollAnimation();
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), yearPage2025.addYears(12));
+        QVERIFY(FqwTest::waitForAnimations(&view));
         sendWheel(&view, 120);
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(yearPage2025, 1, 1));
-        waitCalendarScrollAnimation();
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), yearPage2025);
+        QVERIFY(FqwTest::waitForAnimations(&view));
 
         FluentQt::CalendarView animatedView;
         animatedView.setAttribute(Qt::WA_DeleteOnClose, false);
@@ -1143,6 +1137,7 @@ class DateTimeTest : public QObject
     // centred on the picker, and 4 px up; the port placed the shadow margin there instead.
     void pickerPanelOpensWherePythonPutsIt()
     {
+        FQW_REQUIRE_SCREEN_ROOM(400, 400);
         FluentQt::PickerPanel panel;
         panel.setAttribute(Qt::WA_DeleteOnClose, false);
         panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 120);

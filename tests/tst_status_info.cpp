@@ -143,7 +143,9 @@ class StatusInfoTest : public QObject
 
         auto *first = InfoBar::info(QStringLiteral("t"), QStringLiteral("c"), Qt::Horizontal, true, -1,
                                     InfoBarPosition::TopRight, &parent);
-        QTest::qWait(300);
+        auto *slide = first->property("slideAni").value<QAbstractAnimation *>();
+        QVERIFY(slide);
+        QTRY_COMPARE(slide->state(), QAbstractAnimation::Stopped);
         const int firstY = first->y();
 
         delete first;

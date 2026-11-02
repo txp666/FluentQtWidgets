@@ -814,10 +814,8 @@ class DialogFlyoutTest : public QObject
             QStringLiteral("Right now, we're watching these folders:"), &parent);
         dialog.show();
         QTRY_VERIFY(dialog.isVisible());
-        QTest::qWait(20);
-
         QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("FolderListDialog"));
-        QCOMPARE(dialog.widget()->size(), boxSize);
+        QTRY_COMPARE(dialog.widget()->size(), boxSize);
         QCOMPARE(dialog.titleLabel()->geometry(), titleGeometry);
         QCOMPARE(dialog.contentLabel()->geometry(), contentGeometry);
         QCOMPARE(dialog.scrollArea()->geometry(), scrollGeometry);
@@ -1132,6 +1130,7 @@ class DialogFlyoutTest : public QObject
         // qfluentwidgets' DummyFlyoutAnimationManager places the flyout above the target's left
         // edge: target.mapToGlobal((-margins.left, -height + margins.bottom - 8)), less the 4 px
         // every manager takes off y.
+        FQW_REQUIRE_SCREEN_ROOM(800, 800);
         QWidget window;
         window.resize(400, 400);
         const QRect available = QGuiApplication::primaryScreen()->availableGeometry();

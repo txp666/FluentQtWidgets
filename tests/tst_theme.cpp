@@ -71,7 +71,7 @@ class ThemeTest : public QObject
             widget->move(QGuiApplication::primaryScreen()->availableGeometry().topLeft() + QPoint(300, 300));
             widget->show();
             QVERIFY(QTest::qWaitForWindowExposed(widget));
-            QTest::qWait(300);
+            QVERIFY(FqwTest::waitForAnimations(widget));
             const QImage image = widget->grab().toImage();
             QVERIFY2(pixelsNear(image, primary) > 20, widget->metaObject()->className());
             QVERIFY2(pixelsNear(image, raw) == 0, widget->metaObject()->className());

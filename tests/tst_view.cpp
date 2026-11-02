@@ -475,7 +475,7 @@ class ViewTest : public QObject
         SimpleCardWidget simple;
         simple.resize(100, 60);
         enter(simple);
-        QTest::qWait(200);
+        QVERIFY(FqwTest::waitForAnimations(&simple));
         QCOMPARE(centerAlpha(simple), 170);
 
         manager->setTheme(Theme::Dark);

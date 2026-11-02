@@ -133,8 +133,7 @@ class LayoutTest : public QObject
         delete layout->itemAt(0)->widget();
         parent.resize(300, 200);
         parent.show();
-        QTest::qWait(50);
-        QCOMPARE(layout->count(), 2);
+        QTRY_COMPARE(layout->count(), 2);
     }
 
     void adaptiveFlowAndExpandLayoutsPlaceWidgets()

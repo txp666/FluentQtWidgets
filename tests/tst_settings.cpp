@@ -395,7 +395,7 @@ class SettingsTest : public QObject
         QCOMPARE(card.viewLayout()->count(), 1);
 
         card.setExpanded(true);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(&card));
         QCOMPARE(card.height(), card.card()->height() + card.viewLayout()->sizeHint().height());
     }
 
@@ -491,7 +491,7 @@ class SettingsTest : public QObject
         area.show();
         QVERIFY(QTest::qWaitForWindowExposed(&area));
         upper->setExpanded(true);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(upper));
         if (headerNearBottom) {
             area.resize(area.width(), lower->y() + lower->card()->height() - outerOffset + 4);
             QTest::qWait(30);
@@ -528,7 +528,7 @@ class SettingsTest : public QObject
         }
         QCOMPARE(lower->height(), naturalHeight);
         lower->setExpanded(false);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(lower));
         QCOMPARE(lower->height(), lower->card()->height());
         QCOMPARE(lower->y(), lowerTop);
         QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
@@ -658,7 +658,7 @@ class SettingsTest : public QObject
         QCOMPARE(card.verticalScrollBar()->value(), 0);
         QCOMPARE(changed.count(), 3);
         card.setExpanded(false);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(&card));
         QCOMPARE(card.height(), headerHeight);
     }
 
@@ -699,7 +699,7 @@ class SettingsTest : public QObject
         };
         const auto expand = [&]() {
             card->setExpanded(true);
-            QTest::qWait(250);
+            QVERIFY(FqwTest::waitForAnimations(card.data()));
         };
 
         if (order == QLatin1String("add-show-expand")) {
@@ -710,7 +710,7 @@ class SettingsTest : public QObject
             addGroups();
             card->setExpanded(true);
             show();
-            QTest::qWait(250);
+            QVERIFY(FqwTest::waitForAnimations(card.data()));
         } else if (order == QLatin1String("show-add-expand")) {
             show();
             addGroups();
@@ -761,45 +761,41 @@ class SettingsTest : public QObject
         card->show();
         QVERIFY(QTest::qWaitForWindowExposed(card.data()));
         card->setExpanded(true);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(card.data()));
         const int firstHeight = card->height();
         QVERIFY(first->geometry().bottom() < card->view()->height());
 
         auto *second = createRow(card->view());
         card->addGroupWidget(second);
-        QTest::qWait(30);
         QCOMPARE(card->groupCount(), 2);
-        QVERIFY(card->height() > firstHeight);
+        QTRY_VERIFY(card->height() > firstHeight);
         QVERIFY(second->geometry().bottom() < card->view()->height());
         QCOMPARE(card->verticalScrollBar()->value(), 0);
         const int wideWidth = second->width();
         const int twoRowsHeight = card->height();
         card->resize(324, card->height());
-        QTest::qWait(30);
-        QVERIFY(second->width() < wideWidth);
+        QTRY_VERIFY(second->width() < wideWidth);
         QCOMPARE(card->height(), twoRowsHeight);
         QVERIFY(second->geometry().bottom() < card->view()->height());
         card->resize(800, card->height());
-        QTest::qWait(30);
-        QVERIFY(second->width() > wideWidth);
+        QTRY_VERIFY(second->width() > wideWidth);
         QVERIFY(second->geometry().bottom() < card->view()->height());
 
         card->removeGroupWidget(first);
         delete first;
-        QTest::qWait(30);
         QCOMPARE(card->groupCount(), 1);
-        QVERIFY(card->height() < twoRowsHeight);
+        QTRY_VERIFY(card->height() < twoRowsHeight);
         QVERIFY(second->geometry().bottom() < card->view()->height());
         QCOMPARE(card->verticalScrollBar()->value(), 0);
         card->setExpanded(false);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(card.data()));
         QCOMPARE(card->height(), card->card()->height());
         card->removeGroupWidget(second);
         delete second;
         auto *replacement = createRow(card->view());
         card->addGroupWidget(replacement);
         card->setExpanded(true);
-        QTest::qWait(250);
+        QVERIFY(FqwTest::waitForAnimations(card.data()));
         QVERIFY(replacement->geometry().bottom() < card->view()->height());
         QCOMPARE(card->verticalScrollBar()->value(), 0);
     }
