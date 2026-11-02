@@ -24,9 +24,10 @@ namespace FluentQt {
 
 ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
 {
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_ShowWithoutActivating);
 
     auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(12, 8, 12, 12);
