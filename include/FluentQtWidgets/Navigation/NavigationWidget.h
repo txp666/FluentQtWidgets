@@ -17,6 +17,8 @@ class QEnterEvent;
 class QMouseEvent;
 class QPainter;
 class QPaintEvent;
+class QParallelAnimationGroup;
+class QPropertyAnimation;
 class QVariantAnimation;
 
 namespace FluentQt {
@@ -116,9 +118,17 @@ class FQW_API NavigationUserCard : public NavigationAvatarWidget
     Q_OBJECT
     Q_PROPERTY(QString title READ title WRITE setTitle)
     Q_PROPERTY(QString subtitle READ subtitle WRITE setSubtitle)
+    Q_PROPERTY(qreal textOpacity READ textOpacity WRITE setTextOpacity)
 
   public:
     explicit NavigationUserCard(QWidget *parent = nullptr);
+
+    // Python's: compacting and expanding animate the avatar's radius (12 <-> 32, OutCubic) and,
+    // in 80 % of the time, the text's opacity (InOutQuad), 250 ms by default.
+    int animationDuration() const;
+    void setAnimationDuration(int duration);
+    qreal textOpacity() const;
+    void setTextOpacity(qreal opacity);
 
     QString title() const;
     QString subtitle() const;
@@ -143,6 +153,11 @@ class FQW_API NavigationUserCard : public NavigationAvatarWidget
     QString m_subtitle;
     int m_titleFontSize = 14;
     int m_subtitleFontSize = 12;
+    int m_animationDuration = 250;
+    qreal m_textOpacity = 0.0;
+    QPropertyAnimation *m_radiusAnimation = nullptr;
+    QPropertyAnimation *m_opacityAnimation = nullptr;
+    QParallelAnimationGroup *m_animationGroup = nullptr;
 };
 
 class FQW_API NavigationItemHeader : public NavigationWidget

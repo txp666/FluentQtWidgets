@@ -4,6 +4,7 @@
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/Theme.h>
 
+#include <QtCore/QParallelAnimationGroup>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
 #include <QtCore/QVariantAnimation>
@@ -303,6 +304,38 @@ void NavigationAvatarWidget::updateAvatarGeometry()
 NavigationUserCard::NavigationUserCard(QWidget *parent) : NavigationAvatarWidget(QString(), parent)
 {
     setFixedSize(kCompactWidth, kItemHeight);
+
+    m_animationGroup = new QParallelAnimationGroup(this);
+    m_radiusAnimation = new QPropertyAnimation(m_avatar, "radius", this);
+    m_radiusAnimation->setDuration(m_animationDuration);
+    m_radiusAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(m_radiusAnimation, &QPropertyAnimation::valueChanged, this, [this]() {
+        updateAvatarGeometry();
+        update();
+    });
+    m_opacityAnimation = new QPropertyAnimation(this, "textOpacity", this);
+    m_opacityAnimation->setDuration(m_animationDuration * 8 / 10);
+    m_opacityAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+    m_animationGroup->addAnimation(m_radiusAnimation);
+    m_animationGroup->addAnimation(m_opacityAnimation);
+    connect(m_animationGroup, &QParallelAnimationGroup::finished, this, qOverload<>(&QWidget::update));
+}
+
+int NavigationUserCard::animationDuration() const { return m_animationDuration; }
+
+void NavigationUserCard::setAnimationDuration(int duration)
+{
+    m_animationDuration = duration;
+    m_radiusAnimation->setDuration(duration);
+    m_opacityAnimation->setDuration(duration * 8 / 10);
+}
+
+qreal NavigationUserCard::textOpacity() const { return m_textOpacity; }
+
+void NavigationUserCard::setTextOpacity(qreal opacity)
+{
+    m_textOpacity = opacity;
+    update();
 }
 
 QString NavigationUserCard::title() const { return m_title; }
@@ -354,16 +387,28 @@ void NavigationUserCard::setAvatarBackgroundColor(const QColor &light, const QCo
 
 void NavigationUserCard::setCompacted(bool compacted)
 {
-    m_compacted = compacted;
-    if (compacted) {
-        m_avatar->setRadius(12);
-        setFixedSize(kCompactWidth, kItemHeight);
-    } else {
-        m_avatar->setRadius(32);
-        setFixedSize(m_expandWidth, 80);
+    if (compacted == m_compacted) {
+        if (!compacted) {
+            setFixedSize(m_expandWidth, 80); // a new expand width
+        }
+        return;
     }
+
+    m_compacted = compacted;
+    m_animationGroup->stop();
+    if (compacted) {
+        setFixedSize(kCompactWidth, kItemHeight);
+        m_radiusAnimation->setEndValue(12);
+        m_opacityAnimation->setEndValue(0.0);
+    } else {
+        setFixedSize(m_expandWidth, 80);
+        m_radiusAnimation->setEndValue(32);
+        m_opacityAnimation->setEndValue(1.0);
+    }
+    m_radiusAnimation->setStartValue(m_avatar->radius());
+    m_opacityAnimation->setStartValue(m_textOpacity);
     updateAvatarGeometry();
-    update();
+    m_animationGroup->start();
 }
 
 void NavigationUserCard::paintEvent(QPaintEvent *event)
@@ -379,7 +424,7 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
 
     drawHoverBackground(&painter);
 
-    if (m_compacted) {
+    if (m_compacted || m_textOpacity <= 0) {
         return;
     }
 
@@ -390,14 +435,14 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
     titleFont.setPixelSize(m_titleFontSize);
     titleFont.setBold(true);
     painter.setFont(titleFont);
-    painter.setPen(textColor());
+    painter.setPen(textColor(qRound(255 * m_textOpacity)));
     painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom, m_title);
 
     if (!m_subtitle.isEmpty()) {
         QFont subtitleFont = font();
         subtitleFont.setPixelSize(m_subtitleFontSize);
         painter.setFont(subtitleFont);
-        painter.setPen(textColor(150));
+        painter.setPen(textColor(qRound(150 * m_textOpacity)));
         painter.drawText(QRectF(textX, height() / 2.0 + 2.0, textWidth, height() / 2.0 - 2.0),
                          Qt::AlignLeft | Qt::AlignTop, m_subtitle);
     }

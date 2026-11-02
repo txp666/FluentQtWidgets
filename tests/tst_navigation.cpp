@@ -446,6 +446,53 @@ class NavigationTest : public QObject
         QVERIFY(!inkAtCapHeight(&avatar, 300, avatar.width()));
     }
 
+    // Python's NavigationUserCard animates the avatar's radius (250 ms, OutCubic) and the text's
+    // opacity (200 ms, InOutQuad) when it expands or compacts; the port jumped.
+    void navigationUserCardAnimatesRadiusAndTextOpacity()
+    {
+        NavigationUserCard card;
+        card.setTitle(QStringLiteral("User"));
+        QCOMPARE(card.animationDuration(), 250);
+        QCOMPARE(card.textOpacity(), 0.0);
+        const int compactRadius = card.avatar()->radius();
+        QCOMPARE(compactRadius, 12);
+
+        auto animations = card.findChildren<QPropertyAnimation *>();
+        QPropertyAnimation *radius = nullptr;
+        QPropertyAnimation *opacity = nullptr;
+        for (QPropertyAnimation *animation : animations) {
+            if (animation->propertyName() == "radius") {
+                radius = animation;
+            } else if (animation->propertyName() == "textOpacity") {
+                opacity = animation;
+            }
+        }
+        QVERIFY(radius && opacity);
+        QCOMPARE(radius->duration(), 250);
+        QCOMPARE(radius->easingCurve().type(), QEasingCurve::OutCubic);
+        QCOMPARE(opacity->duration(), 200);
+        QCOMPARE(opacity->easingCurve().type(), QEasingCurve::InOutQuad);
+
+        card.setCompacted(false);
+        QCOMPARE(card.size(), QSize(312, 80));
+        QVERIFY(card.avatar()->radius() < 32);
+        QVERIFY(card.textOpacity() < 1.0);
+        QTRY_COMPARE(card.avatar()->radius(), 32);
+        QTRY_COMPARE(card.textOpacity(), 1.0);
+        QCOMPARE(card.avatar()->pos(), QPoint(16, (80 - card.avatar()->height()) / 2));
+
+        card.setCompacted(true);
+        QCOMPARE(card.size(), QSize(40, 36));
+        QVERIFY(card.avatar()->radius() > 12);
+        QTRY_COMPARE(card.avatar()->radius(), 12);
+        QTRY_COMPARE(card.textOpacity(), 0.0);
+        QCOMPARE(card.avatar()->pos(), QPoint(8, 6));
+
+        card.setAnimationDuration(100);
+        QCOMPARE(radius->duration(), 100);
+        QCOMPARE(opacity->duration(), 80);
+    }
+
     void navigationTreeWidgetArrowRotatesWhenExpanded()
     {
         FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Root"));
