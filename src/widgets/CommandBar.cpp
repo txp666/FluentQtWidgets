@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/CommandBar.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Button.h>
@@ -61,9 +63,7 @@ CommandButton::CommandButton(QWidget *parent) : TransparentToggleToolButton(pare
     setCheckable(false);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     setIconSize(QSize(16, 16));
-    QFont buttonFont = font();
-    buttonFont.setPixelSize(12);
-    setFont(buttonFont);
+    setFont(Private::fluentFont(12));
     FluentStyleSheet::setRole(this, QStringLiteral("CommandButton"));
     installEventFilter(new CommandToolTipFilter(this));
 }
@@ -671,9 +671,7 @@ void CommandBar::init()
 {
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("CommandBar"));
-    QFont barFont = font();
-    barFont.setPixelSize(12);
-    setFont(barFont);
+    setFont(Private::fluentFont(12));
     m_overflowButton = new MoreActionsButton(this);
     m_overflowButton->hide();
     connect(m_overflowButton, &QToolButton::clicked, this, &CommandBar::showHiddenActionsMenu);

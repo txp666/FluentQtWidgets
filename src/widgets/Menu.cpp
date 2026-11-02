@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Menu.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -518,8 +520,7 @@ void ShortcutMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewIt
         painter->setOpacity(isDarkTheme() ? 0.5 : 0.6);
     }
 
-    QFont font = painter->font();
-    font.setPixelSize(12);
+    const QFont font = Private::fluentFont(12);
     painter->setFont(font);
     painter->setPen(isDarkTheme() ? QColor(255, 255, 255, 200) : QColor(0, 0, 0, 153));
 
@@ -1168,8 +1169,7 @@ bool RoundMenu::hasItemIcon() const
 
 int RoundMenu::longestShortcutWidth() const
 {
-    QFont font;
-    font.setPixelSize(12);
+    const QFont font = Private::fluentFont(12);
     int maxWidth = 0;
 
     const QFontMetricsF metrics(font);

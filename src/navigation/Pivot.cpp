@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/Pivot.h>
 
+#include "../core/FontUtils_p.h"
+
 #include "ScaleSlideAnimation_p.h"
 
 #include <FluentQtWidgets/Color.h>
@@ -23,9 +25,7 @@ PivotItem::PivotItem(QWidget *parent) : PushButton(parent)
     setCheckable(true);
     setFlat(true);
     setProperty("isSelected", false);
-    QFont itemFont = font();
-    itemFont.setPixelSize(18);
-    setFont(itemFont);
+    setFont(Private::fluentFont(18));
     FluentStyleSheet::setRole(this, QStringLiteral("PivotItem"));
 }
 

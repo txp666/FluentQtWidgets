@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/SegmentedWidget.h>
 
+#include "../core/FontUtils_p.h"
+
 #include "ScaleSlideAnimation_p.h"
 
 #include <FluentQtWidgets/Color.h>
@@ -23,9 +25,7 @@ namespace FluentQt {
 
 SegmentedItem::SegmentedItem(QWidget *parent) : PivotItem(parent)
 {
-    QFont itemFont = font();
-    itemFont.setPixelSize(14);
-    setFont(itemFont);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("SegmentedItem"));
 }
 

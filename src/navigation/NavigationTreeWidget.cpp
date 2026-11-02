@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/Theme.h>
@@ -199,6 +201,7 @@ NavigationAvatarWidget::NavigationAvatarWidget(const QString &name, QWidget *par
     : NavigationWidget(false, parent), m_name(name)
 {
     setAttribute(Qt::WA_Hover, true);
+    setFont(Private::fluentFont(14));
     setCursor(Qt::PointingHandCursor);
     m_selectable = true;
 
@@ -431,17 +434,13 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
     const int textX = 16 + m_avatar->radius() * 2 + 12;
     const int textWidth = width() - textX - 16;
 
-    QFont titleFont = font();
-    titleFont.setPixelSize(m_titleFontSize);
-    titleFont.setBold(true);
-    painter.setFont(titleFont);
+    // Python paints the card's texts in getFont(size), whatever the widget's own font.
+    painter.setFont(Private::fluentFont(m_titleFontSize, QFont::Bold));
     painter.setPen(textColor(qRound(255 * m_textOpacity)));
     painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom, m_title);
 
     if (!m_subtitle.isEmpty()) {
-        QFont subtitleFont = font();
-        subtitleFont.setPixelSize(m_subtitleFontSize);
-        painter.setFont(subtitleFont);
+        painter.setFont(Private::fluentFont(m_subtitleFontSize));
         painter.setPen(textColor(qRound(150 * m_textOpacity)));
         painter.drawText(QRectF(textX, height() / 2.0 + 2.0, textWidth, height() / 2.0 - 2.0),
                          Qt::AlignLeft | Qt::AlignTop, m_subtitle);
@@ -460,9 +459,7 @@ void NavigationUserCard::updateAvatarGeometry()
 NavigationItemHeader::NavigationItemHeader(const QString &text, QWidget *parent)
     : NavigationWidget(false, parent), m_text(text)
 {
-    QFont headerFont = font();
-    headerFont.setPixelSize(12);
-    setFont(headerFont);
+    setFont(Private::fluentFont(12));
     setCursor(Qt::ArrowCursor);
 
     // As in Python, the header grows to 30 px or shrinks away over 150 ms, its text fading with it.
@@ -540,6 +537,8 @@ NavigationToolButton::NavigationToolButton(const QIcon &icon, QWidget *parent)
     : NavigationWidget(false, parent), m_icon(icon)
 {
     setCursor(Qt::PointingHandCursor);
+    // Python's NavigationToolButton is a NavigationPushButton, which calls setFont(self).
+    setFont(Private::fluentFont(14));
     setFixedSize(kCompactWidth, kItemHeight);
 }
 
@@ -608,6 +607,8 @@ NavigationTreeWidget::NavigationTreeWidget(const QIcon &icon, const QString &tex
     : NavigationWidget(selectable, parent), m_icon(icon), m_text(text)
 {
     setCursor(Qt::PointingHandCursor);
+    // Python's NavigationPushButton: setFont(self), the Fluent families at 14 px.
+    setFont(Private::fluentFont(14));
     m_expandAnimation = new QPropertyAnimation(this, "geometry", this);
     m_expandAnimation->setEasingCurve(QEasingCurve::OutQuad);
     m_expandAnimation->setDuration(120);

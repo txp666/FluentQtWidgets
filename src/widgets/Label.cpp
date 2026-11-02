@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Label.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
@@ -47,10 +49,7 @@ FluentLabelBase::FluentLabelBase(const QString &text, QWidget *parent) : QLabel(
 
 void FluentLabelBase::setFluentTextStyle(const QString &role, int pixelSize, QFont::Weight weight)
 {
-    QFont labelFont = font();
-    labelFont.setPixelSize(pixelSize);
-    labelFont.setWeight(weight);
-    setFont(labelFont);
+    setFont(Private::fluentFont(pixelSize, weight));
     FluentStyleSheet::setRole(this, role);
     // The colours label.qss gives every role, as Python's, until setTextColor() replaces them.
     m_lightColor = QColor(0, 0, 0);
@@ -446,10 +445,7 @@ void AvatarWidget::setRadius(int radius)
     m_radius = boundedRadius;
     setFixedSize(sizeHint());
 
-    QFont avatarFont = font();
-    avatarFont.setPixelSize(m_radius);
-    avatarFont.setWeight(QFont::Normal);
-    setFont(avatarFont);
+    setFont(Private::fluentFont(m_radius, QFont::Normal));
 
     updateGeometry();
     update();
@@ -658,9 +654,7 @@ HyperlinkLabel::HyperlinkLabel(QWidget *parent) : QPushButton(parent)
 {
     setCursor(Qt::PointingHandCursor);
     setFlat(true);
-    QFont f = font();
-    f.setPixelSize(14);
-    setFont(f);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("HyperlinkLabel"));
     setProperty("underline", m_underlineVisible);
     connect(this, &QPushButton::clicked, this, &HyperlinkLabel::onLinkClicked);

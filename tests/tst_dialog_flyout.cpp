@@ -269,8 +269,9 @@ class DialogFlyoutTest : public QObject
         QSignalSpy boxAccepted(&box, &QDialog::accepted);
         box.show();
         QVERIFY(QTest::qWaitForWindowExposed(&box));
-        // The button row neither stretches nor squeezes the buttons (32 px in Python's font).
-        QCOMPARE(box.yesButton()->height(), box.yesButton()->sizeHint().height());
+        // The buttons are 32 px tall as in Python: the 81 px row less its 1 px top border and 24 px
+        // margins. Offscreen the Fluent font asks for 33 and Python squeezes them to 32 as well.
+        QCOMPARE(box.yesButton()->height(), 32);
         QTest::keyClick(box.yesButton(), Qt::Key_Return);
         QTRY_COMPARE(boxAccepted.count(), 1);
 

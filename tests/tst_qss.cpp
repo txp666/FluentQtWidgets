@@ -43,14 +43,20 @@ class QssTest : public QObject
                           {QStringLiteral("\nSpinButton {"), QStringLiteral("\nSpinButton:hover"),
                            QStringLiteral("\nSpinButton:pressed")});
         addStyleSheetRows("line edit", QStringLiteral("line_edit.qss"), kBothThemes,
-                          {QStringLiteral("QTextEdit[fqw=\"TextEdit\"],"), QStringLiteral("font: 14px --FontFamilies;"),
-                           QStringLiteral("padding: 2px 3px 2px 8px;"), QStringLiteral("#lineEditButton"),
-                           QStringLiteral("#lineEditButton:hover"), QStringLiteral("#lineEditButton:pressed"),
+                          {QStringLiteral("QTextEdit[fqw=\"TextEdit\"],"), QStringLiteral("padding: 2px 3px 2px 8px;"),
+                           QStringLiteral("#lineEditButton"), QStringLiteral("#lineEditButton:hover"),
+                           QStringLiteral("#lineEditButton:pressed"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"]:disabled"),
                            // Python's editable combo boxes are line edits, styled by line_edit.qss.
                            QStringLiteral("QLineEdit[fqw=\"EditableComboBox\"]:disabled"),
                            QStringLiteral("QLineEdit[fqw=\"AcrylicEditableComboBox\"]:hover"),
-                           QStringLiteral("QLineEdit[fqw=\"EditableModelComboBox\"],")});
+                           QStringLiteral("QLineEdit[fqw=\"EditableModelComboBox\"],")},
+                          // Python's line_edit.qss sets no font: the editors call setFont(self), which a
+                          // sheet font would override.
+                          {QStringLiteral("font:")});
+        // Python's tool_tip.qss gives the label the Fluent families, not only a size.
+        addStyleSheetRows("tool tip", QStringLiteral("tool_tip.qss"), kBothThemes,
+                          {QStringLiteral("font: 12px --FontFamilies;")}, {QStringLiteral("font-size:")});
         addStyleSheetRows("line edit focus", QStringLiteral("line_edit.qss"), {QStringLiteral("dark")},
                           {QStringLiteral("selection-color: black;"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"][transparent=\"true\"]:focus"),

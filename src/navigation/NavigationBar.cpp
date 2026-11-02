@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/NavigationBar.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -22,9 +24,7 @@ NavigationBarPushButton::NavigationBarPushButton(const QIcon &icon, const QStrin
     : NavigationWidget(selectable, parent), m_icon(icon), m_selectedIcon(selectedIcon), m_text(text)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationBarPushButton"));
-    QFont f = font();
-    f.setPixelSize(11);
-    setFont(f);
+    setFont(Private::fluentFont(11));
     setFixedSize(sizeHint());
 
     m_iconAnimation = new QPropertyAnimation(this, "iconOffset", this);

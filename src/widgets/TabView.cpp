@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/TabView.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -384,9 +386,7 @@ void TabItem::init()
     setFixedHeight(36);
     setMinimumWidth(64);
     setMaximumWidth(240);
-    QFont tabFont = font();
-    tabFont.setPixelSize(12);
-    setFont(tabFont);
+    setFont(Private::fluentFont(12));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setProperty("selected", false);
     setProperty("closeButtonDisplayMode", closeButtonModeName(m_closeButtonDisplayMode));

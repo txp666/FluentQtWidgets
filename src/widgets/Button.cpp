@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Button.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
@@ -509,9 +511,7 @@ void PushButton::initFluentButton(const QString &role)
 {
     setCursor(Qt::PointingHandCursor);
     setIconSize(QSize(16, 16));
-    QFont buttonFont = font();
-    buttonFont.setPixelSize(14);
-    setFont(buttonFont);
+    setFont(Private::fluentFont(14));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     FluentStyleSheet::setRole(this, role);
     setProperty("hasIcon", !icon().isNull());
@@ -928,9 +928,7 @@ void ToolButton::initFluentToolButton(const QString &role)
 {
     setCursor(Qt::PointingHandCursor);
     setIconSize(QSize(16, 16));
-    QFont buttonFont = font();
-    buttonFont.setPixelSize(14);
-    setFont(buttonFont);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, role);
 }
 

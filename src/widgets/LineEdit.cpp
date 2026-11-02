@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/LineEdit.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
@@ -109,9 +111,7 @@ void initMultilineTextEdit(Editor *editor, const QString &role, QWidget **layer,
                            SmoothScrollDelegate **scrollDelegate)
 {
     FluentStyleSheet::setRole(editor, role);
-    QFont font = editor->font();
-    font.setPixelSize(14);
-    editor->setFont(font);
+    editor->setFont(Private::fluentFont(14));
     if (layer) {
         *layer = new EditLayer(editor);
     }
@@ -260,9 +260,7 @@ void LineEdit::init()
     setFixedHeight(33);
     setAttribute(Qt::WA_MacShowFocusRect, false);
 
-    QFont font = this->font();
-    font.setPixelSize(14);
-    setFont(font);
+    setFont(Private::fluentFont(14));
 
     m_layout = new QHBoxLayout(this);
 

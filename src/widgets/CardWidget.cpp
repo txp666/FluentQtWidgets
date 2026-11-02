@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/CardWidget.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -430,10 +432,7 @@ HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 
     m_titleLabel = new QLabel(m_headerView);
     m_titleLabel->setObjectName(QStringLiteral("headerLabel"));
-    QFont titleFont = m_titleLabel->font();
-    titleFont.setPixelSize(15);
-    titleFont.setWeight(QFont::DemiBold);
-    m_titleLabel->setFont(titleFont);
+    m_titleLabel->setFont(Private::fluentFont(15, QFont::DemiBold));
     // A plain label under the card's style sheet takes its colour from the palette when it is polished,
     // and that sheet is the same in both themes, so a theme change never repolished the title: it kept
     // the colour of the theme it was created in. Its own sheet follows the theme.

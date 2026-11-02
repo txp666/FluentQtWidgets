@@ -17,7 +17,7 @@ QFrame[fqw="ToolTip"] QLabel#contentLabel {
     border: none;
     background: transparent;
     color: black;
-    font-size: 12px;
+    font: 12px --FontFamilies;
 }
 
 QFrame[fqw="AcrylicToolTip"] {
@@ -39,5 +39,5 @@ QFrame[fqw="AcrylicToolTip"] QLabel#contentLabel {
     border: none;
     background: transparent;
     color: black;
-    font-size: 12px;
+    font: 12px --FontFamilies;
 }

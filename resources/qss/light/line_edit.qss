@@ -10,7 +10,6 @@ QTextEdit[fqw="TextEdit"],
 QPlainTextEdit[fqw="PlainTextEdit"],
 QTextBrowser[fqw="TextBrowser"] {
     color: black;
-    font: 14px --FontFamilies;
     border: 1px solid rgba(0, 0, 0, 13);
     border-bottom: 1px solid rgba(0, 0, 0, 100);
     border-radius: 5px;

@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Settings/SettingCard.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Dialogs/ColorDialog.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/Layout/FlowLayout.h>
@@ -403,10 +405,7 @@ SettingCardGroup::SettingCardGroup(const QString &title, QWidget *parent) : QWid
     layout->setAlignment(Qt::AlignTop);
 
     m_titleLabel = new QLabel(title, this);
-    QFont titleFont = m_titleLabel->font();
-    titleFont.setPixelSize(20);
-    titleFont.setWeight(QFont::Normal);
-    m_titleLabel->setFont(titleFont);
+    m_titleLabel->setFont(Private::fluentFont(20, QFont::Normal));
     m_titleLabel->adjustSize();
     layout->addWidget(m_titleLabel);
     layout->addSpacing(12);

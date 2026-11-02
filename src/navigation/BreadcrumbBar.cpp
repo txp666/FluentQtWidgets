@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/BreadcrumbBar.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -203,9 +205,7 @@ BreadcrumbBar::BreadcrumbBar(QWidget *parent) : QWidget(parent)
 {
     m_elideButton = new ElideButton(this);
 
-    QFont barFont = font();
-    barFont.setPixelSize(14);
-    setFont(barFont);
+    setFont(Private::fluentFont(14));
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("BreadcrumbBar"));
 

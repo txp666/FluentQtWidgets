@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/SpinBox.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -237,9 +239,7 @@ void SpinBoxHelper::init(QAbstractSpinBox *spinBox, Mode mode)
     m_spinBox->setProperty("transparent", true);
     m_spinBox->setFixedHeight(33);
     m_spinBox->setAttribute(Qt::WA_MacShowFocusRect, false);
-    QFont font = m_spinBox->font();
-    font.setPixelSize(14);
-    m_spinBox->setFont(font);
+    m_spinBox->setFont(Private::fluentFont(14));
     FluentStyleSheet::apply(m_spinBox, FluentStyleSheetSource::SpinBox);
     m_spinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
 

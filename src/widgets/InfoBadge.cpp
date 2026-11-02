@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -41,9 +43,7 @@ InfoBadge::InfoBadge(QWidget *parent) : QLabel(parent)
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-    QFont badgeFont = font();
-    badgeFont.setPixelSize(11);
-    setFont(badgeFont);
+    setFont(Private::fluentFont(11));
 
     updateRole();
 }

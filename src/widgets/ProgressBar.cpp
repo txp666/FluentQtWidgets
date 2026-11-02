@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -420,9 +422,7 @@ ProgressRing::ProgressRing(QWidget *parent, bool useAni) : ProgressBar(parent, u
     setTextVisible(false);
     setFixedSize(100, 100);
 
-    QFont ringFont = font();
-    ringFont.setPixelSize(14);
-    setFont(ringFont);
+    setFont(Private::fluentFont(14));
 
     FluentStyleSheet::setRole(this, QStringLiteral("ProgressRing"));
 }

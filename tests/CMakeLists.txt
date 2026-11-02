@@ -17,7 +17,7 @@ endfunction()
 foreach(test IN ITEMS
         tst_theme tst_qss tst_config tst_icon tst_basic_input tst_combo_box tst_text tst_status_info
         tst_dialog_flyout tst_menu tst_navigation tst_view tst_scroll tst_layout tst_settings tst_window
-        tst_material tst_charts tst_datetime)
+        tst_material tst_charts tst_datetime tst_fonts)
     fqw_add_widget_test(${test})
 endforeach()
 
