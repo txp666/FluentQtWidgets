@@ -211,7 +211,7 @@ def _command_bar(t):
 profile("CommandBar", "items", _command_bar)
 
 # Navigation
-for name in ["Pivot", "SegmentedWidget", "SegmentedToggleToolWidget", "TabBar", "TabWidget", "BreadcrumbBar",
+for name in ["Pivot", "SegmentedWidget", "SegmentedToolWidget", "SegmentedToggleToolWidget", "TabBar", "TabWidget", "BreadcrumbBar",
              "NavigationBar", "NavigationPanel", "NavigationInterface", "NavigationUserCard"]:
     default_only(name)
 
@@ -229,11 +229,13 @@ profile("Pivot", "items", _pivot("Pivot"))
 profile("SegmentedWidget", "items", _pivot("SegmentedWidget"))
 
 
-def _segmented_tools(t):
-    w = qfw.SegmentedToggleToolWidget()
-    w.addItem("k0", FIF.MAIL)
-    w.addItem("k1", FIF.SAVE)
-    return w
+def _segmented_tools(cls):
+    def make(t):
+        w = getattr(qfw, cls)()
+        w.addItem("k0", FIF.MAIL)
+        w.addItem("k1", FIF.SAVE)
+        return w
+    return make
 
 
 def _tab_bar(t):
@@ -250,7 +252,9 @@ def _breadcrumb(t):
     return w
 
 
-profile("SegmentedToggleToolWidget", "items", _segmented_tools)
+profile("SegmentedToolWidget", "items", _segmented_tools("SegmentedToolWidget"))
+profile("SegmentedToggleToolWidget", "items", _segmented_tools("SegmentedToggleToolWidget"))
+profile("SegmentedToolItem", "icon", lambda t: qfw.SegmentedToolItem(FIF.MAIL))
 profile("TabBar", "items", _tab_bar)
 profile("BreadcrumbBar", "items", _breadcrumb)
 

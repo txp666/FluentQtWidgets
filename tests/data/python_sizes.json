@@ -3288,6 +3288,69 @@
    "textDependentHeight": false,
    "textDependentWidth": false
   },
+  "SegmentedToolItem/icon": {
+   "maximumSize": [
+    38,
+    33
+   ],
+   "minimumSize": [
+    38,
+    33
+   ],
+   "size": [
+    38,
+    33
+   ],
+   "sizeHint": [
+    36,
+    31
+   ],
+   "text": "Button",
+   "textDependentHeight": false,
+   "textDependentWidth": false
+  },
+  "SegmentedToolWidget/default": {
+   "maximumSize": [
+    "max",
+    "max"
+   ],
+   "minimumSize": [
+    0,
+    0
+   ],
+   "size": [
+    0,
+    0
+   ],
+   "sizeHint": [
+    0,
+    0
+   ],
+   "text": "Button",
+   "textDependentHeight": false,
+   "textDependentWidth": false
+  },
+  "SegmentedToolWidget/items": {
+   "maximumSize": [
+    "max",
+    "max"
+   ],
+   "minimumSize": [
+    76,
+    33
+   ],
+   "size": [
+    76,
+    33
+   ],
+   "sizeHint": [
+    76,
+    33
+   ],
+   "text": "Button",
+   "textDependentHeight": false,
+   "textDependentWidth": false
+  },
   "SegmentedWidget/default": {
    "maximumSize": [
     "max",

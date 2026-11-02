@@ -8,14 +8,16 @@
 
 #include <QtCore/QPropertyAnimation>
 #include <QtGui/QFont>
-#include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 #include <QtGui/QResizeEvent>
 #include <QtGui/QShowEvent>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QSizePolicy>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QStyleOptionButton>
 
 namespace FluentQt {
 
@@ -76,6 +78,66 @@ void SegmentedWidget::paintEvent(QPaintEvent *event)
     painter.setBrush(themeColor());
     painter.drawRoundedRect(QRectF(animatedX + current->width() / 2.0 - 8.0, height() - 3.5, 16, 3), 1.5,
                             1.5);
+}
+
+SegmentedToolItem::SegmentedToolItem(const QIcon &icon, QWidget *parent) : PivotItem(parent)
+{
+    FluentStyleSheet::setRole(this, QStringLiteral("SegmentedToolItem"));
+    setIcon(icon);
+    setIconSize(QSize(16, 16));
+    setFixedSize(38, 33);
+}
+
+SegmentedToolItem::SegmentedToolItem(const QString &routeKey, const QIcon &icon, QWidget *parent)
+    : SegmentedToolItem(icon, parent)
+{
+    setRouteKey(routeKey);
+}
+
+void SegmentedToolItem::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QStyleOptionButton opt;
+    initStyleOption(&opt);
+    opt.icon = QIcon();
+    opt.text.clear();
+    style()->drawControl(QStyle::CE_PushButton, &opt, &painter, this);
+
+    // ToolButton's icon: centred, 43 % opaque when disabled and 63 % while pressed.
+    if (!isEnabled()) {
+        painter.setOpacity(0.43);
+    } else if (isDown()) {
+        painter.setOpacity(0.63);
+    }
+    const QSize size = iconSize();
+    drawIcon(&painter,
+             QRectF((width() - size.width()) / 2.0, (height() - size.height()) / 2.0, size.width(), size.height()));
+}
+
+SegmentedToolWidget::SegmentedToolWidget(QWidget *parent) : SegmentedWidget(parent)
+{
+    FluentStyleSheet::setRole(this, QStringLiteral("SegmentedToolWidget"));
+}
+
+SegmentedToolItem *SegmentedToolWidget::addItem(const QString &routeKey, const QIcon &icon)
+{
+    return insertItem(static_cast<int>(routeKeys().size()), routeKey, icon);
+}
+
+SegmentedToolItem *SegmentedToolWidget::insertItem(int index, const QString &routeKey, const QIcon &icon)
+{
+    auto *item = static_cast<SegmentedToolItem *>(SegmentedWidget::insertItem(index, routeKey, QString()));
+    if (item) {
+        item->setIcon(icon);
+    }
+    return item;
+}
+
+PivotItem *SegmentedToolWidget::createItem(const QString &routeKey, const QString &)
+{
+    return new SegmentedToolItem(routeKey, QIcon(), this);
 }
 
 SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(parent)

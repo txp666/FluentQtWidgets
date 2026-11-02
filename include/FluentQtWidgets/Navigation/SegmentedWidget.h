@@ -37,6 +37,35 @@ class FQW_API SegmentedWidget : public Pivot
     void paintEvent(QPaintEvent *event) override;
 };
 
+// An icon-only item of a SegmentedToolWidget: 38 x 33, its 16 px icon centred, as Python's
+// SegmentedToolItem (a ToolButton) draws it.
+class FQW_API SegmentedToolItem : public PivotItem
+{
+    Q_OBJECT
+
+  public:
+    explicit SegmentedToolItem(const QIcon &icon = QIcon(), QWidget *parent = nullptr);
+    SegmentedToolItem(const QString &routeKey, const QIcon &icon, QWidget *parent = nullptr);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+};
+
+// A segmented control of icons; Python's SegmentedToolWidget.
+class FQW_API SegmentedToolWidget : public SegmentedWidget
+{
+    Q_OBJECT
+
+  public:
+    explicit SegmentedToolWidget(QWidget *parent = nullptr);
+
+    SegmentedToolItem *addItem(const QString &routeKey, const QIcon &icon);
+    SegmentedToolItem *insertItem(int index, const QString &routeKey, const QIcon &icon);
+
+  protected:
+    PivotItem *createItem(const QString &routeKey, const QString &text) override;
+};
+
 class FQW_API SegmentedToggleToolWidget : public QWidget
 {
     Q_OBJECT

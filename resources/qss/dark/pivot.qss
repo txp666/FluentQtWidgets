@@ -48,6 +48,7 @@ QWidget[fqw="BreadcrumbBar"] {
     background-color: transparent;
 }
 
+QPushButton[fqw="SegmentedToolItem"],
 QToolButton[fqw="SegmentedToolItem"] {
     padding: 5px 9px 6px 8px;
 }
@@ -60,6 +61,7 @@ QWidget[fqw="SegmentedToolWidget"] {
 }
 
 QPushButton[fqw="SegmentedItem"][isSelected="false"],
+QPushButton[fqw="SegmentedToolItem"][isSelected="false"],
 QToolButton[fqw="SegmentedToolItem"][isSelected="false"] {
     padding-top: 3px;
     padding-bottom: 3px;
@@ -70,16 +72,19 @@ QToolButton[fqw="SegmentedToolItem"][isSelected="false"] {
 }
 
 QPushButton[fqw="SegmentedItem"][isSelected="false"]:hover,
+QPushButton[fqw="SegmentedToolItem"][isSelected="false"]:hover,
 QToolButton[fqw="SegmentedToolItem"][isSelected="false"]:hover {
     background-color: rgba(255, 255, 255, 9);
 }
 
 QPushButton[fqw="SegmentedItem"][isSelected="false"]:pressed,
+QPushButton[fqw="SegmentedToolItem"][isSelected="false"]:pressed,
 QToolButton[fqw="SegmentedToolItem"][isSelected="false"]:pressed {
     background-color: rgba(255, 255, 255, 6);
 }
 
 QPushButton[fqw="SegmentedItem"][isSelected="true"],
+QPushButton[fqw="SegmentedToolItem"][isSelected="true"],
 QToolButton[fqw="SegmentedToolItem"][isSelected="true"] {
     padding-top: 6px;
     padding-bottom: 6px;
@@ -92,8 +97,11 @@ QToolButton[fqw="SegmentedToolItem"][isSelected="true"] {
 QPushButton[fqw="SegmentedItem"]:checked,
 QPushButton[fqw="SegmentedItem"]:checked:hover,
 QPushButton[fqw="SegmentedItem"]:checked:pressed,
+QPushButton[fqw="SegmentedToolItem"]:checked,
 QToolButton[fqw="SegmentedToolItem"]:checked,
+QPushButton[fqw="SegmentedToolItem"]:checked:hover,
 QToolButton[fqw="SegmentedToolItem"]:checked:hover,
+QPushButton[fqw="SegmentedToolItem"]:checked:pressed,
 QToolButton[fqw="SegmentedToolItem"]:checked:pressed {
     background-color: transparent;
     border: none;

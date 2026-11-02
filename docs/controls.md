@@ -339,7 +339,7 @@ window->switchTo("home");
   `NavigationTreeWidget`, `NavigationAvatarWidget`, `NavigationUserCard`, `NavigationItemHeader`,
   `NavigationHistory`.
 - Navigation bar: `NavigationBar`, `NavigationBarPushButton` (the layout of `MSFluentWindow`).
-- Top navigation: `Pivot`, `PivotItem`, `SegmentedWidget`, `SegmentedItem`, `SegmentedToggleToolWidget`,
+- Top navigation: `Pivot`, `PivotItem`, `SegmentedWidget`, `SegmentedItem`, `SegmentedToolWidget`, `SegmentedToolItem`, `SegmentedToggleToolWidget`,
   `BreadcrumbBar`, `BreadcrumbItem`.
 - Tabs: `TabBar`, `TabItem`, `TabWidget`.
 - Pages: `OpacityAniStackedWidget`, `PopUpAniStackedWidget`, `TransitionStackedWidget`,

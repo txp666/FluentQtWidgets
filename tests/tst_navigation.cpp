@@ -968,6 +968,47 @@ class NavigationTest : public QObject
         QCOMPARE(pivot.currentItem(), QStringLiteral("k3"));
     }
 
+    // Python's SegmentedToolWidget: a SegmentedWidget of 38 x 33 icon items, which the port lacked.
+    void segmentedToolWidgetHoldsIconItems()
+    {
+        SegmentedToolWidget tools;
+        SegmentedToolItem *mail = tools.addItem(QStringLiteral("mail"), icon(FluentIcon::Mail));
+        SegmentedToolItem *save = tools.insertItem(0, QStringLiteral("save"), icon(FluentIcon::Save));
+        QVERIFY(mail && save);
+        QCOMPARE(tools.addItem(QStringLiteral("mail"), QIcon()), nullptr);
+        QCOMPARE(tools.routeKeys(), (QList<QString>{QStringLiteral("save"), QStringLiteral("mail")}));
+        QCOMPARE(mail->size(), QSize(38, 33));
+        QCOMPARE(mail->iconSize(), QSize(16, 16));
+        QVERIFY(mail->text().isEmpty());
+        QVERIFY(qobject_cast<SegmentedWidget *>(&tools));
+        QVERIFY(tools.styleSheet().contains(QStringLiteral("SegmentedToolWidget")));
+        QVERIFY(mail->styleSheet().contains(QStringLiteral("QPushButton[fqw=\"SegmentedToolItem\"]")));
+        QCOMPARE(tools.currentItem(), QString());
+
+        tools.setCurrentItem(QStringLiteral("mail"));
+        QCOMPARE(tools.currentItem(), QStringLiteral("mail"));
+        QVERIFY(mail->isChecked());
+
+        // The icon sits in the middle, as a ToolButton draws it.
+        auto *plain = new SegmentedToolItem(icon(FluentIcon::Mail, QColor(Qt::red)));
+        QImage image(plain->size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        plain->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        QRect ink;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QColor c = image.pixelColor(x, y);
+                if (c.alpha() > 100 && c.red() > 150 && c.green() < 100) {
+                    ink |= QRect(x, y, 1, 1);
+                }
+            }
+        }
+        QVERIFY(!ink.isEmpty());
+        QVERIFY2(qAbs(ink.center().x() - 19) <= 1 && qAbs(ink.center().y() - 16) <= 1,
+                 qPrintable(QStringLiteral("icon at %1,%2").arg(ink.center().x()).arg(ink.center().y())));
+        delete plain;
+    }
+
     void segmentedToggleToolWidgetTracksCurrentItem()
     {
         FluentQt::SegmentedToggleToolWidget tools;

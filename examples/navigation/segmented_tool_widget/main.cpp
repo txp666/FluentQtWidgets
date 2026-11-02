@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 
     QWidget window;
     window.resize(400, 400);
+    // auto *segmented = new SegmentedToolWidget(&window);
     auto *segmented = new SegmentedToggleToolWidget(&window);
     auto *stackedWidget = new QStackedWidget(&window);
     auto *toolLayout = new QHBoxLayout;

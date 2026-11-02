@@ -126,6 +126,7 @@ const std::vector<Expectation> kIntended = {
     {"TabBar/default", "sizeHint.w sizeHint.h", "a QWidget holding a QScrollArea, where Python's TabBar is the scroll area itself, so the hint is the inner scroll area's within the bar's layout; the fixed 46 px height and the laid-out size match"},
     {"TabBar/items", "sizeHint.h", "a QWidget holding a QScrollArea, where Python's TabBar is the scroll area itself, so the hint is the inner scroll area's within the bar's layout; the fixed 46 px height and the laid-out size match"},
     {"NavigationBar/default", "size.w minimumSize.w maximumSize.w", "fixed 72 px (64 px buttons plus 4 px margins) for MSFluentWindow; Python's bar is free and takes its window layout's width; Python's MSFluentWindow could not be measured (it crashes offscreen), so left to the owner"},
+    {"SegmentedToolItem/icon", "sizeHint.w sizeHint.h", "a PivotItem (a push button) so that SegmentedToolWidget can stay a Pivot, where Python's item is a ToolButton; the hint is the push button's, and the fixed 38x33 size, which layouts use, matches"},
     {"NavigationUserCard/default", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
     {"NavigationToolButton/icon", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
     {"NavigationBarPushButton/icon+text", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
@@ -383,6 +384,7 @@ const Factories &factories()
         // Navigation
         defaultOnly<Pivot>(f, "Pivot");
         defaultOnly<SegmentedWidget>(f, "SegmentedWidget");
+        defaultOnly<SegmentedToolWidget>(f, "SegmentedToolWidget");
         defaultOnly<SegmentedToggleToolWidget>(f, "SegmentedToggleToolWidget");
         defaultOnly<TabBar>(f, "TabBar");
         defaultOnly<TabWidget>(f, "TabWidget");
@@ -407,6 +409,13 @@ const Factories &factories()
             }
             return w;
         };
+        f["SegmentedToolWidget/items"] = [](const QString &, QWidget *) {
+            auto *w = new SegmentedToolWidget;
+            w->addItem(QStringLiteral("k0"), icon(FluentIcon::Mail));
+            w->addItem(QStringLiteral("k1"), icon(FluentIcon::Save));
+            return w;
+        };
+        f["SegmentedToolItem/icon"] = [](const QString &, QWidget *) { return new SegmentedToolItem(mail()); };
         f["SegmentedToggleToolWidget/items"] = [](const QString &, QWidget *) {
             auto *w = new SegmentedToggleToolWidget;
             w->addItem(QStringLiteral("k0"), icon(FluentIcon::Mail));
