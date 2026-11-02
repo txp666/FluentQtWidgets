@@ -438,6 +438,59 @@ class StatusInfoTest : public QObject
         QVERIFY(point.y() >= 0);
     }
 
+    // The state tooltip sits on the accent colour, so Python draws its spinner, tick and close
+    // icons in the opposite theme: white in the light theme, black in the dark. The port drew
+    // them in the current theme, black on the light theme's dark accent.
+    void stateToolTipIconsUseTheOppositeTheme()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        const auto paintedValues = [](QWidget *widget, const QRect &area) {
+            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            widget->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            int lightest = 0;
+            int darkest = 255;
+            for (int y = area.top(); y <= area.bottom(); ++y) {
+                for (int x = area.left(); x <= area.right(); ++x) {
+                    const QColor color = QColor::fromRgba(image.pixel(x, y));
+                    if (color.alpha() > 200) {
+                        lightest = qMax(lightest, color.value());
+                        darkest = qMin(darkest, color.value());
+                    }
+                }
+            }
+            return qMakePair(darkest, lightest);
+        };
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            StateToolTip tip(QStringLiteral("Title"), QStringLiteral("Content"));
+            StateCloseButton *close = tip.closeButton();
+            const auto [closeDark, closeLight] = paintedValues(close, close->rect());
+            tip.setState(true);
+            const QImage tick = tip.grab().toImage();
+            const int background = tick.pixelColor(tip.width() / 2, 3).value();
+            int tickDark = 255;
+            int tickLight = 0;
+            for (int y = 10; y < 26; ++y) {
+                for (int x = 11; x < 27; ++x) {
+                    tickDark = qMin(tickDark, tick.pixelColor(x, y).value());
+                    tickLight = qMax(tickLight, tick.pixelColor(x, y).value());
+                }
+            }
+            if (theme == Theme::Light) {
+                QVERIFY2(closeLight > 200, qPrintable(QString::number(closeLight)));
+                QVERIFY2(tickLight > background + 60,
+                         qPrintable(QStringLiteral("%1 on %2").arg(tickLight).arg(background)));
+            } else {
+                QVERIFY2(closeDark < 60, qPrintable(QString::number(closeDark)));
+                QVERIFY2(tickDark < background - 100,
+                         qPrintable(QStringLiteral("%1 on %2").arg(tickDark).arg(background)));
+            }
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void stateToolTipStopsSpinningWhileHidden()
     {
         QWidget parent;

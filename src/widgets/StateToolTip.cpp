@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
+#include <FluentQtWidgets/Theme.h>
 
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QTimer>
@@ -16,6 +17,14 @@
 #include <QtWidgets/QToolButton>
 
 namespace FluentQt {
+
+namespace {
+
+// The tooltip sits on the accent colour with text in the opposite theme's colour, and so do its
+// icons: white in the light theme, black in the dark one.
+Theme iconTheme() { return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? Theme::Light : Theme::Dark; }
+
+} // namespace
 
 // --- StateCloseButton ---
 
@@ -71,7 +80,7 @@ void StateCloseButton::paintEvent(QPaintEvent * /*event*/)
         painter.setOpacity(0.8);
     }
 
-    FluentQt::icon(FluentIcon::Close).paint(&painter, rect());
+    FluentQt::icon(FluentIcon::Close, iconTheme()).paint(&painter, rect());
 }
 
 // --- StateToolTip ---
@@ -300,11 +309,11 @@ void StateToolTip::paintEvent(QPaintEvent *event)
         painter.translate(19, 18);
         painter.rotate(m_rotateAngle);
         const QRectF targetRect(-8, -8, 16, 16);
-        icon(FluentIcon::Sync).paint(&painter, targetRect.toRect());
+        icon(FluentIcon::Sync, iconTheme()).paint(&painter, targetRect.toRect());
         painter.restore();
     } else {
         const QRectF targetRect(11, 10, 16, 16);
-        icon(FluentIcon::Completed).paint(&painter, targetRect.toRect());
+        icon(FluentIcon::Completed, iconTheme()).paint(&painter, targetRect.toRect());
     }
 }
 
