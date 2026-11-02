@@ -2,6 +2,7 @@
 
 #include "ScaleSlideAnimation_p.h"
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -246,7 +247,7 @@ void Pivot::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
 
-    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.setBrush(themeColor());
     painter.drawRoundedRect(m_indicatorGeometry, 1.5, 1.5);
 }
 

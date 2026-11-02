@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/Menu.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
@@ -43,10 +44,6 @@ bool isDarkTheme()
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark;
 }
 
-QColor themeColor()
-{
-    return ThemeManager::instance()->accentColor();
-}
 
 QColor acrylicTintColor()
 {

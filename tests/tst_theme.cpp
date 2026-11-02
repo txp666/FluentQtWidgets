@@ -78,6 +78,46 @@ class ThemeTest : public QObject
         QCOMPARE(FluentQt::themeName(FluentQt::Theme::Auto), QStringLiteral("auto"));
     }
 
+    // Painted accents use the per-theme colour, as Python's themeColor() does: in dark mode the
+    // accent is lightened (#009faa becomes #29f1ff), never painted raw.
+    void paintedAccentsUseThePerThemeColor()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setAccentColor(QColor(QStringLiteral("#009faa")));
+        manager->setTheme(FluentQt::Theme::Dark);
+        const QColor primary = FluentQt::themeColor();
+        const QColor raw = manager->accentColor();
+        QVERIFY(primary != raw);
+
+        const auto pixelsNear = [](const QImage &image, const QColor &color) {
+            int count = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor pixel = image.pixelColor(x, y);
+                    if (pixel.alpha() > 200 && qAbs(pixel.red() - color.red()) <= 6 &&
+                        qAbs(pixel.green() - color.green()) <= 6 && qAbs(pixel.blue() - color.blue()) <= 6) {
+                        ++count;
+                    }
+                }
+            }
+            return count;
+        };
+
+        FluentQt::SwitchButton switchButton;
+        switchButton.setChecked(true);
+        FluentQt::InfoBadge badge(QStringLiteral("8"), FluentQt::InfoLevel::Attention);
+        for (QWidget *widget : {static_cast<QWidget *>(&switchButton), static_cast<QWidget *>(&badge)}) {
+            // Away from the offscreen pointer at (0, 0), which would paint the hover colour instead.
+            widget->move(QGuiApplication::primaryScreen()->availableGeometry().topLeft() + QPoint(300, 300));
+            widget->show();
+            QVERIFY(QTest::qWaitForWindowExposed(widget));
+            QTest::qWait(300);
+            const QImage image = widget->grab().toImage();
+            QVERIFY2(pixelsNear(image, primary) > 20, widget->metaObject()->className());
+            QVERIFY2(pixelsNear(image, raw) == 0, widget->metaObject()->className());
+        }
+    }
+
     void accentColorCanChange()
     {
         auto *manager = FluentQt::ThemeManager::instance();

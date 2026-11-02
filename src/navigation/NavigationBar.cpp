@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Navigation/NavigationBar.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
@@ -134,7 +135,7 @@ QColor NavigationBarPushButton::selectedColor() const
 {
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     const QColor custom = dark ? m_darkSelectedColor : m_lightSelectedColor;
-    return custom.isValid() ? custom : ThemeManager::instance()->accentColor();
+    return custom.isValid() ? custom : themeColor();
 }
 
 NavigationBar::NavigationBar(QWidget *parent) : QWidget(parent)

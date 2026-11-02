@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
@@ -206,13 +207,13 @@ QColor InfoBadge::backgroundColor() const
     case InfoLevel::Success:
         return dark ? QColor(108, 203, 95) : QColor(15, 123, 15);
     case InfoLevel::Attention:
-        return ThemeManager::instance()->accentColor();
+        return themeColor();
     case InfoLevel::Warning:
         return dark ? QColor(255, 244, 206) : QColor(157, 93, 0);
     case InfoLevel::Error:
         return dark ? QColor(255, 153, 164) : QColor(196, 43, 28);
     }
-    return ThemeManager::instance()->accentColor();
+    return themeColor();
 }
 
 QString InfoBadge::levelToken() const

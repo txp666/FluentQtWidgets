@@ -1339,7 +1339,7 @@ void HyperlinkButton::drawIcon(QPainter *painter, const QRectF &rect)
         return;
     }
 
-    QColor color = ThemeManager::instance()->accentColor();
+    QColor color = themeColor();
     if (!isEnabled()) {
         color.setAlphaF(0.43f);
     } else if (isPressed()) {

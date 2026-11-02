@@ -2,6 +2,7 @@
 
 #include "../core/FontUtils_p.h"
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -34,7 +35,7 @@ QColor resolvedCheckedColor(const QColor &light, const QColor &dark, Theme theme
 {
     const Theme resolvedTheme = theme == Theme::Auto ? ThemeManager::instance()->effectiveTheme() : theme;
     const QColor color = resolvedTheme == Theme::Dark ? dark : light;
-    return color.isValid() ? color : ThemeManager::instance()->accentColor();
+    return color.isValid() ? color : themeColor();
 }
 
 QString checkBoxIconPath(Qt::CheckState state)

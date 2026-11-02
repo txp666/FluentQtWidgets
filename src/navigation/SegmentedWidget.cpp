@@ -2,6 +2,7 @@
 
 #include "ScaleSlideAnimation_p.h"
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -72,7 +73,7 @@ void SegmentedWidget::paintEvent(QPaintEvent *event)
                             5);
 
     painter.setPen(Qt::NoPen);
-    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.setBrush(themeColor());
     painter.drawRoundedRect(QRectF(animatedX + current->width() / 2.0 - 8.0, height() - 3.5, 16, 3), 1.5,
                             1.5);
 }
@@ -255,7 +256,7 @@ void SegmentedToggleToolWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.setBrush(themeColor());
     painter.drawRoundedRect(QRectF(selection), 4, 4);
 }
 

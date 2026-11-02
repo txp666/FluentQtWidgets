@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -772,7 +773,7 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         painter.setBrush(QColor(base, base, base, rowHovered ? 6 : 10));
         painter.drawRoundedRect(row, 5, 5);
 
-        painter.setBrush(ThemeManager::instance()->accentColor());
+        painter.setBrush(themeColor());
         painter.drawRoundedRect(indicatorRect(), 1.5, 1.5);
     } else if ((rowHovered || m_aboutSelected) && isEnabled()) {
         painter.setPen(Qt::NoPen);

@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/RealtimePlotWidget.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -1804,12 +1805,8 @@ QColor RealtimePlotWidget::effectiveSeriesColor(int seriesIndex) const
     }
 
     const QVector<QColor> palette{
-        ThemeManager::instance()->accentColor(),
-        QColor(22, 163, 74),
-        QColor(245, 158, 11),
-        QColor(239, 68, 68),
-        QColor(139, 92, 246),
-        QColor(14, 165, 233),
+        themeColor(),        QColor(22, 163, 74),  QColor(245, 158, 11),
+        QColor(239, 68, 68), QColor(139, 92, 246), QColor(14, 165, 233),
     };
     return palette.at(seriesIndex < 0 ? 0 : seriesIndex % palette.size());
 }

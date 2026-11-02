@@ -2,10 +2,11 @@
 
 #include "ScaleSlideAnimation_p.h"
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
+#include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
-#include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 
@@ -97,7 +98,7 @@ class NavigationIndicator : public QWidget
         const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
         QColor color = dark ? m_darkColor : m_lightColor;
         if (!color.isValid()) {
-            color = ThemeManager::instance()->accentColor();
+            color = themeColor();
         }
         painter.setBrush(color);
         painter.drawRoundedRect(rect(), 1.5, 1.5);
@@ -429,7 +430,7 @@ void NavigationPanel::setCurrentItem(const QString &routeKey)
     prevItem->setSelected(false);
     prevIndicatorItem->setSelected(false);
     newIndicatorItem->setAboutSelected(true);
-    m_indicator->setIndicatorColor(ThemeManager::instance()->accentColor(), ThemeManager::instance()->accentColor());
+    m_indicator->setIndicatorColor(QColor(), QColor());
     m_indicator->raise();
     m_indicator->startAnimation(startRect, endRect);
 }

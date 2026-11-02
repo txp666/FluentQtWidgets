@@ -105,10 +105,7 @@ void SwitchIndicator::animateToState()
     ani->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
-QColor SwitchIndicator::fallbackCheckedColor() const
-{
-    return ThemeManager::instance()->accentColor();
-}
+QColor SwitchIndicator::fallbackCheckedColor() const { return themeColor(); }
 
 QColor SwitchIndicator::backgroundColor() const
 {

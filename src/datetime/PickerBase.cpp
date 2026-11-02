@@ -139,7 +139,7 @@ void ItemMaskWidget::paintEvent(QPaintEvent *)
 
 QColor ItemMaskWidget::backgroundColor() const
 {
-    const QColor fallback = ThemeManager::instance()->accentColor();
+    const QColor fallback = themeColor();
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     const QColor custom = dark ? m_darkBackgroundColor : m_lightBackgroundColor;
     return custom.isValid() ? custom : fallback;

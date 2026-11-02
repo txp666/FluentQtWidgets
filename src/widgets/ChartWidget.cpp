@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/ChartWidget.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/Theme.h>
 
 #include <QtCore/QEasingCurve>
@@ -109,7 +110,7 @@ QColor gridColor()
 
 QVector<QColor> palette()
 {
-    return {ThemeManager::instance()->accentColor(), QColor(22, 163, 74), QColor(245, 158, 11),
+    return {themeColor(),        QColor(22, 163, 74),  QColor(245, 158, 11),
             QColor(239, 68, 68), QColor(139, 92, 246), QColor(14, 165, 233)};
 }
 
@@ -866,7 +867,7 @@ void drawGauge(QPainter *painter, const QRectF &rect, const QJsonObject &option,
     const qreal animatedValue = value * progress;
     const QVector<QPair<qreal, QColor>> sections{
         {0.35, QColor(34, 197, 94)},
-        {0.75, ThemeManager::instance()->accentColor()},
+        {0.75, themeColor()},
         {1.0, QColor(239, 68, 68)},
     };
 
@@ -917,11 +918,11 @@ void drawGauge(QPainter *painter, const QRectF &rect, const QJsonObject &option,
     QPolygonF needle;
     needle << needleEnd << center + normal * 5.0 << tail << center - normal * 5.0;
     painter->setPen(Qt::NoPen);
-    painter->setBrush(ThemeManager::instance()->accentColor());
+    painter->setBrush(themeColor());
     painter->drawPolygon(needle);
     painter->setBrush(plotColor());
     painter->drawEllipse(center, 7, 7);
-    painter->setBrush(ThemeManager::instance()->accentColor());
+    painter->setBrush(themeColor());
     painter->drawEllipse(center, 4, 4);
 
     QFont font = painter->font();
@@ -1053,7 +1054,7 @@ void drawHeatmap(QPainter *painter, const QRectF &rect, const QJsonObject &optio
     drawFrame(painter, plot);
     const qreal cellWidth = plot.width() / static_cast<qreal>(xLabels.size());
     const qreal cellHeight = plot.height() / static_cast<qreal>(yLabels.size());
-    const QColor accent = ThemeManager::instance()->accentColor();
+    const QColor accent = themeColor();
 
     qreal maximum = 1;
     for (const QJsonValue value : data) {
@@ -1096,7 +1097,7 @@ void drawHeatmap(QPainter *painter, const QRectF &rect, const QJsonObject &optio
     }
 
     if (!hoveredCellRect.isNull()) {
-        painter->setPen(QPen(ThemeManager::instance()->accentColor(), 2));
+        painter->setPen(QPen(themeColor(), 2));
         painter->setBrush(Qt::NoBrush);
         painter->drawRoundedRect(hoveredCellRect.adjusted(-1, -1, 1, 1), 4, 4);
         drawTooltip(painter, rect, hoveredCellRect.center(), hoverLines);
