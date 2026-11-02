@@ -15,12 +15,12 @@ QWidget *GalleryWindow::createMaterialPage()
     const QString imagePath = QStringLiteral(":/gallery/images/chidanta.jpg");
 
     auto *label = new AcrylicLabel(FluentConfig::instance()->acrylicBlurRadius(), QColor(105, 114, 168, 102), page);
-    label->setImagePath(imagePath);
-    label->setMinimumSize(197, 145);
+    label->setImage(imagePath);
     label->setMaximumSize(787, 579);
+    label->setMinimumSize(197, 145);
     connect(FluentConfig::instance(), &FluentConfig::acrylicBlurRadiusChanged, label, [label, imagePath](int radius) {
         label->setBlurRadius(radius);
-        label->setImagePath(imagePath);
+        label->setImage(imagePath);
     });
     page->addExampleCard(tx("MaterialInterface", "Acrylic label"), label, acrylicLabelSource, 1);
 

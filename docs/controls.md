@@ -439,6 +439,15 @@ auto *menu = new FluentQt::AcrylicMenu("Actions", parent);
 their popups. `AcrylicBrush::setScreenCaptureEnabled()` turns screen capture off for the whole application, and
 where a capture is not available (`isScreenCaptureAvailable()`) the surfaces fall back to an opaque tint.
 
+`AcrylicLabel` is Python's: a `QLabel` that blurs an image file on a background thread (`BlurCoverThread`, a
+Gaussian blur at 0.85 brightness), then shows it at the image's size under an `AcrylicTextureLabel` with the tint,
+luminosity and noise layers. `gaussianBlur()` is the blur itself, a port of scipy's `gaussian_filter`.
+
+```cpp
+auto *label = new FluentQt::AcrylicLabel(20, QColor(105, 114, 168, 102));
+label->setImage(":/images/cover.jpg");
+```
+
 ## Media
 
 Built when Qt Multimedia and MultimediaWidgets are found (`FQW_HAS_MULTIMEDIA`).

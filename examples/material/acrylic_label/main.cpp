@@ -14,7 +14,6 @@ int main(int argc, char *argv[])
 
     AcrylicLabel label(20, QColor(105, 114, 168, 102));
     label.setImage(QStringLiteral(":/material/acrylic_label/resource/埃罗芒阿老师.jpg"));
-    label.resize(label.sizeHint());
     label.show();
 
     return app.exec();

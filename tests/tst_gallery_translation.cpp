@@ -460,11 +460,14 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(acrylicLabel->minimumSize(), QSize(197, 145));
         QCOMPARE(acrylicLabel->maximumSize(), QSize(787, 579));
         QCOMPARE(acrylicLabel->blurRadius(), 23);
-        QVERIFY(!acrylicLabel->isNull());
+        QCOMPARE(acrylicLabel->imagePath(), QStringLiteral(":/gallery/images/chidanta.jpg"));
+        QTRY_VERIFY(!acrylicLabel->blurPixmap().isNull());
+        QVERIFY(acrylicLabel->blurThread()->wait());
 
         config->setAcrylicBlurRadius(31);
         QCOMPARE(acrylicLabel->blurRadius(), 31);
-        QVERIFY(!acrylicLabel->isNull());
+        QCOMPARE(acrylicLabel->blurThread()->blurRadius(), 31);
+        QVERIFY(acrylicLabel->blurThread()->wait());
 
         config->setAcrylicBlurRadius(previousAcrylicBlurRadius);
     }

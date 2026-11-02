@@ -1,4 +1,4 @@
-// Acrylic labels and brushes.
+// Acrylic labels and brushes, and the Gaussian blur behind them.
 
 #include <FluentQtWidgets/FluentQtWidgets.h>
 #include <QtCore/QTemporaryDir>
@@ -8,7 +8,10 @@
 #include <QtGui/QPainter>
 #include <QtTest/QtTest>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QWidget>
+
+#include <iterator>
 
 #include "TestSupport.h"
 
@@ -29,45 +32,198 @@ class MaterialTest : public QObject
         m_globalState.reset();
     }
 
-    void acrylicLabelTracksImageAndMaterialProperties()
+    // gaussianBlur against scipy.ndimage.gaussian_filter as Python's image_utils calls it, computed
+    // independently with numpy (symmetric padding, a full correlation, uint8 truncation per pass):
+    // a 9x7 RGB image from the LCG below, at sigma 1.5, at sigma 4 (whose radius-16 kernel reflects
+    // more than once across the image), and at sigma 2 with Python's 0.85 brightness.
+    void gaussianBlurMatchesScipy()
     {
-        QImage image(24, 16, QImage::Format_ARGB32_Premultiplied);
-        image.fill(QColor(20, 80, 180));
+        QFETCH(qreal, sigma);
+        QFETCH(qreal, brightFactor);
+        QFETCH(QList<int>, expected);
 
-        FluentQt::AcrylicLabel label(15, QColor(105, 114, 168, 102));
-        QCOMPARE(label.property("fqw").toString(), QStringLiteral("AcrylicLabel"));
-        QCOMPARE(label.blurRadius(), 15);
-        QCOMPARE(label.tintColor(), QColor(105, 114, 168, 102));
+        const QImage source = lcgImage(9, 7);
+        const QImage blurred = FluentQt::gaussianBlur(source, sigma, brightFactor);
+        QCOMPARE(blurred.format(), QImage::Format_RGB888);
+        QCOMPARE(blurred.size(), QSize(9, 7));
+        QList<int> actual;
+        for (int y = 0; y < 7; ++y) {
+            const uchar *line = blurred.constScanLine(y);
+            for (int i = 0; i < 9 * 3; ++i) {
+                actual.append(line[i]);
+            }
+        }
+        QCOMPARE(actual, expected);
+    }
 
-        QSignalSpy blurSpy(&label, &FluentQt::AcrylicLabel::blurRadiusChanged);
-        label.setBlurRadius(4);
-        QCOMPARE(label.blurRadius(), 4);
-        QCOMPARE(blurSpy.count(), 1);
+    void gaussianBlurMatchesScipy_data()
+    {
+        const int kSigma1_5[] = {
+            156, 46,  124, 145, 62,  131, 138, 83,  131, 137, 100, 118, 134, 110, 108, 127, 117, 115, 117, 117, 130,
+            104, 110, 137, 96,  100, 137, 152, 57,  127, 144, 71,  133, 140, 89,  132, 139, 102, 121, 136, 112, 113,
+            128, 121, 119, 120, 126, 131, 115, 122, 138, 112, 116, 139, 149, 77,  132, 145, 87,  135, 143, 99,  133,
+            142, 106, 125, 138, 114, 119, 131, 125, 124, 130, 134, 133, 134, 137, 139, 138, 135, 139, 148, 100, 133,
+            147, 106, 134, 146, 110, 132, 143, 113, 128, 138, 117, 125, 135, 127, 126, 139, 137, 132, 151, 143, 136,
+            161, 145, 139, 149, 124, 133, 149, 124, 134, 146, 124, 134, 140, 123, 132, 136, 123, 130, 134, 128, 128,
+            140, 134, 128, 153, 140, 132, 165, 143, 136, 149, 142, 134, 148, 139, 135, 142, 135, 136, 135, 133, 137,
+            130, 130, 136, 126, 129, 132, 127, 129, 128, 135, 132, 129, 145, 135, 133, 147, 151, 136, 145, 146, 136,
+            139, 142, 138, 132, 139, 141, 126, 135, 142, 118, 130, 138, 113, 126, 130, 116, 126, 128, 124, 128, 131};
+        const int kSigma4[] = {
+            141, 105, 129, 140, 106, 129, 139, 108, 129, 137, 110, 129, 136, 113, 130, 134, 116, 130, 133, 119, 130,
+            132, 120, 130, 131, 121, 131, 141, 106, 130, 140, 107, 130, 139, 109, 130, 138, 112, 130, 136, 114, 130,
+            134, 117, 130, 133, 119, 130, 132, 121, 131, 132, 122, 131, 141, 109, 130, 140, 110, 130, 139, 112, 130,
+            138, 114, 130, 136, 116, 130, 135, 119, 131, 133, 121, 131, 132, 122, 131, 132, 123, 131, 141, 112, 131,
+            140, 113, 131, 139, 114, 131, 138, 116, 131, 136, 119, 131, 135, 121, 131, 134, 122, 131, 133, 124, 131,
+            133, 124, 131, 141, 115, 132, 140, 116, 132, 139, 117, 131, 138, 119, 131, 137, 121, 131, 135, 122, 131,
+            134, 124, 131, 133, 125, 131, 133, 126, 131, 141, 118, 132, 140, 119, 132, 139, 120, 132, 138, 121, 132,
+            137, 123, 132, 136, 124, 132, 135, 125, 132, 134, 126, 132, 134, 127, 132, 141, 120, 132, 140, 120, 132,
+            139, 121, 132, 138, 122, 132, 137, 124, 132, 136, 125, 132, 135, 126, 132, 134, 127, 132, 134, 127, 132};
+        const int kSigma2Bright[] = {
+            125, 55,  109, 123, 62,  109, 119, 73,  107, 116, 84,  103, 113, 92,  102, 107, 97,  103, 102, 100, 108,
+            97,  99,  113, 94,  97,  115, 125, 62,  110, 124, 68,  110, 120, 77,  108, 117, 86,  105, 113, 95,  103,
+            110, 100, 105, 106, 103, 109, 103, 103, 113, 102, 102, 116, 124, 73,  111, 124, 78,  111, 121, 84,  109,
+            119, 91,  107, 115, 97,  105, 113, 103, 107, 112, 107, 110, 112, 109, 113, 113, 110, 116, 124, 88,  113,
+            124, 90,  112, 121, 94,  111, 119, 97,  109, 116, 102, 108, 114, 107, 108, 116, 111, 111, 119, 113, 113,
+            121, 115, 114, 125, 102, 113, 124, 102, 113, 121, 103, 113, 118, 104, 112, 115, 106, 111, 113, 108, 110,
+            115, 112, 111, 119, 114, 112, 123, 116, 113, 124, 113, 114, 123, 113, 114, 119, 111, 114, 116, 110, 114,
+            112, 109, 113, 110, 110, 112, 111, 111, 111, 114, 112, 111, 117, 113, 112, 124, 119, 114, 122, 118, 115,
+            119, 116, 116, 114, 113, 116, 110, 112, 115, 107, 110, 113, 107, 110, 111, 109, 110, 111, 111, 111, 111};
 
-        label.setImage(image);
-        QVERIFY(!label.isNull());
-        QCOMPARE(label.image().size(), QSize(24, 16));
-        label.resize(80, 48);
+        QTest::addColumn<qreal>("sigma");
+        QTest::addColumn<qreal>("brightFactor");
+        QTest::addColumn<QList<int>>("expected");
+        auto list = [](const int *values, int size) { return QList<int>(values, values + size); };
+        QTest::newRow("sigma 1.5") << 1.5 << 1.0 << list(kSigma1_5, int(std::size(kSigma1_5)));
+        QTest::newRow("sigma 4") << 4.0 << 1.0 << list(kSigma4, int(std::size(kSigma4)));
+        QTest::newRow("sigma 2, 0.85") << 2.0 << 0.85 << list(kSigma2Bright, int(std::size(kSigma2Bright)));
+    }
 
-        QImage rendered(label.size(), QImage::Format_ARGB32_Premultiplied);
+    void gaussianBlurShrinksToBlurPicSizeAndKeepsAlpha()
+    {
+        QImage source(40, 20, QImage::Format_ARGB32);
+        for (int y = 0; y < source.height(); ++y) {
+            for (int x = 0; x < source.width(); ++x) {
+                source.setPixelColor(x, y, QColor(x * 6, y * 12, 90, 40 + x * 5));
+            }
+        }
+
+        // The smaller ratio wins, and only shrinking happens (PIL's resize in Python).
+        QCOMPARE(FluentQt::gaussianBlur(source, 2, 1, QSize(10, 10)).size(), QSize(10, 5));
+        QCOMPARE(FluentQt::gaussianBlur(source, 2, 1, QSize(80, 80)).size(), QSize(40, 20));
+
+        const QImage blurred = FluentQt::gaussianBlur(source, 3);
+        QCOMPARE(blurred.format(), QImage::Format_RGBA8888);
+        for (int x = 0; x < source.width(); ++x) {
+            QCOMPARE(blurred.pixelColor(x, 10).alpha(), source.pixelColor(x, 10).alpha());
+        }
+        // Sigma 0 leaves the image alone, as gaussian_filter does.
+        const QImage unblurred = FluentQt::gaussianBlur(source, 0);
+        QCOMPARE(unblurred.convertToFormat(QImage::Format_ARGB32), source);
+    }
+
+    // Python's BlurCoverThread: blurs on a worker thread at 0.85 brightness and caps the image at
+    // 450 px unless told otherwise.
+    void blurCoverThreadBlursOffTheGuiThread()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString path = dir.filePath(QStringLiteral("cover.png"));
+        QVERIFY(lcgImage(900, 300).save(path));
+
+        FluentQt::BlurCoverThread thread;
+        QSignalSpy finished(&thread, &FluentQt::BlurCoverThread::blurFinished);
+        QThread *emittingThread = nullptr;
+        connect(
+            &thread, &FluentQt::BlurCoverThread::blurFinished, this,
+            [&emittingThread]() { emittingThread = QThread::currentThread(); }, Qt::DirectConnection);
+        thread.blur(path, 1);
+        QTRY_COMPARE(finished.count(), 1);
+        QVERIFY(emittingThread != QThread::currentThread());
+        QCOMPARE(thread.maxSize(), QSize(450, 450));
+        const QImage image = finished.constFirst().constFirst().value<QImage>();
+        QCOMPARE(image, FluentQt::gaussianBlur(path, 1, 0.85, QSize(450, 450)));
+        QCOMPARE(image.size(), QSize(450, 150));
+
+        // An invalid size keeps the previous one, like Python's `maxSize or self.maxSize`.
+        QVERIFY(thread.wait());
+        thread.blur(path, 2, QSize());
+        QTRY_COMPARE(finished.count(), 2);
+        QCOMPARE(thread.maxSize(), QSize(450, 450));
+        QCOMPARE(thread.blurRadius(), 2);
+    }
+
+    // Python's AcrylicLabel is a QLabel that shows the blurred image as its pixmap, takes the
+    // image's size, and has an AcrylicTextureLabel on top for the tint, luminosity and noise.
+    void acrylicLabelIsPythonsQLabel()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString path = dir.filePath(QStringLiteral("acrylic.png"));
+        QVERIFY(lcgImage(300, 150).save(path));
+
+        FluentQt::AcrylicLabel label(2, QColor(105, 114, 168, 102));
+        QVERIFY(qobject_cast<QLabel *>(&label) != nullptr);
+        QCOMPARE(label.blurRadius(), 2);
+        QVERIFY(!label.maxBlurSize().isValid());
+        FluentQt::AcrylicTextureLabel *texture = label.acrylicTextureLabel();
+        QVERIFY(texture != nullptr);
+        QCOMPARE(texture->parentWidget(), &label);
+        QCOMPARE(texture->tintColor(), QColor(105, 114, 168, 102));
+        QCOMPARE(texture->luminosityColor(), QColor(255, 255, 255, 0));
+        QCOMPARE(texture->noiseOpacity(), 0.03);
+        QVERIFY(!texture->noiseImage().isNull());
+        QVERIFY(texture->testAttribute(Qt::WA_TranslucentBackground));
+
+        label.show();
+        label.setImage(path);
+        QCOMPARE(label.imagePath(), path);
+        QTRY_VERIFY(!label.blurPixmap().isNull());
+        // No size limit unless one is given: Python passes maxBlurSize (None) to the thread.
+        const QImage expected = FluentQt::gaussianBlur(path, 2, 0.85);
+        QCOMPARE(label.blurPixmap().toImage().convertToFormat(QImage::Format_RGB888), expected);
+        QCOMPARE(label.size(), QSize(300, 150));
+        QCOMPARE(texture->size(), label.size());
+
+        label.resize(100, 100);
+        QCOMPARE(texture->size(), QSize(100, 100));
+        QCOMPARE(label.pixmap().size(), QSize(200, 100));
+
+        label.setTintColor(QColor(10, 20, 30, 40));
+        QCOMPARE(texture->tintColor(), QColor(10, 20, 30, 40));
+
+        // The blur radius applies from the next setImage(), as in Python's gallery.
+        label.setBlurRadius(3);
+        QCOMPARE(label.blurRadius(), 3);
+        QCOMPARE(label.blurPixmap().toImage().convertToFormat(QImage::Format_RGB888), expected);
+        label.setMaxBlurSize(QSize(100, 100));
+        label.setImage(path);
+        QTRY_COMPARE(label.blurPixmap().size(), QSize(100, 50));
+        QCOMPARE(label.blurPixmap().toImage().convertToFormat(QImage::Format_RGB888),
+                 FluentQt::gaussianBlur(path, 3, 0.85, QSize(100, 100)));
+        QCOMPARE(label.size(), QSize(100, 50));
+    }
+
+    void acrylicTextureLabelPaintsTheTextureLayers()
+    {
+        FluentQt::AcrylicTextureLabel texture(QColor(0, 0, 255, 255), QColor(255, 0, 0, 255), 0);
+        texture.resize(20, 20);
+        QImage rendered(texture.size(), QImage::Format_ARGB32_Premultiplied);
         rendered.fill(Qt::transparent);
-        QPainter painter(&rendered);
-        label.render(&painter);
-        painter.end();
-        QVERIFY(qAlpha(rendered.pixel(10, 10)) > 0);
+        texture.render(&rendered);
+        QCOMPARE(rendered.pixelColor(10, 10), QColor(0, 0, 255));
 
-        QTemporaryDir acrylicDir;
-        QVERIFY(acrylicDir.isValid());
-        const QString acrylicPath = acrylicDir.filePath(QStringLiteral("acrylic.png"));
-        QVERIFY(image.save(acrylicPath));
-        FluentQt::AcrylicLabel pathLabel(acrylicPath);
-        QVERIFY(!pathLabel.isNull());
-        QCOMPARE(pathLabel.image().size(), QSize(24, 16));
-        pathLabel.setImage(QImage());
-        QVERIFY(pathLabel.isNull());
-        QVERIFY(pathLabel.setImage(acrylicPath));
-        QVERIFY(!pathLabel.isNull());
-        QVERIFY(!label.setImagePath(QStringLiteral("__missing_acrylic_image__.png")));
+        texture.setTintColor(QColor(0, 0, 0, 0));
+        QCOMPARE(texture.tintColor(), QColor(0, 0, 0, 0));
+        rendered.fill(Qt::transparent);
+        texture.render(&rendered);
+        QCOMPARE(rendered.pixelColor(10, 10), QColor(255, 0, 0));
+    }
+
+    void acrylicBrushBlursLikePython()
+    {
+        QImage image(24, 16, QImage::Format_RGB32);
+        image.fill(QColor(20, 80, 180));
+        image.setPixelColor(5, 5, Qt::white);
 
         QWidget brushDevice;
         brushDevice.resize(40, 30);
@@ -93,22 +249,29 @@ class MaterialTest : public QObject
 
         brush.setImage(image);
         QVERIFY(!brush.isNull());
-        QCOMPARE(brush.originalImage().size(), QSize(24, 16));
-        QVERIFY(!brush.image().isNull());
-        brush.setBlurPicSize(QSize(18, 18));
-        QCOMPARE(brush.blurPicSize(), QSize(18, 18));
+        QCOMPARE(brush.originalImage(), image);
+        QCOMPARE(brush.image(), FluentQt::gaussianBlur(image, 15));
+
+        // Python's setBlurPicSize only applies to the next image; setBlurRadius re-blurs.
+        brush.setBlurPicSize(QSize(12, 12));
+        QCOMPARE(brush.blurPicSize(), QSize(12, 12));
+        QCOMPARE(brush.image().size(), QSize(24, 16));
+        brush.setBlurRadius(2);
+        QCOMPARE(brush.image(), FluentQt::gaussianBlur(image, 2, 1, QSize(12, 12)));
+        QCOMPARE(brush.image().size(), QSize(12, 8));
+
         brush.setTintColor(QColor(32, 32, 32, 200));
         brush.setLuminosityColor(QColor(0, 0, 0, 0));
         brush.setNoiseOpacity(0.2);
         QCOMPARE(brush.tintColor(), QColor(32, 32, 32, 200));
         QCOMPARE(brush.luminosityColor(), QColor(0, 0, 0, 0));
         QCOMPARE(brush.noiseOpacity(), 0.2);
-        QVERIFY(!brush.textureImage().isNull());
+        QCOMPARE(brush.textureImage().size(), QSize(64, 64));
 
         QPainterPath clipPath;
         clipPath.addRoundedRect(QRectF(brushDevice.rect()), 4, 4);
         brush.setClipPath(clipPath);
-        QVERIFY(!brush.clipPath().isEmpty());
+        QCOMPARE(brush.clipPath(), clipPath);
 
         QImage brushRendered(brushDevice.size(), QImage::Format_ARGB32_Premultiplied);
         brushRendered.fill(Qt::transparent);
@@ -116,11 +279,31 @@ class MaterialTest : public QObject
         brush.paint(&brushPainter);
         brushPainter.end();
         QVERIFY(qAlpha(brushRendered.pixel(brushRendered.rect().center())) > 0);
-        QVERIFY(brush.setImagePath(acrylicPath));
-        QVERIFY(!brush.setImagePath(QStringLiteral("__missing_acrylic_brush__.png")));
+
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString path = dir.filePath(QStringLiteral("brush.png"));
+        QVERIFY(image.save(path));
+        QVERIFY(brush.setImage(path));
+        QCOMPARE(brush.originalImage().size(), QSize(24, 16));
+        QVERIFY(!brush.setImage(QStringLiteral("__missing_acrylic_brush__.png")));
     }
 
   private:
+    static QImage lcgImage(int width, int height)
+    {
+        QImage image(width, height, QImage::Format_RGB888);
+        quint32 state = 12345;
+        for (int y = 0; y < height; ++y) {
+            uchar *line = image.scanLine(y);
+            for (int i = 0; i < width * 3; ++i) {
+                state = (state * 1103515245u + 12345u) & 0x7fffffffu;
+                line[i] = uchar((state >> 16) & 255);
+            }
+        }
+        return image;
+    }
+
     std::optional<FqwTest::GlobalState> m_globalState;
 };
 

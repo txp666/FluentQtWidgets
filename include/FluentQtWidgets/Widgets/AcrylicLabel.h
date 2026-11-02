@@ -2,18 +2,126 @@
 
 #include <FluentQtWidgets/Global.h>
 
-#include <QtCore/QSize>
+#include <QtCore/QMutex>
 #include <QtCore/QRect>
+#include <QtCore/QSize>
 #include <QtCore/QString>
+#include <QtCore/QThread>
 #include <QtGui/QColor>
 #include <QtGui/QImage>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPixmap>
-#include <QtWidgets/QWidget>
+#include <QtWidgets/QLabel>
 
 class QPainter;
 
 namespace FluentQt {
+
+// Port of qfluentwidgets.common.image_utils.gaussianBlur: scipy.ndimage.gaussian_filter with sigma
+// blurRadius (kernel radius int(4 * sigma + 0.5), "reflect" edges) on each colour channel, rows then
+// columns, each pass truncated to 8 bits like scipy's uint8 output; alpha stays as it is. The colour
+// channels are then multiplied by brightFactor. A valid blurPicSize first shrinks a larger image to
+// fit inside it. Returns an RGB888 image, or RGBA8888 when the source has alpha. Python returns a
+// QPixmap; this returns a QImage so that it can run on a worker thread.
+FQW_API QImage gaussianBlur(const QImage &image, qreal blurRadius = 18, qreal brightFactor = 1,
+                            const QSize &blurPicSize = QSize());
+FQW_API QImage gaussianBlur(const QString &imagePath, qreal blurRadius = 18, qreal brightFactor = 1,
+                            const QSize &blurPicSize = QSize());
+
+// Blurs an image file on a background thread, at 0.85 brightness, like Python's BlurCoverThread.
+class FQW_API BlurCoverThread : public QThread
+{
+    Q_OBJECT
+
+  public:
+    explicit BlurCoverThread(QObject *parent = nullptr);
+    ~BlurCoverThread() override;
+
+    QString imagePath() const;
+    int blurRadius() const;
+    QSize maxSize() const;
+
+    // An invalid maxSize keeps the previous one (Python's `maxSize or self.maxSize`). A request made
+    // while a blur is running is blurred once that one is done.
+    void blur(const QString &imagePath, int blurRadius = 6, const QSize &maxSize = QSize(450, 450));
+
+  signals:
+    // Python emits a QPixmap; pixmaps cannot be made off the GUI thread in C++.
+    void blurFinished(const QImage &image);
+
+  protected:
+    void run() override;
+
+  private:
+    mutable QMutex m_mutex;
+    QString m_imagePath;
+    int m_blurRadius = 7;
+    QSize m_maxSize;
+    bool m_pending = false;
+};
+
+// The tint, luminosity and noise layers drawn over an AcrylicLabel's blurred image.
+class FQW_API AcrylicTextureLabel : public QLabel
+{
+    Q_OBJECT
+
+  public:
+    AcrylicTextureLabel(const QColor &tintColor, const QColor &luminosityColor, qreal noiseOpacity = 0.03,
+                        QWidget *parent = nullptr);
+
+    QColor tintColor() const;
+    QColor luminosityColor() const;
+    qreal noiseOpacity() const;
+    QImage noiseImage() const;
+    void setTintColor(const QColor &color);
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+
+  private:
+    QColor m_tintColor;
+    QColor m_luminosityColor;
+    qreal m_noiseOpacity = 0.03;
+    QImage m_noiseImage;
+};
+
+class FQW_API AcrylicLabel : public QLabel
+{
+    Q_OBJECT
+
+  public:
+    // An invalid maxBlurSize blurs the image at its own size.
+    AcrylicLabel(int blurRadius, const QColor &tintColor, const QColor &luminosityColor = QColor(255, 255, 255, 0),
+                 const QSize &maxBlurSize = QSize(), QWidget *parent = nullptr);
+    AcrylicLabel(int blurRadius, const QColor &tintColor, QWidget *parent);
+
+    QString imagePath() const;
+    QPixmap blurPixmap() const;
+    // Used by the next setImage(), like assigning Python's blurRadius attribute.
+    int blurRadius() const;
+    void setBlurRadius(int radius);
+    QSize maxBlurSize() const;
+    void setMaxBlurSize(const QSize &size);
+    AcrylicTextureLabel *acrylicTextureLabel() const;
+    BlurCoverThread *blurThread() const;
+
+    // Blurs the image on blurThread(); the label shows it, and takes its size, once that is done.
+    void setImage(const QString &imagePath);
+    void setTintColor(const QColor &color);
+
+  protected:
+    void resizeEvent(QResizeEvent *event) override;
+
+  private:
+    void onBlurFinished(const QImage &image);
+
+    QString m_imagePath;
+    QPixmap m_blurPixmap;
+    int m_blurRadius = 0;
+    QSize m_maxBlurSize;
+    AcrylicTextureLabel *m_acrylicTextureLabel = nullptr;
+    BlurCoverThread *m_blurThread = nullptr;
+};
 
 class FQW_API AcrylicBrush
 {
@@ -37,11 +145,13 @@ class FQW_API AcrylicBrush
     bool isNull() const;
     bool isAvailable() const;
 
+    // Re-blurs the current image.
     void setBlurRadius(int radius);
     void setTintColor(const QColor &color);
     void setLuminosityColor(const QColor &color);
     void setNoiseOpacity(qreal opacity);
     void setClipPath(const QPainterPath &path);
+    // Applies from the next image on, like Python's.
     void setBlurPicSize(const QSize &size);
     // Captures the screen behind globalRect, when screen capture is available; otherwise the
     // brush paints an opaque tint instead.
@@ -49,7 +159,6 @@ class FQW_API AcrylicBrush
     void setImage(const QImage &image);
     void setPixmap(const QPixmap &pixmap);
     bool setImage(const QString &path);
-    bool setImagePath(const QString &path);
     QImage textureImage() const;
     void paint(QPainter *painter = nullptr);
 
@@ -62,73 +171,15 @@ class FQW_API AcrylicBrush
     static bool isScreenCaptureAvailable();
 
   private:
-    void invalidateCache();
-    QImage blurredImage(const QImage &image) const;
-
     QWidget *m_device = nullptr;
     QImage m_originalImage;
     QImage m_image;
-    QImage m_cachedImage;
     QSize m_blurPicSize;
     int m_blurRadius = 30;
     QColor m_tintColor = QColor(242, 242, 242, 150);
     QColor m_luminosityColor = QColor(255, 255, 255, 10);
     qreal m_noiseOpacity = 0.03;
     QPainterPath m_clipPath;
-};
-
-class FQW_API AcrylicLabel : public QWidget
-{
-    Q_OBJECT
-    Q_PROPERTY(int blurRadius READ blurRadius WRITE setBlurRadius NOTIFY blurRadiusChanged)
-    Q_PROPERTY(QColor tintColor READ tintColor WRITE setTintColor NOTIFY tintColorChanged)
-    Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
-
-  public:
-    explicit AcrylicLabel(QWidget *parent = nullptr);
-    AcrylicLabel(int blurRadius, const QColor &tintColor, QWidget *parent = nullptr);
-    explicit AcrylicLabel(const QImage &image, QWidget *parent = nullptr);
-    explicit AcrylicLabel(const QPixmap &pixmap, QWidget *parent = nullptr);
-    explicit AcrylicLabel(const QString &imagePath, QWidget *parent = nullptr);
-
-    int blurRadius() const;
-    QColor tintColor() const;
-    Qt::AspectRatioMode aspectRatioMode() const;
-    QImage image() const;
-    QPixmap pixmap() const;
-    bool isNull() const;
-    QSize sizeHint() const override;
-
-  public slots:
-    void setBlurRadius(int radius);
-    void setTintColor(const QColor &color);
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-    void setImage(const QImage &image);
-    bool setImage(const QString &path);
-    void setPixmap(const QPixmap &pixmap);
-    bool setImagePath(const QString &path);
-
-  signals:
-    void blurRadiusChanged(int radius);
-    void tintColorChanged(const QColor &color);
-
-  protected:
-    void paintEvent(QPaintEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-
-  private:
-    void invalidateCache();
-    QImage scaledImageForPaint(qreal devicePixelRatio) const;
-    QImage blurredImage(const QImage &image) const;
-
-    QImage m_image;
-    mutable QImage m_cachedImage;
-    mutable QSize m_cachedDeviceSize;
-    mutable qreal m_cachedDevicePixelRatio = 1.0;
-    mutable int m_cachedBlurRadius = -1;
-    int m_blurRadius = 15;
-    QColor m_tintColor = QColor(105, 114, 168, 102);
-    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatioByExpanding;
 };
 
 } // namespace FluentQt
