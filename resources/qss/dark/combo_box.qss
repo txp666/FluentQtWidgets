@@ -1,9 +1,6 @@
 QPushButton[fqw="ComboBox"],
 QPushButton[fqw="AcrylicComboBox"],
-QPushButton[fqw="ModelComboBox"],
-QLineEdit[fqw="EditableComboBox"],
-QLineEdit[fqw="AcrylicEditableComboBox"],
-QLineEdit[fqw="EditableModelComboBox"] {
+QPushButton[fqw="ModelComboBox"] {
     border: 1px solid rgba(255, 255, 255, 0.053);
     border-radius: 5px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -17,19 +14,13 @@ QLineEdit[fqw="EditableModelComboBox"] {
 
 QPushButton[fqw="ComboBox"]:hover,
 QPushButton[fqw="AcrylicComboBox"]:hover,
-QPushButton[fqw="ModelComboBox"]:hover,
-QLineEdit[fqw="EditableComboBox"]:hover,
-QLineEdit[fqw="AcrylicEditableComboBox"]:hover,
-QLineEdit[fqw="EditableModelComboBox"]:hover {
+QPushButton[fqw="ModelComboBox"]:hover {
     background-color: rgba(255, 255, 255, 0.0837);
 }
 
 QPushButton[fqw="ComboBox"]:pressed,
 QPushButton[fqw="AcrylicComboBox"]:pressed,
-QPushButton[fqw="ModelComboBox"]:pressed,
-QLineEdit[fqw="EditableComboBox"]:pressed,
-QLineEdit[fqw="AcrylicEditableComboBox"]:pressed,
-QLineEdit[fqw="EditableModelComboBox"]:pressed {
+QPushButton[fqw="ModelComboBox"]:pressed {
     background-color: rgba(255, 255, 255, 0.0326);
     border-top: 1px solid rgba(255, 255, 255, 0.053);
     color: rgba(255, 255, 255, 0.63);
@@ -37,10 +28,7 @@ QLineEdit[fqw="EditableModelComboBox"]:pressed {
 
 QPushButton[fqw="ComboBox"]:disabled,
 QPushButton[fqw="AcrylicComboBox"]:disabled,
-QPushButton[fqw="ModelComboBox"]:disabled,
-QLineEdit[fqw="EditableComboBox"]:disabled,
-QLineEdit[fqw="AcrylicEditableComboBox"]:disabled,
-QLineEdit[fqw="EditableModelComboBox"]:disabled {
+QPushButton[fqw="ModelComboBox"]:disabled {
     color: rgba(255, 255, 255, 0.3628);
     background: rgba(255, 255, 255, 0.0419);
     border: 1px solid rgba(255, 255, 255, 0.053);
@@ -49,9 +37,49 @@ QLineEdit[fqw="EditableModelComboBox"]:disabled {
 
 QPushButton[fqw="ComboBox"][isPlaceholderText="true"],
 QPushButton[fqw="AcrylicComboBox"][isPlaceholderText="true"],
-QPushButton[fqw="ModelComboBox"][isPlaceholderText="true"],
-QLineEdit[fqw="EditableComboBox"][isPlaceholderText="true"],
-QLineEdit[fqw="AcrylicEditableComboBox"][isPlaceholderText="true"],
-QLineEdit[fqw="EditableModelComboBox"][isPlaceholderText="true"] {
+QPushButton[fqw="ModelComboBox"][isPlaceholderText="true"] {
     color: rgba(255, 255, 255, 0.6063);
+}
+
+/* Python's editable combo boxes are line edits, styled by line_edit.qss. */
+
+QLineEdit[fqw="EditableComboBox"],
+QLineEdit[fqw="AcrylicEditableComboBox"],
+QLineEdit[fqw="EditableModelComboBox"] {
+    color: white;
+    font: 14px --FontFamilies;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5442);
+    border-radius: 5px;
+    padding: 0px 10px;
+    background-color: rgba(255, 255, 255, 0.0605);
+    selection-background-color: @accentColor;
+    selection-color: black;
+}
+
+QLineEdit[fqw="EditableComboBox"]:hover,
+QLineEdit[fqw="AcrylicEditableComboBox"]:hover,
+QLineEdit[fqw="EditableModelComboBox"]:hover {
+    background-color: rgba(255, 255, 255, 0.0837);
+}
+
+QLineEdit[fqw="EditableComboBox"][transparent="true"]:focus,
+QLineEdit[fqw="AcrylicEditableComboBox"][transparent="true"]:focus,
+QLineEdit[fqw="EditableModelComboBox"][transparent="true"]:focus {
+    background: rgba(30, 30, 30, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+QLineEdit[fqw="EditableComboBox"][transparent="false"]:focus,
+QLineEdit[fqw="AcrylicEditableComboBox"][transparent="false"]:focus,
+QLineEdit[fqw="EditableModelComboBox"][transparent="false"]:focus {
+    background: rgb(31, 31, 31);
+}
+
+QLineEdit[fqw="EditableComboBox"]:disabled,
+QLineEdit[fqw="AcrylicEditableComboBox"]:disabled,
+QLineEdit[fqw="EditableModelComboBox"]:disabled {
+    color: rgba(255, 255, 255, 92);
+    background-color: rgba(255, 255, 255, 0.0419);
+    border: 1px solid rgba(255, 255, 255, 0.0698);
 }

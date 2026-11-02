@@ -394,6 +394,36 @@ class ComboBoxTest : public QObject
         verify(modelCombo, QStringLiteral("EditableModelComboBox"));
     }
 
+    // Python's editable combo boxes are line edits and take line_edit.qss: 10 px side padding and
+    // the line edit's colours, with 29 px of text margin for the drop button. The port gave them
+    // the combo box's 11/31 px padding on top of that margin, 22 px wider than Python.
+    void editableCombosLookLikeLineEdits()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            LineEdit line;
+            EditableComboBox editable;
+            EditableModelComboBox editableModel;
+            for (QLineEdit *edit : std::initializer_list<QLineEdit *>{&line, &editable, &editableModel}) {
+                edit->ensurePolished();
+                edit->resize(200, 33);
+            }
+            QCOMPARE(editable.sizeHint(), line.sizeHint() + QSize(29, 0));
+            QCOMPARE(editableModel.sizeHint(), line.sizeHint() + QSize(29, 0));
+
+            // Same border and fill as a line edit, left of the drop button.
+            const QImage lineImage = line.grab().toImage();
+            for (QLineEdit *edit : std::initializer_list<QLineEdit *>{&editable, &editableModel}) {
+                const QImage image = edit->grab().toImage();
+                for (const QPoint &point : {QPoint(1, 16), QPoint(20, 1), QPoint(20, 16), QPoint(20, 32)}) {
+                    const qreal ratio = image.devicePixelRatio();
+                    const QPoint pixel(qRound(point.x() * ratio), qRound(point.y() * ratio));
+                    QCOMPARE(image.pixelColor(pixel), lineImage.pixelColor(pixel));
+                }
+            }
+        }
+    }
+
     void editableCombosClearButtonClearsText()
     {
         EditableComboBox combo;
