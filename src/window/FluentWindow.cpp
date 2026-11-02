@@ -6,6 +6,7 @@
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
+#include <FluentQtWidgets/Widgets/Label.h>
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
 
@@ -121,6 +122,23 @@ void setTitleBarNavigationBackground(FluentTitleBar *titleBar, bool visible)
 
     titleBar->setProperty("navigationBackground", visible);
     FluentStyleSheet::polish(titleBar);
+}
+
+// Python's title bars place the window icon and title differently: FluentTitleBar starts at its
+// left edge, MSFluentTitleBar 20 px in with 2 px before the title, and SplitTitleBar 12 px right of
+// the navigation panel's 46 px. The title's side padding is 4, 10 and 5 px.
+void setTitleBarIconPlacement(FluentTitleBar *titleBar, int leading, int iconGap, int titlePadding)
+{
+    auto *layout = titleBar ? qobject_cast<QHBoxLayout *>(titleBar->layout()) : nullptr;
+    if (!layout) {
+        return;
+    }
+
+    layout->setContentsMargins(leading, 0, 0, 0);
+    if (iconGap > 0) {
+        layout->insertSpacing(layout->indexOf(titleBar->iconLabel()) + 1, iconGap);
+    }
+    titleBar->titleLabel()->setContentsMargins(titlePadding, 0, titlePadding, 0);
 }
 
 #if defined(Q_OS_WIN)
@@ -584,6 +602,7 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     m_history = new NavigationHistory(this);
     m_titleBar = new FluentTitleBar(this);
     setTitleBarNavigationBackground(m_titleBar, true);
+    setTitleBarIconPlacement(m_titleBar, 0, 0, 4);
     m_frameless->setTitleBar(m_titleBar);
 
     m_container = new QWidget(this);
@@ -935,6 +954,7 @@ void FluentWindow::updateWindowMask()
 SplitFluentWindow::SplitFluentWindow(QWidget *parent) : FluentWindow(parent)
 {
     setTitleBarNavigationBackground(titleBar(), false);
+    setTitleBarIconPlacement(titleBar(), 46 + 12, 0, 5);
     setTitleBarLeftMargin(0);
     setContentTopMargin(0);
     titleBar()->raise();
@@ -954,6 +974,7 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
 
     m_frameless = std::make_unique<FramelessWindowHelper>(this);
     m_titleBar = new FluentTitleBar(this);
+    setTitleBarIconPlacement(m_titleBar, 20, 2, 10);
     m_frameless->setTitleBar(m_titleBar);
 
     m_container = new QWidget(this);

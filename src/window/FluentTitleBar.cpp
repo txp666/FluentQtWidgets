@@ -15,6 +15,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QVBoxLayout>
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
@@ -261,12 +262,18 @@ void FluentTitleBar::initLayout()
 {
     auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(16, 0, 0, 0);
-    layout->setSpacing(4);
+    layout->setSpacing(0);
 
     m_iconLabel = new QLabel(this);
     m_iconLabel->setFixedSize(18, 18);
     m_titleLabel = new CaptionLabel(this);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
+    // Python's fluent_window.qss sets the title to 13 px black (white) with 4 px of padding on each
+    // side; the windows change the padding as Python's MSFluentTitleBar and SplitTitleBar do.
+    m_titleLabel->setContentsMargins(4, 0, 4, 0);
+    FluentStyleSheet::setCustomStyleSheet(
+        m_titleLabel, QStringLiteral("QLabel#titleLabel { color: black; font-size: 13px; }"),
+        QStringLiteral("QLabel#titleLabel { color: white; font-size: 13px; }"));
 
     m_minButton = new TitleBarToolButton(TitleBarSymbol::Minimize, this);
     m_minButton->setObjectName(QStringLiteral("MinimizeButton"));
@@ -285,13 +292,19 @@ void FluentTitleBar::initLayout()
     layout->addWidget(m_titleLabel, 0, Qt::AlignVCenter);
     layout->addStretch(1);
 
+    // As in Python, the buttons hang from the top edge rather than sitting in the middle of the bar.
     auto *buttonLayout = new QHBoxLayout;
     buttonLayout->setSpacing(0);
     buttonLayout->setContentsMargins(0, 0, 0, 0);
+    buttonLayout->setAlignment(Qt::AlignTop);
     buttonLayout->addWidget(m_minButton);
     buttonLayout->addWidget(m_maxButton);
     buttonLayout->addWidget(m_closeButton);
-    layout->addLayout(buttonLayout);
+    auto *buttonColumn = new QVBoxLayout;
+    buttonColumn->setContentsMargins(0, 0, 0, 0);
+    buttonColumn->addLayout(buttonLayout);
+    buttonColumn->addStretch(1);
+    layout->addLayout(buttonColumn, 0);
 
     connect(m_minButton, &TransparentToolButton::clicked, this, [this]() {
         if (QWidget *window = this->window()) {

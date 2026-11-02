@@ -345,6 +345,52 @@ class WindowTest : public QObject
                  FluentQt::NavigationPanel::kExpandWidth);
     }
 
+    // Python's title bars: the buttons hang from the top edge; the title is 13 px black (white) with
+    // 4/10/5 px padding; FluentTitleBar starts the icon at its edge, MSFluentTitleBar 20 px in with
+    // 2 px before the title, SplitTitleBar 12 px right of its 46 px offset. The port centred the
+    // buttons, used a 12 px translucent CaptionLabel and put every icon 16 px in, 4 px from the title.
+    void titleBarsPlaceIconTitleAndButtonsAsPython()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        for (const FluentQt::Theme mode : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            theme->setTheme(mode);
+            FluentQt::FluentWindow fluent;
+            FluentQt::SplitFluentWindow split;
+            FluentQt::MSFluentWindow ms;
+            struct Expected
+            {
+                FluentQt::FluentTitleBar *titleBar;
+                QWidget *window;
+                int iconX;
+                int padding;
+            };
+            const QList<Expected> windows = {{fluent.titleBar(), &fluent, fluent.titleBar()->x(), 4},
+                                             {split.titleBar(), &split, 58, 5},
+                                             {ms.titleBar(), &ms, 20, 10}};
+            for (const Expected &expected : windows) {
+                expected.window->resize(1000, 700);
+                expected.window->setWindowTitle(QStringLiteral("Hello"));
+                expected.window->show();
+                QVERIFY(QTest::qWaitForWindowExposed(expected.window));
+                FluentQt::FluentTitleBar *bar = expected.titleBar;
+                QCOMPARE(bar->iconLabel()->mapTo(expected.window, QPoint()).x(), expected.iconX);
+                QCOMPARE(bar->titleLabel()->contentsMargins().left(), expected.padding);
+                QCOMPARE(bar->titleLabel()->x(), bar->iconLabel()->geometry().right() + 1 +
+                                                     (expected.window == &ms ? 2 : 0));
+                QCOMPARE(bar->titleLabel()->font().pixelSize(), 13);
+                QCOMPARE(bar->titleLabel()->palette().color(QPalette::WindowText),
+                         mode == FluentQt::Theme::Dark ? QColor(Qt::white) : QColor(Qt::black));
+                for (QWidget *button : {static_cast<QWidget *>(bar->minimizeButton()),
+                                        static_cast<QWidget *>(bar->maximizeButton()),
+                                        static_cast<QWidget *>(bar->closeButton())}) {
+                    QCOMPARE(button->y(), 0);
+                }
+            }
+        }
+        theme->setTheme(previousTheme);
+    }
+
     void fluentWindowTitleBarUsesNavigationBackground()
     {
         auto *theme = FluentQt::ThemeManager::instance();
