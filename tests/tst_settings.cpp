@@ -251,6 +251,22 @@ class SettingsTest : public QObject
 
     // Python's push setting cards hold a plain QPushButton that setting_card.qss pads 36 px
     // (12 px for the primary one); the port used PushButton and PrimaryPushButton.
+    // Python's card: 16 px margin, the 16 px icon, 16 px, the text, 16 px, and no right margin; a
+    // card with a widget adds 16 px after it.
+    void settingCardsHaveNoRightMarginOfTheirOwn()
+    {
+        SettingCard bare(FluentIcon::Mail, QStringLiteral("Title"), QStringLiteral("Content"));
+        bare.ensurePolished();
+        const int text = qMax(bare.titleLabel()->sizeHint().width(), bare.contentLabel()->sizeHint().width());
+        QCOMPARE(bare.sizeHint().width(), 16 + 16 + 16 + text + 16);
+
+        SettingCard withButton(FluentIcon::Mail, QStringLiteral("Title"), QStringLiteral("Content"));
+        auto *button = new QPushButton(QStringLiteral("Go"), &withButton);
+        withButton.actionLayout()->addWidget(button);
+        withButton.ensurePolished();
+        QCOMPARE(withButton.sizeHint().width(), bare.sizeHint().width() + button->sizeHint().width() + 16);
+    }
+
     void pushSettingCardsUsePythonButtons()
     {
         QWidget window;

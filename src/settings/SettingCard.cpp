@@ -110,6 +110,26 @@ class ExpandBorderWidget : public QWidget
     }
 };
 
+// Python's card has no right margin: each card that adds a widget adds 16 px after it. So 16 px
+// after the action layout while it shows something, none for a bare card.
+class TrailingSpace : public QLayoutItem
+{
+  public:
+    explicit TrailingSpace(QLayout *actions) : m_actions(actions) {}
+
+    QSize sizeHint() const override { return QSize(m_actions->isEmpty() ? 0 : 16, 0); }
+    QSize minimumSize() const override { return sizeHint(); }
+    QSize maximumSize() const override { return sizeHint(); }
+    Qt::Orientations expandingDirections() const override { return {}; }
+    bool isEmpty() const override { return m_actions->isEmpty(); }
+    void setGeometry(const QRect &rect) override { m_rect = rect; }
+    QRect geometry() const override { return m_rect; }
+
+  private:
+    QLayout *m_actions;
+    QRect m_rect;
+};
+
 } // namespace
 
 SettingCard::SettingCard(QWidget *parent) : SettingCard(QIcon(), QString(), QString(), parent) {}
@@ -248,7 +268,7 @@ void SettingCard::init()
     m_outerLayout->setSpacing(0);
 
     m_mainLayout = new QHBoxLayout;
-    m_mainLayout->setContentsMargins(16, 0, 16, 0);
+    m_mainLayout->setContentsMargins(16, 0, 0, 0);
     m_mainLayout->setSpacing(0);
     m_mainLayout->setAlignment(Qt::AlignVCenter);
 
@@ -270,6 +290,7 @@ void SettingCard::init()
     m_textLayout->addWidget(m_contentLabel, 0, Qt::AlignLeft);
     m_mainLayout->addSpacing(16);
     m_mainLayout->addLayout(m_actionLayout, 0);
+    m_mainLayout->addItem(new TrailingSpace(m_actionLayout));
 
     m_outerLayout->addLayout(m_mainLayout);
 

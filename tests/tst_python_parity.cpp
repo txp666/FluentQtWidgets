@@ -150,7 +150,6 @@ const std::vector<Expectation> kPending = {
     {"NavigationAvatarWidget/text", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
     // Flyout contents
     // Setting cards
-    {"SettingCard/icon+text", "size.w sizeHint.w", "16 px wider than Python (121 vs 105); the fixed height matches"},
     {"OptionsSettingCard/icon+text", "sizeHint.h", "hint 105 px tall, Python 208 (collapsed size matches)"},
     {"CustomColorSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "27 px narrower, hint 179 px tall vs 353 (collapsed height matches)"},
     {"ExpandGroupSettingCard/icon+text", "sizeHint.h", "hint 20 px tall, Python 3 (collapsed size matches)"},
