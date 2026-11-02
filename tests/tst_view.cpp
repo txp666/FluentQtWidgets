@@ -1237,6 +1237,22 @@ class ViewTest : public QObject
         QVERIFY2(over + 20 < away, qPrintable(QStringLiteral("over=%1 away=%2").arg(over).arg(away)));
     }
 
+    // Python's flip view buttons fade in and out linearly over 150 ms; the port eased them.
+    void flipViewButtonsFadeLinearly()
+    {
+        FlipView view;
+        const auto animations = view.findChildren<QPropertyAnimation *>();
+        int fades = 0;
+        for (QPropertyAnimation *animation : animations) {
+            if (animation->propertyName().endsWith("ButtonOpacity")) {
+                QCOMPARE(animation->duration(), 150);
+                QCOMPARE(animation->easingCurve().type(), QEasingCurve::Linear);
+                ++fades;
+            }
+        }
+        QCOMPARE(fades, 2);
+    }
+
     void pagerTracksCurrentPageAndButtons()
     {
         FluentQt::PipsPager pager;

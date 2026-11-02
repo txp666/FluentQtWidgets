@@ -4,7 +4,6 @@
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
-#include <QtCore/QEasingCurve>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QtMath>
 #include <QtCore/QTimer>
@@ -32,7 +31,6 @@ FlipView::FlipView(Qt::Orientation orientation, QWidget *parent) : QWidget(paren
     m_nextButtonOpacityAnimation = new QPropertyAnimation(this, "nextButtonOpacity", this);
     for (QPropertyAnimation *animation : {m_previousButtonOpacityAnimation, m_nextButtonOpacityAnimation}) {
         animation->setDuration(150);
-        animation->setEasingCurve(QEasingCurve::OutCubic);
     }
 
     FluentStyleSheet::setRole(this, QStringLiteral("FlipView"));
