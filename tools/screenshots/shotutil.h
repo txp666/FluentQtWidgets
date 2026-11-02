@@ -34,8 +34,8 @@ inline QImage grabComposite(QWidget *window, const QList<QWidget *> &popups)
             continue;
         QPixmap pm = w->grab();
         const QPoint at = w->geometry().topLeft() - origin;
-        std::fprintf(stderr, "popup %s at %d,%d size %dx%d\n", w->metaObject()->className(), at.x(), at.y(),
-                     w->width(), w->height());
+        std::fprintf(stderr, "popup %s at %d,%d size %dx%d\n", w->metaObject()->className(), at.x(), at.y(), w->width(),
+                     w->height());
         p.drawPixmap(at, pm);
     }
     p.end();
@@ -56,8 +56,8 @@ inline QList<QWidget *> visiblePopups(QWidget *window)
 // Saves a 1280 x 800 JPEG, as the README images are.
 inline bool saveShot(const QImage &img, const QString &path)
 {
-    QImage scaled = img.convertToFormat(QImage::Format_RGB32)
-                        .scaled(1280, 800, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    QImage scaled =
+        img.convertToFormat(QImage::Format_RGB32).scaled(1280, 800, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     const bool ok = scaled.save(path, "JPG", 90);
     std::fprintf(stderr, "saved %s (%dx%d from %dx%d): %s\n", qPrintable(path), scaled.width(), scaled.height(),
                  img.width(), img.height(), ok ? "ok" : "FAILED");

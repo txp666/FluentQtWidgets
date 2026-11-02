@@ -78,7 +78,8 @@ static QWidget *inputsContent()
     sw->setOnText(T("自动重连", "Auto reconnect"));
     sw->setChecked(false);
     auto *combo = new ComboBox(w);
-    combo->addItems({QStringLiteral("115200"), QStringLiteral("57600"), QStringLiteral("38400"), QStringLiteral("9600")});
+    combo->addItems(
+        {QStringLiteral("115200"), QStringLiteral("57600"), QStringLiteral("38400"), QStringLiteral("9600")});
     combo->setCurrentIndex(0);
     auto *ts = new CheckBox(T("时间戳", "Timestamps"), w);
     ts->setChecked(true);
@@ -153,8 +154,9 @@ static QWidget *statusContent()
 static qreal wave(qreal t, int s)
 {
     const qreal base[] = {50.0, 46.0, 40.0};
-    return qBound<qreal>(9.0, base[s] + 22.0 * std::sin(t * 0.016 + s * 1.9) + 8.0 * std::sin(t * 0.043 + s * 0.7) +
-                                  4.0 * std::sin(t * 0.11 + s),
+    return qBound<qreal>(9.0,
+                         base[s] + 22.0 * std::sin(t * 0.016 + s * 1.9) + 8.0 * std::sin(t * 0.043 + s * 0.7) +
+                             4.0 * std::sin(t * 0.11 + s),
                          84.0);
 }
 
@@ -182,8 +184,10 @@ static QWidget *plotContent(int samples)
 static QWidget *donutContent()
 {
     QJsonArray data;
-    const QList<QPair<QString, int>> items{{T("串口", "Serial"), 42}, {T("网络", "Network"), 28},
-                                           {T("蓝牙", "Bluetooth"), 18}, {QStringLiteral("USB"), 12}};
+    const QList<QPair<QString, int>> items{{T("串口", "Serial"), 42},
+                                           {T("网络", "Network"), 28},
+                                           {T("蓝牙", "Bluetooth"), 18},
+                                           {QStringLiteral("USB"), 12}};
     for (const auto &it : items)
         data.append(QJsonObject{{QStringLiteral("name"), it.first}, {QStringLiteral("value"), it.second}});
     const QJsonObject option{
@@ -231,9 +235,9 @@ int main(int argc, char *argv[])
     auto *titles = new QVBoxLayout;
     titles->setSpacing(4);
     titles->addWidget(new TitleLabel(T("设备控制台", "Device Console"), home));
-    titles->addWidget(new CaptionLabel(T("由 FluentQtWidgets 构建 · C++17 · Qt 6 Widgets",
-                                         "Built with FluentQtWidgets · C++17 · Qt 6 Widgets"),
-                                       home));
+    titles->addWidget(new CaptionLabel(
+        T("由 FluentQtWidgets 构建 · C++17 · Qt 6 Widgets", "Built with FluentQtWidgets · C++17 · Qt 6 Widgets"),
+        home));
     header->addLayout(titles);
     header->addStretch(1);
     auto *search = new SearchLineEdit(home);

@@ -1,8 +1,8 @@
 // The Gallery screenshots of the README, and the frames of its tour GIF.
 // usage: galleryshots <zh_CN|en> <home|charts|datepicker|menu> <out.jpg>
 //        galleryshots <zh_CN|en> frames <dir>    (NNN.png at 640 x 522, and delays.txt in ms per frame)
-#include "GalleryWindow.h"
 #include "GalleryTranslator.h"
+#include "GalleryWindow.h"
 #include "components/GalleryComponents.h"
 #include "shotutil.h"
 
@@ -168,7 +168,8 @@ int main(int argc, char *argv[])
         }
         int index = 0;
         auto snap = [&](int delayMs) {
-            QImage img = grabComposite(window, popups()).convertToFormat(QImage::Format_RGB32)
+            QImage img = grabComposite(window, popups())
+                             .convertToFormat(QImage::Format_RGB32)
                              .scaled(640, 522, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
             img.save(QStringLiteral("%1/%2.png").arg(out).arg(index++, 3, 10, QLatin1Char('0')));
             delays.write(QByteArray::number(delayMs) + "\n");
