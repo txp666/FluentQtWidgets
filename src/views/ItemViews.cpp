@@ -431,15 +431,7 @@ void TableItemDelegate::drawCheckBox(QPainter *painter, const QStyleOptionViewIt
 
     const auto checkState = static_cast<Qt::CheckState>(checkStateData.toInt());
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    QRect indicatorRect;
-    if (option.widget) {
-        indicatorRect = option.widget->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option,
-                                                               option.widget);
-    }
-    if (indicatorRect.isEmpty()) {
-        indicatorRect = QRect(option.rect.x() + 15, qRound(option.rect.center().y() - 9.5), 19, 19);
-    }
-    const QRectF rect(indicatorRect.center().x() - 9.5, indicatorRect.center().y() - 9.5, 19, 19);
+    const QRectF rect(option.rect.x() + 15, option.rect.center().y() - 9.5, 19, 19);
 
     painter->save();
     if (checkState == Qt::Unchecked) {

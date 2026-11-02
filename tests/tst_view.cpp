@@ -434,6 +434,50 @@ class ViewTest : public QObject
         }
     }
 
+    // Python's table and list delegates draw an item's check box 15 px into the item; the port
+    // centred it on the style's indicator rect, about 4 px further right in a table.
+    void tableCheckBoxSitsWherePythonDrawsIt()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TableWidget table;
+        table.setCheckedColor(Qt::red, Qt::red);
+        table.setRowCount(1);
+        table.setColumnCount(2);
+        auto *item = new QTableWidgetItem(QStringLiteral("MMMM"));
+        item->setCheckState(Qt::Checked);
+        table.setItem(0, 0, item);
+        ListWidget list;
+        list.setCheckedColor(Qt::red, Qt::red);
+        auto *listItem = new QListWidgetItem(QStringLiteral("MMMM"));
+        listItem->setCheckState(Qt::Checked);
+        list.addItem(listItem);
+
+        const QList<std::pair<QAbstractItemView *, QModelIndex>> views{
+            {&table, table.model()->index(0, 0)},
+            {&list, list.model()->index(0, 0)},
+        };
+        for (const auto &[view, index] : views) {
+            QImage image(QSize(200, 38), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::white);
+            QStyleOptionViewItem option;
+            option.rect = image.rect();
+            option.state = QStyle::State_Enabled;
+            option.widget = view;
+            QPainter painter(&image);
+            view->itemDelegate()->paint(&painter, option, index);
+            painter.end();
+
+            int left = -1;
+            for (int x = 0; x < image.width() && left < 0; ++x) {
+                const QColor color = image.pixelColor(x, image.height() / 2);
+                if (color.red() > 200 && color.green() < 120) {
+                    left = x;
+                }
+            }
+            QVERIFY2(left == 14 || left == 15, qPrintable(QString::number(left)));
+        }
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
