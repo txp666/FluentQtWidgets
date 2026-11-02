@@ -363,7 +363,8 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
                                                       : QBrush(QColor(channel, channel, channel, alpha)));
     drawBackground(painter, itemOption, index);
 
-    if (selected && index.column() == 0) {
+    // Scrolled sideways, the first column is not at the edge where the indicator goes.
+    if (selected && index.column() == 0 && (!view || view->horizontalScrollBar()->value() == 0)) {
         drawIndicator(painter, itemOption, index);
     }
 

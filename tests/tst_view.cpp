@@ -349,6 +349,43 @@ class ViewTest : public QObject
         }
     }
 
+    // As in Python, a table shows the selected row's indicator only while it is not scrolled
+    // sideways; scrolled, the first column is no longer at the edge where it is drawn.
+    void tableIndicatorHidesWhenScrolledSideways()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TableWidget table;
+        table.setCheckedColor(Qt::red, Qt::red);
+        table.setRowCount(2);
+        table.setColumnCount(4);
+        for (int column = 0; column < 4; ++column) {
+            table.setColumnWidth(column, 200);
+        }
+        table.resize(300, 200);
+        table.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&table));
+        table.selectRow(0);
+        QVERIFY(table.horizontalScrollBar()->maximum() > 0);
+
+        auto indicatorShown = [&table] {
+            const QModelIndex index = table.model()->index(0, 0);
+            QImage image(QSize(200, 38), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::white);
+            QStyleOptionViewItem option;
+            option.rect = image.rect();
+            option.state = QStyle::State_Enabled | QStyle::State_Selected;
+            option.widget = &table;
+            QPainter painter(&image);
+            table.delegate()->paint(&painter, option, index);
+            painter.end();
+            const QColor color = image.pixelColor(5, image.height() / 2);
+            return color.red() > 200 && color.green() < 80;
+        };
+        QVERIFY(indicatorShown());
+        table.horizontalScrollBar()->setValue(50);
+        QVERIFY(!indicatorShown());
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
