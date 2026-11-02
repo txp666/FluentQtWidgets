@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/SegmentedWidget.h>
 
+#include "ScaleSlideAnimation_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -34,6 +36,7 @@ SegmentedWidget::SegmentedWidget(QWidget *parent) : Pivot(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("SegmentedWidget"));
     setAttribute(Qt::WA_StyledBackground);
+    usePointToPointAnimation();
 }
 
 PivotItem *SegmentedWidget::createItem(const QString &routeKey, const QString &text)
@@ -90,8 +93,9 @@ SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(
     setAttribute(Qt::WA_StyledBackground);
 
     m_selectionAnimation = new QPropertyAnimation(this, "selectionGeometry", this);
-    m_selectionAnimation->setEasingCurve(QEasingCurve::OutQuad);
-    m_selectionAnimation->setDuration(100);
+    // Python's PointToPointAnimation: 187 ms on a (0.55, 0.55, 0, 1) bezier.
+    m_selectionAnimation->setEasingCurve(Private::fluentBezierCurve(0.55, 0.55, 0, 1));
+    m_selectionAnimation->setDuration(187);
     connect(m_selectionAnimation, &QPropertyAnimation::valueChanged, this, qOverload<>(&QWidget::update));
 }
 

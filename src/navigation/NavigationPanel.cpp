@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 
+#include "ScaleSlideAnimation_p.h"
+
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -36,7 +38,7 @@ class NavigationIndicator : public QWidget
         m_animation = new QVariantAnimation(this);
         m_animation->setStartValue(0.0);
         m_animation->setEndValue(1.0);
-        m_animation->setDuration(600);
+        m_animation->setDuration(Private::kScaleSlideDuration);
         m_animation->setEasingCurve(QEasingCurve::Linear);
         connect(m_animation, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
             setGeometry(animatedGeometry(value.toReal()).toRect());
@@ -69,7 +71,7 @@ class NavigationIndicator : public QWidget
         raise();
 
         m_animation->stop();
-        m_animation->setDuration(600);
+        m_animation->setDuration(Private::kScaleSlideDuration);
         m_animation->setStartValue(0.0);
         m_animation->setEndValue(1.0);
         m_animation->start();
@@ -104,36 +106,8 @@ class NavigationIndicator : public QWidget
   private:
     QRectF animatedGeometry(qreal progress) const
     {
-        progress = qBound(0.0, progress, 1.0);
-        const bool sameLevel = qAbs(m_startRect.x() - m_endRect.x()) < 1.0;
-        const qreal dimension = m_startRect.height();
-        const qreal distance = qAbs(m_endRect.y() - m_startRect.y());
-
-        if (dimension <= 0 || distance <= 0) {
-            return m_endRect;
-        }
-
-        if (!sameLevel) {
-            const bool nextBelow = m_endRect.y() > m_startRect.y();
-            const qreal eased = QEasingCurve(QEasingCurve::OutQuint).valueForProgress(progress);
-            const qreal height = dimension * eased;
-            const qreal top = nextBelow ? m_endRect.y() : m_endRect.y() + dimension - height;
-            return QRectF(m_endRect.x(), top, m_endRect.width(), height);
-        }
-
-        const qreal middleLength = distance + dimension;
-        const bool forward = m_endRect.y() > m_startRect.y();
-        if (progress <= 1.0 / 3.0) {
-            const qreal local = progress * 3.0;
-            const qreal height = dimension + distance * local;
-            const qreal top = forward ? m_startRect.y() : m_startRect.y() + (m_endRect.y() - m_startRect.y()) * local;
-            return QRectF(m_startRect.x(), top, m_startRect.width(), height);
-        }
-
-        const qreal local = (progress - 1.0 / 3.0) * 1.5;
-        const qreal height = middleLength + (dimension - middleLength) * local;
-        const qreal top = forward ? m_startRect.y() + (m_endRect.y() - m_startRect.y()) * local : m_endRect.y();
-        return QRectF(m_startRect.x(), top, m_startRect.width(), height);
+        return Private::scaleSlideGeometry(m_startRect, m_endRect, qRound(progress * Private::kScaleSlideDuration),
+                                           Qt::Vertical);
     }
 
     QVariantAnimation *m_animation = nullptr;

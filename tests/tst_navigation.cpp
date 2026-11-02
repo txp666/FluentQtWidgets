@@ -1,6 +1,5 @@
 // Navigation interface, panel, bar and history, pivots, segmented controls, breadcrumbs and tabs.
 
-#include <array>
 #include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
@@ -34,19 +33,20 @@
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/FluentWindow.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
-#include <limits>
 #include <QtCore/QDir>
 #include <QtCore/QEventLoop>
 #include <QtCore/QFile>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
+#include <QtCore/QPropertyAnimation>
 #include <QtCore/QScopedPointer>
 #include <QtCore/QSortFilterProxyModel>
 #include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
 #include <QtCore/QVariant>
+#include <QtCore/QVariantAnimation>
 #include <QtGui/QAction>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QImage>
@@ -84,6 +84,8 @@
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <array>
+#include <limits>
 
 #include "TestSupport.h"
 
@@ -640,6 +642,82 @@ class NavigationTest : public QObject
         panel->expand(false);
         QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);
         QVERIFY(!panel->isMenu());
+    }
+
+    // Python's ScaleSlideAnimation: the indicator first stretches for 200 ms to cover both items,
+    // then shrinks into the new one by 600 ms. The port slid it in 100 ms without stretching.
+    void pivotIndicatorSquashesAndStretchesAsInPython()
+    {
+        FluentQt::Pivot pivot;
+        pivot.addItem(QStringLiteral("first"), QStringLiteral("First"));
+        pivot.addItem(QStringLiteral("second"), QStringLiteral("Second"));
+        pivot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&pivot));
+        const QRect start = pivot.indicatorGeometry();
+        QCOMPARE(start.width(), 16);
+
+        pivot.setCurrentItem(QStringLiteral("second"));
+        auto *animation = pivot.findChild<QVariantAnimation *>();
+        QVERIFY(animation);
+        QCOMPARE(animation->duration(), 600);
+        animation->pause();
+        const int end = pivot.item(QStringLiteral("second"))->geometry().center().x() - 8;
+
+        animation->setCurrentTime(200);
+        QCOMPARE(pivot.indicatorGeometry().x(), start.x());
+        QVERIFY(qAbs(pivot.indicatorGeometry().width() - (end - start.x() + 16)) <= 1);
+        animation->setCurrentTime(600);
+        QVERIFY(qAbs(pivot.indicatorGeometry().x() - end) <= 1);
+        QCOMPARE(pivot.indicatorGeometry().width(), 16);
+    }
+
+    // Python's segmented widgets slide point to point: 187 ms on a (0.55, 0.55, 0, 1) bezier,
+    // where the port used 100 ms of OutQuad.
+    void segmentedIndicatorsSlidePointToPointAsInPython()
+    {
+        FluentQt::SegmentedWidget segmented;
+        FluentQt::SegmentedToggleToolWidget tools;
+        for (QObject *owner : {static_cast<QObject *>(&segmented), static_cast<QObject *>(&tools)}) {
+            auto *animation = owner->findChild<QVariantAnimation *>();
+            QVERIFY(animation);
+            QCOMPARE(animation->duration(), 187);
+            QCOMPARE(animation->easingCurve().type(), QEasingCurve::BezierSpline);
+            QVERIFY(qAbs(animation->easingCurve().valueForProgress(0.5) - 0.921) < 0.01);
+        }
+    }
+
+    // The panel's indicator eases each phase on Python's beziers: 100 ms in, it has stretched
+    // only a little, where the port's linear phases had covered half the distance.
+    void navigationIndicatorEasesAsInPython()
+    {
+        QWidget window;
+        window.resize(400, 400);
+        auto *panel = new FluentQt::NavigationPanel(&window);
+        panel->addItem(QStringLiteral("first"), QIcon(), QStringLiteral("First"));
+        panel->addItem(QStringLiteral("second"), QIcon(), QStringLiteral("Second"));
+        panel->addItem(QStringLiteral("third"), QIcon(), QStringLiteral("Third"));
+        panel->resize(panel->width(), 400);
+        panel->setCurrentItem(QStringLiteral("first"));
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        panel->setCurrentItem(QStringLiteral("third"));
+        QVariantAnimation *animation = nullptr;
+        for (auto *candidate : panel->findChildren<QVariantAnimation *>()) {
+            if (!qobject_cast<QPropertyAnimation *>(candidate)) {
+                animation = candidate;
+            }
+        }
+        QVERIFY(animation);
+        animation->pause();
+        auto *indicator = qobject_cast<QWidget *>(animation->parent());
+        QVERIFY(indicator);
+        const int distance = panel->widget(QStringLiteral("third"))->y() - panel->widget(QStringLiteral("first"))->y();
+
+        animation->setCurrentTime(100);
+        QVERIFY(indicator->height() < 16 + distance / 4);
+        animation->setCurrentTime(200);
+        QVERIFY(qAbs(indicator->height() - (16 + distance)) <= 1);
     }
 
     void navigationBarTracksItemsAndCommands()

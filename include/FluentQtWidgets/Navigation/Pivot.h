@@ -11,7 +11,7 @@
 
 class QButtonGroup;
 class QHBoxLayout;
-class QPropertyAnimation;
+class QVariantAnimation;
 
 namespace FluentQt {
 
@@ -66,6 +66,9 @@ class FQW_API Pivot : public QWidget
     bool eventFilter(QObject *watched, QEvent *event) override;
 
     QRect computeIndicatorGeometry() const;
+    // Python's segmented widgets slide the indicator point to point instead of Pivot's squash
+    // and stretch.
+    void usePointToPointAnimation();
 
   private:
     void adjustIndicatorPosition();
@@ -76,8 +79,11 @@ class FQW_API Pivot : public QWidget
     QHash<QString, PivotItem *> m_items;
     QString m_currentItem;
 
-    QPropertyAnimation *m_slideAnimation = nullptr;
+    QVariantAnimation *m_slideAnimation = nullptr;
     QRect m_indicatorGeometry;
+    QRectF m_slideStart;
+    QRectF m_slideEnd;
+    bool m_pointToPoint = false;
 };
 
 } // namespace FluentQt
