@@ -328,17 +328,13 @@ void SubMenuItemWidget::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing);
 
-    // Draw right arrow using FluentIcon
-    const int arrowSize = 9;
-    const qreal x = width() - 14;
-    const qreal y = height() / 2.0 - arrowSize / 2.0;
-
-    const Theme theme = isDarkTheme() ? Theme::Dark : Theme::Light;
-    QColor arrowColor = isDarkTheme() ? QColor(255, 255, 255, 150) : QColor(0, 0, 0, 130);
-    painter.setOpacity(arrowColor.alphaF());
-
-    FluentQt::icon(FluentIcon::RightArrow, theme, arrowColor)
-        .paint(&painter, QRect(static_cast<int>(x), static_cast<int>(y), arrowSize, arrowSize));
+    // Right arrow: the theme's chevron, untinted, in a 9 x 9 box 10 px from the right edge.
+    const QRectF rect(width() - 10, height() / 2.0 - 9 / 2.0, 9, 9);
+    const QIcon arrow = FluentQt::icon(FluentIcon::ChevronRight, isDarkTheme() ? Theme::Dark : Theme::Light);
+    const qreal dpr = devicePixelRatioF();
+    const QPixmap pixmap = arrow.pixmap(QSize(9, 9), dpr);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+    painter.drawPixmap(rect, pixmap, QRectF(pixmap.rect()));
 }
 
 // ==========================================

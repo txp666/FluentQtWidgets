@@ -227,6 +227,44 @@ class MenuTest : public QObject
         QVERIFY(qobject_cast<FluentQt::CheckIndicatorMenuItemDelegate *>(checkMenu.view()->itemDelegate()));
     }
 
+    void subMenuArrowSitsWherePythonDrawsIt()
+    {
+        // qfluentwidgets renders FluentIcon.CHEVRON_RIGHT, untinted, in a 9 x 9 box 10 px from the
+        // item's right edge.
+        RoundMenu menu;
+        auto *sub = new RoundMenu(QStringLiteral("More"), &menu);
+        sub->addAction(QStringLiteral("Child"));
+        menu.addMenu(sub);
+        menu.exec(QGuiApplication::primaryScreen()->availableGeometry().center(), false);
+        auto *item = menu.view()->findChild<FluentQt::SubMenuItemWidget *>();
+        QVERIFY(item);
+        QTRY_VERIFY(item->width() > 20);
+
+        QImage image(item->size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        item->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        int left = image.width();
+        int right = -1;
+        int strongest = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QRgb px = image.pixel(x, y);
+                if (qAlpha(px) > 0) {
+                    left = qMin(left, x);
+                    right = qMax(right, x);
+                    strongest = qMax(strongest, qAlpha(px));
+                }
+            }
+        }
+        QVERIFY(right >= 0);
+        QVERIFY2(left >= item->width() - 10,
+                 qPrintable(QStringLiteral("left %1, width %2").arg(left).arg(item->width())));
+        QVERIFY(right <= item->width() - 1);
+        // Drawn at full strength, not faded by a translucent tint.
+        QVERIFY2(strongest > 120, qPrintable(QString::number(strongest)));
+        menu.close();
+    }
+
     void menuExecAndWaitReturnsTriggeredAction()
     {
         // macOS closes a popup at once while the application has no window up yet.
