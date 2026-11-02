@@ -155,6 +155,7 @@ class FQW_API CommandBar : public QFrame
     virtual void setMenuDropDown(bool down);
     void resizeToSuitableWidth();
     void clear();
+    QSize minimumSizeHint() const override;
 
   protected:
     void resizeEvent(QResizeEvent *event) override;

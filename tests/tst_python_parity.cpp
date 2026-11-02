@@ -112,6 +112,10 @@ const std::vector<Expectation> kIntended = {
     {"HorizontalPipsPager/items", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
     {"VerticalPipsPager/default", "size.h sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
     {"VerticalPipsPager/items", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (see qtBaseline), which is also the length an unconfigured pager takes; the port hints its own extent, 5 pips and the two 15 px button margins (90x12)"},
+    // Command bar
+    {"CommandBar/default", "size.w size.h", "Python's minimumSizeHint() is its more-actions button's size, and that button is never resized until first shown, so it is QWidget's default 100x30 (measured: 100x30 before, 40x34 once shown); the port's button is fixed at its 40x34 hint"},
+    {"CommandBar/items", "size.w", "Python's minimumSizeHint() is its more-actions button's size, and that button is never resized until first shown, so it is QWidget's default 100x30 (measured: 100x30 before, 40x34 once shown); the port's button is fixed at its 40x34 hint"},
+    {"CommandBarView/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h", "Python's minimumSizeHint() is its more-actions button's size, and that button is never resized until first shown, so it is QWidget's default 100x30 (measured: 100x30 before, 40x34 once shown); the port's button is fixed at its 40x34 hint"},
     // clang-format on
 };
 
@@ -133,10 +137,6 @@ const std::vector<Expectation> kPending = {
     {"SmoothScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
     {"SingleDirectionScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
     // Cards
-    // Command bar
-    {"CommandBar/default", "size.w size.h", "laid out at 0 px wide (0x0 empty) though its hint matches; Python 100 px"},
-    {"CommandBar/items", "size.w", "laid out at 0 px wide (0x0 empty) though its hint matches; Python 100 px"},
-    {"CommandBarView/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h maximumSize.h", "12x12 and fixed 12 px tall, Python 112x42"},
     // Navigation
     {"TabBar/default", "sizeHint.w sizeHint.h", "hint 93x93, Python 45x24; the size matches"},
     {"TabBar/items", "sizeHint.h", "hint 93 px tall, Python 46; the fixed 46 px height matches"},

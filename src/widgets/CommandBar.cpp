@@ -614,6 +614,10 @@ void CommandBar::resizeToSuitableWidth()
     setFixedWidth(suitableWidth());
 }
 
+// As Python's: room for the more-actions button at least, so a bar a layout does not stretch still
+// shows that button (and the widgets that fit) instead of collapsing to nothing.
+QSize CommandBar::minimumSizeHint() const { return m_overflowButton ? m_overflowButton->size() : QSize(); }
+
 void CommandBar::clear()
 {
     const QList<QAction *> allActions = m_actions + m_hiddenActions;
@@ -654,7 +658,6 @@ void CommandBar::showEvent(QShowEvent *event)
 
 void CommandBar::init()
 {
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("CommandBar"));
     QFont barFont = font();
@@ -695,7 +698,10 @@ void CommandBar::syncHeight()
     if (!m_hiddenActions.isEmpty() && m_overflowButton) {
         height = qMax(height, m_overflowButton->height());
     }
-    setFixedHeight(height);
+    // Python fixes the height only once a widget is added; an empty bar keeps a free height.
+    if (height > 0) {
+        setFixedHeight(height);
+    }
 }
 
 void CommandBar::relayoutWidgets()

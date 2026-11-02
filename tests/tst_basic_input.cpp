@@ -1354,6 +1354,33 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python's CommandBar has a minimum size hint (the more-actions button's size), so a bar a
+    // layout does not stretch keeps room for it, and fixes its height only once a widget is added.
+    void commandBarSizesFollowPython()
+    {
+        QWidget window;
+        auto *layout = new QVBoxLayout(&window);
+        auto *empty = new CommandBar(&window);
+        auto *bar = new CommandBar(&window);
+        bar->addAction(FluentIcon::Mail, QStringLiteral("Mail"));
+        bar->addAction(FluentIcon::Save, QStringLiteral("Save"));
+        auto *view = new CommandBarView(&window);
+        for (QWidget *widget :
+             {static_cast<QWidget *>(empty), static_cast<QWidget *>(bar), static_cast<QWidget *>(view)}) {
+            layout->addWidget(widget, 0, Qt::AlignLeft | Qt::AlignTop);
+        }
+        window.resize(600, 400);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QCOMPARE(bar->minimumSizeHint(), QSize(40, 34));
+        QCOMPARE(bar->width(), 40);
+        QCOMPARE(empty->maximumHeight(), QWIDGETSIZE_MAX);
+        QCOMPARE(view->height(), 34 + 12);
+        QCOMPARE(view->maximumHeight(), view->layout()->maximumSize().height());
+        QVERIFY(view->maximumHeight() > 46);
+    }
+
     // Python's Slider(parent) and ClickableSlider(parent) keep QSlider's vertical default.
     void slidersDefaultToVerticalAsQSliderDoes()
     {
