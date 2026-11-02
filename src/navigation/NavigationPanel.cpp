@@ -143,6 +143,37 @@ class NavigationIndicator : public QWidget
     QColor m_darkColor;
 };
 
+namespace {
+
+// Python's NavigationSeparator: a 3 px line across the panel's full width, 48 px when compact
+// and 322 px when expanded, so that it runs to the panel's right edge.
+class NavigationSeparator : public QFrame
+{
+  public:
+    explicit NavigationSeparator(QWidget *parent) : QFrame(parent) { setCompacted(true); }
+
+    void setCompacted(bool compacted)
+    {
+        setFixedSize(compacted ? 48 : NavigationWidget::kExpandWidth + 10, 3);
+        update();
+    }
+
+  protected:
+    void paintEvent(QPaintEvent *event) override
+    {
+        Q_UNUSED(event)
+
+        QPainter painter(this);
+        const int c = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 255 : 0;
+        QPen pen(QColor(c, c, c, 15));
+        pen.setCosmetic(true);
+        painter.setPen(pen);
+        painter.drawLine(0, 1, width(), 1);
+    }
+};
+
+} // namespace
+
 NavigationPanel::NavigationPanel(QWidget *parent) : QFrame(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
@@ -286,11 +317,8 @@ NavigationUserCard *NavigationPanel::addUserCard(const QString &routeKey, const 
 
 QFrame *NavigationPanel::addSeparator(NavigationItemPosition position)
 {
-    auto *separator = new QFrame(this);
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Plain);
-    separator->setFixedHeight(9);
-    separator->setAttribute(Qt::WA_StyledBackground, true);
+    auto *separator = new NavigationSeparator(this);
+    separator->setCompacted(m_displayMode == NavigationDisplayMode::Compact);
     FluentStyleSheet::setRole(separator, QStringLiteral("NavigationSeparator"));
 
     QVBoxLayout *layout = m_scrollLayout;
@@ -720,6 +748,10 @@ void NavigationPanel::setItemsCompacted(bool compacted)
         }
 
         for (int i = 0; i < layout->count(); ++i) {
+            if (auto *separator = dynamic_cast<NavigationSeparator *>(layout->itemAt(i)->widget())) {
+                separator->setCompacted(compacted);
+                continue;
+            }
             auto *widget = qobject_cast<NavigationWidget *>(layout->itemAt(i)->widget());
             if (widget && !updated.contains(widget)) {
                 widget->setCompacted(compacted);

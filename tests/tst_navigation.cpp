@@ -596,6 +596,36 @@ class NavigationTest : public QObject
         QCOMPARE(clickedSpy.count(), 1);
     }
 
+    // Python's panel has a 1 px border on every side, so items sit 5 px in (the port left the
+    // left border out: 4 px); its separator is a 3 px line across the whole panel, where the
+    // port's was 9 px tall and inset by 8 px.
+    void navigationPanelKeepsPythonBorderAndSeparator()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        for (const FluentQt::Theme mode : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            theme->setTheme(mode);
+            QWidget window;
+            window.resize(1200, 600);
+            auto *panel = new FluentQt::NavigationPanel(&window);
+            auto *home = panel->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"),
+                                        FluentQt::NavigationItemPosition::Top);
+            QFrame *separator = panel->addSeparator();
+            panel->resize(panel->width(), 600);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            QCOMPARE(home->mapTo(panel, QPoint()).x(), 5);
+            QCOMPARE(separator->size(), QSize(48, 3));
+            panel->expand(false);
+            QTRY_COMPARE(home->mapTo(panel, QPoint()).x(), 5);
+            QCOMPARE(separator->size(), QSize(322, 3));
+            panel->collapse(false);
+            QCOMPARE(separator->size(), QSize(48, 3));
+        }
+        theme->setTheme(previousTheme);
+    }
+
     void navigationBarTracksItemsAndCommands()
     {
         FluentQt::NavigationBar bar;
