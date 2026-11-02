@@ -1,6 +1,6 @@
 // Dialogs, message boxes, the colour and folder dialogs, flyouts and teaching tips.
 
-#include <algorithm>
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
@@ -34,7 +34,6 @@
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/FluentWindow.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
-#include <functional>
 #include <QtCore/QBuffer>
 #include <QtCore/QDir>
 #include <QtCore/QEasingCurve>
@@ -93,6 +92,8 @@
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <algorithm>
+#include <functional>
 
 #include "TestSupport.h"
 
@@ -1064,6 +1065,18 @@ class DialogFlyoutTest : public QObject
             QCOMPARE(box.titleLabel()->font().pixelSize(), 20);
             QCOMPARE(box.titleLabel()->font().weight(), QFont::Normal);
             QCOMPARE(box.titleLabel()->palette().windowText().color(), dark ? QColor(Qt::white) : QColor(Qt::black));
+
+            // Selected content text: --ThemeColorLight1 under white text, or in dark mode
+            // --ThemeColorPrimary under black text.
+            box.contentLabel()->ensurePolished();
+            const QPalette contentPalette = box.contentLabel()->palette();
+            const QColor accent = FluentQt::ThemeManager::instance()->accentColor();
+            QCOMPARE(contentPalette.color(QPalette::Highlight).rgba(),
+                     FluentQt::derivedThemeColor(accent,
+                                                 dark ? FluentQt::ThemeColor::Primary : FluentQt::ThemeColor::Light1,
+                                                 dark ? Theme::Dark : Theme::Light)
+                         .rgba());
+            QCOMPARE(contentPalette.color(QPalette::HighlightedText), dark ? QColor(Qt::black) : QColor(Qt::white));
 
             QImage frame(box.widget()->size(), QImage::Format_ARGB32_Premultiplied);
             frame.fill(Qt::transparent);

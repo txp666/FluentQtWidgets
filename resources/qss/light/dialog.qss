@@ -55,7 +55,7 @@ QFrame[fqw="MessageBox"] QLabel#contentLabel {
     background: transparent;
     color: black;
     border: none;
-    selection-background-color: @accentColor;
+    selection-background-color: --ThemeColorLight1;
     selection-color: white;
 }
 

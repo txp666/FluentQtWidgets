@@ -55,8 +55,8 @@ QFrame[fqw="MessageBox"] QLabel#contentLabel {
     background: transparent;
     color: white;
     border: none;
-    selection-background-color: @accentColor;
-    selection-color: white;
+    selection-background-color: --ThemeColorPrimary;
+    selection-color: black;
 }
 
 #cancelButton {
