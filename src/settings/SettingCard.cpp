@@ -702,7 +702,7 @@ void ColorPickerButton::paintEvent(QPaintEvent *)
     }
 
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    const QColor border = dark ? QColor(80, 80, 80) : QColor(214, 214, 214);
+    const QColor border = dark ? QColor(255, 255, 255, 10) : QColor(234, 234, 234);
     QColor fill = m_color;
     if (!m_alphaEnabled) {
         fill.setAlpha(255);
@@ -715,7 +715,8 @@ void ColorPickerButton::paintEvent(QPaintEvent *)
 
 void ColorPickerButton::showColorDialog()
 {
-    ColorDialog dialog(m_color, m_title.isEmpty() ? tr("Choose color") : m_title, window(), m_alphaEnabled);
+    ColorDialog dialog(m_color, m_title.isEmpty() ? tr("Choose color") : tr("Choose %1").arg(m_title), window(),
+                       m_alphaEnabled);
     connect(&dialog, &ColorDialog::colorChanged, this, &ColorPickerButton::setColor);
     dialog.exec();
 }
@@ -724,7 +725,7 @@ ColorSettingCard::ColorSettingCard(const QColor &color, const QIcon &icon, const
                                    QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_colorPicker = new ColorPickerButton(color, this);
+    m_colorPicker = new ColorPickerButton(color, title, this);
     actionLayout()->addWidget(m_colorPicker, 0, Qt::AlignRight);
     connect(m_colorPicker, &ColorPickerButton::colorChanged, this, &ColorSettingCard::colorChanged);
 
