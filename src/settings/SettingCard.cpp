@@ -323,7 +323,12 @@ SettingCardGroup::SettingCardGroup(const QString &title, QWidget *parent) : QWid
     layout->setSpacing(0);
     layout->setAlignment(Qt::AlignTop);
 
-    m_titleLabel = new SubtitleLabel(title, this);
+    m_titleLabel = new QLabel(title, this);
+    QFont titleFont = m_titleLabel->font();
+    titleFont.setPixelSize(20);
+    titleFont.setWeight(QFont::Normal);
+    m_titleLabel->setFont(titleFont);
+    m_titleLabel->adjustSize();
     layout->addWidget(m_titleLabel);
     layout->addSpacing(12);
 

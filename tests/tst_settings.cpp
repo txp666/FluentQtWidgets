@@ -274,6 +274,75 @@ class SettingsTest : public QObject
         QCOMPARE(range->valueLabel()->objectName(), QStringLiteral("valueLabel"));
     }
 
+    // Python paints the card (brush 170/13, pen 19/50, radius 6, inset 1 px) and styles plain labels
+    // with setting_card.qss. The port's style sheet border shrank the contents by 1 px, its
+    // background was lighter, and Body/CaptionLabel gave the content line 12 px in a translucent grey.
+    void settingCardsPaintAndStyleLikePython()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            const bool dark = theme == Theme::Dark;
+            QWidget window;
+            window.resize(600, 200);
+            auto *layout = new QVBoxLayout(&window);
+            auto *card = new SettingCard(FluentIcon::Home, QStringLiteral("Title"), QStringLiteral("Content"));
+            layout->addWidget(card);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            QCOMPARE(card->iconLabel()->geometry().topLeft(), QPoint(16, 27));
+            QCOMPARE(card->titleLabel()->x(), 48);
+            QCOMPARE(card->titleLabel()->font().pixelSize(), 14);
+            QCOMPARE(card->contentLabel()->font().pixelSize(), 11);
+            QCOMPARE(card->titleLabel()->palette().color(QPalette::WindowText),
+                     dark ? QColor(Qt::white) : QColor(Qt::black));
+            QCOMPARE(card->contentLabel()->palette().color(QPalette::WindowText),
+                     dark ? QColor(208, 208, 208) : QColor(96, 96, 96));
+
+            QImage image(card->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            card->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            QCOMPARE(image.pixelColor(card->width() / 2, 35).alpha(), dark ? 13 : 170);
+            // The 1 px pen sits on the inset rectangle, half a pixel inside the edge; the old style
+            // sheet border filled the outermost column.
+            QVERIFY2(image.pixelColor(0, 35).alpha() < 30, qPrintable(image.pixelColor(0, 35).name(QColor::HexArgb)));
+        }
+    }
+
+    // Python's push setting cards hold a plain QPushButton that setting_card.qss pads 36 px
+    // (12 px for the primary one); the port used PushButton and PrimaryPushButton.
+    void pushSettingCardsUsePythonButtons()
+    {
+        QWidget window;
+        auto *layout = new QVBoxLayout(&window);
+        auto *push = new PushSettingCard(QStringLiteral("Push"), FluentIcon::Home, QStringLiteral("Title"));
+        auto *primary = new PrimaryPushSettingCard(QStringLiteral("Push"), FluentIcon::Home, QStringLiteral("Title"));
+        auto *range = new RangeSettingCard(0, 100, 50, FluentIcon::Home, QStringLiteral("Title"));
+        layout->addWidget(push);
+        layout->addWidget(primary);
+        layout->addWidget(range);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QCOMPARE(push->button()->metaObject(), &QPushButton::staticMetaObject);
+        QCOMPARE(primary->button()->objectName(), QStringLiteral("primaryButton"));
+        const QFontMetrics metrics(push->button()->font());
+        QCOMPARE(push->button()->width(), metrics.horizontalAdvance(QStringLiteral("Push")) + 2 * 36 + 2);
+        QCOMPARE(primary->button()->width(), metrics.horizontalAdvance(QStringLiteral("Push")) + 2 * 12 + 2);
+        QCOMPARE(push->button()->height(), primary->button()->height());
+        QCOMPARE(range->valueLabel()->font().pixelSize(), 14);
+        QCOMPARE(range->valueLabel()->objectName(), QStringLiteral("valueLabel"));
+    }
+
+    // Python sets the group title to 20 px at normal weight (setFont(label, 20)); the port used
+    // SubtitleLabel, which is demibold.
+    void settingCardGroupTitleIsPythonNormalWeight()
+    {
+        SettingCardGroup group(QStringLiteral("General"));
+        QCOMPARE(group.titleLabel()->font().pixelSize(), 20);
+        QCOMPARE(group.titleLabel()->font().weight(), QFont::Normal);
+    }
+
     void optionsCardUnknownValueUnchecksOptions()
     {
         OptionsSettingCard card({QStringLiteral("A"), QStringLiteral("B")}, {1, 2}, FluentIcon::Setting,
