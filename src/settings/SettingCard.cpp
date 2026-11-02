@@ -485,7 +485,7 @@ void HyperlinkCard::setUrl(const QString &url)
 SwitchSettingCard::SwitchSettingCard(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_switchButton = new SwitchButton(this);
+    m_switchButton = new SwitchButton(this, IndicatorPosition::Right);
     actionLayout()->addWidget(m_switchButton, 0, Qt::AlignRight);
     connect(m_switchButton, &SwitchButton::checkedChanged, this, &SwitchSettingCard::checkedChanged);
 
