@@ -456,7 +456,18 @@ class ThemeTest : public QObject
     {
         FluentQt::IconWidget widget;
         QCOMPARE(widget.property("fqw").toString(), QStringLiteral("IconWidget"));
-        QCOMPARE(widget.iconSize(), QSize(20, 20));
+        // Python's IconWidget has no size hint and draws its icon over the whole widget.
+        QVERIFY(!widget.iconSize().isValid());
+        QVERIFY(!widget.sizeHint().isValid());
+        {
+            QPixmap red(64, 64);
+            red.fill(Qt::red);
+            FluentQt::IconWidget filled{QIcon(red)};
+            filled.resize(40, 40);
+            const QImage image = filled.grab().toImage();
+            QCOMPARE(image.pixelColor(1, 1), QColor(Qt::red));
+            QCOMPARE(image.pixelColor(38, 38), QColor(Qt::red));
+        }
 
         QSignalSpy iconSpy(&widget, &FluentQt::IconWidget::iconChanged);
         widget.setIcon(FluentQt::FluentIcon::Setting);

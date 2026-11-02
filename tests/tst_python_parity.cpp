@@ -118,8 +118,6 @@ const std::vector<Expectation> kPending = {
     // Selection
     // Combo boxes
     // Labels and images
-    {"IconWidget/default", "size.w size.h sizeHint.w sizeHint.h", "hint 20x20, Python none (0x0 in a layout)"},
-    {"IconWidget/icon", "size.w size.h sizeHint.w sizeHint.h", "hint 20x20, Python none (0x0 in a layout)"},
     // Status and info
     {"ProgressRing/default", "sizeHint.w sizeHint.h", "hint 100x100, Python QProgressBar's 95x28 (fixed size matches)"},
     {"InfoBadge/default", "size.w sizeHint.w", "18 px wide without text, Python 11"},
