@@ -48,6 +48,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
+#include <QtGui/QScreen>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTextDocument>
 #include <QtGui/QWheelEvent>
@@ -148,6 +149,43 @@ class MenuTest : public QObject
         menu.addAction(QStringLiteral("b"));
         menu.clear();
         QCOMPARE(menu.view()->count(), 0);
+    }
+
+    void slidingMenuKeepsItsWindowStill()
+    {
+        // The view slides inside a window that sits at its end position, without a mask. Moving
+        // the window and masking it flashed the whole menu at the start position on Windows.
+        QWidget window;
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        const QPoint anchor = QGuiApplication::primaryScreen()->availableGeometry().center();
+        for (const MenuAnimationType type : {MenuAnimationType::DropDown, MenuAnimationType::PullUp}) {
+            RoundMenu menu;
+            for (int i = 0; i < 5; ++i) {
+                menu.addAction(QStringLiteral("Item %1").arg(i));
+            }
+            const QMargins margins = menu.layout()->contentsMargins();
+            const QPoint home(margins.left(), margins.top());
+
+            menu.exec(anchor, true, type);
+            const QPoint windowPos = menu.pos();
+            // Room on all sides, so the end position is the anchor less the margins.
+            const int endY = type == MenuAnimationType::DropDown ? anchor.y() - 4 : anchor.y() - menu.height() + 13;
+            QCOMPARE(windowPos, QPoint(anchor.x() - margins.left(), endY));
+            // show() has sent the pending resize event; the view must still be at its start.
+            if (type == MenuAnimationType::DropDown) {
+                QVERIFY(menu.view()->y() < home.y());
+            } else {
+                QVERIFY(menu.view()->y() > home.y());
+            }
+            QVERIFY(menu.mask().isEmpty());
+
+            QTRY_VERIFY(menu.layout()->isEnabled());
+            QCOMPARE(menu.view()->pos(), home);
+            QCOMPARE(menu.pos(), windowPos);
+            QVERIFY(menu.mask().isEmpty());
+            menu.close();
+        }
     }
 
     void menuExecAndWaitReturnsTriggeredAction()
