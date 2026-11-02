@@ -32,9 +32,7 @@ bool isDarkTheme()
 }
 } // namespace
 
-// ==========================================
-// CardWidget
-// ==========================================
+// --- CardWidget ---
 
 CardWidget::CardWidget(QWidget *parent) : QFrame(parent)
 {
@@ -91,7 +89,6 @@ void CardWidget::enterEvent(QEvent *event)
 #endif
 {
     m_hover = true;
-    // Trigger style transition
     style()->unpolish(this);
     style()->polish(this);
     updateBackgroundColor();
@@ -102,7 +99,6 @@ void CardWidget::leaveEvent(QEvent *event)
 {
     m_hover = false;
     m_pressed = false;
-    // Trigger style transition
     style()->unpolish(this);
     style()->polish(this);
     updateBackgroundColor();
@@ -216,7 +212,6 @@ void CardWidget::paintEvent(QPaintEvent *)
     const int d = 2 * r;
     const bool dark = isDarkTheme();
 
-    // Draw top border
     QPainterPath topPath;
     topPath.arcMoveTo(1, h - d - 1, d, d, 240);
     topPath.arcTo(1, h - d - 1, d, d, 225, -60);
@@ -239,7 +234,6 @@ void CardWidget::paintEvent(QPaintEvent *)
     painter.setBrush(Qt::NoBrush);
     painter.strokePath(topPath, topBorderColor);
 
-    // Draw bottom border
     QPainterPath bottomPath;
     bottomPath.arcMoveTo(1, h - d - 1, d, d, 240);
     bottomPath.arcTo(1, h - d - 1, d, d, 240, 30);
@@ -252,16 +246,13 @@ void CardWidget::paintEvent(QPaintEvent *)
     }
     painter.strokePath(bottomPath, bottomBorderColor);
 
-    // Draw background
     painter.setPen(Qt::NoPen);
     const QRect backgroundRect = rect().adjusted(1, 1, -1, -1);
     painter.setBrush(backgroundColor());
     painter.drawRoundedRect(backgroundRect, r, r);
 }
 
-// ==========================================
-// SimpleCardWidget
-// ==========================================
+// --- SimpleCardWidget ---
 
 SimpleCardWidget::SimpleCardWidget(QWidget *parent) : CardWidget(parent)
 {
@@ -288,9 +279,7 @@ QColor SimpleCardWidget::hoverBackgroundColor() const { return normalBackgroundC
 
 QColor SimpleCardWidget::pressedBackgroundColor() const { return normalBackgroundColor(); }
 
-// ==========================================
-// ElevatedCardWidget
-// ==========================================
+// --- ElevatedCardWidget ---
 
 ElevatedCardWidget::ElevatedCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 {
@@ -390,9 +379,7 @@ QColor ElevatedCardWidget::pressedBackgroundColor() const
     return isDarkTheme() ? QColor(255, 255, 255, 6) : QColor(255, 255, 255, 118);
 }
 
-// ==========================================
-// CardSeparator
-// ==========================================
+// --- CardSeparator ---
 
 CardSeparator::CardSeparator(QWidget *parent) : QWidget(parent)
 {
@@ -413,9 +400,7 @@ void CardSeparator::paintEvent(QPaintEvent *)
     painter.drawLine(2, 1, width() - 2, 1);
 }
 
-// ==========================================
-// HeaderCardWidget
-// ==========================================
+// --- HeaderCardWidget ---
 
 HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 {
@@ -434,8 +419,8 @@ HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
     m_titleLabel->setObjectName(QStringLiteral("headerLabel"));
     m_titleLabel->setFont(Private::fluentFont(15, QFont::DemiBold));
     // A plain label under the card's style sheet takes its colour from the palette when it is polished,
-    // and that sheet is the same in both themes, so a theme change never repolished the title: it kept
-    // the colour of the theme it was created in. Its own sheet follows the theme.
+    // and that sheet is the same in both themes, so a theme change would never repolish the title: it would
+    // keep the colour of the theme it was created in. Its own sheet follows the theme.
     FluentStyleSheet::setCustomStyleSheet(m_titleLabel, QStringLiteral("QLabel{color:black;}"),
                                           QStringLiteral("QLabel{color:white;}"));
     m_headerLayout->addWidget(m_titleLabel);
@@ -483,9 +468,7 @@ QHBoxLayout *HeaderCardWidget::headerLayout() const { return m_headerLayout; }
 
 QHBoxLayout *HeaderCardWidget::viewLayout() const { return m_viewLayout; }
 
-// ==========================================
-// CardGroupWidget
-// ==========================================
+// --- CardGroupWidget ---
 
 CardGroupWidget::CardGroupWidget(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)
     : QWidget(parent)
@@ -560,9 +543,7 @@ void CardGroupWidget::addWidget(QWidget *widget, int stretch)
     m_hBoxLayout->addWidget(widget, stretch);
 }
 
-// ==========================================
-// GroupHeaderCardWidget
-// ==========================================
+// --- GroupHeaderCardWidget ---
 
 GroupHeaderCardWidget::GroupHeaderCardWidget(QWidget *parent) : HeaderCardWidget(parent)
 {

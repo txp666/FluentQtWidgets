@@ -646,7 +646,7 @@ QWidget *GalleryWindow::createIconPage()
     viewLayout->addWidget(infoPanel, 0, Qt::AlignRight);
     containerLayout->addWidget(viewArea, 1);
 
-    // Build the icon grid
+    // The icon grid
     QVector<IconCard *> iconCards;
     auto currentCard = std::make_shared<QPointer<IconCard>>();
     for (int i = 0; i < iconCount; ++i) {
@@ -672,7 +672,6 @@ QWidget *GalleryWindow::createIconPage()
         flowLayout->addWidget(card);
     }
 
-    // Helper lambda to refresh the layout
     auto refreshFlowLayout = [flowLayout, iconCards]() {
         while (flowLayout->count() > 0) {
             auto *item = flowLayout->takeAt(0);
@@ -685,7 +684,7 @@ QWidget *GalleryWindow::createIconPage()
         }
     };
 
-    // Search filtering
+    // Search
     connect(searchEdit, &SearchLineEdit::searchSignal, page, [iconCards, refreshFlowLayout](const QString &text) {
         const QString key = text.toLower();
         for (auto *card : iconCards) {

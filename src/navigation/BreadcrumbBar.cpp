@@ -35,9 +35,7 @@ void renderIcon(QPainter *painter, const QIcon &icon, const QRectF &rect)
 
 } // namespace
 
-// ============================================================================
-// BreadcrumbWidget
-// ============================================================================
+// --- BreadcrumbWidget ---
 
 BreadcrumbWidget::BreadcrumbWidget(QWidget *parent) : QWidget(parent) {}
 
@@ -74,9 +72,7 @@ void BreadcrumbWidget::leaveEvent(QEvent *)
     update();
 }
 
-// ============================================================================
-// ElideButton
-// ============================================================================
+// --- ElideButton ---
 
 ElideButton::ElideButton(QWidget *parent) : BreadcrumbWidget(parent) { setFixedSize(16, 16); }
 
@@ -108,9 +104,7 @@ void ElideButton::paintEvent(QPaintEvent *)
     renderIcon(&painter, icon(FluentIcon::More), rect());
 }
 
-// ============================================================================
-// BreadcrumbItem
-// ============================================================================
+// --- BreadcrumbItem ---
 
 BreadcrumbItem::BreadcrumbItem(const QString &routeKey, const QString &text, int index, QWidget *parent)
     : BreadcrumbWidget(parent), m_routeKey(routeKey), m_text(text), m_index(index)
@@ -170,7 +164,6 @@ void BreadcrumbItem::paintEvent(QPaintEvent *)
     painter.setRenderHints(QPainter::TextAntialiasing | QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
 
-    // the separator
     const int sw = m_spacing * 2;
     if (!isRoot()) {
         const qreal iw = font().pixelSize() / 14.0 * 8;
@@ -180,7 +173,6 @@ void BreadcrumbItem::paintEvent(QPaintEvent *)
         renderIcon(&painter, icon(FluentIcon::ChevronRightMed), rect);
     }
 
-    // the text
     const bool dark = isDark();
     if (m_isPressed) {
         painter.setOpacity(m_isSelected ? 1 : (dark ? 0.54 : 0.45));
@@ -197,9 +189,7 @@ void BreadcrumbItem::paintEvent(QPaintEvent *)
     painter.drawText(rect, Qt::AlignVCenter | Qt::AlignLeft, m_text);
 }
 
-// ============================================================================
-// BreadcrumbBar
-// ============================================================================
+// --- BreadcrumbBar ---
 
 BreadcrumbBar::BreadcrumbBar(QWidget *parent) : QWidget(parent)
 {
@@ -250,7 +240,6 @@ void BreadcrumbBar::setCurrentIndex(int index)
     m_currentIndex = index;
     currentItem()->setSelected(true);
 
-    // remove the trailing items
     while (m_items.size() > index + 1) {
         removeItem(m_items.takeLast());
     }
@@ -401,7 +390,7 @@ void BreadcrumbBar::changeEvent(QEvent *event)
     const int s = static_cast<int>(font().pixelSize() / 14.0 * 16);
     m_elideButton->setFixedSize(s, s);
 
-    // the items follow the bar's font through Qt's font propagation, as Python's setFont() sets it on each
+    // The items follow the bar's font through Qt's font propagation, as Python's setFont() sets it on each
     for (BreadcrumbItem *item : std::as_const(m_items)) {
         item->setFont(font());
     }
@@ -431,7 +420,7 @@ void BreadcrumbBar::showHiddenItemsMenu()
         menu->addAction(action);
     }
 
-    // drop down or pull up, whichever leaves the view taller
+    // Drop down or pull up, whichever leaves the view taller.
     const int x = menu->layout() ? -menu->layout()->contentsMargins().left() : 0;
     const QPoint pd = mapToGlobal(QPoint(x, height()));
     const int hd = menu->view()->heightForAnimation(pd, MenuAnimationType::DropDown);

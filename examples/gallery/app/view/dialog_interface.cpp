@@ -26,7 +26,7 @@ QWidget *GalleryWindow::createDialogPage()
     const QString flyoutSource = exampleSourceUrl("dialog_flyout/flyout");
     const QString teachingTipSource = exampleSourceUrl("dialog_flyout/teaching_tip");
 
-    // -- Frameless Dialog --
+    // --- Frameless Dialog ---
     auto *dialogBtn = new PushButton(tx("DialogInterface", "Show dialog"));
     connect(dialogBtn, &QPushButton::clicked, page, [page]() {
         Dialog dialog(tx("DialogInterface", "This is a frameless message dialog"),
@@ -39,7 +39,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A frameless message box"), dialogBtn, dialogSource);
 
-    // -- MessageBox --
+    // --- MessageBox ---
     auto *msgBoxBtn = new PushButton(tx("DialogInterface", "Show dialog"));
     connect(msgBoxBtn, &QPushButton::clicked, page, [page]() {
         MessageBox box(tx("DialogInterface", "This is a message dialog with mask"),
@@ -52,7 +52,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A message box with mask"), msgBoxBtn, messageDialogSource);
 
-    // -- Custom message box (demonstrates extending Dialog) --
+    // --- Custom message box (demonstrates extending Dialog) ---
     auto *customBtn = new PushButton(tx("DialogInterface", "Show dialog"));
     connect(customBtn, &QPushButton::clicked, page, [page]() {
         MessageBoxBase customBox(page->window());
@@ -76,7 +76,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A custom message box"), customBtn, customMessageBoxSource);
 
-    // -- Color dialog --
+    // --- Color dialog ---
     auto *colorDialogBtn = new PushButton(tx("DialogInterface", "Show dialog"));
     connect(colorDialogBtn, &QPushButton::clicked, page, [page]() {
         ColorDialog dialog(Qt::cyan, tx("DialogInterface", "Choose color"), page->window());
@@ -86,7 +86,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A color dialog"), colorDialogBtn, colorDialogSource);
 
-    // -- Simple Flyout --
+    // --- Simple Flyout ---
     auto *simpleFlyoutBtn = new PushButton(tx("DialogInterface", "Show flyout"));
     connect(simpleFlyoutBtn, &QPushButton::clicked, page, [page, simpleFlyoutBtn]() {
         Flyout::create(QStringLiteral("Lesson 3"), tx("DialogInterface", "Believe in the spin, just keep believing!"),
@@ -94,7 +94,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A simple flyout"), simpleFlyoutBtn, flyoutSource);
 
-    // -- Complex Flyout --
+    // --- Complex Flyout ---
     auto *complexFlyoutBtn = new PushButton(tx("DialogInterface", "Show flyout"));
     connect(complexFlyoutBtn, &QPushButton::clicked, page, [complexFlyoutBtn]() {
         auto *view = new FlyoutView(tx("DialogInterface", "Julius·Zeppeli"),
@@ -113,7 +113,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A flyout with image and button"), complexFlyoutBtn, flyoutSource);
 
-    // -- TeachingTip (Bottom) --
+    // --- TeachingTip (Bottom) ---
     auto *teachingBtn = new PushButton(tx("DialogInterface", "Show teaching tip"));
     connect(teachingBtn, &QPushButton::clicked, page, [page, teachingBtn]() {
         TeachingTip::create(QStringLiteral("Lesson 4"),
@@ -123,7 +123,7 @@ QWidget *GalleryWindow::createDialogPage()
     });
     page->addExampleCard(tx("DialogInterface", "A teaching tip"), teachingBtn, teachingTipSource);
 
-    // -- TeachingTip (Left Bottom) --
+    // --- TeachingTip (Left Bottom) ---
     auto *teachingLeftBtn = new PushButton(tx("DialogInterface", "Show teaching tip"));
     connect(teachingLeftBtn, &QPushButton::clicked, page, [page, teachingLeftBtn]() {
         auto *view =

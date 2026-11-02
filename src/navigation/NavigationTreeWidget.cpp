@@ -33,7 +33,7 @@ void paintNavigationIcon(QPainter *painter, const QIcon &icon, const QRectF &tar
         return;
     }
 
-    // Keep Fluent SVG icons in the vector paint path.  Round-tripping them
+    // Keep Fluent SVG icons in the vector paint path. Round-tripping them
     // through QImage/QPixmap corrupts thin contours at fractional device
     // scales such as Windows 125% (DPR 1.25).
     painter->save();

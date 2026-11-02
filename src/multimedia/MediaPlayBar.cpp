@@ -44,9 +44,7 @@ void initPlayBarButton(MediaPlayBarButton *button)
 
 } // namespace
 
-// ==========================================
-// MediaPlayBarButton
-// ==========================================
+// --- MediaPlayBarButton ---
 
 MediaPlayBarButton::MediaPlayBarButton(QWidget *parent) : TransparentToolButton(parent) { initPlayBarButton(this); }
 
@@ -60,9 +58,7 @@ MediaPlayBarButton::MediaPlayBarButton(FluentIcon icon, QWidget *parent)
 {
 }
 
-// ==========================================
-// PlayButton
-// ==========================================
+// --- PlayButton ---
 
 PlayButton::PlayButton(QWidget *parent) : MediaPlayBarButton(parent)
 {
@@ -81,9 +77,7 @@ void PlayButton::setPlay(bool isPlay)
     }
 }
 
-// ==========================================
-// VolumeView
-// ==========================================
+// --- VolumeView ---
 
 VolumeView::VolumeView(QWidget *parent) : FlyoutViewBase(parent)
 {
@@ -130,9 +124,7 @@ void VolumeView::setVolume(int volume)
 
 void VolumeView::paintEvent(QPaintEvent *) { paintCard(this); }
 
-// ==========================================
-// VolumeButton
-// ==========================================
+// --- VolumeButton ---
 
 VolumeButton::VolumeButton(QWidget *parent) : MediaPlayBarButton(parent)
 {
@@ -173,9 +165,7 @@ void VolumeButton::showVolumeFlyout()
     m_volumeFlyout->exec(this);
 }
 
-// ==========================================
-// MediaPlayBarBase
-// ==========================================
+// --- MediaPlayBarBase ---
 
 MediaPlayBarBase::MediaPlayBarBase(QWidget *parent) : QWidget(parent)
 {
@@ -306,9 +296,7 @@ void MediaPlayBarBase::onPositionChanged(qint64 position) { m_progressSlider->se
 
 void MediaPlayBarBase::paintEvent(QPaintEvent *) { paintCard(this); }
 
-// ==========================================
-// SimpleMediaPlayBar
-// ==========================================
+// --- SimpleMediaPlayBar ---
 
 SimpleMediaPlayBar::SimpleMediaPlayBar(QWidget *parent) : MediaPlayBarBase(parent)
 {
@@ -328,9 +316,7 @@ void SimpleMediaPlayBar::addButton(MediaPlayBarButton *button) { m_hBoxLayout->a
 
 QHBoxLayout *SimpleMediaPlayBar::hBoxLayout() const { return m_hBoxLayout; }
 
-// ==========================================
-// StandardMediaPlayBar
-// ==========================================
+// --- StandardMediaPlayBar ---
 
 StandardMediaPlayBar::StandardMediaPlayBar(QWidget *parent) : MediaPlayBarBase(parent)
 {

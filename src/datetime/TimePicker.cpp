@@ -167,7 +167,7 @@ bool TimePicker::event(QEvent *event)
     const bool result = QFrame::event(event);
     // Python's picker is a QPushButton, whose style-sheet border is drawn over the columns. A
     // QFrame turns that border into contents margins whenever it is polished, restyled or
-    // reparented, which inset the columns and made the picker 2 px wider and taller than them.
+    // reparented, which would inset the columns and make the picker 2 px wider and taller than them.
     switch (event->type()) {
     case QEvent::Polish:
     case QEvent::StyleChange:

@@ -22,9 +22,7 @@ namespace FluentQt {
 class CompleterMenu;
 class LineEditMenu;
 
-// ============================================================================
-// LineEditButton
-// ============================================================================
+// --- LineEditButton ---
 
 class FQW_API LineEditButton : public QToolButton
 {
@@ -57,9 +55,7 @@ class FQW_API LineEditButton : public QToolButton
     bool m_isPressed = false;
 };
 
-// ============================================================================
-// LineEdit
-// ============================================================================
+// --- LineEdit ---
 
 class FQW_API LineEdit : public QLineEdit
 {
@@ -140,9 +136,7 @@ class FQW_API LineEdit : public QLineEdit
     QPointer<CompleterMenu> m_completerMenu;
 };
 
-// ============================================================================
-// SearchLineEdit
-// ============================================================================
+// --- SearchLineEdit ---
 
 class FQW_API SearchLineEdit : public LineEdit
 {
@@ -165,9 +159,7 @@ class FQW_API SearchLineEdit : public LineEdit
     LineEditButton *m_searchButton = nullptr;
 };
 
-// ============================================================================
-// PasswordLineEdit
-// ============================================================================
+// --- PasswordLineEdit ---
 
 class FQW_API PasswordLineEdit : public LineEdit
 {
@@ -195,9 +187,7 @@ class FQW_API PasswordLineEdit : public LineEdit
     LineEditButton *m_viewButton = nullptr;
 };
 
-// ============================================================================
-// CompleterMenu
-// ============================================================================
+// --- CompleterMenu ---
 
 class FQW_API CompleterMenu : public RoundMenu
 {
@@ -226,9 +216,7 @@ class FQW_API CompleterMenu : public RoundMenu
     QModelIndexList m_indexes;
 };
 
-// ============================================================================
-// Edit context menus
-// ============================================================================
+// --- Edit context menus ---
 
 class FQW_API LineEditMenu : public RoundMenu
 {
@@ -336,9 +324,7 @@ class FQW_API TextEditMenu : public RoundMenu
     int m_selectionEnd = -1;
 };
 
-// ============================================================================
-// TextEdit / PlainTextEdit / TextBrowser
-// ============================================================================
+// --- TextEdit / PlainTextEdit / TextBrowser ---
 
 class FQW_API TextEdit : public QTextEdit
 {

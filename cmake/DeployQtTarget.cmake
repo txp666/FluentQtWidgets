@@ -5,10 +5,10 @@ function(fqw_deploy_qt_executable target)
     endif()
 
     if(WIN32 AND FQW_BUILD_SHARED)
-        # A rule of its own that depends on the library, rather than a post-build step: that only
-        # ran when the executable relinked, which a change inside the library does not cause (its
-        # import library stays the same), so tests and examples kept loading the old DLL. One rule
-        # per output directory; the tests share theirs.
+        # A rule of its own that depends on the library, rather than a post-build step: that would
+        # only run when the executable relinks, which a change inside the library does not cause
+        # (its import library stays the same), so tests and examples would keep loading the old
+        # DLL. One rule per output directory; the tests share theirs.
         get_property(_fqw_runtime_target DIRECTORY PROPERTY FQW_RUNTIME_COPY_TARGET)
         if(NOT _fqw_runtime_target)
             get_property(_fqw_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -56,8 +56,8 @@ function(fqw_deploy_qt_executable target)
 
         if(WINDEPLOYQT_EXECUTABLE)
             # Widgets draw without OpenGL or Direct3D 12, so the software OpenGL fallback and the
-            # DXC shader compiler only added 35 MB to every deployment. Older windeployqt versions
-            # lack the options, hence the check (once per configure).
+            # DXC shader compiler would only add 35 MB to every deployment. Older windeployqt
+            # versions lack the options, hence the check (once per configure).
             get_property(_fqw_windeployqt_options GLOBAL PROPERTY FQW_WINDEPLOYQT_OPTIONS)
             if(NOT _fqw_windeployqt_options)
                 execute_process(COMMAND "${WINDEPLOYQT_EXECUTABLE}" --help

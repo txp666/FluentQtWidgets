@@ -356,9 +356,7 @@ QImage gaussianBlur(const QString &imagePath, qreal blurRadius, qreal brightFact
     return gaussianBlur(QImage(imagePath), blurRadius, brightFactor, blurPicSize);
 }
 
-// ==========================================
-// BlurCoverThread
-// ==========================================
+// --- BlurCoverThread ---
 
 BlurCoverThread::BlurCoverThread(QObject *parent) : QThread(parent) {}
 
@@ -420,9 +418,7 @@ void BlurCoverThread::run()
     }
 }
 
-// ==========================================
-// AcrylicTextureLabel
-// ==========================================
+// --- AcrylicTextureLabel ---
 
 AcrylicTextureLabel::AcrylicTextureLabel(const QColor &tintColor, const QColor &luminosityColor, qreal noiseOpacity,
                                          QWidget *parent)
@@ -452,9 +448,7 @@ void AcrylicTextureLabel::paintEvent(QPaintEvent *)
     painter.fillRect(rect(), QBrush(acrylicTexture(m_tintColor, m_luminosityColor, m_noiseOpacity, m_noiseImage)));
 }
 
-// ==========================================
-// AcrylicLabel
-// ==========================================
+// --- AcrylicLabel ---
 
 AcrylicLabel::AcrylicLabel(int blurRadius, const QColor &tintColor, const QColor &luminosityColor,
                            const QSize &maxBlurSize, QWidget *parent)

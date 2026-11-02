@@ -747,7 +747,7 @@ void drawPieChart(QPainter *painter, const QRectF &rect, const QJsonObject &opti
         return;
     }
 
-    // A negative value has no slice; summing it shrank the total and turned slices backwards.
+    // A negative value has no slice; summing it would shrink the total and turn slices backwards.
     const auto sliceValue = [](const QJsonValue &value) {
         return qMax<qreal>(0.0, value.toObject().value(QStringLiteral("value")).toDouble());
     };

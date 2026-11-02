@@ -10,9 +10,7 @@
 
 namespace FluentQt {
 
-// ============================================================================
-// SliderHandle
-// ============================================================================
+// --- SliderHandle ---
 
 SliderHandle::SliderHandle(QWidget *parent) : QWidget(parent)
 {
@@ -102,21 +100,17 @@ void SliderHandle::paintEvent(QPaintEvent * /*event*/)
     painter.setRenderHints(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
 
-    // Draw outer circle
     const bool dark = isDarkTheme();
     painter.setPen(QColor(0, 0, 0, dark ? 90 : 25));
     painter.setBrush(dark ? QColor(69, 69, 69) : Qt::white);
     painter.drawEllipse(rect().adjusted(1, 1, -1, -1));
 
-    // Draw inner circle with theme color
     painter.setPen(Qt::NoPen);
     painter.setBrush(autoFallbackThemeColor(m_lightHandleColor, m_darkHandleColor));
     painter.drawEllipse(QPointF(11, 11), m_radius, m_radius);
 }
 
-// ============================================================================
-// Slider
-// ============================================================================
+// --- Slider ---
 
 Slider::Slider(QWidget *parent) : QSlider(parent) { postInit(); }
 
@@ -324,9 +318,7 @@ void Slider::resizeEvent(QResizeEvent *event)
     adjustHandlePos();
 }
 
-// ============================================================================
-// ClickableSlider
-// ============================================================================
+// --- ClickableSlider ---
 
 // As Python's, a plain QSlider: vertical by default, and no style sheet of its own.
 ClickableSlider::ClickableSlider(QWidget *parent) : QSlider(parent) {}
@@ -351,9 +343,7 @@ void ClickableSlider::mousePressEvent(QMouseEvent *event)
     emit clicked(this->value());
 }
 
-// ============================================================================
-// HollowHandleStyle
-// ============================================================================
+// --- HollowHandleStyle ---
 
 HollowHandleStyle::HollowHandleStyle() = default;
 
@@ -434,23 +424,21 @@ void HollowHandleStyle::drawComplexControl(ComplexControl cc, const QStyleOption
     painter->setRenderHints(QPainter::Antialiasing);
     painter->setPen(Qt::NoPen);
 
-    // Paint groove
     painter->save();
     painter->translate(grooveRect.topLeft());
 
-    // Crossed part (filled)
+    // The crossed part, filled.
     const int w = handleRect.x() - grooveRect.x();
     const int h = m_grooveHeight;
     painter->setBrush(m_subPageColor);
     painter->drawRect(0, 0, w, h);
 
-    // Uncrossed part (unfilled)
+    // The uncrossed part, unfilled.
     const int x = w + handleSize().width();
     painter->setBrush(m_addPageColor);
     painter->drawRect(x, 0, grooveRect.width() - w, h);
     painter->restore();
 
-    // Paint handle
     const int ringWidth = m_handleRingWidth;
     const int hollowRadius = m_handleHollowRadius;
     const int radius = ringWidth + hollowRadius;

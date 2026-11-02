@@ -154,7 +154,7 @@ constexpr UINT kDwmSystemBackdropTypeAttribute = []() constexpr
 #ifdef DWMWA_SYSTEMBACKDROP_TYPE
     return DWMWA_SYSTEMBACKDROP_TYPE;
 #else
-    return 38; // fallback for SDKs that do not define DWMWA_SYSTEMBACKDROP_TYPE
+    return 38; // Fallback for SDKs that do not define DWMWA_SYSTEMBACKDROP_TYPE
 #endif
 }();
 
@@ -163,7 +163,7 @@ constexpr UINT kDwmMicaEffectAttribute = []() constexpr
 #ifdef DWMWA_MICA_EFFECT
     return DWMWA_MICA_EFFECT;
 #else
-    return 1029; // fallback for SDKs that do not define DWMWA_MICA_EFFECT
+    return 1029; // Fallback for SDKs that do not define DWMWA_MICA_EFFECT
 #endif
 }();
 
@@ -346,7 +346,7 @@ bool micaNeedsRefresh()
 // A theme change can finish several times in a row (the Gallery's theme button sets the theme
 // three times); one update of the window's attributes follows the last, once the widgets have their
 // new style, so that the backdrop starts changing with them. Setting Mica again where Windows
-// recolours it by itself restarted its cross-fade with a jump, a visible flash.
+// recolours it by itself restarts its cross-fade with a jump, a visible flash.
 QTimer *createThemeRefresh(QWidget *window, std::function<bool()> micaEnabled)
 {
     const bool refreshMica = micaNeedsRefresh();
@@ -452,9 +452,7 @@ bool isMicaEffectAvailable()
     return false;
 }
 
-// ============================================================
-// FluentWidget
-// ============================================================
+// --- FluentWidget ---
 
 FluentWidget::FluentWidget(QWidget *parent) : QWidget(parent)
 {
@@ -652,9 +650,7 @@ void FluentWidget::updateWindowMask()
 #endif
 }
 
-// ============================================================
-// FluentWindow
-// ============================================================
+// --- FluentWindow ---
 
 FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -1062,9 +1058,7 @@ void FluentWindow::updateWindowMask()
 #endif
 }
 
-// ============================================================
-// SplitFluentWindow
-// ============================================================
+// --- SplitFluentWindow ---
 
 SplitFluentWindow::SplitFluentWindow(QWidget *parent) : FluentWindow(parent)
 {
@@ -1074,9 +1068,7 @@ SplitFluentWindow::SplitFluentWindow(QWidget *parent) : FluentWindow(parent)
     titleBar()->raise();
 }
 
-// ============================================================
-// MSFluentWindow
-// ============================================================
+// --- MSFluentWindow ---
 
 MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
 {

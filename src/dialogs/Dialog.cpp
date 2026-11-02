@@ -40,11 +40,11 @@ QWidget *dialogOverlayTarget(QWidget *parent)
     return parent ? parent->window() : nullptr;
 }
 
-// As in qfluentwidgets, a dialog with a parent is a child overlay of the parent's window, so its
+// As in Python, a dialog with a parent is a child overlay of the parent's window, so its
 // mask and centre widget always line up with the window and stay inside it.
 bool overlaysAsChild(QWidget *target) { return target != nullptr; }
 
-// qfluentwidgets resizes its Dialog to 240 x 192; the layout's minimum size only ever grows it.
+// Python resizes its Dialog to 240 x 192; the layout's minimum size only ever grows it.
 constexpr QSize kDialogMinimumSize(240, 192);
 
 int messageWrapCharacterCount(QWidget *dialog, QLabel *titleLabel)
@@ -76,7 +76,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
     setWindowOpacity(0.0);
 
-    // The view stands in for qfluentwidgets' frameless window. A native window gets its shadow and
+    // The view stands in for Python's frameless window. A native window gets its shadow and
     // frame from the system; here the margins around the view hold the whole of the view's shadow
     // and the 1 px frame paintEvent() draws, so neither is cropped.
     m_view = new QFrame(this);
@@ -157,7 +157,7 @@ void Dialog::adjustDialogSize()
         return;
     }
     // Activating the layouts makes the view's minimum size that of its content, like the
-    // SetMinimumSize constraint does for qfluentwidgets' window.
+    // SetMinimumSize constraint does for Python's window.
     m_vBoxLayout->activate();
     layout()->activate();
     const QMargins margins = layout()->contentsMargins();
@@ -175,7 +175,7 @@ void Dialog::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     const QRectF viewRect(m_view->geometry());
     // The window frame sits just outside the view, as a native frame does, so the view keeps
-    // qfluentwidgets' window size and its children their offsets.
+    // Python's window size and its children their offsets.
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setBrush(Qt::NoBrush);
@@ -295,9 +295,7 @@ void Dialog::addButtonStretchOnce()
     }
 }
 
-// ============================================================================
-// MaskDialogBase
-// ============================================================================
+// --- MaskDialogBase ---
 
 MaskDialogBase::MaskDialogBase(QWidget *parent)
     : QDialog(parent)
@@ -316,7 +314,7 @@ MaskDialogBase::MaskDialogBase(QWidget *parent)
     m_windowMask->installEventFilter(this);
     updateMaskStyle();
 
-    // The layout keeps the style's margins, as qfluentwidgets' does: a centre widget that only
+    // The layout keeps the style's margins, as Python's does: a centre widget that only
     // has a maximum size (ColorDialog) shrinks to the window less those margins.
     m_hBoxLayout = new QHBoxLayout(this);
 
@@ -543,9 +541,7 @@ void MaskDialogBase::updateMaskStyle()
                                     .arg(m_maskColor.alpha()));
 }
 
-// ============================================================================
-// MessageBoxBase
-// ============================================================================
+// --- MessageBoxBase ---
 
 MessageBoxBase::MessageBoxBase(QWidget *parent)
     : MaskDialogBase(parent)
@@ -568,7 +564,7 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_acceptButton->setFocus();
 
     // The centre widget takes its content's size, centred in the mask; a minimum size set on
-    // widget() holds, as in qfluentwidgets (no SetMinimumSize constraint overriding it).
+    // widget() holds, as in Python (no SetMinimumSize constraint overriding it).
     m_hBoxLayout->removeWidget(m_widget);
     m_hBoxLayout->addWidget(m_widget, 1, Qt::AlignCenter);
 
@@ -645,9 +641,7 @@ void MessageBoxBase::addButtonStretchOnce()
     }
 }
 
-// ============================================================================
-// MessageBox
-// ============================================================================
+// --- MessageBox ---
 
 MessageBox::MessageBox(const QString &title, const QString &message, QWidget *parent)
     : MessageBoxBase(parent)
@@ -726,7 +720,7 @@ void MessageBox::adjustMessageSize()
 
     m_messageLabel->setText(Private::wrapText(m_content, messageWrapCharacterCount(this, m_titleLabel)));
     // The style sheet sets the labels' fonts and the frame's border, so polish before measuring.
-    // The box is then the natural size of its layout, frame included: qfluentwidgets measures the
+    // The box is then the natural size of its layout, frame included: Python measures the
     // laid-out labels (contentLabel.y() + height + 105), which comes to the same. Buttons added to
     // buttonLayout() widen it instead of overlapping.
     m_widget->ensurePolished();

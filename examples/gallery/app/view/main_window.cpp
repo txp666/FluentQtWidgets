@@ -34,7 +34,6 @@ GalleryWindow::GalleryWindow(QWidget *parent, bool deferPageLoad) : FluentWindow
     resize(960, 780);
     navigationInterface()->setAcrylicEnabled(true);
 
-    // Create and show splash screen
     auto *splash = new SplashScreen(windowIcon(), this);
     splash->setIconSize(QSize(106, 106));
     setSplashScreen(splash);

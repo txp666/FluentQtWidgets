@@ -36,7 +36,7 @@ bool isRemoteImageUrl(const QUrl &url)
 
 } // namespace
 
-// FluentLabelBase
+// --- FluentLabelBase ---
 FluentLabelBase::FluentLabelBase(QWidget *parent) : QLabel(parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
@@ -124,7 +124,7 @@ void FluentLabelBase::contextMenuEvent(QContextMenuEvent *event)
     menu->exec(event->globalPos(), true, MenuAnimationType::FadeInDropDown);
 }
 
-// CaptionLabel
+// --- CaptionLabel ---
 CaptionLabel::CaptionLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("CaptionLabel"), 12);
@@ -135,14 +135,14 @@ CaptionLabel::CaptionLabel(const QString &text, QWidget *parent) : FluentLabelBa
     setFluentTextStyle(QStringLiteral("CaptionLabel"), 12);
 }
 
-// BodyLabel
+// --- BodyLabel ---
 BodyLabel::BodyLabel(QWidget *parent) : FluentLabelBase(parent) { setFluentTextStyle(QStringLiteral("BodyLabel"), 14); }
 BodyLabel::BodyLabel(const QString &text, QWidget *parent) : FluentLabelBase(text, parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
 }
 
-// StrongBodyLabel
+// --- StrongBodyLabel ---
 StrongBodyLabel::StrongBodyLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("StrongBodyLabel"), 14, QFont::DemiBold);
@@ -152,7 +152,7 @@ StrongBodyLabel::StrongBodyLabel(const QString &text, QWidget *parent) : FluentL
     setFluentTextStyle(QStringLiteral("StrongBodyLabel"), 14, QFont::DemiBold);
 }
 
-// SubtitleLabel
+// --- SubtitleLabel ---
 SubtitleLabel::SubtitleLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("SubtitleLabel"), 20, QFont::DemiBold);
@@ -162,7 +162,7 @@ SubtitleLabel::SubtitleLabel(const QString &text, QWidget *parent) : FluentLabel
     setFluentTextStyle(QStringLiteral("SubtitleLabel"), 20, QFont::DemiBold);
 }
 
-// TitleLabel
+// --- TitleLabel ---
 TitleLabel::TitleLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("TitleLabel"), 28, QFont::DemiBold);
@@ -172,7 +172,7 @@ TitleLabel::TitleLabel(const QString &text, QWidget *parent) : FluentLabelBase(t
     setFluentTextStyle(QStringLiteral("TitleLabel"), 28, QFont::DemiBold);
 }
 
-// LargeTitleLabel
+// --- LargeTitleLabel ---
 LargeTitleLabel::LargeTitleLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("LargeTitleLabel"), 40, QFont::DemiBold);
@@ -182,7 +182,7 @@ LargeTitleLabel::LargeTitleLabel(const QString &text, QWidget *parent) : FluentL
     setFluentTextStyle(QStringLiteral("LargeTitleLabel"), 40, QFont::DemiBold);
 }
 
-// DisplayLabel
+// --- DisplayLabel ---
 DisplayLabel::DisplayLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("DisplayLabel"), 68, QFont::DemiBold);
@@ -192,7 +192,7 @@ DisplayLabel::DisplayLabel(const QString &text, QWidget *parent) : FluentLabelBa
     setFluentTextStyle(QStringLiteral("DisplayLabel"), 68, QFont::DemiBold);
 }
 
-// ImageLabel
+// --- ImageLabel ---
 ImageLabel::ImageLabel(QWidget *parent) : QLabel(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
@@ -399,7 +399,7 @@ void ImageLabel::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-// AvatarWidget
+// --- AvatarWidget ---
 AvatarWidget::AvatarWidget(QWidget *parent) : ImageLabel(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
@@ -625,7 +625,7 @@ void AvatarWidget::onMovieFrameChanged(int)
     update();
 }
 
-// PixmapLabel
+// --- PixmapLabel ---
 PixmapLabel::PixmapLabel(QWidget *parent) : QLabel(parent) {}
 
 QPixmap PixmapLabel::pixmap() const { return m_pixmap; }
@@ -649,7 +649,7 @@ void PixmapLabel::paintEvent(QPaintEvent *event)
     painter.drawPixmap(rect(), m_pixmap);
 }
 
-// HyperlinkLabel
+// --- HyperlinkLabel ---
 HyperlinkLabel::HyperlinkLabel(QWidget *parent) : QPushButton(parent)
 {
     setCursor(Qt::PointingHandCursor);

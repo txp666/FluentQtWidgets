@@ -169,7 +169,6 @@ public:
     explicit RoundMenu(const QString &title, QWidget *parent = nullptr);
     ~RoundMenu() override;
 
-    // Action management
     void addAction(QAction *action);
     QAction *addAction(const QString &text);
     QAction *addAction(const QIcon &icon, const QString &text);
@@ -182,27 +181,22 @@ public:
     void removeAction(QAction *action);
     QList<QAction *> menuActions() const;
 
-    // Sub-menu management
     void addMenu(RoundMenu *menu);
     void insertMenu(QAction *before, RoundMenu *menu);
     void removeMenu(RoundMenu *menu);
 
-    // Separator
     void addSeparator();
     void clear();
 
-    // View accessor
     MenuActionListWidget *view() const;
 
-    // Parent menu accessor (for sub-menu navigation)
     RoundMenu *parentMenu() const;
 
-    // Properties
     void setIcon(const QIcon &icon);
     QIcon menuIcon() const;
 
     using QMenu::exec;
-    // Shows the menu and returns at once, like QMenu::popup() (and like qfluentwidgets); the
+    // Shows the menu and returns at once, like QMenu::popup() (and like Python); the
     // result is always nullptr. A menu on the stack, or a caller that needs the chosen action,
     // wants execAndWait().
     QAction *exec(const QPoint &pos, bool animated = true,
@@ -288,7 +282,6 @@ private:
     QListWidgetItem *m_lastHoverItem = nullptr;
     QListWidgetItem *m_lastHoverSubMenuItem = nullptr;
 
-    // Sub-menu parent info
     RoundMenu *m_parentMenu = nullptr;
     QListWidgetItem *m_parentMenuItem = nullptr;
 

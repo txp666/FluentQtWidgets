@@ -47,7 +47,6 @@ bool isDarkTheme()
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark;
 }
 
-
 QColor acrylicTintColor()
 {
     return isDarkTheme() ? QColor(32, 32, 32, 200) : QColor(255, 255, 255, 160);
@@ -70,9 +69,7 @@ QRect screenGeometryAt(const QPoint &pos)
     return screen->availableGeometry();
 }
 
-// ==========================================
-// MenuAnimationManager hierarchy
-// ==========================================
+// --- MenuAnimationManager hierarchy ---
 
 class MenuAnimationManager : public QObject
 {
@@ -121,8 +118,8 @@ protected:
 
     // Slides the view in from `offset` pixels above (negative) or below (positive) its place.
     // The window sits at its end position from the first frame and its own edge clips the view.
-    // Moving the window instead and masking off the part past its end edge showed the whole menu
-    // at the start position until the first animation tick set the mask, a flash on Windows.
+    // Moving the window instead and masking off the part past its end edge would show the whole
+    // menu at the start position until the first animation tick set the mask, a flash on Windows.
     void slideViewIn(const QPoint &pos, int offset)
     {
         m_menu->setWindowOpacity(1.0);
@@ -249,7 +246,7 @@ public:
         m_group->addAnimation(m_opacityAni);
     }
 
-    // qfluentwidgets rests this one 2 px lower than the plain pull-up.
+    // Python rests this one 2 px lower than the plain pull-up.
     QPoint endPosition(const QPoint &pos) const override
     {
         if (!isMenuUsable()) {
@@ -300,9 +297,7 @@ MenuAnimationManager *makeMenuAnimationManager(RoundMenu *menu, MenuAnimationTyp
 
 } // namespace
 
-// ==========================================
-// SubMenuItemWidget
-// ==========================================
+// --- SubMenuItemWidget ---
 
 SubMenuItemWidget::SubMenuItemWidget(RoundMenu *menu, QListWidgetItem *item, QWidget *parent)
     : QWidget(parent), m_menu(menu), m_item(item)
@@ -337,9 +332,7 @@ void SubMenuItemWidget::paintEvent(QPaintEvent *)
     painter.drawPixmap(rect, pixmap, QRectF(pixmap.rect()));
 }
 
-// ==========================================
-// MenuActionListWidget
-// ==========================================
+// --- MenuActionListWidget ---
 
 MenuActionListWidget::MenuActionListWidget(QWidget *parent) : QListWidget(parent)
 {
@@ -416,7 +409,7 @@ int MenuActionListWidget::heightForAnimation(const QPoint &pos, MenuAnimationTyp
 
 QSize MenuActionListWidget::availableViewSize(const QPoint &pos, MenuAnimationType aniType) const
 {
-    // Create temporary manager just for size calculation
+    // A temporary manager, only to measure.
     const QRect ss = screenGeometryAt(pos);
     int w = ss.width() - 100;
     int h = ss.height() - 100;
@@ -467,10 +460,7 @@ void MenuActionListWidget::rowsInserted(const QModelIndex &parent, int start, in
     adjustItemsSize();
 }
 
-
-// ==========================================
-// MenuItemDelegate
-// ==========================================
+// --- MenuItemDelegate ---
 
 MenuItemDelegate::MenuItemDelegate(QObject *parent) : QStyledItemDelegate(parent) {}
 
@@ -497,9 +487,7 @@ void MenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     QStyledItemDelegate::paint(painter, option, index);
 }
 
-// ==========================================
-// ShortcutMenuItemDelegate
-// ==========================================
+// --- ShortcutMenuItemDelegate ---
 
 void ShortcutMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                       const QModelIndex &index) const
@@ -509,7 +497,6 @@ void ShortcutMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewIt
         return;
     }
 
-    // Draw shortcut key
     QAction *action = index.data(Qt::UserRole).value<QAction *>();
     if (!action || action->shortcut().isEmpty()) {
         return;
@@ -527,7 +514,7 @@ void ShortcutMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewIt
 
     const QString shortcut = action->shortcut().toString(QKeySequence::NativeText);
 
-    // The whole sequence ("Ctrl+Shift+S", "Ctrl+K, Ctrl+C"); a one-column text line showed only
+    // The whole sequence ("Ctrl+Shift+S", "Ctrl+K, Ctrl+C"); a one-column text line would show only
     // its first character.
     const QFontMetricsF metrics(font);
     const qreal width = metrics.horizontalAdvance(shortcut);
@@ -537,9 +524,7 @@ void ShortcutMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewIt
     painter->restore();
 }
 
-// ==========================================
-// RadioIndicatorMenuItemDelegate
-// ==========================================
+// --- RadioIndicatorMenuItemDelegate ---
 
 void RadioIndicatorMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                             const QModelIndex &index) const
@@ -580,9 +565,7 @@ void RadioIndicatorMenuItemDelegate::drawIndicator(QPainter *painter, const QSty
     painter->drawEllipse(QRectF(x, y, r, r));
 }
 
-// ==========================================
-// CheckIndicatorMenuItemDelegate
-// ==========================================
+// --- CheckIndicatorMenuItemDelegate ---
 
 void CheckIndicatorMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                             const QModelIndex &index) const
@@ -622,9 +605,7 @@ void CheckIndicatorMenuItemDelegate::drawIndicator(QPainter *painter, const QSty
         .paint(painter, QRect(x, y, s, s));
 }
 
-// ==========================================
-// IndicatorMenuItemDelegate
-// ==========================================
+// --- IndicatorMenuItemDelegate ---
 
 void IndicatorMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                        const QModelIndex &index) const
@@ -643,9 +624,7 @@ void IndicatorMenuItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->restore();
 }
 
-// ==========================================
-// RoundMenu
-// ==========================================
+// --- RoundMenu ---
 
 RoundMenu::RoundMenu(QWidget *parent) : QMenu(parent) { init(); }
 
@@ -680,8 +659,8 @@ void RoundMenu::init()
     setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
     // A popup has no title bar or notch to keep clear of. On macOS a menu window created before it
-    // is shown reports a title bar's worth of safe area, which the slide's layout pass took as a
-    // 32 px top margin, so the view came to rest that much too low and lost its bottom.
+    // is shown reports a title bar's worth of safe area, which the slide's layout pass would take as a
+    // 32 px top margin, so the view would come to rest that much too low and lose its bottom.
     setAttribute(Qt::WA_ContentsMarginsRespectsSafeArea, false);
     setMouseTracking(true);
 
@@ -1553,7 +1532,7 @@ void RoundMenu::mouseMoveEvent(QMouseEvent *event)
 #else
     const QPoint pos = event->globalPos();
 #endif
-    // Hide submenu when mouse moves out of parent menu item
+    // Hide the submenu once the mouse leaves its item in this menu.
     const QMargins margin = m_parentMenu->m_view->contentsMargins();
     QRect rect = m_parentMenu->m_view->visualItemRect(m_parentMenuItem);
     const QPoint globalView = m_parentMenu->m_view->mapToGlobal(QPoint(0, 0));
@@ -1568,9 +1547,7 @@ void RoundMenu::mouseMoveEvent(QMouseEvent *event)
     QMenu::mouseMoveEvent(event);
 }
 
-// ==========================================
-// CheckableMenu
-// ==========================================
+// --- CheckableMenu ---
 
 CheckableMenu::CheckableMenu(QWidget *parent) : RoundMenu(parent)
 {
@@ -1598,9 +1575,7 @@ CheckableMenu::CheckableMenu(const QString &title, QWidget *parent, MenuIndicato
     FluentStyleSheet::setRole(this, QStringLiteral("CheckableMenu"));
 }
 
-// ==========================================
-// SystemTrayMenu
-// ==========================================
+// --- SystemTrayMenu ---
 
 SystemTrayMenu::SystemTrayMenu(QWidget *parent) : RoundMenu(parent)
 {
@@ -1614,9 +1589,7 @@ QSize SystemTrayMenu::sizeHint() const
     return QSize(s.width() - m.right() + 5, s.height() - m.bottom());
 }
 
-// ==========================================
-// CheckableSystemTrayMenu
-// ==========================================
+// --- CheckableSystemTrayMenu ---
 
 CheckableSystemTrayMenu::CheckableSystemTrayMenu(QWidget *parent) : CheckableMenu(parent) {}
 
@@ -1632,9 +1605,7 @@ QSize CheckableSystemTrayMenu::sizeHint() const
     return QSize(s.width() - m.right() + 5, s.height() - m.bottom());
 }
 
-// ==========================================
-// Acrylic menus
-// ==========================================
+// --- Acrylic menus ---
 
 AcrylicMenuActionListWidget::AcrylicMenuActionListWidget(QWidget *parent)
     : MenuActionListWidget(parent), m_acrylicBrush(new AcrylicBrush(this, 35))
@@ -1762,9 +1733,7 @@ void AcrylicCheckableSystemTrayMenu::showEvent(QShowEvent *event)
     adjustPosition();
 }
 
-// ==========================================
-// LabelContextMenu
-// ==========================================
+// --- LabelContextMenu ---
 
 LabelContextMenu::LabelContextMenu(QLabel *parent)
     : RoundMenu(QString(), parent)

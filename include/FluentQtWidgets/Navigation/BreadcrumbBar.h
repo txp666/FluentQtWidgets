@@ -10,7 +10,7 @@
 namespace FluentQt {
 
 // Base of the breadcrumb items and the ellipsis button: tracks hover and press and emits
-// clicked() on release, as qfluentwidgets' BreadcrumbWidget does.
+// clicked() on release, as Python's BreadcrumbWidget does.
 class FQW_API BreadcrumbWidget : public QWidget
 {
     Q_OBJECT

@@ -122,9 +122,7 @@ void initMultilineTextEdit(Editor *editor, const QString &role, QWidget **layer,
 
 } // namespace
 
-// ============================================================================
-// LineEditButton
-// ============================================================================
+// --- LineEditButton ---
 
 LineEditButton::LineEditButton(FluentIcon iconType, QWidget *parent)
     : QToolButton(parent)
@@ -229,9 +227,7 @@ void LineEditButton::paintEvent(QPaintEvent *e)
     iconToPaint.paint(&painter, rect.toRect());
 }
 
-// ============================================================================
-// LineEdit
-// ============================================================================
+// --- LineEdit ---
 
 LineEdit::LineEdit(QWidget *parent)
     : QLineEdit(parent)
@@ -496,9 +492,7 @@ void LineEdit::paintEvent(QPaintEvent *e)
     painter.fillPath(path, focusedBorderColor());
 }
 
-// ============================================================================
-// SearchLineEdit
-// ============================================================================
+// --- SearchLineEdit ---
 
 SearchLineEdit::SearchLineEdit(QWidget *parent)
     : LineEdit(parent)
@@ -532,9 +526,7 @@ void SearchLineEdit::setClearButtonEnabled(bool enable)
 
 LineEditButton *SearchLineEdit::searchButton() const { return m_searchButton; }
 
-// ============================================================================
-// PasswordLineEdit
-// ============================================================================
+// --- PasswordLineEdit ---
 
 PasswordLineEdit::PasswordLineEdit(QWidget *parent)
     : LineEdit(parent)
@@ -606,9 +598,7 @@ QVariant PasswordLineEdit::inputMethodQuery(Qt::InputMethodQuery query) const
     return QLineEdit::inputMethodQuery(query);
 }
 
-// ============================================================================
-// CompleterMenu
-// ============================================================================
+// --- CompleterMenu ---
 
 CompleterMenu::CompleterMenu(LineEdit *lineEdit)
     : RoundMenu(QString(), nullptr)
@@ -743,9 +733,7 @@ void CompleterMenu::popup()
     m_lineEdit->setFocus();
 }
 
-// ============================================================================
-// Edit context menus
-// ============================================================================
+// --- Edit context menus ---
 
 LineEditMenu::LineEditMenu(QLineEdit *parent)
     : RoundMenu(QString(), parent)
@@ -1195,9 +1183,7 @@ void reapplyZoom(Editor *editor, QEvent *event, int zoom)
 
 } // namespace
 
-// ============================================================================
-// TextEdit
-// ============================================================================
+// --- TextEdit ---
 
 TextEdit::TextEdit(QWidget *parent)
     : QTextEdit(parent)
@@ -1229,9 +1215,7 @@ void TextEdit::changeEvent(QEvent *event)
     reapplyZoom(this, event, m_zoom);
 }
 
-// ============================================================================
-// PlainTextEdit
-// ============================================================================
+// --- PlainTextEdit ---
 
 PlainTextEdit::PlainTextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -1263,9 +1247,7 @@ void PlainTextEdit::changeEvent(QEvent *event)
     reapplyZoom(this, event, m_zoom);
 }
 
-// ============================================================================
-// TextBrowser
-// ============================================================================
+// --- TextBrowser ---
 
 TextBrowser::TextBrowser(QWidget *parent)
     : QTextBrowser(parent)

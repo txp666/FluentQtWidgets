@@ -633,7 +633,7 @@ bool NavigationPanel::event(QEvent *event)
 }
 
 // The window filter (closing the menu on outside clicks, following resizes) has to move with the
-// panel; a panel created first and added to a window later was watching only itself.
+// panel; a panel created first and added to a window later would watch only itself.
 void NavigationPanel::followWindow()
 {
     QWidget *topLevel = window();

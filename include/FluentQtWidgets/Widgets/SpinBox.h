@@ -77,7 +77,7 @@ private:
     QVBoxLayout *m_layout = nullptr;
 };
 
-// Internal helper - not exported, used in SpinBox variants
+// Internal helper of the spin box classes; not exported.
 class SpinBoxHelper
 {
 public:
@@ -125,9 +125,7 @@ private:
     Flyout *m_flyout = nullptr;
 };
 
-// ---------------------------------------------------------------------------
-// Inline SpinBox variants (with up/down buttons inside)
-// ---------------------------------------------------------------------------
+// --- Inline SpinBox variants (with up/down buttons inside) ---
 
 class FQW_API SpinBox : public QSpinBox
 {
@@ -289,9 +287,7 @@ private:
     SpinBoxHelper *m_helper = nullptr;
 };
 
-// ---------------------------------------------------------------------------
-// Compact SpinBox variants (compact button + flyout)
-// ---------------------------------------------------------------------------
+// --- Compact SpinBox variants (compact button + flyout) ---
 
 class FQW_API CompactSpinBox : public QSpinBox
 {

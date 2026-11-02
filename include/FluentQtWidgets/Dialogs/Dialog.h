@@ -210,7 +210,7 @@ class FQW_API MessageBox : public MessageBoxBase
     QLabel *m_messageLabel = nullptr;
 };
 
-// qfluentwidgets' Win10-style message dialog: plain labels and buttons placed by hand on a
+// Python's Win10-style message dialog: plain labels and buttons placed by hand on a
 // masked, square centre widget, styled by message_dialog.qss.
 class FQW_API MessageDialog : public MaskDialogBase
 {

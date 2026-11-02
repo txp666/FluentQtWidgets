@@ -274,7 +274,7 @@ void SwitchButton::setCheckedIndicatorColor(const QColor &light, const QColor &d
 void SwitchButton::setIndicatorPosition(IndicatorPosition pos)
 {
     m_indicatorPosition = pos;
-    // takeAt() hands over the layout item (not the widget); removeItem() leaked it.
+    // takeAt() hands over the layout item (not the widget); removeItem() would leak it.
     while (m_layout->count() > 0) {
         delete m_layout->takeAt(0);
     }

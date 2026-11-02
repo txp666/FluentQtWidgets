@@ -1,4 +1,3 @@
-# coding:utf-8
 """Measure qfluentwidgets.multimedia (PyQt-Fluent-Widgets 1.11.3) for tests/tst_media.cpp.
 
 The media classes need Qt Multimedia, which the default C++ build doesn't have, so they are not in

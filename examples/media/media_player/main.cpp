@@ -24,15 +24,14 @@ class Demo1 : public QWidget
         vBoxLayout->addWidget(simplePlayBar);
         vBoxLayout->addWidget(standardPlayBar);
 
-        // online music
+        // Online music
         simplePlayBar->player()->setSource(
             QUrl(QStringLiteral("https://files.cnblogs.com/files/blogs/677826/beat.zip?t=1693900324")));
 
-        // local music
+        // Local music
         standardPlayBar->player()->setSource(
             QUrl(QStringLiteral("qrc:/media/media_player/resource/aiko-shiawase.mp3")));
 
-        // standardPlayBar->play();
     }
 };
 

@@ -26,7 +26,7 @@ class FQW_API MediaPlayerBase : public QObject
     // The duration and the position of the current media, in ms.
     virtual qint64 duration() const = 0;
     virtual qint64 position() const = 0;
-    // 0 to 100.
+    // The volume, 0 to 100.
     virtual int volume() const = 0;
     virtual bool isMuted() const = 0;
     virtual QUrl source() const = 0;

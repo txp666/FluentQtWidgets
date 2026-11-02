@@ -186,7 +186,6 @@ QWidget *GalleryWindow::createViewsPage()
 
         treeWidget->expandAll();
 
-        // Enable checkboxes for all items
         QTreeWidgetItemIterator it(treeWidget);
         while (*it) {
             (*it)->setCheckState(0, Qt::Unchecked);

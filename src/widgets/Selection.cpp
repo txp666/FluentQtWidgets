@@ -40,7 +40,7 @@ void paintFocusVisual(QPainter *painter, const QRectF &rect, qreal radius)
     painter->restore();
 }
 
-// Parsed once per path; a QIcon made from the file on every paint parsed the SVG every time.
+// Parsed once per path; a QIcon made from the file on every paint would parse the SVG every time.
 QIcon cachedIcon(const QString &path)
 {
     static QHash<QString, QIcon> icons;

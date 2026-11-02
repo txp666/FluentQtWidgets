@@ -23,9 +23,7 @@
 
 namespace FluentQt {
 
-// ============================================================================
-// Internal helpers
-// ============================================================================
+// --- Internal helpers ---
 
 static bool isDarkTheme()
 {
@@ -38,9 +36,7 @@ static QString spinIconPath(const QString &name)
     return QStringLiteral(":/qfluentwidgets/images/spin_box/%1_%2.svg").arg(name, color);
 }
 
-// Rendered from the SVG: sharp at any scale factor, parsed once per icon and theme. (A fixed-size
-// pixmap decoded on every paint was blurry on HiDPI screens, and a failed load came back as an
-// uninitialized pixmap full of garbage.)
+// Rendered from the SVG: sharp at any scale factor, parsed once per icon and theme.
 static void paintSpinIcon(QPainter *painter, const QString &name, const QRectF &rect)
 {
     static QHash<QString, QSharedPointer<QSvgRenderer>> renderers;
@@ -88,9 +84,7 @@ private:
     SpinIconType m_icon = SpinIconType::Up;
 };
 
-// ============================================================================
-// SpinButton
-// ============================================================================
+// --- SpinButton ---
 
 SpinButton::SpinButton(SpinIconType icon, QWidget *parent) : QToolButton(parent), m_icon(icon)
 {
@@ -148,9 +142,7 @@ void SpinButton::paintEvent(QPaintEvent *event)
     paintSpinIcon(&painter, iconName, QRectF(10, 6.5, 11, 11));
 }
 
-// ============================================================================
-// CompactSpinButton
-// ============================================================================
+// --- CompactSpinButton ---
 
 CompactSpinButton::CompactSpinButton(QWidget *parent) : QToolButton(parent)
 {
@@ -174,9 +166,7 @@ void CompactSpinButton::paintEvent(QPaintEvent * /*event*/)
     paintSpinIcon(&painter, QStringLiteral("Down"), QRectF(x, downY, s, s));
 }
 
-// ============================================================================
-// SpinFlyoutView
-// ============================================================================
+// --- SpinFlyoutView ---
 
 SpinFlyoutView::SpinFlyoutView(QWidget *parent) : FlyoutViewBase(parent)
 {
@@ -222,9 +212,7 @@ void SpinFlyoutView::paintEvent(QPaintEvent * /*event*/)
     painter.drawRoundedRect(r, 8, 8);
 }
 
-// ============================================================================
-// SpinBoxHelper
-// ============================================================================
+// --- SpinBoxHelper ---
 
 SpinBoxHelper::SpinBoxHelper() = default;
 
@@ -285,7 +273,6 @@ void SpinBoxHelper::init(QAbstractSpinBox *spinBox, Mode mode)
                          [this]() { m_spinBox->stepDown(); });
     }
 
-    // Context menu
     m_spinBox->setContextMenuPolicy(Qt::CustomContextMenu);
     QObject::connect(m_spinBox, &QWidget::customContextMenuRequested, m_spinBox,
                      [this](const QPoint &pos) { showContextMenu(pos); });
@@ -454,9 +441,7 @@ QHBoxLayout *SpinBoxHelper::hBoxLayout() const
     return m_layout;
 }
 
-// ============================================================================
-// SpinBox (Inline)
-// ============================================================================
+// --- SpinBox (Inline) ---
 
 SpinBox::SpinBox(QWidget *parent) : QSpinBox(parent)
 {
@@ -513,9 +498,7 @@ void SpinBox::contextMenuEvent(QContextMenuEvent *event)
     event->accept();
 }
 
-// ============================================================================
-// DoubleSpinBox (Inline)
-// ============================================================================
+// --- DoubleSpinBox (Inline) ---
 
 DoubleSpinBox::DoubleSpinBox(QWidget *parent) : QDoubleSpinBox(parent)
 {
@@ -572,9 +555,7 @@ void DoubleSpinBox::contextMenuEvent(QContextMenuEvent *event)
     event->accept();
 }
 
-// ============================================================================
-// TimeEdit (Inline)
-// ============================================================================
+// --- TimeEdit (Inline) ---
 
 TimeEdit::TimeEdit(QWidget *parent) : QTimeEdit(parent)
 {
@@ -631,9 +612,7 @@ void TimeEdit::contextMenuEvent(QContextMenuEvent *event)
     event->accept();
 }
 
-// ============================================================================
-// DateEdit (Inline)
-// ============================================================================
+// --- DateEdit (Inline) ---
 
 DateEdit::DateEdit(QWidget *parent) : QDateEdit(parent)
 {
@@ -690,9 +669,7 @@ void DateEdit::contextMenuEvent(QContextMenuEvent *event)
     event->accept();
 }
 
-// ============================================================================
-// DateTimeEdit (Inline)
-// ============================================================================
+// --- DateTimeEdit (Inline) ---
 
 DateTimeEdit::DateTimeEdit(QWidget *parent) : QDateTimeEdit(parent)
 {
@@ -749,9 +726,7 @@ void DateTimeEdit::contextMenuEvent(QContextMenuEvent *event)
     event->accept();
 }
 
-// ============================================================================
-// CompactSpinBox
-// ============================================================================
+// --- CompactSpinBox ---
 
 CompactSpinBox::CompactSpinBox(QWidget *parent) : QSpinBox(parent)
 {
@@ -816,9 +791,7 @@ void CompactSpinBox::focusInEvent(QFocusEvent *event)
     m_helper->onFocusIn();
 }
 
-// ============================================================================
-// CompactDoubleSpinBox
-// ============================================================================
+// --- CompactDoubleSpinBox ---
 
 CompactDoubleSpinBox::CompactDoubleSpinBox(QWidget *parent) : QDoubleSpinBox(parent)
 {
@@ -883,9 +856,7 @@ void CompactDoubleSpinBox::focusInEvent(QFocusEvent *event)
     m_helper->onFocusIn();
 }
 
-// ============================================================================
-// CompactTimeEdit
-// ============================================================================
+// --- CompactTimeEdit ---
 
 CompactTimeEdit::CompactTimeEdit(QWidget *parent) : QTimeEdit(parent)
 {
@@ -950,9 +921,7 @@ void CompactTimeEdit::focusInEvent(QFocusEvent *event)
     m_helper->onFocusIn();
 }
 
-// ============================================================================
-// CompactDateEdit
-// ============================================================================
+// --- CompactDateEdit ---
 
 CompactDateEdit::CompactDateEdit(QWidget *parent) : QDateEdit(parent)
 {
@@ -1017,9 +986,7 @@ void CompactDateEdit::focusInEvent(QFocusEvent *event)
     m_helper->onFocusIn();
 }
 
-// ============================================================================
-// CompactDateTimeEdit
-// ============================================================================
+// --- CompactDateTimeEdit ---
 
 CompactDateTimeEdit::CompactDateTimeEdit(QWidget *parent) : QDateTimeEdit(parent)
 {

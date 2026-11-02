@@ -23,7 +23,6 @@ class QGraphicsDropShadowEffect;
 
 namespace FluentQt {
 
-// Forward declarations
 class IconWidget;
 
 class FQW_API CardWidget : public QFrame

@@ -269,7 +269,7 @@ void TableItemDelegate::initStyleOption(QStyleOptionViewItem *option, const QMod
     const QVariant fontData = index.data(Qt::FontRole);
     option->font = fontData.canConvert<QFont>() ? fontData.value<QFont>() : itemFont();
 
-    // Text color: white in dark, black in light, unless the item has its own
+    // Text colour: white in dark, black in light, unless the item has its own
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     QColor textColor = dark ? Qt::white : Qt::black;
     const QVariant textBrush = index.data(Qt::ForegroundRole);
@@ -354,7 +354,7 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         alpha = 17;
     }
 
-    // QAbstractItemView can paint the platform selection color before the
+    // QAbstractItemView can paint the platform selection colour before the
     // delegate on macOS. Clear that opaque native layer first; the rounded
     // Fluent selection fill below is intentionally translucent.
     if (selected) {
@@ -379,7 +379,7 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     itemOption.state &= ~QStyle::State_Selected;
     itemOption.state &= ~QStyle::State_MouseOver;
     // Some platform styles still resolve the selected palette while painting
-    // the text/background even after State_Selected has been cleared.  Keep
+    // the text/background even after State_Selected has been cleared. Keep
     // the native highlight transparent so the Fluent row fill and accent
     // indicator above remain the only selection visuals.
     itemOption.palette.setColor(QPalette::Highlight, Qt::transparent);

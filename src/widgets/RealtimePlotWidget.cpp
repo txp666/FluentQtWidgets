@@ -1682,7 +1682,7 @@ QRectF RealtimePlotWidget::plotRect() const
 }
 
 // While auto-scrolling, the view ends at the newest sample and starts no earlier than the oldest
-// one. (It used to be clamped to x >= 0 and x >= 1, which hid data with negative x.)
+// one.
 qreal RealtimePlotWidget::viewXMinimum() const
 {
     if (!m_autoScroll) {

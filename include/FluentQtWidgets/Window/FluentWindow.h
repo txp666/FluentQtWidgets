@@ -162,7 +162,7 @@ class FQW_API FluentWindow : public QMainWindow
     NavigationHistory *m_history = nullptr;
     FluentTitleBar *m_titleBar = nullptr;
     std::unique_ptr<FramelessWindowHelper> m_frameless;
-    // Callers commonly delete the splash themselves once loading finishes.
+    // A QPointer: callers often delete the splash screen themselves once loading finishes.
     QPointer<SplashScreen> m_splashScreen;
     bool m_suppressHistoryPush = false;
     int m_titleBarLeftMargin = -1;

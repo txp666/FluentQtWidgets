@@ -192,9 +192,7 @@ void paintComboBoxArrow(QPainter *painter, const QRectF &rect)
 
 } // namespace
 
-// ============================================================================
-// ComboBox
-// ============================================================================
+// --- ComboBox ---
 
 ComboBox::ComboBox(QWidget *parent)
     : QPushButton(parent)
@@ -570,7 +568,6 @@ void ComboBox::showComboMenu()
 
     menu->setAttribute(Qt::WA_DeleteOnClose);
 
-    // Set selected item
     if (m_currentIndex >= 0 && m_currentIndex < menu->menuActions().size()) {
         QList<QAction *> actions = menu->menuActions();
         if (m_currentIndex < actions.size()) {
@@ -580,7 +577,6 @@ void ComboBox::showComboMenu()
 
     connect(menu, &RoundMenu::closedSignal, this, &ComboBox::onDropMenuClosed);
 
-    // Calculate position
     menu->adjustContentSize();
     const int x = -menu->width() / 2 + menu->layout()->contentsMargins().left() + width() / 2;
     const QPoint pd = mapToGlobal(QPoint(x, height()));
@@ -637,9 +633,7 @@ void ComboBox::onDropMenuClosed()
     m_dropMenu = nullptr;
 }
 
-// ============================================================================
-// ComboBoxMenu
-// ============================================================================
+// --- ComboBoxMenu ---
 
 namespace {
 
@@ -709,9 +703,7 @@ CompleterMenu *AcrylicEditableComboBox::createCompleterMenu() { return new Acryl
 
 LineEditMenu *AcrylicEditableComboBox::createContextMenu() { return new AcrylicLineEditMenu(this); }
 
-// ============================================================================
-// EditableComboBox
-// ============================================================================
+// --- EditableComboBox ---
 
 EditableComboBox::EditableComboBox(QWidget *parent)
     : LineEdit(parent)
@@ -1167,9 +1159,7 @@ void EditableComboBox::updatePlaceholderState(bool isPlaceholder)
     emit placeholderTextChanged(isPlaceholder);
 }
 
-// ============================================================================
-// ModelComboBox
-// ============================================================================
+// --- ModelComboBox ---
 
 ModelComboBox::ModelComboBox(QWidget *parent)
     : QPushButton(parent)
@@ -1196,8 +1186,8 @@ void ModelComboBox::setModel(QAbstractItemModel *model)
     m_modelConnections.clear();
 
     // Like QComboBox: a model the combo owns (its default one) goes away when replaced, and a
-    // model of the caller stays the caller's whatever its parent; adopting parentless models
-    // double-deleted the ones living on the stack or as members.
+    // model of the caller stays the caller's whatever its parent; adopting parentless models would
+    // double-delete the ones living on the stack or as members.
     QAbstractItemModel *previous = m_model;
     m_model = model;
     if (previous && previous->parent() == this) {
@@ -1686,9 +1676,7 @@ void ModelComboBox::reselectCurrentIndex(int index)
     emit currentIndexChanged(index);
 }
 
-// ============================================================================
-// EditableModelComboBox
-// ============================================================================
+// --- EditableModelComboBox ---
 
 EditableModelComboBox::EditableModelComboBox(QWidget *parent)
     : LineEdit(parent)
@@ -1720,8 +1708,8 @@ void EditableModelComboBox::setModel(QAbstractItemModel *model)
     m_modelConnections.clear();
 
     // Like QComboBox: a model the combo owns (its default one) goes away when replaced, and a
-    // model of the caller stays the caller's whatever its parent; adopting parentless models
-    // double-deleted the ones living on the stack or as members.
+    // model of the caller stays the caller's whatever its parent; adopting parentless models would
+    // double-delete the ones living on the stack or as members.
     QAbstractItemModel *previous = m_model;
     m_model = model;
     if (previous && previous->parent() == this) {

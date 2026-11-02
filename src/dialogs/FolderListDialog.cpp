@@ -136,13 +136,11 @@ void FolderCard::paintEvent(QPaintEvent *event)
 
 void FolderCard::drawText(QPainter *painter, int x1, int fontSize1, int x2, int fontSize2)
 {
-    // The folder name.
     QFont font(QStringLiteral("Microsoft YaHei"), fontSize1, QFont::Bold);
     painter->setFont(font);
     const QString name = QFontMetrics(font).elidedText(m_folderName, Qt::ElideRight, width() - 48);
     painter->drawText(x1, 30, name);
 
-    // The folder path.
     font = QFont(QStringLiteral("Microsoft YaHei"), fontSize2);
     painter->setFont(font);
     const QString path = QFontMetrics(font).elidedText(m_folderPath, Qt::ElideRight, width() - 24);
@@ -240,7 +238,6 @@ void FolderListDialog::initLayout()
     m_vBoxLayout->setAlignment(Qt::AlignTop);
     m_vBoxLayout->setSpacing(0);
 
-    // labels
     auto *layout1 = new QVBoxLayout;
     layout1->setContentsMargins(0, 0, 0, 0);
     layout1->setSpacing(6);
@@ -249,7 +246,6 @@ void FolderListDialog::initLayout()
     m_vBoxLayout->addLayout(layout1, 0);
     m_vBoxLayout->addSpacing(12);
 
-    // cards
     auto *layout2 = new QHBoxLayout;
     layout2->setAlignment(Qt::AlignCenter);
     layout2->setContentsMargins(4, 0, 4, 0);
@@ -266,7 +262,6 @@ void FolderListDialog::initLayout()
         m_scrollLayout->addWidget(card, 0, Qt::AlignTop);
     }
 
-    // buttons
     auto *layout3 = new QHBoxLayout;
     layout3->setContentsMargins(0, 0, 0, 0);
     layout3->addStretch(1);

@@ -335,9 +335,7 @@ private:
 
 } // namespace
 
-// ==========================================
-// TeachingTipView
-// ==========================================
+// --- TeachingTipView ---
 
 TeachingTipView::TeachingTipView(const QString &title, const QString &content, QWidget *parent) : FlyoutViewBase(parent)
 {
@@ -606,9 +604,7 @@ TeachingTipImagePosition TeachingTipView::imagePositionForTail(TeachingTipTailPo
     }
 }
 
-// ==========================================
-// TeachingTip
-// ==========================================
+// --- TeachingTip ---
 
 TeachingTip::TeachingTip(FlyoutViewBase *view, QWidget *target, int durationMs, TeachingTipTailPosition tail,
                          QWidget *parent)
@@ -883,8 +879,8 @@ QPoint TeachingTip::calculatePosition() const
     return point;
 }
 
-// closeEvent() deletes the tip when isDeleteOnClose() is set. Deleting here as well ignored
-// create(..., isDeleteOnClose = false), and freed tips that live on the stack.
+// closeEvent() deletes the tip when isDeleteOnClose() is set. Deleting here as well would ignore
+// create(..., isDeleteOnClose = false) and free tips that live on the stack.
 void TeachingTip::closeAndDelete()
 {
     close();

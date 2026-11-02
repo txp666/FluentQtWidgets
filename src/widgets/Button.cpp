@@ -447,9 +447,7 @@ void showDropDownMenu(QWidget *anchor, RoundMenu *menu)
 
 } // namespace
 
-// ============================================================================
-// PushButton
-// ============================================================================
+// --- PushButton ---
 
 PushButton::PushButton(QWidget *parent) : QPushButton(parent) { initFluentButton(QStringLiteral("PushButton")); }
 
@@ -563,7 +561,6 @@ void PushButton::paintEvent(QPaintEvent *event)
     opt.icon = QIcon();
     style()->drawControl(QStyle::CE_PushButton, &opt, &painter, this);
 
-    // Draw icon manually with proper opacity
     if (!m_storedIcon.isNull()) {
         if (!isEnabled()) {
             painter.setOpacity(0.3628);
@@ -589,9 +586,7 @@ void PushButton::drawIcon(QPainter *painter, const QRectF &rect)
     m_storedIcon.paint(painter, rect.toRect(), Qt::AlignCenter, isEnabled() ? QIcon::Normal : QIcon::Disabled);
 }
 
-// ============================================================================
-// PrimaryPushButton
-// ============================================================================
+// --- PrimaryPushButton ---
 
 PrimaryPushButton::PrimaryPushButton(QWidget *parent) : PushButton(parent)
 {
@@ -634,9 +629,7 @@ void PrimaryPushButton::drawIcon(QPainter *painter, const QRectF &rect)
     }
 }
 
-// ============================================================================
-// TransparentPushButton
-// ============================================================================
+// --- TransparentPushButton ---
 
 TransparentPushButton::TransparentPushButton(QWidget *parent) : PushButton(parent)
 {
@@ -654,9 +647,7 @@ TransparentPushButton::TransparentPushButton(const QIcon &icon, const QString &t
     initFluentButton(QStringLiteral("TransparentPushButton"));
 }
 
-// ============================================================================
-// TogglePushButton
-// ============================================================================
+// --- TogglePushButton ---
 
 TogglePushButton::TogglePushButton(QWidget *parent) : PushButton(parent)
 {
@@ -697,9 +688,7 @@ void TogglePushButton::drawIcon(QPainter *painter, const QRectF &rect)
     PushButton::drawIcon(painter, rect);
 }
 
-// ============================================================================
-// ToggleButton
-// ============================================================================
+// --- ToggleButton ---
 
 ToggleButton::ToggleButton(QWidget *parent) : TogglePushButton(parent) {}
 
@@ -710,9 +699,7 @@ ToggleButton::ToggleButton(const QIcon &icon, const QString &text, QWidget *pare
 {
 }
 
-// ============================================================================
-// TransparentTogglePushButton
-// ============================================================================
+// --- TransparentTogglePushButton ---
 
 TransparentTogglePushButton::TransparentTogglePushButton(QWidget *parent) : TogglePushButton(parent)
 {
@@ -730,9 +717,7 @@ TransparentTogglePushButton::TransparentTogglePushButton(const QIcon &icon, cons
     initFluentButton(QStringLiteral("TransparentTogglePushButton"));
 }
 
-// ============================================================================
-// DropDownPushButton
-// ============================================================================
+// --- DropDownPushButton ---
 
 DropDownPushButton::DropDownPushButton(QWidget *parent) : PushButton(parent)
 {
@@ -796,9 +781,7 @@ void DropDownPushButton::setArrowOffset(int offset)
     update();
 }
 
-// ============================================================================
-// TransparentDropDownPushButton
-// ============================================================================
+// --- TransparentDropDownPushButton ---
 
 TransparentDropDownPushButton::TransparentDropDownPushButton(QWidget *parent) : DropDownPushButton(parent)
 {
@@ -816,9 +799,7 @@ TransparentDropDownPushButton::TransparentDropDownPushButton(const QIcon &icon, 
     initFluentButton(QStringLiteral("TransparentDropDownPushButton"));
 }
 
-// ============================================================================
-// PrimaryDropDownPushButton
-// ============================================================================
+// --- PrimaryDropDownPushButton ---
 
 PrimaryDropDownPushButton::PrimaryDropDownPushButton(QWidget *parent) : PrimaryPushButton(parent)
 {
@@ -887,9 +868,7 @@ void PrimaryDropDownPushButton::setArrowOffset(int offset)
     update();
 }
 
-// ============================================================================
-// ToolButton
-// ============================================================================
+// --- ToolButton ---
 
 ToolButton::ToolButton(QWidget *parent) : QToolButton(parent) { initFluentToolButton(QStringLiteral("ToolButton")); }
 
@@ -974,10 +953,8 @@ void ToolButton::paintEvent(QPaintEvent *event)
     initStyleOption(&opt);
     opt.icon = QIcon();
 
-    // Draw standard button background
     style()->drawComplexControl(QStyle::CC_ToolButton, &opt, &painter, this);
 
-    // Draw icon manually with proper opacity
     if (!m_storedIcon.isNull()) {
         if (!isEnabled()) {
             painter.setOpacity(0.43);
@@ -1000,9 +977,7 @@ void ToolButton::drawIcon(QPainter *painter, const QRectF &rect)
                        isEnabled() ? QIcon::Normal : QIcon::Disabled);
 }
 
-// ============================================================================
-// PrimaryToolButton
-// ============================================================================
+// --- PrimaryToolButton ---
 
 PrimaryToolButton::PrimaryToolButton(QWidget *parent) : ToolButton(parent)
 {
@@ -1035,9 +1010,7 @@ void PrimaryToolButton::drawIcon(QPainter *painter, const QRectF &rect)
     }
 }
 
-// ============================================================================
-// TransparentToolButton
-// ============================================================================
+// --- TransparentToolButton ---
 
 TransparentToolButton::TransparentToolButton(QWidget *parent) : ToolButton(parent)
 {
@@ -1054,9 +1027,7 @@ TransparentToolButton::TransparentToolButton(const QString &iconPath, QWidget *p
 {
 }
 
-// ============================================================================
-// ToggleToolButton
-// ============================================================================
+// --- ToggleToolButton ---
 
 ToggleToolButton::ToggleToolButton(QWidget *parent) : ToolButton(parent)
 {
@@ -1092,9 +1063,7 @@ void ToggleToolButton::drawIcon(QPainter *painter, const QRectF &rect)
     ToolButton::drawIcon(painter, rect);
 }
 
-// ============================================================================
-// TransparentToggleToolButton
-// ============================================================================
+// --- TransparentToggleToolButton ---
 
 TransparentToggleToolButton::TransparentToggleToolButton(QWidget *parent) : ToggleToolButton(parent)
 {
@@ -1111,9 +1080,7 @@ TransparentToggleToolButton::TransparentToggleToolButton(const QString &iconPath
 {
 }
 
-// ============================================================================
-// DropDownToolButton
-// ============================================================================
+// --- DropDownToolButton ---
 
 DropDownToolButton::DropDownToolButton(QWidget *parent) : ToolButton(parent)
 {
@@ -1187,9 +1154,7 @@ void DropDownToolButton::setArrowOffset(int offset)
     update();
 }
 
-// ============================================================================
-// TransparentDropDownToolButton
-// ============================================================================
+// --- TransparentDropDownToolButton ---
 
 TransparentDropDownToolButton::TransparentDropDownToolButton(QWidget *parent) : DropDownToolButton(parent)
 {
@@ -1207,9 +1172,7 @@ TransparentDropDownToolButton::TransparentDropDownToolButton(const QString &icon
 {
 }
 
-// ============================================================================
-// PrimaryDropDownToolButton
-// ============================================================================
+// --- PrimaryDropDownToolButton ---
 
 PrimaryDropDownToolButton::PrimaryDropDownToolButton(QWidget *parent) : PrimaryToolButton(parent)
 {
@@ -1283,9 +1246,7 @@ void PrimaryDropDownToolButton::setArrowOffset(int offset)
     update();
 }
 
-// ============================================================================
-// HyperlinkButton
-// ============================================================================
+// --- HyperlinkButton ---
 
 HyperlinkButton::HyperlinkButton(QWidget *parent) : PushButton(parent)
 {
@@ -1364,9 +1325,7 @@ void HyperlinkButton::onLinkClicked()
     }
 }
 
-// ============================================================================
-// HyperlinkToolButton
-// ============================================================================
+// --- HyperlinkToolButton ---
 
 HyperlinkToolButton::HyperlinkToolButton(QWidget *parent) : ToolButton(parent)
 {
@@ -1427,9 +1386,7 @@ void HyperlinkToolButton::onLinkClicked()
     }
 }
 
-// ============================================================================
-// Pro-style colored buttons
-// ============================================================================
+// --- Pro-style coloured buttons ---
 
 FilledPushButton::FilledPushButton(QWidget *parent) : PrimaryPushButton(parent)
 {
@@ -2114,9 +2071,7 @@ void Tag::paintEvent(QPaintEvent *event)
     paintPushButtonContent(&painter, this, icon(), foreground, foreground);
 }
 
-// ============================================================================
-// PillPushButton
-// ============================================================================
+// --- PillPushButton ---
 
 PillPushButton::PillPushButton(QWidget *parent) : TogglePushButton(parent)
 {
@@ -2174,9 +2129,7 @@ void PillPushButton::paintEvent(QPaintEvent *event)
     TogglePushButton::paintEvent(event);
 }
 
-// ============================================================================
-// PillToolButton
-// ============================================================================
+// --- PillToolButton ---
 
 PillToolButton::PillToolButton(QWidget *parent) : ToggleToolButton(parent)
 {
@@ -2228,9 +2181,7 @@ void PillToolButton::paintEvent(QPaintEvent *event)
     ToggleToolButton::paintEvent(event);
 }
 
-// ============================================================================
-// SplitDropButton
-// ============================================================================
+// --- SplitDropButton ---
 
 SplitDropButton::SplitDropButton(QWidget *parent) : ToolButton(parent)
 {
@@ -2362,9 +2313,7 @@ qreal PrimarySplitDropButton::hoverOpacity() const { return 0.9; }
 
 qreal PrimarySplitDropButton::pressedOpacity() const { return 0.7; }
 
-// ============================================================================
-// SplitWidgetBase
-// ============================================================================
+// --- SplitWidgetBase ---
 
 SplitWidgetBase::SplitWidgetBase(QWidget *parent) : QWidget(parent)
 {
@@ -2484,9 +2433,7 @@ void SplitWidgetBase::syncDropButtonSize()
     m_dropButton->setFixedHeight(height);
 }
 
-// ============================================================================
-// SplitPushButton
-// ============================================================================
+// --- SplitPushButton ---
 
 SplitPushButton::SplitPushButton(QWidget *parent) : SplitWidgetBase(parent)
 {
@@ -2542,9 +2489,7 @@ void SplitPushButton::setIconSize(const QSize &size)
     syncDropButtonSize();
 }
 
-// ============================================================================
-// SplitToolButton
-// ============================================================================
+// --- SplitToolButton ---
 
 SplitToolButton::SplitToolButton(QWidget *parent) : SplitWidgetBase(parent)
 {
@@ -2587,9 +2532,7 @@ void SplitToolButton::setIconSize(const QSize &size)
     syncDropButtonSize();
 }
 
-// ============================================================================
-// PrimarySplitPushButton
-// ============================================================================
+// --- PrimarySplitPushButton ---
 
 PrimarySplitPushButton::PrimarySplitPushButton(QWidget *parent) : SplitWidgetBase(parent)
 {
@@ -2650,9 +2593,7 @@ void PrimarySplitPushButton::setIconSize(const QSize &size)
     syncDropButtonSize();
 }
 
-// ============================================================================
-// PrimarySplitToolButton
-// ============================================================================
+// --- PrimarySplitToolButton ---
 
 PrimarySplitToolButton::PrimarySplitToolButton(QWidget *parent) : SplitWidgetBase(parent)
 {
