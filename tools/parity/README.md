@@ -21,6 +21,10 @@ is shown, and has its `size`, `sizeHint`, `minimumSize` and `maximumSize` record
 - `qtBaseline` measures plain Qt widgets in both runtimes and lists where Qt 6 itself differs from Qt 5.
   That helps when you sort a row into one of the two tables.
 
+The media classes (`qfluentwidgets.multimedia`) need Qt Multimedia, which the default build doesn't have, so
+they are not in the JSON: `measure_python_media.py` prints their sizes and child geometries, and
+`tests/tst_media.cpp` checks those values.
+
 The script lists the skipped classes, with reasons, under `skipped` in the JSON: windows, dialogs, pop-ups,
 base classes, and widgets attached to another widget.
 

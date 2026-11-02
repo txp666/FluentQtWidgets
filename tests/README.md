@@ -17,6 +17,7 @@ Qt Test suites, one executable per area of the Gallery, built with `-DFQW_BUILD_
 | `tst_settings` | setting cards and groups |
 | `tst_window` | Fluent windows, title bars, frameless windows, splash screen, stacked widgets |
 | `tst_datetime`, `tst_charts`, `tst_material`, `tst_icon` | the Gallery pages of the same name |
+| `tst_media` | media play bars, the volume flyout, the media player and the video widget (only with Qt Multimedia) |
 | `tst_theme`, `tst_qss`, `tst_config` | theme and accent colour, style sheet resources, configuration |
 | `tst_gallery_pages`, `tst_gallery_translation` | whole Gallery pages, and their translations |
 | `tst_python_parity` | sizes of every shared widget against PyQt-Fluent-Widgets |

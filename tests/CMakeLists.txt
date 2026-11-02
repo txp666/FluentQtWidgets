@@ -30,6 +30,28 @@ set_tests_properties(tst_text_native PROPERTIES LABELS "text;native")
 set_tests_properties(tst_status_info_native PROPERTIES LABELS "status_info;native")
 set_tests_properties(tst_navigation_native PROPERTIES LABELS "navigation;native")
 
+# The media play bars and the video widget, only built with Qt Multimedia. The backend plugins may live in
+# their own prefix (a Qt Multimedia built apart from Qt itself): QT_PLUGIN_PATH adds their directory.
+if(FQW_HAS_MULTIMEDIA)
+    fqw_add_widget_test(tst_media ${FQW_QT_PACKAGE}::Multimedia ${FQW_QT_PACKAGE}::MultimediaWidgets)
+    set(fqw_media_plugin_dirs "")
+    foreach(plugin IN ITEMS QDarwinMediaPlugin QFFmpegMediaPlugin QGstreamerMediaPlugin QWindowsMediaPlugin)
+        if(TARGET ${FQW_QT_PACKAGE}::${plugin})
+            list(APPEND fqw_media_plugin_dirs "$<TARGET_FILE_DIR:${FQW_QT_PACKAGE}::${plugin}>/..")
+        endif()
+    endforeach()
+    if(fqw_media_plugin_dirs)
+        string(REPLACE ";" "$<SEMICOLON>" fqw_media_plugin_dirs "${fqw_media_plugin_dirs}")
+        set_tests_properties(tst_media PROPERTIES ENVIRONMENT "QT_PLUGIN_PATH=${fqw_media_plugin_dirs}")
+    endif()
+    # Playing a real file needs the platform's media framework, which on macOS only reports through Cocoa.
+    add_test(NAME tst_media_native COMMAND tst_media standardPlayBarPlaysAWavFile volumeButtonPullsUpItsFlyout)
+    set_tests_properties(tst_media_native PROPERTIES LABELS "media;native")
+    if(fqw_media_plugin_dirs)
+        set_tests_properties(tst_media_native PROPERTIES ENVIRONMENT "QT_PLUGIN_PATH=${fqw_media_plugin_dirs}")
+    endif()
+endif()
+
 # Sizes against PyQt-Fluent-Widgets 1.11.3, measured by tools/parity/measure_python.py.
 fqw_add_widget_test(tst_python_parity)
 target_compile_definitions(tst_python_parity PRIVATE FQW_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
