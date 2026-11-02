@@ -1,10 +1,13 @@
 #include <FluentQtWidgets/Widgets/ComboBox.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
+#include <FluentQtWidgets/Widgets/ScrollArea.h>
 
 #include <QtCore/QEasingCurve>
 #include <QtCore/QPropertyAnimation>
@@ -162,6 +165,18 @@ bool consumeIgnoredToggle(bool *ignoreNextToggle, const QElapsedTimer &closedTim
     return closedTimer.isValid() && closedTimer.elapsed() <= QApplication::doubleClickInterval();
 }
 
+// Python's TranslateYAnimation: the arrow dips 2 px while the mouse is pressed on the combo box
+// and springs back when it is released, each time from wherever it is.
+void animateArrow(ArrowAnimation *animation, qreal endValue, int duration, QEasingCurve::Type easing)
+{
+    animation->stop();
+    animation->setStartValue(animation->y());
+    animation->setEndValue(endValue);
+    animation->setDuration(duration);
+    animation->setEasingCurve(easing);
+    animation->start();
+}
+
 void paintComboBoxArrow(QPainter *painter, const QRectF &rect)
 {
     if (!painter) {
@@ -177,16 +192,14 @@ void paintComboBoxArrow(QPainter *painter, const QRectF &rect)
 
 } // namespace
 
-// ============================================================================
-// ComboBox
-// ============================================================================
+// --- ComboBox ---
 
 ComboBox::ComboBox(QWidget *parent)
     : QPushButton(parent)
     , m_arrowAni(new ArrowAnimation(this))
 {
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBox"));
 
     connect(m_arrowAni, &ArrowAnimation::yChanged, this, [this](qreal) { update(); });
@@ -495,10 +508,12 @@ bool ComboBox::event(QEvent *e)
         break;
     case QEvent::MouseButtonPress:
         m_isPressed = true;
+        animateArrow(m_arrowAni, 2.0, 150, QEasingCurve::OutQuad);
         update();
         break;
     case QEvent::MouseButtonRelease:
         m_isPressed = false;
+        animateArrow(m_arrowAni, 0.0, 500, QEasingCurve::OutElastic);
         update();
         break;
     default:
@@ -533,16 +548,6 @@ void ComboBox::showComboMenu()
         return;
     }
 
-    // Start arrow animation (press: endValue=2, duration=150ms, OutQuad)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(2.0);
-    m_arrowAni->setDuration(150);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutQuad);
-    m_arrowAni->setDirection(QAbstractAnimation::Forward);
-    m_arrowAni->start();
-
     auto *menu = createComboMenu();
     m_dropMenu = menu;
 
@@ -563,7 +568,6 @@ void ComboBox::showComboMenu()
 
     menu->setAttribute(Qt::WA_DeleteOnClose);
 
-    // Set selected item
     if (m_currentIndex >= 0 && m_currentIndex < menu->menuActions().size()) {
         QList<QAction *> actions = menu->menuActions();
         if (m_currentIndex < actions.size()) {
@@ -573,7 +577,6 @@ void ComboBox::showComboMenu()
 
     connect(menu, &RoundMenu::closedSignal, this, &ComboBox::onDropMenuClosed);
 
-    // Calculate position
     menu->adjustContentSize();
     const int x = -menu->width() / 2 + menu->layout()->contentsMargins().left() + width() / 2;
     const QPoint pd = mapToGlobal(QPoint(x, height()));
@@ -594,16 +597,6 @@ void ComboBox::closeComboMenu()
     if (!m_dropMenu) {
         return;
     }
-
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
 
     m_dropMenu->close();
     m_dropMenu = nullptr;
@@ -635,23 +628,27 @@ void ComboBox::onItemClicked(int index)
 
 void ComboBox::onDropMenuClosed()
 {
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
     m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
 }
 
-// ============================================================================
-// ComboBoxMenu
-// ============================================================================
+// --- ComboBoxMenu ---
+
+namespace {
+
+// Python's ComboBoxMenu sets ScrollBarAsNeeded, which its scroll delegate turns into showing the
+// overlay scroll bar that every other menu force-hides.
+void showVerticalOverlayScrollBar(QWidget *view)
+{
+    for (SmoothScrollBar *bar : view->findChildren<SmoothScrollBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+        if (bar->orientation() == Qt::Vertical) {
+            bar->setForceHidden(false);
+        }
+    }
+}
+
+} // namespace
 
 ComboBoxMenu::ComboBoxMenu(QWidget *parent)
     : RoundMenu(QString(), parent)
@@ -659,6 +656,7 @@ ComboBoxMenu::ComboBoxMenu(QWidget *parent)
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxMenu"));
     view()->setViewportPadding(0, 2, 0, 6);
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    showVerticalOverlayScrollBar(view());
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setObjectName(QStringLiteral("comboListWidget"));
     setItemHeight(33);
@@ -670,12 +668,17 @@ QAction *ComboBoxMenu::exec(const QPoint &pos, bool animated, MenuAnimationType 
     return RoundMenu::exec(pos, animated, animationType);
 }
 
+AcrylicComboMenuActionListWidget::AcrylicComboMenuActionListWidget(QWidget *parent)
+    : AcrylicMenuActionListWidget(parent)
+{
+    setViewportPadding(0, 2, 0, 6);
+}
+
 AcrylicComboBoxMenu::AcrylicComboBoxMenu(QWidget *parent) : ComboBoxMenu(parent)
 {
-    auto *listWidget = new AcrylicMenuActionListWidget(this);
-    listWidget->setViewportPadding(0, 2, 0, 6);
-    setMenuView(listWidget);
+    setMenuView(new AcrylicComboMenuActionListWidget(this));
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    showVerticalOverlayScrollBar(view());
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setObjectName(QStringLiteral("comboListWidget"));
     setItemHeight(33);
@@ -700,9 +703,7 @@ CompleterMenu *AcrylicEditableComboBox::createCompleterMenu() { return new Acryl
 
 LineEditMenu *AcrylicEditableComboBox::createContextMenu() { return new AcrylicLineEditMenu(this); }
 
-// ============================================================================
-// EditableComboBox
-// ============================================================================
+// --- EditableComboBox ---
 
 EditableComboBox::EditableComboBox(QWidget *parent)
     : LineEdit(parent)
@@ -1158,16 +1159,14 @@ void EditableComboBox::updatePlaceholderState(bool isPlaceholder)
     emit placeholderTextChanged(isPlaceholder);
 }
 
-// ============================================================================
-// ModelComboBox
-// ============================================================================
+// --- ModelComboBox ---
 
 ModelComboBox::ModelComboBox(QWidget *parent)
     : QPushButton(parent)
     , m_arrowAni(new ArrowAnimation(this))
 {
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("ModelComboBox"));
     setModel(new QStandardItemModel(this));
 
@@ -1187,8 +1186,8 @@ void ModelComboBox::setModel(QAbstractItemModel *model)
     m_modelConnections.clear();
 
     // Like QComboBox: a model the combo owns (its default one) goes away when replaced, and a
-    // model of the caller stays the caller's whatever its parent; adopting parentless models
-    // double-deleted the ones living on the stack or as members.
+    // model of the caller stays the caller's whatever its parent; adopting parentless models would
+    // double-delete the ones living on the stack or as members.
     QAbstractItemModel *previous = m_model;
     m_model = model;
     if (previous && previous->parent() == this) {
@@ -1510,10 +1509,12 @@ bool ModelComboBox::event(QEvent *event)
         break;
     case QEvent::MouseButtonPress:
         m_isPressed = true;
+        animateArrow(m_arrowAni, 2.0, 150, QEasingCurve::OutQuad);
         update();
         break;
     case QEvent::MouseButtonRelease:
         m_isPressed = false;
+        animateArrow(m_arrowAni, 0.0, 500, QEasingCurve::OutElastic);
         update();
         break;
     default:
@@ -1546,16 +1547,6 @@ void ModelComboBox::showComboMenu()
         return;
     }
 
-    // Start arrow animation (press: endValue=2, duration=150ms, OutQuad)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(2.0);
-    m_arrowAni->setDuration(150);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutQuad);
-    m_arrowAni->setDirection(QAbstractAnimation::Forward);
-    m_arrowAni->start();
-
     auto *menu = createComboMenu();
     m_dropMenu = menu;
 
@@ -1575,15 +1566,6 @@ void ModelComboBox::closeComboMenu()
     if (!m_dropMenu) {
         return;
     }
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
     m_dropMenu->close();
     m_dropMenu = nullptr;
     m_ignoreNextToggle = false;
@@ -1614,15 +1596,6 @@ void ModelComboBox::onItemClicked(int index)
 
 void ModelComboBox::onDropMenuClosed()
 {
-    // Reverse arrow animation (release: endValue=0, duration=500ms, OutElastic)
-    if (m_arrowAni->state() == QAbstractAnimation::Running) {
-        m_arrowAni->stop();
-    }
-    m_arrowAni->setEndValue(0.0);
-    m_arrowAni->setDuration(500);
-    m_arrowAni->setEasingCurve(QEasingCurve::OutElastic);
-    m_arrowAni->setDirection(QAbstractAnimation::Backward);
-    m_arrowAni->start();
     m_ignoreNextToggle = !shouldClearClosedDropMenu(this) && QApplication::mouseButtons().testFlag(Qt::LeftButton);
     m_dropMenuClosedTimer.start();
     m_dropMenu = nullptr;
@@ -1703,9 +1676,7 @@ void ModelComboBox::reselectCurrentIndex(int index)
     emit currentIndexChanged(index);
 }
 
-// ============================================================================
-// EditableModelComboBox
-// ============================================================================
+// --- EditableModelComboBox ---
 
 EditableModelComboBox::EditableModelComboBox(QWidget *parent)
     : LineEdit(parent)
@@ -1737,8 +1708,8 @@ void EditableModelComboBox::setModel(QAbstractItemModel *model)
     m_modelConnections.clear();
 
     // Like QComboBox: a model the combo owns (its default one) goes away when replaced, and a
-    // model of the caller stays the caller's whatever its parent; adopting parentless models
-    // double-deleted the ones living on the stack or as members.
+    // model of the caller stays the caller's whatever its parent; adopting parentless models would
+    // double-delete the ones living on the stack or as members.
     QAbstractItemModel *previous = m_model;
     m_model = model;
     if (previous && previous->parent() == this) {

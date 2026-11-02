@@ -1,26 +1,31 @@
 #include <FluentQtWidgets/Navigation/SegmentedWidget.h>
 
+#include "../core/FontUtils_p.h"
+
+#include "ScaleSlideAnimation_p.h"
+
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
 #include <QtCore/QPropertyAnimation>
 #include <QtGui/QFont>
-#include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 #include <QtGui/QResizeEvent>
 #include <QtGui/QShowEvent>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QSizePolicy>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QStyleOptionButton>
 
 namespace FluentQt {
 
 SegmentedItem::SegmentedItem(QWidget *parent) : PivotItem(parent)
 {
-    QFont itemFont = font();
-    itemFont.setPixelSize(14);
-    setFont(itemFont);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("SegmentedItem"));
 }
 
@@ -34,6 +39,7 @@ SegmentedWidget::SegmentedWidget(QWidget *parent) : Pivot(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("SegmentedWidget"));
     setAttribute(Qt::WA_StyledBackground);
+    usePointToPointAnimation();
 }
 
 PivotItem *SegmentedWidget::createItem(const QString &routeKey, const QString &text)
@@ -69,9 +75,69 @@ void SegmentedWidget::paintEvent(QPaintEvent *event)
                             5);
 
     painter.setPen(Qt::NoPen);
-    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.setBrush(themeColor());
     painter.drawRoundedRect(QRectF(animatedX + current->width() / 2.0 - 8.0, height() - 3.5, 16, 3), 1.5,
                             1.5);
+}
+
+SegmentedToolItem::SegmentedToolItem(const QIcon &icon, QWidget *parent) : PivotItem(parent)
+{
+    FluentStyleSheet::setRole(this, QStringLiteral("SegmentedToolItem"));
+    setIcon(icon);
+    setIconSize(QSize(16, 16));
+    setFixedSize(38, 33);
+}
+
+SegmentedToolItem::SegmentedToolItem(const QString &routeKey, const QIcon &icon, QWidget *parent)
+    : SegmentedToolItem(icon, parent)
+{
+    setRouteKey(routeKey);
+}
+
+void SegmentedToolItem::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    QStyleOptionButton opt;
+    initStyleOption(&opt);
+    opt.icon = QIcon();
+    opt.text.clear();
+    style()->drawControl(QStyle::CE_PushButton, &opt, &painter, this);
+
+    // ToolButton's icon: centred, 43 % opaque when disabled and 63 % while pressed.
+    if (!isEnabled()) {
+        painter.setOpacity(0.43);
+    } else if (isDown()) {
+        painter.setOpacity(0.63);
+    }
+    const QSize size = iconSize();
+    drawIcon(&painter,
+             QRectF((width() - size.width()) / 2.0, (height() - size.height()) / 2.0, size.width(), size.height()));
+}
+
+SegmentedToolWidget::SegmentedToolWidget(QWidget *parent) : SegmentedWidget(parent)
+{
+    FluentStyleSheet::setRole(this, QStringLiteral("SegmentedToolWidget"));
+}
+
+SegmentedToolItem *SegmentedToolWidget::addItem(const QString &routeKey, const QIcon &icon)
+{
+    return insertItem(static_cast<int>(routeKeys().size()), routeKey, icon);
+}
+
+SegmentedToolItem *SegmentedToolWidget::insertItem(int index, const QString &routeKey, const QIcon &icon)
+{
+    auto *item = static_cast<SegmentedToolItem *>(SegmentedWidget::insertItem(index, routeKey, QString()));
+    if (item) {
+        item->setIcon(icon);
+    }
+    return item;
+}
+
+PivotItem *SegmentedToolWidget::createItem(const QString &routeKey, const QString &)
+{
+    return new SegmentedToolItem(routeKey, QIcon(), this);
 }
 
 SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(parent)
@@ -90,8 +156,9 @@ SegmentedToggleToolWidget::SegmentedToggleToolWidget(QWidget *parent) : QWidget(
     setAttribute(Qt::WA_StyledBackground);
 
     m_selectionAnimation = new QPropertyAnimation(this, "selectionGeometry", this);
-    m_selectionAnimation->setEasingCurve(QEasingCurve::OutQuad);
-    m_selectionAnimation->setDuration(100);
+    // Python's PointToPointAnimation: 187 ms on a (0.55, 0.55, 0, 1) bezier.
+    m_selectionAnimation->setEasingCurve(Private::fluentBezierCurve(0.55, 0.55, 0, 1));
+    m_selectionAnimation->setDuration(187);
     connect(m_selectionAnimation, &QPropertyAnimation::valueChanged, this, qOverload<>(&QWidget::update));
 }
 
@@ -126,12 +193,8 @@ TransparentToggleToolButton *SegmentedToggleToolWidget::insertItem(int index, co
         emit itemClicked(routeKey);
     });
 
-    if (m_currentItem.isEmpty()) {
-        setCurrentItem(routeKey);
-    } else {
-        updateCheckedButton();
-    }
-
+    // As in Python, nothing is selected until setCurrentItem().
+    updateCheckedButton();
     return button;
 }
 
@@ -251,7 +314,7 @@ void SegmentedToggleToolWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.setBrush(themeColor());
     painter.drawRoundedRect(QRectF(selection), 4, 4);
 }
 

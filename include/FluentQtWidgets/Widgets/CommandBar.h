@@ -155,8 +155,10 @@ class FQW_API CommandBar : public QFrame
     virtual void setMenuDropDown(bool down);
     void resizeToSuitableWidth();
     void clear();
+    QSize minimumSizeHint() const override;
 
   protected:
+    void changeEvent(QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void showEvent(QShowEvent *event) override;
     virtual CommandButton *createButtonForAction(QAction *action);
@@ -224,8 +226,8 @@ class FQW_API CommandBarView : public FlyoutViewBase
     void addActions(const QList<QAction *> &actions);
     QAction *addSeparator();
     QAction *insertSeparator(int index);
-    // Overrides FlyoutViewBase::addWidget(), which it used to hide: the widget goes into the
-    // command bar, also when called through a FlyoutViewBase pointer. Stretch and alignment do
+    // Overrides FlyoutViewBase::addWidget(), so the widget goes into the command bar also when
+    // called through a FlyoutViewBase pointer. Stretch and alignment do
     // not apply there.
     void addWidget(QWidget *widget, int stretch = 0, Qt::Alignment alignment = Qt::AlignLeft) override;
     void removeAction(QAction *action);
@@ -253,6 +255,7 @@ class FQW_API CommandBarView : public FlyoutViewBase
     void resizeToSuitableWidth();
 
   protected:
+    void changeEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
   private:

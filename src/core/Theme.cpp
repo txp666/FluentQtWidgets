@@ -153,7 +153,6 @@ void ThemeManager::applyTo(QApplication *application) const
 
     application->setPalette(palette);
 
-    // Set application font from FluentConfig font families
     const QStringList families = Private::resolvedFontFamilies(FluentConfig::instance()->fontFamilies());
     if (!families.isEmpty()) {
         QFont appFont = application->font();
@@ -162,7 +161,7 @@ void ThemeManager::applyTo(QApplication *application) const
     }
 
     // Widgets that are not visible restyle when they are shown, so a theme change only waits for what
-    // is on screen. Restyling every hidden page of a large window took seconds on each change.
+    // is on screen. Restyling every hidden page of a large window would take seconds on each change.
     FluentStyleSheet::updateAll(effectiveTheme(), true);
 }
 

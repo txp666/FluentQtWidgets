@@ -52,7 +52,6 @@ class FQW_API FluentLabelBase : public QLabel
     void contextMenuEvent(QContextMenuEvent *event) override;
 
   private:
-    void updateTextColor();
     QColor m_lightColor;
     QColor m_darkColor;
 };

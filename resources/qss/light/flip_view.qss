@@ -1,4 +1,4 @@
-FlipView {
+QWidget[fqw="FlipView"] {
     background-color: transparent;
     border: none;
 }

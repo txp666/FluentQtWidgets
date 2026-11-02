@@ -69,7 +69,6 @@ void InfoBarManager::add(InfoBar *infoBar)
         return;
     }
 
-    // Add drop animation for existing bars
     if (!m_infoBars[p].isEmpty()) {
         auto *dropAni = new QPropertyAnimation(infoBar, "pos");
         dropAni->setDuration(200);
@@ -80,7 +79,6 @@ void InfoBarManager::add(InfoBar *infoBar)
 
     m_infoBars[p].append(infoBar);
 
-    // Create and start slide animation
     auto *slideAni = createSlideAni(infoBar);
     m_slideAnis.insert(infoBar, slideAni);
     infoBar->setProperty("slideAni", QVariant::fromValue(slideAni));

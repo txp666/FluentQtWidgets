@@ -9,7 +9,6 @@
 #include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
 #include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/FlipView.h>
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
@@ -25,8 +24,6 @@
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
-#include <QtCore/QLocale>
-#include <QtCore/QPointer>
 #include <QtTest/QtTest>
 #include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QApplication>
@@ -50,17 +47,16 @@ class GalleryPagesTest : public QObject
     Q_OBJECT
 
   private slots:
-    void init() { m_globalState.emplace(); }
+    // The Gallery's setting cards save the configuration: keep it out of the user's file.
+    void init()
+    {
+        m_globalState.emplace();
+        m_globalState->useTemporaryConfigFile();
+    }
 
     void cleanup()
     {
-        const auto widgets = QApplication::topLevelWidgets();
-        for (QWidget *widget : widgets) {
-            if (auto *window = qobject_cast<GalleryWindow *>(widget)) {
-                window->close();
-            }
-        }
-        FqwTest::drainDeferredDeletes();
+        FqwTest::closeTopLevels<GalleryWindow>();
         m_globalState.reset();
     }
 
@@ -142,7 +138,6 @@ class GalleryPagesTest : public QObject
 
     void galleryStylesRefreshWhenThemeChanges()
     {
-        const FluentQt::Theme originalTheme = FluentQt::ThemeManager::instance()->theme();
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
         GalleryInterface page(QStringLiteral("Title"), QStringLiteral("Subtitle"));
@@ -157,13 +152,10 @@ class GalleryPagesTest : public QObject
         const QString darkStyle = page.styleSheet();
         QVERIFY(darkStyle.contains(QStringLiteral("rgba(255, 255, 255, 0.09)")));
         QVERIFY(lightStyle != darkStyle);
-
-        FluentQt::ThemeManager::instance()->setTheme(originalTheme);
     }
 
     void galleryStylesSurviveGlobalStyleRefresh()
     {
-        const FluentQt::Theme originalTheme = FluentQt::ThemeManager::instance()->theme();
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
         GalleryInterface page(QStringLiteral("Title"), QStringLiteral("Subtitle"));
@@ -178,8 +170,6 @@ class GalleryPagesTest : public QObject
         const QString lightStyle = page.styleSheet();
         QVERIFY(lightStyle.contains(QStringLiteral("rgba(255, 255, 255, 0.667)")));
         QVERIFY(lightStyle.contains(QStringLiteral("GalleryInterface #card")));
-
-        FluentQt::ThemeManager::instance()->setTheme(originalTheme);
     }
 
     void basicInputSplitPushMenusUpdateVisibleText()
@@ -369,7 +359,8 @@ class GalleryPagesTest : public QObject
         QVERIFY(table != nullptr);
         QCOMPARE(table->rowCount(), 60);
         QCOMPARE(table->columnCount(), 5);
-        QCOMPARE(table->selectionMode(), QAbstractItemView::SingleSelection);
+        // Python's TableFrame keeps the table's default, which selects several rows.
+        QCOMPARE(table->selectionMode(), QAbstractItemView::ExtendedSelection);
         QCOMPARE(table->selectionBehavior(), QAbstractItemView::SelectRows);
         QVERIFY(table->alternatingRowColors());
         QCOMPARE(table->horizontalHeader()->sectionResizeMode(0), QHeaderView::Interactive);
@@ -643,8 +634,6 @@ class GalleryPagesTest : public QObject
 
         auto *config = FluentQt::FluentConfig::instance();
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousConfigTheme = config->themeMode();
-        const FluentQt::Theme previousManagerTheme = manager->theme();
 
         config->setThemeMode(FluentQt::Theme::Light);
         manager->setTheme(FluentQt::Theme::Light);
@@ -655,29 +644,26 @@ class GalleryPagesTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&window));
         QVERIFY(window.switchTo(QStringLiteral("settingInterface")));
 
-        FluentQt::ComboBoxSettingCard *themeModeCard = nullptr;
-        const auto comboCards = window.findChildren<FluentQt::ComboBoxSettingCard *>();
-        for (FluentQt::ComboBoxSettingCard *card : comboCards) {
-            if (card->title() == QStringLiteral("Application theme")) {
+        // Python's Gallery picks the theme with an OptionsSettingCard.
+        FluentQt::OptionsSettingCard *themeModeCard = nullptr;
+        const auto optionCards = window.findChildren<FluentQt::OptionsSettingCard *>();
+        for (FluentQt::OptionsSettingCard *card : optionCards) {
+            if (card->card() && card->card()->title() == QStringLiteral("Application theme")) {
                 themeModeCard = card;
                 break;
             }
         }
         QVERIFY(themeModeCard != nullptr);
 
-        QCOMPARE(themeModeCard->currentIndex(), 0);
+        QCOMPARE(themeModeCard->value().toInt(), static_cast<int>(FluentQt::Theme::Light));
 
         manager->setTheme(FluentQt::Theme::Dark);
         QCOMPARE(config->themeMode(), FluentQt::Theme::Dark);
-        QCOMPARE(themeModeCard->currentIndex(), 1);
+        QCOMPARE(themeModeCard->value().toInt(), static_cast<int>(FluentQt::Theme::Dark));
 
         manager->setTheme(FluentQt::Theme::Auto);
         QCOMPARE(config->themeMode(), FluentQt::Theme::Auto);
-        QCOMPARE(themeModeCard->currentIndex(), 2);
-
-        config->setThemeMode(previousConfigTheme);
-        config->save();
-        manager->setTheme(previousManagerTheme);
+        QCOMPARE(themeModeCard->value().toInt(), static_cast<int>(FluentQt::Theme::Auto));
     }
 
     void settingsPageMatchesPythonGallery()
@@ -686,8 +672,6 @@ class GalleryPagesTest : public QObject
 
         auto *config = FluentQt::FluentConfig::instance();
         auto *manager = FluentQt::ThemeManager::instance();
-        const QColor previousThemeColor = config->themeColor();
-        const QColor previousAccentColor = manager->accentColor();
         const QColor defaultThemeColor(QStringLiteral("#009faa"));
         const QColor currentThemeColor(QStringLiteral("#112233"));
         config->setThemeColor(currentThemeColor);
@@ -778,10 +762,6 @@ class GalleryPagesTest : public QObject
         QVERIFY(aboutCard->button() != nullptr);
         QCOMPARE(aboutCard->button()->text(), QStringLiteral("Check update"));
         QVERIFY(aboutCard->content().contains(QStringLiteral("Copyright 2026, FluentQtWidgets. Version ")));
-
-        config->setThemeColor(previousThemeColor);
-        manager->setAccentColor(previousAccentColor);
-        config->save();
     }
 
     void settingsZoomCardPersistsRestartScale()
@@ -812,9 +792,6 @@ class GalleryPagesTest : public QObject
                                                                                 : QStringLiteral("1.25");
         zoomCard->setValue(nextDpiScale);
         QCOMPARE(config->dpiScale(), nextDpiScale);
-
-        config->setDpiScale(previousDpiScale);
-        config->save();
     }
 
     void settingsDownloadFolderCardUsesConfigValue()
@@ -822,7 +799,6 @@ class GalleryPagesTest : public QObject
         GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
 
         auto *config = FluentQt::FluentConfig::instance();
-        const QString previousDownloadFolder = config->downloadFolder();
         const QString expectedDownloadFolder = QStringLiteral("app/test-download");
         config->setDownloadFolder(expectedDownloadFolder);
 
@@ -842,9 +818,6 @@ class GalleryPagesTest : public QObject
         }
         QVERIFY(downloadCard != nullptr);
         QCOMPARE(downloadCard->content(), expectedDownloadFolder);
-
-        config->setDownloadFolder(previousDownloadFolder);
-        config->save();
     }
 
     void settingsMicaAndAcrylicCardsFollowConfig()
@@ -852,8 +825,6 @@ class GalleryPagesTest : public QObject
         GalleryTranslation::installTranslators(qApp, QStringLiteral("en"));
 
         auto *config = FluentQt::FluentConfig::instance();
-        const bool previousMicaEnabled = config->isMicaEnabled();
-        const int previousAcrylicBlurRadius = config->acrylicBlurRadius();
         config->setAcrylicBlurRadius(23);
 
         GalleryWindow window;
@@ -887,10 +858,6 @@ class GalleryPagesTest : public QObject
 
         blurRadiusCard->setValue(31);
         QCOMPARE(config->acrylicBlurRadius(), 31);
-
-        config->setMicaEnabled(previousMicaEnabled);
-        config->setAcrylicBlurRadius(previousAcrylicBlurRadius);
-        config->save();
     }
 
   private:

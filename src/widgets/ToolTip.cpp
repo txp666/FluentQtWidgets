@@ -1,38 +1,47 @@
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 
 #include <FluentQtWidgets/StyleSheet.h>
+#include <FluentQtWidgets/Theme.h>
+#include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QTimer>
-#include <QtGui/QHelpEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QColor>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QHelpEvent>
+#include <QtGui/QHideEvent>
+#include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QScreen>
 #include <QtGui/QShowEvent>
-#include <QtGui/QHideEvent>
 #include <QtWidgets/QAbstractItemView>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QTableView>
 
 namespace FluentQt {
 
-ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
+ToolTip::ToolTip(QWidget *parent) : ToolTip(new QFrame, parent) {}
+
+// Python's _createContainer(): AcrylicToolTip passes its own container.
+ToolTip::ToolTip(QFrame *container, QWidget *parent) : QFrame(parent)
 {
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_ShowWithoutActivating);
 
     auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(12, 8, 12, 12);
     layout->setSpacing(0);
 
-    m_container = new QFrame(this);
+    m_container = container;
+    m_container->setParent(this);
     m_container->setObjectName(QStringLiteral("container"));
     layout->addWidget(m_container);
 
@@ -42,12 +51,11 @@ ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
 
     m_label = new QLabel(m_container);
     m_label->setObjectName(QStringLiteral("contentLabel"));
-    m_label->setWordWrap(true);
     m_containerLayout->addWidget(m_label);
 
     m_shadowEffect = new QGraphicsDropShadowEffect(this);
     m_shadowEffect->setBlurRadius(25);
-    m_shadowEffect->setColor(QColor(0, 0, 0, 60));
+    m_shadowEffect->setColor(QColor(0, 0, 0, 50));
     m_shadowEffect->setOffset(0, 5);
     m_container->setGraphicsEffect(m_shadowEffect);
 
@@ -306,13 +314,51 @@ bool ToolTipFilter::canShowToolTip(QWidget *widget) const
 
 ToolTip *ToolTipFilter::createToolTip(const QString &text, QWidget *parent) const { return new ToolTip(text, parent); }
 
-AcrylicToolTip::AcrylicToolTip(QWidget *parent) : ToolTip(parent)
+AcrylicToolTipContainer::AcrylicToolTipContainer(QWidget *parent)
+    : QFrame(parent), m_acrylicBrush(new AcrylicBrush(this, 30))
+{
+    setProperty("transparent", true);
+}
+
+AcrylicToolTipContainer::~AcrylicToolTipContainer() { delete m_acrylicBrush; }
+
+AcrylicBrush *AcrylicToolTipContainer::acrylicBrush() const { return m_acrylicBrush; }
+
+QPainterPath AcrylicToolTipContainer::acrylicClipPath() const
+{
+    QPainterPath path;
+    path.addRoundedRect(QRectF(rect().adjusted(1, 1, -1, -1)), 3, 3);
+    return path;
+}
+
+// Python's AcrylicWidget: the acrylic under the container's style sheet border.
+void AcrylicToolTipContainer::paintEvent(QPaintEvent *event)
+{
+    {
+        QPainter painter(this);
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        m_acrylicBrush->setTintColor(dark ? QColor(32, 32, 32, 200) : QColor(255, 255, 255, 180));
+        m_acrylicBrush->setLuminosityColor(dark ? QColor(0, 0, 0, 0) : QColor(255, 255, 255, 0));
+        m_acrylicBrush->setClipPath(acrylicClipPath());
+        m_acrylicBrush->paint(&painter);
+    }
+    QFrame::paintEvent(event);
+}
+
+AcrylicToolTip::AcrylicToolTip(QWidget *parent) : ToolTip(new AcrylicToolTipContainer, parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("AcrylicToolTip"));
-    if (container()) {
-        container()->setProperty("transparent", true);
-        FluentStyleSheet::polish(container());
-    }
+}
+
+AcrylicToolTipContainer *AcrylicToolTip::acrylicContainer() const
+{
+    return static_cast<AcrylicToolTipContainer *>(container());
+}
+
+void AcrylicToolTip::showEvent(QShowEvent *event)
+{
+    acrylicContainer()->acrylicBrush()->grabImage(QRect(pos() + container()->pos(), container()->size()));
+    ToolTip::showEvent(event);
 }
 
 AcrylicToolTip::AcrylicToolTip(const QString &text, QWidget *parent) : AcrylicToolTip(parent) { setText(text); }
@@ -456,7 +502,17 @@ QPoint ItemViewToolTipDelegate::calculatePosition(QAbstractItemView *view, const
         }
     }
 
-    return QPoint(x, y);
+    // Keep the tooltip on the screen, as ToolTip::calculatePosition() does.
+    QScreen *screen = QGuiApplication::screenAt(topLeft);
+    if (!screen) {
+        screen = QGuiApplication::primaryScreen();
+    }
+    if (!screen || !m_toolTip) {
+        return QPoint(x, y);
+    }
+    const QRect rect = screen->availableGeometry();
+    return QPoint(qBound(rect.left(), x, rect.right() - m_toolTip->width() - 4),
+                  qBound(rect.top(), y, rect.bottom() - m_toolTip->height() - 4));
 }
 
 } // namespace FluentQt

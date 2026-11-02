@@ -1,15 +1,18 @@
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
-#include <QtCore/QLocale>
-#include <QtCore/QPropertyAnimation>
-#include <QtCore/QParallelAnimationGroup>
-#include <QtCore/QSequentialAnimationGroup>
-#include <QtCore/QRectF>
 #include <QtCore/QEasingCurve>
+#include <QtCore/QLocale>
+#include <QtCore/QParallelAnimationGroup>
+#include <QtCore/QPropertyAnimation>
+#include <QtCore/QRectF>
+#include <QtCore/QSequentialAnimationGroup>
+#include <QtGui/QFont>
 #include <QtGui/QHideEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPen>
@@ -418,12 +421,13 @@ ProgressRing::ProgressRing(QWidget *parent, bool useAni) : ProgressBar(parent, u
     setCustomBackgroundColor(QColor(0, 0, 0, 34), QColor(255, 255, 255, 34));
     setTextVisible(false);
     setFixedSize(100, 100);
+
+    setFont(Private::fluentFont(14));
+
     FluentStyleSheet::setRole(this, QStringLiteral("ProgressRing"));
 }
 
 int ProgressRing::strokeWidth() const { return m_strokeWidth; }
-
-QSize ProgressRing::sizeHint() const { return QSize(100, 100); }
 
 void ProgressRing::setStrokeWidth(int width)
 {

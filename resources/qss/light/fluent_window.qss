@@ -39,13 +39,3 @@ QStackedWidget[fqw="NavigationStack"][isTransparent=true] {
 QFrame[fqw="FluentTitleBar"] {
     background: transparent;
 }
-
-QFrame[fqw="FluentTitleBar"][navigationBackground=true][fqwTheme="light"] {
-    background-color: rgb(243, 243, 243);
-    border-top-right-radius: 8px;
-}
-
-QFrame[fqw="FluentTitleBar"][navigationBackground=true][fqwTheme="dark"] {
-    background-color: rgb(32, 32, 32);
-    border-top-right-radius: 8px;
-}

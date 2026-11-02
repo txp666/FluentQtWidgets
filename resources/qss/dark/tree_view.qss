@@ -1,27 +1,3 @@
-QTableView[fqw="TableView"] QHeaderView,
-QTableView[fqw="TableWidget"] QHeaderView,
-QTableWidget[fqw="TableWidget"] QHeaderView,
-QTreeView[fqw="TreeView"] QHeaderView,
-QTreeView[fqw="TreeWidget"] QHeaderView,
-QTreeWidget[fqw="TreeWidget"] QHeaderView {
-    background: transparent;
-}
-
-QTableView[fqw="TableView"] QHeaderView::section,
-QTableView[fqw="TableWidget"] QHeaderView::section,
-QTableWidget[fqw="TableWidget"] QHeaderView::section,
-QTreeView[fqw="TreeView"] QHeaderView::section,
-QTreeView[fqw="TreeWidget"] QHeaderView::section,
-QTreeWidget[fqw="TreeWidget"] QHeaderView::section {
-    min-height: 33px;
-    padding-left: 8px;
-    padding-right: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.082);
-    background: transparent;
-    color: rgb(203, 203, 203);
-    font: 13px --FontFamilies;
-}
-
 QTreeView[fqw="TreeView"],
 QTreeView[fqw="TreeWidget"],
 QTreeWidget[fqw="TreeWidget"] {
@@ -86,8 +62,22 @@ QTreeWidget[fqw="TreeWidget"]::indicator {
     background-color: transparent;
 }
 
+QHeaderView {
+    background-color: transparent;
+}
+
+QHeaderView::section {
+    background-color: transparent;
+    color: rgb(203, 203, 203);
+    padding-left: 5px;
+    padding-right: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.082);
+    font: 13px --FontFamilies;
+}
+
 QHeaderView::section:horizontal {
     border-left: none;
+    height: 33px;
 }
 
 QTreeView[fqw="TreeView"][isBorderVisible="true"] QHeaderView::section:horizontal,
@@ -124,7 +114,7 @@ QHeaderView::up-arrow {
 
 QTableCornerButton::section {
     background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.082);
+    border: 1px solid rgba(0, 0, 0, 0.082);
 }
 
 QTableCornerButton::section:pressed {

@@ -8,6 +8,7 @@
 #include <QtCore/QString>
 #include <QtCore/QVariant>
 #include <QtCore/QtGlobal>
+#include <QtGui/QColor>
 #include <QtGui/QIcon>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QWidget>
@@ -22,6 +23,8 @@ class QEnterEvent;
 class QGraphicsDropShadowEffect;
 class QHBoxLayout;
 class QMouseEvent;
+class QPaintEvent;
+class QPainter;
 class QPropertyAnimation;
 class QResizeEvent;
 class QScrollArea;
@@ -58,9 +61,15 @@ class FQW_API TabItem : public QPushButton
     TabCloseButtonDisplayMode closeButtonDisplayMode() const;
     QToolButton *closeButton() const;
     bool isShadowEnabled() const;
+    // The text colour, or an invalid colour for the theme's black or white.
+    QColor textColor() const;
+    QColor lightSelectedBackgroundColor() const;
+    QColor darkSelectedBackgroundColor() const;
 
   public slots:
     void setSelected(bool selected);
+    void setTextColor(const QColor &color);
+    void setSelectedBackgroundColor(const QColor &light, const QColor &dark);
     void setCloseButtonDisplayMode(FluentQt::TabCloseButtonDisplayMode mode);
     void setShadowEnabled(bool enabled);
     void slideTo(int x, int durationMs = 250);
@@ -82,11 +91,18 @@ class FQW_API TabItem : public QPushButton
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+    QSize sizeHint() const override;
 
   private:
     void init();
     void updateCloseButtonVisibility();
     void updateShadowVisibility();
+    void drawSelectedBackground(QPainter *painter);
+    void drawNotSelectedBackground(QPainter *painter);
+    void drawText(QPainter *painter);
+
+    static constexpr int kBorderRadius = 5;
 
     QString m_routeKey;
     bool m_selected = false;
@@ -98,6 +114,9 @@ class FQW_API TabItem : public QPushButton
     QToolButton *m_closeButton = nullptr;
     QGraphicsDropShadowEffect *m_shadowEffect = nullptr;
     QPropertyAnimation *m_slideAnimation = nullptr;
+    QColor m_textColor;
+    QColor m_lightSelectedBackgroundColor = QColor(249, 249, 249);
+    QColor m_darkSelectedBackgroundColor = QColor(40, 40, 40);
 };
 
 class FQW_API TabBar : public QWidget
@@ -144,6 +163,10 @@ class FQW_API TabBar : public QWidget
     void setCloseButtonDisplayMode(FluentQt::TabCloseButtonDisplayMode mode);
     int tabMaximumWidth() const;
     void setTabMaximumWidth(int width);
+    int tabMinimumWidth() const;
+    void setTabMinimumWidth(int width);
+    void setTabTextColor(int index, const QColor &color);
+    void setTabSelectedBackgroundColor(const QColor &light, const QColor &dark);
     bool isAddButtonVisible() const;
     QToolButton *addButton() const;
     bool isMovable() const;
@@ -172,6 +195,7 @@ class FQW_API TabBar : public QWidget
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     bool isOwnTabDrag(const QDropEvent *event) const;
 
   private:
@@ -192,6 +216,9 @@ class FQW_API TabBar : public QWidget
     bool m_scrollable = false;
     bool m_tabShadowEnabled = true;
     int m_tabMaximumWidth = 240;
+    int m_tabMinimumWidth = 64;
+    QColor m_lightSelectedBackgroundColor = QColor(249, 249, 249);
+    QColor m_darkSelectedBackgroundColor = QColor(40, 40, 40);
     TabCloseButtonDisplayMode m_closeButtonDisplayMode = TabCloseButtonDisplayMode::Always;
     QHBoxLayout *m_layout = nullptr;
     QHBoxLayout *m_itemLayout = nullptr;
@@ -234,6 +261,12 @@ class FQW_API TabWidget : public QWidget
     void setAddButtonVisible(bool visible);
     bool isMovable() const;
     void setMovable(bool movable);
+    void setTabTextColor(int index, const QColor &color);
+    void setTabSelectedBackgroundColor(const QColor &light, const QColor &dark);
+    int tabMaximumWidth() const;
+    void setTabMaximumWidth(int width);
+    int tabMinimumWidth() const;
+    void setTabMinimumWidth(int width);
 
   public slots:
     void setCurrentIndex(int index);

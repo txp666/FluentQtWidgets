@@ -3,19 +3,32 @@ QDialog[fqw="MessageBoxPopup"] {
     background: transparent;
 }
 
-QFrame[fqw="Dialog"],
-QFrame[fqw="MessageBox"] {
-    background: #202020;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+QFrame[fqw="Dialog"] {
+    background: rgb(43, 43, 43);
+    border: none;
     border-radius: 7px;
+}
+
+QFrame[fqw="MessageBox"] {
+    background: rgb(43, 43, 43);
+    border: 1px solid rgb(58, 58, 58);
+    border-radius: 10px;
 }
 
 QFrame[fqw="Dialog"] QFrame#buttonGroup,
 QFrame[fqw="MessageBox"] QFrame#buttonGroup {
     background: rgb(32, 32, 32);
     border-top: 1px solid rgb(29, 29, 29);
+}
+
+QFrame[fqw="Dialog"] QFrame#buttonGroup {
     border-bottom-left-radius: 7px;
     border-bottom-right-radius: 7px;
+}
+
+QFrame[fqw="MessageBox"] QFrame#buttonGroup {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 QFrame[fqw="Dialog"] QLabel#windowTitleLabel {
@@ -25,7 +38,7 @@ QFrame[fqw="Dialog"] QLabel#windowTitleLabel {
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
     padding: 6px;
-    font-size: 12px;
+    font: 12px --FontFamilies;
 }
 
 QFrame[fqw="Dialog"] QLabel#titleLabel,
@@ -33,15 +46,19 @@ QFrame[fqw="MessageBox"] QLabel#titleLabel {
     background: transparent;
     color: white;
     border: none;
+    font: 20px --FontFamilies;
+    padding: 0;
 }
 
 QFrame[fqw="Dialog"] QLabel#contentLabel,
 QFrame[fqw="MessageBox"] QLabel#contentLabel {
     background: transparent;
+    font: 14px --FontFamilies;
+    padding: 0;
     color: white;
     border: none;
-    selection-background-color: @accentColor;
-    selection-color: white;
+    selection-background-color: --ThemeColorPrimary;
+    selection-color: black;
 }
 
 #cancelButton {

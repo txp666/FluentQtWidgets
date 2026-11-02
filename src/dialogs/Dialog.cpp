@@ -16,6 +16,7 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QPen>
 #include <QtGui/QResizeEvent>
 #include <QtGui/QShowEvent>
 #include <QtWidgets/QFrame>
@@ -39,13 +40,12 @@ QWidget *dialogOverlayTarget(QWidget *parent)
     return parent ? parent->window() : nullptr;
 }
 
-// Wayland does not let clients place top-level windows, so an overlay window sized like the
-// parent would not line up with it. There the dialog becomes a child overlay of the parent
-// window instead, as in qfluentwidgets.
-bool overlaysAsChild(QWidget *target)
-{
-    return target && QGuiApplication::platformName().startsWith(QLatin1String("wayland"));
-}
+// As in Python, a dialog with a parent is a child overlay of the parent's window, so its
+// mask and centre widget always line up with the window and stay inside it.
+bool overlaysAsChild(QWidget *target) { return target != nullptr; }
+
+// Python resizes its Dialog to 240 x 192; the layout's minimum size only ever grows it.
+constexpr QSize kDialogMinimumSize(240, 192);
 
 int messageWrapCharacterCount(QWidget *dialog, QLabel *titleLabel)
 {
@@ -76,11 +76,9 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
     setWindowOpacity(0.0);
 
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(12, 8, 12, 20);
-    layout->setSizeConstraint(QLayout::SetMinimumSize);
-    layout->setSpacing(12);
-
+    // The view stands in for Python's frameless window. A native window gets its shadow and
+    // frame from the system; here the margins around the view hold the whole of the view's shadow
+    // and the 1 px frame paintEvent() draws, so neither is cropped.
     m_view = new QFrame(this);
     FluentStyleSheet::setRole(m_view, QStringLiteral("Dialog"));
     auto *shadow = new QGraphicsDropShadowEffect(m_view);
@@ -88,6 +86,14 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     shadow->setOffset(0, 8);
     shadow->setColor(QColor(0, 0, 0, 30));
     m_view->setGraphicsEffect(shadow);
+
+    const QRect viewRect(0, 0, 100, 100);
+    const QRect shadowRect = shadow->boundingRectFor(viewRect).toAlignedRect().adjusted(-1, -1, 1, 1);
+    auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(viewRect.left() - shadowRect.left(), viewRect.top() - shadowRect.top(),
+                               shadowRect.right() - viewRect.right(), shadowRect.bottom() - viewRect.bottom());
+    layout->setSizeConstraint(QLayout::SetMinimumSize);
+    layout->setSpacing(0);
     layout->addWidget(m_view);
 
     m_vBoxLayout = new QVBoxLayout(m_view);
@@ -104,7 +110,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     m_textLayout->setSpacing(12);
     m_vBoxLayout->addLayout(m_textLayout, 1);
 
-    m_titleLabel = new SubtitleLabel(m_view);
+    m_titleLabel = new QLabel(m_view);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
     m_textLayout->addWidget(m_titleLabel, 0, Qt::AlignTop);
 
@@ -123,18 +129,13 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     m_buttonLayout->setContentsMargins(24, 24, 24, 24);
     m_buttonLayout->setSpacing(12);
 
-    m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
+    // A plain QPushButton styled by #cancelButton in the dialog sheet, as in Python, not a Fluent PushButton.
+    m_cancelButton = new QPushButton(tr("Cancel"), m_buttonGroup);
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
     m_acceptButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
-    m_cancelButton->setMinimumWidth(96);
-    m_acceptButton->setMinimumWidth(96);
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
-    m_acceptButton->setAutoDefault(false);
-    m_acceptButton->setDefault(false);
-    m_cancelButton->setAutoDefault(false);
-    m_cancelButton->setDefault(false);
     m_acceptButton->setFocus();
     m_buttonLayout->addWidget(m_acceptButton, 1, Qt::AlignVCenter);
     m_buttonLayout->addWidget(m_cancelButton, 1, Qt::AlignVCenter);
@@ -151,12 +152,41 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     });
 }
 
+void Dialog::adjustDialogSize()
+{
+    if (!layout() || !m_view) {
+        return;
+    }
+    // Activating the layouts makes the view's minimum size that of its content, like the
+    // SetMinimumSize constraint does for Python's window.
+    m_vBoxLayout->activate();
+    layout()->activate();
+    const QMargins margins = layout()->contentsMargins();
+    const QSize viewSize = m_view->minimumSize().expandedTo(kDialogMinimumSize);
+    resize(viewSize.grownBy(margins).expandedTo(minimumSize()));
+}
+
+void Dialog::paintEvent(QPaintEvent *event)
+{
+    QDialog::paintEvent(event);
+    if (!m_view || !m_view->isVisible()) {
+        return;
+    }
+
+    QPainter painter(this);
+    const QRectF viewRect(m_view->geometry());
+    // The window frame sits just outside the view, as a native frame does, so the view keeps
+    // Python's window size and its children their offsets.
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(QPen(dark ? QColor(255, 255, 255, 26) : QColor(0, 0, 0, 36), 1));
+    painter.drawRoundedRect(viewRect.adjusted(-0.5, -0.5, 0.5, 0.5), 7.5, 7.5);
+}
+
 void Dialog::showEvent(QShowEvent *event)
 {
-    if (layout()) {
-        layout()->activate();
-    }
-    adjustSize();
+    adjustDialogSize();
     if (QWidget *parentWindow = parentWidget() ? parentWidget()->window() : nullptr) {
         const QPoint targetCenter = parentWindow->frameGeometry().center();
         const QPoint dialogCenter = m_view ? m_view->geometry().center() : rect().center();
@@ -266,9 +296,7 @@ void Dialog::addButtonStretchOnce()
     }
 }
 
-// ============================================================================
-// MaskDialogBase
-// ============================================================================
+// --- MaskDialogBase ---
 
 MaskDialogBase::MaskDialogBase(QWidget *parent)
     : QDialog(parent)
@@ -287,14 +315,14 @@ MaskDialogBase::MaskDialogBase(QWidget *parent)
     m_windowMask->installEventFilter(this);
     updateMaskStyle();
 
+    // The layout keeps the style's margins, as Python's does: a centre widget that only
+    // has a maximum size (ColorDialog) shrinks to the window less those margins.
     m_hBoxLayout = new QHBoxLayout(this);
-    m_hBoxLayout->setContentsMargins(0, 0, 0, 0);
-    m_hBoxLayout->setSpacing(0);
 
     m_widget = new QFrame(this);
     m_widget->setObjectName(QStringLiteral("centerWidget"));
     m_widget->installEventFilter(this);
-    m_hBoxLayout->addWidget(m_widget, 1, Qt::AlignCenter);
+    m_hBoxLayout->addWidget(m_widget);
 
     setShadowEffect();
     syncGeometryToParent();
@@ -505,16 +533,16 @@ void MaskDialogBase::updateMaskStyle()
     if (!m_windowMask) {
         return;
     }
-    m_windowMask->setStyleSheet(QStringLiteral("background: rgba(%1, %2, %3, %4); border: none;")
+    // Only the background, as Python's setMaskColor(): a dialog's own sheet may still give the mask a
+    // border, as folder_list_dialog.qss's QWidget rule does in Python.
+    m_windowMask->setStyleSheet(QStringLiteral("background: rgba(%1, %2, %3, %4);")
                                     .arg(m_maskColor.red())
                                     .arg(m_maskColor.green())
                                     .arg(m_maskColor.blue())
                                     .arg(m_maskColor.alpha()));
 }
 
-// ============================================================================
-// MessageBoxBase
-// ============================================================================
+// --- MessageBoxBase ---
 
 MessageBoxBase::MessageBoxBase(QWidget *parent)
     : MaskDialogBase(parent)
@@ -529,23 +557,22 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_buttonGroup->setFixedHeight(81);
 
     m_acceptButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
-    m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
+    // A plain QPushButton styled by #cancelButton in the dialog sheet, as in Python, not a Fluent PushButton.
+    m_cancelButton = new QPushButton(tr("Cancel"), m_buttonGroup);
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
-    m_acceptButton->setMinimumWidth(96);
-    m_cancelButton->setMinimumWidth(96);
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
-    m_acceptButton->setAutoDefault(false);
-    m_acceptButton->setDefault(false);
-    m_cancelButton->setAutoDefault(false);
-    m_cancelButton->setDefault(false);
     m_acceptButton->setFocus();
+
+    // The centre widget takes its content's size, centred in the mask; a minimum size set on
+    // widget() holds, as in Python (no SetMinimumSize constraint overriding it).
+    m_hBoxLayout->removeWidget(m_widget);
+    m_hBoxLayout->addWidget(m_widget, 1, Qt::AlignCenter);
 
     m_vBoxLayout = new QVBoxLayout(m_widget);
     m_vBoxLayout->setContentsMargins(0, 0, 0, 0);
     m_vBoxLayout->setSpacing(0);
-    m_vBoxLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     m_viewLayout = new QVBoxLayout;
     m_viewLayout->setContentsMargins(24, 24, 24, 24);
@@ -616,9 +643,7 @@ void MessageBoxBase::addButtonStretchOnce()
     }
 }
 
-// ============================================================================
-// MessageBox
-// ============================================================================
+// --- MessageBox ---
 
 MessageBox::MessageBox(const QString &title, const QString &message, QWidget *parent)
     : MessageBoxBase(parent)
@@ -627,7 +652,7 @@ MessageBox::MessageBox(const QString &title, const QString &message, QWidget *pa
     FluentStyleSheet::setRole(this, QStringLiteral("MessageBoxPopup"));
     setCenterWidgetRole(QStringLiteral("MessageBox"));
 
-    m_titleLabel = new SubtitleLabel(m_widget);
+    m_titleLabel = new QLabel(m_widget);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
     m_viewLayout->insertWidget(0, m_titleLabel, 0, Qt::AlignTop);
 
@@ -696,25 +721,72 @@ void MessageBox::adjustMessageSize()
     }
 
     m_messageLabel->setText(Private::wrapText(m_content, messageWrapCharacterCount(this, m_titleLabel)));
-    m_titleLabel->adjustSize();
-    m_messageLabel->adjustSize();
-    if (m_widget->layout()) {
-        m_widget->layout()->activate();
-    }
-    const int contentWidth = qMax(m_titleLabel->sizeHint().width(), m_messageLabel->sizeHint().width());
-    // Buttons added to buttonLayout() widen the box instead of overlapping.
-    const int buttonsWidth =
-        m_buttonGroup ? qMax(m_buttonGroup->minimumWidth(), m_buttonGroup->minimumSizeHint().width()) : 0;
-    const int width = qMax(buttonsWidth, contentWidth + 48);
-    const int height = m_messageLabel->y() + m_messageLabel->height() + 105;
-    m_widget->setFixedSize(width, height);
+    // The style sheet sets the labels' fonts and the frame's border, so polish before measuring.
+    // The box is then the natural size of its layout, frame included: Python measures the
+    // laid-out labels (contentLabel.y() + height + 105), which comes to the same. Buttons added to
+    // buttonLayout() widen it instead of overlapping.
+    m_widget->ensurePolished();
+    m_titleLabel->ensurePolished();
+    m_messageLabel->ensurePolished();
+    m_vBoxLayout->invalidate();
+    m_widget->setFixedSize(m_widget->minimumSizeHint());
 }
 
-MessageDialog::MessageDialog(const QString &title, const QString &message, QWidget *parent)
-    : MessageBox(title, message, parent)
+MessageDialog::MessageDialog(const QString &title, const QString &content, QWidget *parent) : MaskDialogBase(parent)
 {
+    setWindowTitle(title);
     FluentStyleSheet::setRole(this, QStringLiteral("MessageDialog"));
     setCenterWidgetRole(QStringLiteral("MessageDialog"));
+
+    m_titleLabel = new QLabel(title, m_widget);
+    m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_contentLabel = new QLabel(m_widget);
+    m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
+    m_contentLabel->setText(Private::wrapText(content, 71));
+    m_yesButton = new QPushButton(tr("OK"), m_widget);
+    m_cancelButton = new QPushButton(tr("Cancel"), m_widget);
+    m_windowMask->setObjectName(QStringLiteral("windowMask"));
+
+    m_widget->setMaximumWidth(540);
+    m_titleLabel->move(24, 24);
+    m_contentLabel->move(24, 56);
+    adjustLayout();
+
+    connect(m_yesButton, &QPushButton::clicked, this, [this]() {
+        if (!isFinishing()) {
+            emit yesSignal();
+            accept();
+        }
+    });
+    connect(m_cancelButton, &QPushButton::clicked, this, [this]() {
+        if (!isFinishing()) {
+            emit cancelSignal();
+            reject();
+        }
+    });
+}
+
+QLabel *MessageDialog::titleLabel() const { return m_titleLabel; }
+
+QLabel *MessageDialog::contentLabel() const { return m_contentLabel; }
+
+QPushButton *MessageDialog::yesButton() const { return m_yesButton; }
+
+QPushButton *MessageDialog::cancelButton() const { return m_cancelButton; }
+
+void MessageDialog::adjustLayout()
+{
+    // The style sheet sets the label fonts, so polish before measuring.
+    m_widget->ensurePolished();
+    m_titleLabel->ensurePolished();
+    m_contentLabel->ensurePolished();
+    m_titleLabel->adjustSize();
+    m_contentLabel->adjustSize();
+    m_widget->setFixedSize(48 + m_contentLabel->width(), m_contentLabel->y() + m_contentLabel->height() + 92);
+    m_yesButton->resize((m_widget->width() - 54) / 2, 32);
+    m_cancelButton->resize(m_yesButton->width(), 32);
+    m_yesButton->move(24, m_widget->height() - 56);
+    m_cancelButton->move(m_widget->width() - 24 - m_cancelButton->width(), m_widget->height() - 56);
 }
 
 } // namespace FluentQt

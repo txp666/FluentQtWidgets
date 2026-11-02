@@ -1,81 +1,33 @@
 // Labels, line edits and completers, spin boxes and multi-line editors.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <functional>
+
 #include <QtCore/QBuffer>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
+#include <QtCore/QtMath>
 #include <QtGui/QAction>
 #include <QtGui/QClipboard>
 #include <QtGui/QColor>
 #include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
 #include <QtGui/QStandardItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QCompleter>
-#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
+#include <QtWidgets/QVBoxLayout>
+
+#include <functional>
 
 #include "TestSupport.h"
 
@@ -96,11 +48,14 @@ class TextTest : public QObject
         m_globalState.reset();
     }
 
-    void avatarWidgetTracksTextImageAndRadius()
+    void displayLabelHasItsRole()
     {
         FluentQt::DisplayLabel display(QStringLiteral("Display"));
         QCOMPARE(display.property("fqw").toString(), QStringLiteral("DisplayLabel"));
+    }
 
+    void imageLabelLoadsPixmapsAndPathsAndEmitsClicked()
+    {
         QPixmap imagePixmap(10, 8);
         imagePixmap.fill(Qt::blue);
         FluentQt::ImageLabel imageLabel(imagePixmap);
@@ -122,7 +77,10 @@ class TextTest : public QObject
         QSignalSpy imageClickSpy(&imageLabel, &FluentQt::ImageLabel::clicked);
         QTest::mouseRelease(&imageLabel, Qt::LeftButton);
         QCOMPARE(imageClickSpy.count(), 1);
+    }
 
+    void avatarWidgetRadiusSetsItsSizeAndFont()
+    {
         FluentQt::AvatarWidget avatar;
         avatar.setText(QStringLiteral("Fluent"));
         QCOMPARE(avatar.property("fqw").toString(), QStringLiteral("AvatarWidget"));
@@ -135,22 +93,41 @@ class TextTest : public QObject
         QCOMPARE(avatar.radius(), 18);
         QCOMPARE(avatar.size(), QSize(36, 36));
         QCOMPARE(radiusSpy.count(), 1);
+        // Python's setRadius() sets a regular font whose pixel size is the radius.
+        QCOMPARE(avatar.font().pixelSize(), 18);
+        QCOMPARE(avatar.font().weight(), QFont::Normal);
+        avatar.setRadius(8);
+        QCOMPARE(avatar.font().pixelSize(), 8);
+    }
 
+    void avatarWidgetKeepsBothBackgroundColours()
+    {
+        FluentQt::AvatarWidget avatar;
         avatar.setBackgroundColor(QColor(QStringLiteral("#112233")), QColor(QStringLiteral("#445566")));
         QCOMPARE(avatar.lightBackgroundColor(), QColor(QStringLiteral("#112233")));
         QCOMPARE(avatar.darkBackgroundColor(), QColor(QStringLiteral("#445566")));
+    }
 
+    void avatarWidgetTakesPixmapsAndPaths()
+    {
+        FluentQt::AvatarWidget avatar;
+        avatar.setRadius(18);
         QPixmap pixmap(12, 12);
         pixmap.fill(Qt::red);
         avatar.setPixmap(pixmap);
         QVERIFY(!avatar.imagePixmap().isNull());
         QCOMPARE(avatar.size(), QSize(36, 36));
 
+        QTemporaryDir imageDir;
+        QVERIFY(imageDir.isValid());
         const QString avatarPath = imageDir.filePath(QStringLiteral("avatar.png"));
         QVERIFY(pixmap.save(avatarPath));
         FluentQt::AvatarWidget pathAvatar(avatarPath);
         QVERIFY(!pathAvatar.imagePixmap().isNull());
+    }
 
+    void avatarWidgetLoadsHttpImages()
+    {
         QImage remoteImage(14, 10, QImage::Format_ARGB32_Premultiplied);
         remoteImage.fill(QColor(12, 34, 56));
         QByteArray remotePng;
@@ -188,7 +165,7 @@ class TextTest : public QObject
         QCOMPARE(remoteAvatar.size(), QSize(96, 96));
     }
 
-    void pixmapLabelHandlesEmptyAndHighDpiPixmapPainting()
+    void pixmapLabelPaintsAndSizesToItsPixmap()
     {
         FluentQt::PixmapLabel label;
         label.resize(24, 24);
@@ -262,6 +239,73 @@ class TextTest : public QObject
         QVERIFY(!label.font().underline());
     }
 
+    // Python colours its labels black in light and white in dark theme, the caption too.
+    void labelsUsePythonDefaultTextColours()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QList<FluentLabelBase *> labels = {new CaptionLabel(QStringLiteral("Caption"), &window),
+                                                     new BodyLabel(QStringLiteral("Body"), &window),
+                                                     new StrongBodyLabel(QStringLiteral("Strong"), &window),
+                                                     new SubtitleLabel(QStringLiteral("Subtitle"), &window),
+                                                     new TitleLabel(QStringLiteral("Title"), &window),
+                                                     new LargeTitleLabel(QStringLiteral("Large"), &window),
+                                                     new DisplayLabel(QStringLiteral("Display"), &window)};
+            for (FluentLabelBase *label : labels) {
+                layout->addWidget(label);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+            const QColor expected = theme == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
+            for (const FluentLabelBase *label : labels) {
+                QCOMPARE(label->palette().color(QPalette::WindowText), expected);
+                QCOMPARE(theme == Theme::Dark ? label->darkColor() : label->lightColor(), expected);
+            }
+        }
+    }
+
+    // setTextColor() has to beat label.qss, which colours the label through its style sheet: set
+    // through the palette, the colour was lost on polish and never painted.
+    void labelTextColorWinsOverStyleSheet()
+    {
+        auto countPixels = [](QWidget &widget, const QColor &target) {
+            return FqwTest::countPixels(widget.grab().toImage(), [&target](const QColor &color) {
+                return qAbs(color.red() - target.red()) < 40 && qAbs(color.green() - target.green()) < 40 &&
+                       qAbs(color.blue() - target.blue()) < 40;
+            });
+        };
+
+        auto *manager = ThemeManager::instance();
+        manager->setTheme(Theme::Light);
+        const QColor light(220, 0, 0);
+        const QColor dark(0, 0, 220);
+
+        BodyLabel before(QStringLiteral("MMMM"));
+        before.setTextColor(light, dark);
+        before.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&before));
+        BodyLabel after(QStringLiteral("MMMM"));
+        after.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&after));
+        after.setTextColor(light, dark);
+
+        for (BodyLabel *label : {&before, &after}) {
+            QCOMPARE(label->palette().color(QPalette::WindowText), light);
+            QVERIFY(countPixels(*label, light) > 0);
+        }
+
+        manager->setTheme(Theme::Dark);
+        QCoreApplication::processEvents();
+        for (BodyLabel *label : {&before, &after}) {
+            QCOMPARE(label->palette().color(QPalette::WindowText), dark);
+            QVERIFY(countPixels(*label, dark) > 0);
+            QCOMPARE(countPixels(*label, light), 0);
+        }
+    }
+
     void plainLabelLeavesContextMenuToParent()
     {
         QWidget parent;
@@ -276,44 +320,20 @@ class TextTest : public QObject
 
     void lineEditButtonKeepsActionIconsInFluentPaintPath()
     {
-        auto filledIcon = [](const QColor &color) {
-            QPixmap pixmap(16, 16);
-            pixmap.fill(color);
-            return QIcon(pixmap);
-        };
 
-        auto countPixels = [](QWidget &widget, const std::function<bool(const QColor &)> &predicate) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-
-            const QImage image = pixmap.toImage();
-            int count = 0;
-            for (int y = 0; y < image.height(); ++y) {
-                for (int x = 0; x < image.width(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    if (color.alpha() > 0 && predicate(color)) {
-                        ++count;
-                    }
-                }
-            }
-            return count;
-        };
-
-        FluentQt::LineEditButton button(filledIcon(Qt::red));
+        FluentQt::LineEditButton button(FqwTest::solidIcon(Qt::red));
         button.resize(31, 23);
 
-        QAction action(filledIcon(Qt::red), QStringLiteral("Action"), &button);
+        QAction action(FqwTest::solidIcon(Qt::red), QStringLiteral("Action"), &button);
         button.setAction(&action);
         QVERIFY(button.icon().isNull());
-        QVERIFY(countPixels(button, [](const QColor &color) {
+        QVERIFY(FqwTest::countPixels(FqwTest::render(button), [](const QColor &color) {
                     return color.red() > 200 && color.green() < 80 && color.blue() < 80;
                 }) > 80);
 
-        action.setIcon(filledIcon(Qt::green));
+        action.setIcon(FqwTest::solidIcon(Qt::green));
         QVERIFY(button.icon().isNull());
-        QVERIFY(countPixels(button, [](const QColor &color) {
+        QVERIFY(FqwTest::countPixels(FqwTest::render(button), [](const QColor &color) {
                     return color.green() > 120 && color.red() < 80 && color.blue() < 80;
                 }) > 80);
 
@@ -327,7 +347,29 @@ class TextTest : public QObject
         QVERIFY(!button.isPressed());
     }
 
-    void lineEditExposesPythonStylePropertiesAndActionHelpers()
+    // LineEdit fixes its height at 33 px, as in Python. A style sheet's min-height sizes the
+    // content box, so the old `min-height: 32px` plus the borders raised it to 34.
+    void lineEditsKeepThePythonHeight()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QList<QLineEdit *> edits = {new LineEdit(&window), new SearchLineEdit(&window),
+                                              new PasswordLineEdit(&window)};
+            for (QLineEdit *edit : edits) {
+                layout->addWidget(edit, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+            for (const QLineEdit *edit : edits) {
+                QCOMPARE(edit->height(), 33);
+            }
+        }
+    }
+
+    void lineEditPlacesActionButtonsAndCompleterMenus()
     {
         FluentQt::LineEdit editor;
         QCOMPARE(editor.property("fqw").toString(), QStringLiteral("LineEdit"));
@@ -336,10 +378,6 @@ class TextTest : public QObject
         QCOMPARE(editor.leftButtons().size(), 0);
         QCOMPARE(editor.rightButtons().size(), 0);
         QCOMPARE(editor.completerMenu(), nullptr);
-        QVERIFY(editor.metaObject()->indexOfProperty("clearButton") >= 0);
-        QVERIFY(editor.metaObject()->indexOfProperty("hBoxLayout") >= 0);
-        QVERIFY(editor.metaObject()->indexOfProperty("completerMenu") >= 0);
-        QVERIFY(editor.metaObject()->indexOfProperty("lightFocusedBorderColor") >= 0);
         QVERIFY(editor.metaObject()->indexOfProperty("darkFocusedBorderColor") >= 0);
         QCOMPARE(editor.property("clearButton").value<FluentQt::LineEditButton *>(), editor.clearButton());
         QCOMPARE(editor.property("hBoxLayout").value<QHBoxLayout *>(), editor.hBoxLayout());
@@ -355,7 +393,6 @@ class TextTest : public QObject
         QCOMPARE(editor.textMargins().left(), 60);
         QCOMPARE(editor.leftButtons().size(), 2);
         QCOMPARE(editor.rightButtons().size(), 0);
-        QVERIFY(editor.leftButtons().at(0)->metaObject()->indexOfProperty("action") >= 0);
         QCOMPARE(editor.leftButtons().at(0)->action(), &first);
         QCOMPARE(editor.leftButtons().at(0)->property("action").value<QAction *>(), &first);
 
@@ -384,7 +421,6 @@ class TextTest : public QObject
 
         FluentQt::AcrylicSearchLineEdit acrylicSearchEditor;
         QCOMPARE(acrylicSearchEditor.property("fqw").toString(), QStringLiteral("AcrylicSearchLineEdit"));
-
     }
 
     void passwordLineEditReflowsMarginsWhenViewButtonVisibilityChanges()
@@ -416,7 +452,7 @@ class TextTest : public QObject
         QCOMPARE(editor.textMargins().right(), 0);
     }
 
-    void editContextMenusExposePythonStyleActions()
+    void editMenusOfferActionsForSelectionAndClipboard()
     {
         auto actionTexts = [](FluentQt::RoundMenu &menu) {
             QStringList texts;
@@ -454,6 +490,9 @@ class TextTest : public QObject
         FluentQt::LineEditMenu readOnlyMenu(&readOnlyLineEdit);
         readOnlyMenu.createActions();
         QCOMPARE(actionTexts(readOnlyMenu), QStringList({QStringLiteral("Copy"), QStringLiteral("Select all")}));
+        // As in Python, every action but "Select all" has an icon.
+        QVERIFY(!readOnlyMenu.actions().constFirst()->icon().isNull());
+        QVERIFY(readOnlyMenu.actions().constLast()->icon().isNull());
 
         FluentQt::TextEdit textEdit;
         textEdit.setPlainText(QStringLiteral("hello world"));
@@ -467,6 +506,7 @@ class TextTest : public QObject
         QCOMPARE(actionTexts(textMenu),
                  QStringList({QStringLiteral("Cut"), QStringLiteral("Copy"), QStringLiteral("Cancel"),
                               QStringLiteral("Select all")}));
+        QVERIFY(textMenu.actions().constLast()->icon().isNull());
 
         FluentQt::PlainTextEdit plainTextEdit;
         plainTextEdit.setPlainText(QStringLiteral("plain"));
@@ -503,6 +543,36 @@ class TextTest : public QObject
         QCOMPARE(activatedSpy.takeFirst().at(0).toString(), QStringLiteral("Beta"));
         QCOMPARE(indexSpy.count(), 1);
         QCOMPARE(indexSpy.takeFirst().at(0).toModelIndex().row(), 1);
+    }
+
+    // As in Python, keys typed while the completer menu is open go to the line edit and to the
+    // list, so the arrow keys move through the completions.
+    void completerMenuArrowKeysMoveThroughCompletions()
+    {
+        FluentQt::LineEdit lineEdit;
+        lineEdit.setText(QStringLiteral("a"));
+
+        QStandardItemModel model;
+        model.appendRow(new QStandardItem(QStringLiteral("Alpha")));
+        model.appendRow(new QStandardItem(QStringLiteral("Beta")));
+
+        FluentQt::CompleterMenu menu(&lineEdit);
+        QVERIFY(menu.setCompletion(&model));
+        menu.view()->setCurrentRow(0);
+
+        QKeyEvent down(QEvent::KeyPress, Qt::Key_Down, Qt::NoModifier);
+        QApplication::sendEvent(&menu, &down);
+        QCOMPARE(menu.view()->currentRow(), 1);
+
+        QKeyEvent up(QEvent::KeyPress, Qt::Key_Up, Qt::NoModifier);
+        QApplication::sendEvent(&menu, &up);
+        QCOMPARE(menu.view()->currentRow(), 0);
+
+        // On macOS the Up key also took the edit's cursor to the start, as it does in Python.
+        lineEdit.end(false);
+        QKeyEvent letter(QEvent::KeyPress, Qt::Key_L, Qt::NoModifier, QStringLiteral("l"));
+        QApplication::sendEvent(&menu, &letter);
+        QCOMPARE(lineEdit.text(), QStringLiteral("al"));
     }
 
     void deletedCompleterIsNotUsed()
@@ -549,12 +619,11 @@ class TextTest : public QObject
         QCOMPARE(menu.menuActions().size(), 3);
     }
 
-    void spinBoxesExposePythonParityControlApi()
+    void spinBoxesTrackErrorReadOnlyAndAcceleration()
     {
         auto verifySharedState = [](auto &spin, const QString &role) {
             QCOMPARE(spin.property("fqw").toString(), role);
             QVERIFY(spin.metaObject()->indexOfProperty("isError") >= 0);
-            QVERIFY(spin.metaObject()->indexOfProperty("symbolVisible") >= 0);
             QCOMPARE(spin.buttonSymbols(), QAbstractSpinBox::NoButtons);
             QCOMPARE(spin.property("transparent").toBool(), true);
             QCOMPARE(spin.property("symbolVisible").toBool(), true);
@@ -718,8 +787,6 @@ class TextTest : public QObject
     {
         auto verifyEditor = [](auto &editor, const QString &role) {
             QCOMPARE(editor.property("fqw").toString(), role);
-            QVERIFY(editor.metaObject()->indexOfProperty("layer") >= 0);
-            QVERIFY(editor.metaObject()->indexOfProperty("scrollDelegate") >= 0);
 
             auto *layer = editor.template findChild<QWidget *>(QStringLiteral("editLayer"));
             QVERIFY(layer != nullptr);
@@ -727,10 +794,6 @@ class TextTest : public QObject
             QCOMPARE(editor.property("layer").template value<QWidget *>(), layer);
             QCOMPARE(layer->property("fqw").toString(), QStringLiteral("EditLayer"));
             QCOMPARE(layer->testAttribute(Qt::WA_TransparentForMouseEvents), true);
-
-            editor.resize(240, 120);
-            QCoreApplication::processEvents();
-            QCOMPARE(layer->size(), editor.viewport()->size());
 
             auto *delegate = editor.template findChild<FluentQt::SmoothScrollDelegate *>();
             QVERIFY(delegate != nullptr);
@@ -769,18 +832,18 @@ class TextTest : public QObject
             const auto inEditor = [&editor](const QWidget *widget) {
                 return QRect(widget->mapTo(&editor, QPoint()), widget->size());
             };
-            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+            QCOMPARE(inEditor(layer), editor.rect());
 
             // Scrolling moves the viewport's children with the content, so the
             // underline must not be one of them.
             QVERIFY(editor.verticalScrollBar()->maximum() > 0);
             editor.verticalScrollBar()->setValue(editor.verticalScrollBar()->maximum());
             QCoreApplication::processEvents();
-            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+            QCOMPARE(inEditor(layer), editor.rect());
 
             editor.resize(300, 120);
             QCoreApplication::processEvents();
-            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+            QCOMPARE(inEditor(layer), editor.rect());
         };
 
         FluentQt::TextEdit textEdit;
@@ -790,6 +853,65 @@ class TextTest : public QObject
         verifyEditor(plainTextEdit);
 
         FluentQt::TextBrowser textBrowser;
+        verifyEditor(textBrowser);
+    }
+
+    // As in Python, the multi-line editors draw their 2 px focus line along the bottom of the whole
+    // box. Kept over the viewport, it sat 3 px higher and was inset by the padding.
+    void multilineFocusLineSpansTheBox()
+    {
+        // One window for all three editors: it is activated once, and focus then moves inside it.
+        QWidget window;
+        auto *layout = new QVBoxLayout(&window);
+        FluentQt::TextEdit textEdit(&window);
+        FluentQt::PlainTextEdit plainTextEdit(&window);
+        FluentQt::TextBrowser textBrowser(&window);
+        for (QWidget *editor : {static_cast<QWidget *>(&textEdit), static_cast<QWidget *>(&plainTextEdit),
+                                static_cast<QWidget *>(&textBrowser)}) {
+            editor->setFixedSize(240, 90);
+            layout->addWidget(editor);
+        }
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        window.activateWindow();
+        if (!QTest::qWaitForWindowActive(&window)) {
+            // Natively, macOS keeps another application's window active while it holds the focus.
+            QSKIP("The window cannot become active while another application has the focus");
+        }
+
+        auto verifyEditor = [](auto &editor) {
+            editor.setFocus();
+            QTRY_VERIFY(editor.hasFocus());
+            QCOMPARE(QRect(editor.layer()->mapTo(&editor, QPoint()), editor.layer()->size()), editor.rect());
+
+            const QColor accent = themeColor();
+            const QImage image = editor.grab().toImage();
+            int top = image.height();
+            int bottom = -1;
+            int left = image.width();
+            int right = -1;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (qAbs(color.red() - accent.red()) < 30 && qAbs(color.green() - accent.green()) < 30 &&
+                        qAbs(color.blue() - accent.blue()) < 30) {
+                        top = qMin(top, y);
+                        bottom = qMax(bottom, y);
+                        left = qMin(left, x);
+                        right = qMax(right, x);
+                    }
+                }
+            }
+            // In device pixels: the last two rows of the box, all but the rounded ends.
+            const qreal dpr = image.devicePixelRatio();
+            QVERIFY2(top >= qFloor(88 * dpr) - 1, qPrintable(QString::number(top)));
+            QCOMPARE(bottom, image.height() - 1);
+            QVERIFY2(left <= qCeil(3 * dpr), qPrintable(QString::number(left)));
+            QVERIFY2(right >= image.width() - 1 - qCeil(3 * dpr), qPrintable(QString::number(right)));
+        };
+
+        verifyEditor(textEdit);
+        verifyEditor(plainTextEdit);
         verifyEditor(textBrowser);
     }
 

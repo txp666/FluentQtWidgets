@@ -13,7 +13,19 @@ QToolButton[fqw="TransparentDropDownToolButton"],
 QToolButton[fqw="TransparentToggleToolButton"],
 QToolButton[fqw="PillToolButton"],
 QToolButton[fqw="FolderRemoveButton"],
-QToolButton[fqw="SplitDropButton"] {
+QToolButton[fqw="SplitDropButton"],
+QPushButton[fqw="FilledPushButton"],
+QPushButton[fqw="OutlinedPushButton"],
+QPushButton[fqw="TextPushButton"],
+QPushButton[fqw="LuminaPushButton"],
+QPushButton[fqw="RoundPushButton"],
+QPushButton[fqw="Chip"],
+QPushButton[fqw="Tag"],
+QToolButton[fqw="FilledToolButton"],
+QToolButton[fqw="OutlinedToolButton"],
+QToolButton[fqw="TextToolButton"],
+QToolButton[fqw="RoundToolButton"],
+QToolButton[fqw="HyperlinkToolButton"] {
     background: rgba(255, 255, 255, 0.0605);
     border: 1px solid rgba(255, 255, 255, 0.053);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -30,9 +42,15 @@ QToolButton[fqw="TransparentToolButton"],
 QToolButton[fqw="TransparentDropDownToolButton"],
 QToolButton[fqw="TransparentToggleToolButton"],
 QToolButton[fqw="PillToolButton"],
-QToolButton[fqw="FolderRemoveButton"] {
-    min-width: 32px;
-    min-height: 32px;
+QToolButton[fqw="PrimaryToolButton"],
+QToolButton[fqw="SplitDropButton"],
+QToolButton[fqw="PrimarySplitDropButton"],
+QToolButton[fqw="FolderRemoveButton"],
+QToolButton[fqw="FilledToolButton"],
+QToolButton[fqw="OutlinedToolButton"],
+QToolButton[fqw="TextToolButton"],
+QToolButton[fqw="RoundToolButton"],
+QToolButton[fqw="HyperlinkToolButton"] {
     padding: 5px 9px 6px 8px;
 }
 
@@ -41,10 +59,16 @@ QPushButton[fqw="PushButton"][isPlaceholderText="true"] {
 }
 
 QPushButton[fqw="PushButton"][hasIcon="false"],
+QPushButton[fqw="PrimaryPushButton"][hasIcon="false"],
 QPushButton[fqw="TogglePushButton"][hasIcon="false"],
 QPushButton[fqw="TransparentPushButton"][hasIcon="false"],
 QPushButton[fqw="TransparentTogglePushButton"][hasIcon="false"],
-QPushButton[fqw="PillPushButton"][hasIcon="false"] {
+QPushButton[fqw="PillPushButton"][hasIcon="false"],
+QPushButton[fqw="FilledPushButton"][hasIcon="false"],
+QPushButton[fqw="OutlinedPushButton"][hasIcon="false"],
+QPushButton[fqw="TextPushButton"][hasIcon="false"],
+QPushButton[fqw="LuminaPushButton"][hasIcon="false"],
+QPushButton[fqw="Tag"][hasIcon="false"] {
     padding: 5px 12px 6px 12px;
 }
 
@@ -53,7 +77,12 @@ QPushButton[fqw="PrimaryPushButton"][hasIcon="true"],
 QPushButton[fqw="TransparentPushButton"][hasIcon="true"],
 QPushButton[fqw="TogglePushButton"][hasIcon="true"],
 QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"],
-QPushButton[fqw="PillPushButton"][hasIcon="true"] {
+QPushButton[fqw="PillPushButton"][hasIcon="true"],
+QPushButton[fqw="FilledPushButton"][hasIcon="true"],
+QPushButton[fqw="OutlinedPushButton"][hasIcon="true"],
+QPushButton[fqw="TextPushButton"][hasIcon="true"],
+QPushButton[fqw="LuminaPushButton"][hasIcon="true"],
+QPushButton[fqw="Tag"][hasIcon="true"] {
     padding: 5px 12px 6px 36px;
 }
 
@@ -154,11 +183,10 @@ QToolButton[fqw="ToggleToolButton"]:checked,
 QToolButton[fqw="TransparentToggleToolButton"]:checked,
 QToolButton[fqw="CommandButton"]:checked {
     color: black;
-    background-color: @accentColor;
+    background-color: --ThemeColorPrimary;
     border: 1px solid --ThemeColorLight1;
     border-bottom: 1px solid --ThemeColorLight2;
     border-radius: 5px;
-    padding: 5px 12px 6px 12px;
     outline: none;
 }
 
@@ -207,20 +235,8 @@ QToolButton[fqw="CommandButton"]:checked:disabled {
     border: 1px solid rgb(52, 52, 52);
 }
 
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:hover,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:pressed,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:disabled,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:hover,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:pressed,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:disabled {
-    padding: 5px 12px 6px 36px;
-}
-
 QToolButton[fqw="SplitDropButton"],
 QToolButton[fqw="PrimarySplitDropButton"] {
-    padding: 0;
     border-left: none;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
@@ -245,9 +261,14 @@ QToolButton[fqw="PrimarySplitDropButton"] {
     border-right: 1px solid --ThemeColorLight2;
 }
 
+#primarySplitPushButton:disabled,
+#primarySplitToolButton:disabled {
+    border-right: 1px solid rgb(70, 70, 70);
+}
+
 QPushButton[fqw="HyperlinkButton"] {
     padding: 5px 12px 6px 12px;
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     border: none;
     border-radius: 6px;
     background-color: transparent;
@@ -262,7 +283,7 @@ QPushButton[fqw="HyperlinkButton"][hasIcon="true"] {
 }
 
 QPushButton[fqw="HyperlinkButton"]:hover {
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     background-color: rgba(255, 255, 255, 10);
     border: none;
 }
@@ -350,19 +371,6 @@ QToolButton[fqw="PillToolButton"]:disabled:checked {
     border: none;
 }
 
-QToolButton[fqw="TabCloseButton"] {
-    min-width: 24px;
-    min-height: 24px;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
-}
-
-QToolButton[fqw="TabCloseButton"]:hover {
-    background: #454545;
-}
-
 QRadioButton[fqw="RadioButton"] {
     min-height: 24px;
     max-height: 24px;
@@ -402,24 +410,24 @@ QRadioButton[fqw="RadioButton"]::indicator:checked {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
             stop:0 rgb(0, 0, 0),
             stop:0.5 rgb(0, 0, 0),
-            stop:0.6 @accentColor,
-            stop:1 @accentColor);
+            stop:0.6 --ThemeColorPrimary,
+            stop:1 --ThemeColorPrimary);
 }
 
 QRadioButton[fqw="RadioButton"]::indicator:checked:hover {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
             stop:0 rgb(0, 0, 0),
             stop:0.6 rgb(0, 0, 0),
-            stop:0.7 @accentColor,
-            stop:1 @accentColor);
+            stop:0.7 --ThemeColorPrimary,
+            stop:1 --ThemeColorPrimary);
 }
 
 QRadioButton[fqw="RadioButton"]::indicator:checked:pressed {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
             stop:0 rgb(0, 0, 0),
             stop:0.5 rgb(0, 0, 0),
-            stop:0.6 @accentColor,
-            stop:1 @accentColor);
+            stop:0.6 --ThemeColorPrimary,
+            stop:1 --ThemeColorPrimary);
 }
 
 QRadioButton[fqw="RadioButton"]:disabled {
@@ -448,156 +456,19 @@ QToolButton[fqw="FolderRemoveButton"] {
     padding: 0;
 }
 
-QPushButton[fqw="FilledPushButton"],
-QToolButton[fqw="FilledToolButton"] {
-    color: black;
-    background-color: @accentColor;
-    border: 1px solid --ThemeColorLight1;
-    border-bottom: 1px solid --ThemeColorLight2;
-    border-radius: 5px;
-    padding: 5px 12px 6px 12px;
-}
-
-QPushButton[fqw="FilledPushButton"][hasIcon="true"] {
-    padding-left: 36px;
-}
-
-QPushButton[fqw="FilledPushButton"][severity="success"],
-QToolButton[fqw="FilledToolButton"][severity="success"] {
-    background-color: #6ccb5f;
-    border-color: #6ccb5f;
-}
-
-QPushButton[fqw="FilledPushButton"][severity="warning"],
-QToolButton[fqw="FilledToolButton"][severity="warning"] {
-    background-color: #fce100;
-    border-color: #fce100;
-}
-
-QPushButton[fqw="FilledPushButton"][severity="error"],
-QToolButton[fqw="FilledToolButton"][severity="error"] {
-    background-color: #ff99a4;
-    border-color: #ff99a4;
-}
-
-QPushButton[fqw="LuminaPushButton"] {
-    color: white;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 7px;
-    padding: 5px 12px 6px 12px;
-}
-
-QPushButton[fqw="LuminaPushButton"][hasIcon="true"] {
-    padding-left: 36px;
-}
-
-QPushButton[fqw="TextPushButton"],
-QToolButton[fqw="TextToolButton"],
-QToolButton[fqw="HyperlinkToolButton"] {
-    color: @accentColor;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    padding: 5px 12px 6px 12px;
-}
-
-QPushButton[fqw="TextPushButton"][hasIcon="true"] {
-    padding-left: 36px;
-}
-
-QPushButton[fqw="TextPushButton"]:hover,
-QToolButton[fqw="TextToolButton"]:hover,
-QToolButton[fqw="HyperlinkToolButton"]:hover {
-    background: rgba(255, 255, 255, 0.0837);
-}
-
-QPushButton[fqw="TextPushButton"][severity="success"],
-QToolButton[fqw="TextToolButton"][severity="success"] {
-    color: #6ccb5f;
-}
-
-QPushButton[fqw="TextPushButton"][severity="warning"],
-QToolButton[fqw="TextToolButton"][severity="warning"] {
-    color: #fce100;
-}
-
-QPushButton[fqw="TextPushButton"][severity="error"],
-QToolButton[fqw="TextToolButton"][severity="error"] {
-    color: #ff99a4;
-}
-
-QPushButton[fqw="OutlinedPushButton"],
-QPushButton[fqw="Tag"],
-QToolButton[fqw="OutlinedToolButton"] {
-    color: @accentColor;
-    background: transparent;
-    border: 1px solid @accentColor;
-    border-radius: 5px;
-    padding: 5px 12px 6px 12px;
-}
-
-QPushButton[fqw="OutlinedPushButton"][hasIcon="true"],
-QPushButton[fqw="Tag"][hasIcon="true"] {
-    padding-left: 36px;
-}
-
-QPushButton[fqw="OutlinedPushButton"]:hover,
-QPushButton[fqw="Tag"]:hover,
-QToolButton[fqw="OutlinedToolButton"]:hover,
-QPushButton[fqw="OutlinedPushButton"]:checked,
-QToolButton[fqw="OutlinedToolButton"]:checked {
-    background: rgba(96, 205, 255, 0.1);
-}
-
-QPushButton[fqw="OutlinedPushButton"][severity="success"],
-QPushButton[fqw="Tag"][severity="success"],
-QToolButton[fqw="OutlinedToolButton"][severity="success"] {
-    color: #6ccb5f;
-    border-color: #6ccb5f;
-}
-
-QPushButton[fqw="OutlinedPushButton"][severity="warning"],
-QPushButton[fqw="Tag"][severity="warning"],
-QToolButton[fqw="OutlinedToolButton"][severity="warning"] {
-    color: #fce100;
-    border-color: #fce100;
-}
-
-QPushButton[fqw="OutlinedPushButton"][severity="error"],
-QPushButton[fqw="Tag"][severity="error"],
-QToolButton[fqw="OutlinedToolButton"][severity="error"] {
-    color: #ff99a4;
-    border-color: #ff99a4;
-}
-
-QPushButton[fqw="RoundPushButton"],
-QPushButton[fqw="Chip"],
-QToolButton[fqw="RoundToolButton"] {
-    color: white;
-    background: rgba(255, 255, 255, 0.0605);
-    border: 1px solid rgba(255, 255, 255, 0.053);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
+/* Round buttons and chips keep more room at their rounded ends; a chip, room for its close button. */
+QPushButton[fqw="RoundPushButton"][hasIcon="false"] {
     padding: 5px 14px 6px 14px;
 }
 
-QPushButton[fqw="RoundPushButton"][hasIcon="true"],
+QPushButton[fqw="RoundPushButton"][hasIcon="true"] {
+    padding: 5px 14px 6px 36px;
+}
+
+QPushButton[fqw="Chip"][hasIcon="false"] {
+    padding: 5px 34px 6px 14px;
+}
+
 QPushButton[fqw="Chip"][hasIcon="true"] {
-    padding-left: 36px;
-}
-
-QPushButton[fqw="Chip"] {
-    padding-right: 34px;
-}
-
-QToolButton[fqw="RoundToolButton"] {
-    min-width: 48px;
-    min-height: 48px;
-    padding: 5px 8px 6px 8px;
-}
-
-QToolButton[fqw="OutlinedToolButton"] {
-    min-width: 48px;
-    min-height: 48px;
+    padding: 5px 34px 6px 36px;
 }

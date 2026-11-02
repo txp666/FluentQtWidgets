@@ -403,10 +403,8 @@ void InfoBar::initLayout()
     m_hBoxLayout->setSizeConstraint(QLayout::SetMinimumSize);
     m_hBoxLayout->setSpacing(0);
 
-    // Add icon
     m_hBoxLayout->addWidget(m_iconWidget, 0, Qt::AlignTop | Qt::AlignLeft);
 
-    // Text layout
     if (m_orient == Qt::Horizontal) {
         m_textLayout->setSizeConstraint(QLayout::SetMinimumSize);
         m_textLayout->setContentsMargins(1, 8, 0, 8);
@@ -422,7 +420,6 @@ void InfoBar::initLayout()
 
         m_hBoxLayout->addLayout(m_textLayout);
 
-        // Widget layout
         m_widgetHLayout->setSpacing(10);
         m_hBoxLayout->addLayout(m_widgetHLayout);
     } else {

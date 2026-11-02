@@ -1,18 +1,16 @@
 QFrame[fqw="DatePicker"] {
-    color: white;
-    min-height: 32px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.0605);
+    border: 1px solid rgba(255, 255, 255, 0.053);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 5px;
-    padding: 0px 10px;
-    background-color: rgba(255, 255, 255, 0.0605);
+    outline: none;
 }
 
 QFrame[fqw="DatePicker"]:hover {
     background-color: rgba(255, 255, 255, 0.0837);
 }
 
-QFrame[fqw="DatePicker"]:pressed {
+QFrame[fqw="DatePicker"][pressed="true"] {
     background: rgba(255, 255, 255, 0.0326);
     border-top: 1px solid rgba(255, 255, 255, 0.053);
 }
@@ -51,12 +49,12 @@ QFrame[fqw="DatePicker"] QPushButton#pickerButton[hasBorder="false"] {
 }
 
 QFrame[fqw="DatePicker"] QPushButton#pickerButton[enter="true"]:enabled,
-QFrame[fqw="DatePicker"] QPushButton#pickerButton[hasValue="true"] {
+QFrame[fqw="DatePicker"] QPushButton#pickerButton[hasValue="true"]:enabled {
     color: rgba(255, 255, 255, 1);
 }
 
 QFrame[fqw="DatePicker"] QPushButton#pickerButton[pressed="true"] {
-    color: rgba(255, 255, 255, 0.537);
+    color: rgba(255, 255, 255, 0.786);
 }
 
 QFrame[fqw="DatePicker"] QPushButton#pickerButton[align="center"] {
@@ -75,30 +73,6 @@ QFrame[fqw="DatePickerPanel"] {
     background-color: rgb(44, 44, 44);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 7px;
-}
-
-QFrame[fqw="DatePickerPanel"] QFrame[pickerSeparator="true"] {
-    color: rgb(61, 61, 61);
-    background-color: rgb(61, 61, 61);
-    max-width: 1px;
-    max-height: 1px;
-}
-
-QFrame[fqw="DatePickerPanel"] QToolButton[pickerOperation="true"] {
-    background-color: transparent;
-    border: none;
-    border-radius: 5px;
-    min-height: 30px;
-    padding: 0px;
-    margin: 0px 2px;
-}
-
-QFrame[fqw="DatePickerPanel"] QToolButton[pickerOperation="true"]:hover {
-    background-color: rgba(255, 255, 255, 9);
-}
-
-QFrame[fqw="DatePickerPanel"] QToolButton[pickerOperation="true"]:pressed {
-    background-color: rgba(255, 255, 255, 6);
 }
 
 QFrame[fqw="DatePickerPanel"] QListWidget[cycleColumn="true"] {

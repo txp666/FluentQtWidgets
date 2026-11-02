@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/RealtimePlotWidget.h>
 
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -978,6 +979,13 @@ void RealtimePlotWidget::showContextMenu(const QPoint &globalPosition)
     QAction *exportCsvAction = menu->addAction(tr("Export CSV"));
     QAction *exportImageAction = menu->addAction(tr("Export image"));
 
+    // Clicking a RoundMenu item closes the menu before the action runs; triggering an action any
+    // other way (a shortcut, code) closes it too, so that no export dialog opens over it.
+    const QList<QAction *> menuActions = menu->menuActions() + maximumPointsMenu->menuActions();
+    for (QAction *action : menuActions) {
+        connect(action, &QAction::triggered, menu, &QWidget::close);
+    }
+
     connect(viewAllAction, &QAction::triggered, this, &RealtimePlotWidget::showAllData);
     connect(autoRangeAction, &QAction::triggered, this, &RealtimePlotWidget::resetView);
     connect(autoScrollAction, &QAction::triggered, this,
@@ -1674,7 +1682,7 @@ QRectF RealtimePlotWidget::plotRect() const
 }
 
 // While auto-scrolling, the view ends at the newest sample and starts no earlier than the oldest
-// one. (It used to be clamped to x >= 0 and x >= 1, which hid data with negative x.)
+// one.
 qreal RealtimePlotWidget::viewXMinimum() const
 {
     if (!m_autoScroll) {
@@ -1804,12 +1812,8 @@ QColor RealtimePlotWidget::effectiveSeriesColor(int seriesIndex) const
     }
 
     const QVector<QColor> palette{
-        ThemeManager::instance()->accentColor(),
-        QColor(22, 163, 74),
-        QColor(245, 158, 11),
-        QColor(239, 68, 68),
-        QColor(139, 92, 246),
-        QColor(14, 165, 233),
+        themeColor(),        QColor(22, 163, 74),  QColor(245, 158, 11),
+        QColor(239, 68, 68), QColor(139, 92, 246), QColor(14, 165, 233),
     };
     return palette.at(seriesIndex < 0 ? 0 : seriesIndex % palette.size());
 }

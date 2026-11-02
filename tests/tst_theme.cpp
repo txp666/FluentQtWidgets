@@ -1,55 +1,15 @@
-// Theme manager, colours, icons, style sheet manager and translations.
+// Theme manager, colours, style sheet manager and translations.
 
-#include <algorithm>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <functional>
-#include <QtCore/QBuffer>
-#include <QtCore/QDir>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QEnterEvent>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
 #include <QtGui/QScreen>
-#include <QtGui/QStandardItem>
-#include <QtGui/QStandardItemModel>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLabel>
 #include <QtWidgets/QProxyStyle>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStyle>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -78,11 +38,44 @@ class ThemeTest : public QObject
         QCOMPARE(FluentQt::themeName(FluentQt::Theme::Auto), QStringLiteral("auto"));
     }
 
-    void accentColorCanChange()
+    // Painted accents use the per-theme colour, as Python's themeColor() does: in dark mode the
+    // accent is lightened (#009faa becomes #29f1ff), never painted raw.
+    void paintedAccentsUseThePerThemeColor()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        manager->setAccentColor(QColor(10, 20, 30));
-        QCOMPARE(manager->accentColor(), QColor(10, 20, 30));
+        manager->setAccentColor(QColor(QStringLiteral("#009faa")));
+        manager->setTheme(FluentQt::Theme::Dark);
+        const QColor primary = FluentQt::themeColor();
+        const QColor raw = manager->accentColor();
+        QVERIFY(primary != raw);
+
+        const auto pixelsNear = [](const QImage &image, const QColor &color) {
+            int count = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor pixel = image.pixelColor(x, y);
+                    if (pixel.alpha() > 200 && qAbs(pixel.red() - color.red()) <= 6 &&
+                        qAbs(pixel.green() - color.green()) <= 6 && qAbs(pixel.blue() - color.blue()) <= 6) {
+                        ++count;
+                    }
+                }
+            }
+            return count;
+        };
+
+        FluentQt::SwitchButton switchButton;
+        switchButton.setChecked(true);
+        FluentQt::InfoBadge badge(QStringLiteral("8"), FluentQt::InfoLevel::Attention);
+        for (QWidget *widget : {static_cast<QWidget *>(&switchButton), static_cast<QWidget *>(&badge)}) {
+            // Away from the offscreen pointer at (0, 0), which would paint the hover colour instead.
+            widget->move(QGuiApplication::primaryScreen()->availableGeometry().topLeft() + QPoint(300, 300));
+            widget->show();
+            QVERIFY(QTest::qWaitForWindowExposed(widget));
+            QVERIFY(FqwTest::waitForAnimations(widget));
+            const QImage image = widget->grab().toImage();
+            QVERIFY2(pixelsNear(image, primary) > 20, widget->metaObject()->className());
+            QVERIFY2(pixelsNear(image, raw) == 0, widget->metaObject()->className());
+        }
     }
 
     void settingCurrentThemeStillAppliesApplicationPalette()
@@ -91,7 +84,6 @@ class ThemeTest : public QObject
         QVERIFY(app != nullptr);
 
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QPalette previousPalette = app->palette();
 
         manager->setTheme(FluentQt::Theme::Light);
@@ -107,7 +99,6 @@ class ThemeTest : public QObject
         QCOMPARE(app->palette().color(QPalette::ButtonText), QColor(32, 32, 32));
         QCOMPARE(app->palette().color(QPalette::WindowText), QColor(32, 32, 32));
 
-        manager->setTheme(previousTheme);
         app->setPalette(previousPalette);
     }
 
@@ -117,7 +108,6 @@ class ThemeTest : public QObject
         QVERIFY(app != nullptr);
 
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         const QPalette previousPalette = app->palette();
 
         QPalette testPalette = app->palette();
@@ -131,7 +121,6 @@ class ThemeTest : public QObject
 
         app->setPalette(previousPalette);
         manager->systemThemeListener()->refresh();
-        manager->setTheme(previousTheme);
     }
 
     void themeColorPaletteMatchesReference()
@@ -141,6 +130,48 @@ class ThemeTest : public QObject
                  QColor(QStringLiteral("#0f7b0f")));
         QCOMPARE(FluentQt::color(FluentQt::FluentSystemColor::SuccessForeground, FluentQt::Theme::Dark),
                  QColor(QStringLiteral("#6ccb5f")));
+    }
+
+    void themeColorIsDerivedPerThemeLikePython_data()
+    {
+        QTest::addColumn<QString>("accent");
+        QTest::addColumn<FluentQt::Theme>("theme");
+        QTest::addColumn<QStringList>("expected"); // Primary, Dark1-3, Light1-3
+
+        // Measured with qfluentwidgets 1.11.3: ThemeColor.<X>.color().name() after setThemeColor()/setTheme().
+        QTest::newRow("#009faa light") << QStringLiteral("#009faa") << FluentQt::Theme::Light
+                                       << QStringList{"#009faa", "#007780", "#005055", "#004044",
+                                                      "#00a7b3", "#2daab3", "#3eabb3"};
+        QTest::newRow("#009faa dark") << QStringLiteral("#009faa") << FluentQt::Theme::Dark
+                                      << QStringList{"#29f1ff", "#25d9e6", "#25c6d1", "#24a9b3",
+                                                     "#3af2ff", "#58f4ff", "#74f6ff"};
+        QTest::newRow("#0078d7 dark") << QStringLiteral("#0078d7") << FluentQt::Theme::Dark
+                                      << QStringList{"#29a0ff", "#2590e6", "#2585d1", "#2474b3",
+                                                     "#3aa8ff", "#58b5ff", "#74c1ff"};
+    }
+
+    void themeColorIsDerivedPerThemeLikePython()
+    {
+        QFETCH(QString, accent);
+        QFETCH(FluentQt::Theme, theme);
+        QFETCH(QStringList, expected);
+
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setAccentColor(QColor(accent));
+        manager->setTheme(theme);
+
+        const FluentQt::ThemeColor types[] = {FluentQt::ThemeColor::Primary, FluentQt::ThemeColor::Dark1,
+                                              FluentQt::ThemeColor::Dark2,   FluentQt::ThemeColor::Dark3,
+                                              FluentQt::ThemeColor::Light1,  FluentQt::ThemeColor::Light2,
+                                              FluentQt::ThemeColor::Light3};
+        for (int i = 0; i < 7; ++i) {
+            QCOMPARE(FluentQt::derivedThemeColor(QColor(accent), types[i], theme).name(), expected.at(i));
+        }
+        // Python's themeColor() is ThemeColor.PRIMARY.color(): lighter than the accent in dark mode.
+        QCOMPARE(FluentQt::themeColor().name(), expected.at(0));
+
+        // The style sheets substitute the same colour.
+        QCOMPARE(FluentQt::FluentStyleSheet::render(QStringLiteral("--ThemeColorPrimary"), theme), expected.at(0));
     }
 
     void styleSheetManagerRegistersAndRendersCustomQss()
@@ -241,6 +272,44 @@ class ThemeTest : public QObject
         style.active = false;
     }
 
+    // The strings of the folder list dialog, colour card, title bar and navigation buttons, media
+    // bars, switch button and dialog buttons must be in the library's .ts files; they once were not.
+    void fluentTranslatorCoversTheLibrarysStrings_data()
+    {
+        QTest::addColumn<QString>("locale");
+        QTest::addColumn<QByteArray>("context");
+        QTest::addColumn<QByteArray>("source");
+        QTest::addColumn<QString>("translation");
+        const auto row = [](const char *locale, const char *context, const char *source, const char *translation) {
+            QTest::addRow("%s %s %s", locale, context, source) << QString::fromLatin1(locale) << QByteArray(context)
+                                                               << QByteArray(source) << QString::fromUtf8(translation);
+        };
+        row("zh_CN", "FluentQt::FolderListDialog", "Choose folder", "选择文件夹");
+        row("zh_CN", "FluentQt::FolderListSettingCard", "Are you sure you want to delete the folder?",
+            "确定要删除此文件夹吗？");
+        row("zh_CN", "FluentQt::CustomColorSettingCard", "Choose color", "选择颜色");
+        row("zh_CN", "FluentQt::FluentTitleBar", "Maximize", "最大化");
+        row("zh_CN", "FluentQt::NavigationPanel", "Open Navigation", "打开导航");
+        row("zh_CN", "FluentQt::PlayButton", "Pause", "暂停");
+        row("zh_CN", "FluentQt::VolumeView", "Mute", "静音");
+        row("zh_CN", "FluentQt::SwitchButton", "Off", "关");
+        row("zh_CN", "FluentQt::MessageBoxBase", "Cancel", "取消");
+        row("zh_HK", "FluentQt::FolderListDialog", "Choose folder", "選擇資料夾");
+        row("zh_HK", "FluentQt::FluentTitleBar", "Close", "關閉");
+        row("zh_HK", "FluentQt::VolumeView", "Unmute", "取消靜音");
+        row("zh_HK", "FluentQt::MessageDialog", "OK", "確定");
+    }
+
+    void fluentTranslatorCoversTheLibrarysStrings()
+    {
+        QFETCH(QString, locale);
+        QFETCH(QByteArray, context);
+        QFETCH(QByteArray, source);
+        QFETCH(QString, translation);
+        FluentQt::FluentTranslator translator{QLocale(locale)};
+        QCOMPARE(translator.translate(context.constData(), source.constData()), translation);
+    }
+
     void fluentTranslatorOnlyLoadsMatchingLanguages()
     {
         FluentQt::FluentTranslator english(QLocale(QStringLiteral("en")));
@@ -259,176 +328,6 @@ class ThemeTest : public QObject
         QVERIFY(!taiwanChinese.isEmpty());
         QCOMPARE(taiwanChinese.translate("FluentQt::CalendarPicker", "Pick a date"),
                  QStringLiteral("選擇日期"));
-    }
-
-    void repositoryLinksUseConfiguredProjectUrl()
-    {
-        QCOMPARE(FluentQt::repositoryUrl(), QStringLiteral(FQW_REPOSITORY_URL));
-        QCOMPARE(FluentQt::repositoryIssuesUrl(), QStringLiteral(FQW_REPOSITORY_URL "/issues"));
-        QCOMPARE(FluentQt::repositoryDocsUrl(), QStringLiteral(FQW_REPOSITORY_URL "/tree/main/docs"));
-        QCOMPARE(FluentQt::repositoryExampleUrl(), QStringLiteral(FQW_REPOSITORY_URL "/tree/main/examples"));
-        QVERIFY(!FluentQt::repositoryUrl().contains(QStringLiteral("github.com/FluentQtWidgets/FluentQtWidgets")));
-    }
-
-    void themedIconFollowsThemeChanges()
-    {
-        // One file per theme (the black and the white Add glyph); a QIcon of either file keeps
-        // its colour, the themed icon has to switch when the theme does.
-        auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
-        const QString lightPath = FluentQt::iconPath(FluentQt::FluentIcon::Add, FluentQt::Theme::Light);
-        const QString darkPath = FluentQt::iconPath(FluentQt::FluentIcon::Add, FluentQt::Theme::Dark);
-        QVERIFY(lightPath != darkPath);
-
-        const QIcon themed = FluentQt::themedIcon(lightPath, darkPath);
-        const QImage lightImage = QIcon(lightPath).pixmap(QSize(24, 24), 1.0).toImage();
-        const QImage darkImage = QIcon(darkPath).pixmap(QSize(24, 24), 1.0).toImage();
-        QVERIFY(lightImage != darkImage);
-
-        manager->setTheme(FluentQt::Theme::Light);
-        QCOMPARE(themed.pixmap(QSize(24, 24), 1.0).toImage(), lightImage);
-        manager->setTheme(FluentQt::Theme::Dark);
-        QCOMPARE(themed.pixmap(QSize(24, 24), 1.0).toImage(), darkImage);
-        QVERIFY(!themed.isNull());
-
-        manager->setTheme(previousTheme);
-    }
-
-    void iconPathUsesFluentResourceNames()
-    {
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Setting), QStringLiteral("Setting"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Return), QStringLiteral("Return"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::LeftArrow), QStringLiteral("LeftArrow"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Accept), QStringLiteral("Accept"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Checkbox), QStringLiteral("CheckBox"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::DateTime), QStringLiteral("DateTime"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Message), QStringLiteral("Message"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Layout), QStringLiteral("Layout"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Chat), QStringLiteral("Chat"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Copy), QStringLiteral("Copy"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Paste), QStringLiteral("Paste"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Video), QStringLiteral("Video"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Music), QStringLiteral("Music"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::FolderAdd), QStringLiteral("FolderAdd"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Cancel), QStringLiteral("Cancel"));
-        QCOMPARE(FluentQt::iconPath(FluentQt::FluentIcon::Setting, FluentQt::Theme::Light),
-                 QStringLiteral(":/qfluentwidgets/images/icons/Setting_black.svg"));
-        QCOMPARE(FluentQt::iconPath(FluentQt::FluentIcon::Setting, FluentQt::Theme::Dark),
-                 QStringLiteral(":/qfluentwidgets/images/icons/Setting_white.svg"));
-    }
-
-    void fluentIconsUseBundledSvgResources()
-    {
-        const QList<FluentQt::FluentIcon> icons = {
-            FluentQt::FluentIcon::Up, FluentQt::FluentIcon::Add, FluentQt::FluentIcon::Bus,
-            FluentQt::FluentIcon::Car, FluentQt::FluentIcon::Cut, FluentQt::FluentIcon::IOT,
-            FluentQt::FluentIcon::Pin, FluentQt::FluentIcon::Tag, FluentQt::FluentIcon::VPN,
-            FluentQt::FluentIcon::Cafe, FluentQt::FluentIcon::Chat, FluentQt::FluentIcon::Copy,
-            FluentQt::FluentIcon::Code, FluentQt::FluentIcon::Down, FluentQt::FluentIcon::Edit,
-            FluentQt::FluentIcon::Flag, FluentQt::FluentIcon::Font, FluentQt::FluentIcon::Game,
-            FluentQt::FluentIcon::Help, FluentQt::FluentIcon::Hide, FluentQt::FluentIcon::Home,
-            FluentQt::FluentIcon::Info, FluentQt::FluentIcon::Leaf, FluentQt::FluentIcon::Link,
-            FluentQt::FluentIcon::Mail, FluentQt::FluentIcon::Menu, FluentQt::FluentIcon::Mute,
-            FluentQt::FluentIcon::More, FluentQt::FluentIcon::Move, FluentQt::FluentIcon::Play,
-            FluentQt::FluentIcon::Save, FluentQt::FluentIcon::Send, FluentQt::FluentIcon::Sync,
-            FluentQt::FluentIcon::Unit, FluentQt::FluentIcon::View, FluentQt::FluentIcon::Wifi,
-            FluentQt::FluentIcon::Zoom, FluentQt::FluentIcon::Album, FluentQt::FluentIcon::Brush,
-            FluentQt::FluentIcon::Broom, FluentQt::FluentIcon::Close, FluentQt::FluentIcon::Cloud,
-            FluentQt::FluentIcon::Embed, FluentQt::FluentIcon::Globe, FluentQt::FluentIcon::Heart,
-            FluentQt::FluentIcon::Label, FluentQt::FluentIcon::Media, FluentQt::FluentIcon::Movie,
-            FluentQt::FluentIcon::Music, FluentQt::FluentIcon::Robot, FluentQt::FluentIcon::Pause,
-            FluentQt::FluentIcon::Paste, FluentQt::FluentIcon::Photo, FluentQt::FluentIcon::Phone,
-            FluentQt::FluentIcon::Print, FluentQt::FluentIcon::Share, FluentQt::FluentIcon::Tiles,
-            FluentQt::FluentIcon::Unpin, FluentQt::FluentIcon::Video, FluentQt::FluentIcon::Train,
-            FluentQt::FluentIcon::AddTo, FluentQt::FluentIcon::Accept, FluentQt::FluentIcon::Camera,
-            FluentQt::FluentIcon::Cancel, FluentQt::FluentIcon::Delete, FluentQt::FluentIcon::Folder,
-            FluentQt::FluentIcon::Filter, FluentQt::FluentIcon::Market, FluentQt::FluentIcon::Scroll,
-            FluentQt::FluentIcon::Layout, FluentQt::FluentIcon::GitHub, FluentQt::FluentIcon::Update,
-            FluentQt::FluentIcon::Remove, FluentQt::FluentIcon::Return, FluentQt::FluentIcon::People,
-            FluentQt::FluentIcon::QRCode, FluentQt::FluentIcon::Ringer, FluentQt::FluentIcon::Rotate,
-            FluentQt::FluentIcon::Search, FluentQt::FluentIcon::Volume, FluentQt::FluentIcon::Frigid,
-            FluentQt::FluentIcon::SaveAs, FluentQt::FluentIcon::ZoomIn, FluentQt::FluentIcon::Connect,
-            FluentQt::FluentIcon::History, FluentQt::FluentIcon::Setting, FluentQt::FluentIcon::Palette,
-            FluentQt::FluentIcon::Message, FluentQt::FluentIcon::FitPage, FluentQt::FluentIcon::ZoomOut,
-            FluentQt::FluentIcon::Airplane, FluentQt::FluentIcon::Asterisk, FluentQt::FluentIcon::Calories,
-            FluentQt::FluentIcon::Calendar, FluentQt::FluentIcon::Feedback, FluentQt::FluentIcon::Library,
-            FluentQt::FluentIcon::Minimize, FluentQt::FluentIcon::Checkbox, FluentQt::FluentIcon::Document,
-            FluentQt::FluentIcon::Language, FluentQt::FluentIcon::Download, FluentQt::FluentIcon::Question,
-            FluentQt::FluentIcon::Speakers, FluentQt::FluentIcon::DateTime, FluentQt::FluentIcon::FontSize,
-            FluentQt::FluentIcon::HomeFill, FluentQt::FluentIcon::PageLeft, FluentQt::FluentIcon::SaveCopy,
-            FluentQt::FluentIcon::SendFill, FluentQt::FluentIcon::SkipBack, FluentQt::FluentIcon::SpeedOff,
-            FluentQt::FluentIcon::Alignment, FluentQt::FluentIcon::Bluetooth, FluentQt::FluentIcon::Completed,
-            FluentQt::FluentIcon::Constract, FluentQt::FluentIcon::Headphone, FluentQt::FluentIcon::Megaphone,
-            FluentQt::FluentIcon::Projector, FluentQt::FluentIcon::Education, FluentQt::FluentIcon::LeftArrow,
-            FluentQt::FluentIcon::EraseTool, FluentQt::FluentIcon::PageRight, FluentQt::FluentIcon::PlaySolid,
-            FluentQt::FluentIcon::BookShelf, FluentQt::FluentIcon::Hightlight, FluentQt::FluentIcon::FolderAdd,
-            FluentQt::FluentIcon::PauseBold, FluentQt::FluentIcon::PencilInk, FluentQt::FluentIcon::PieSingle,
-            FluentQt::FluentIcon::QuickNote, FluentQt::FluentIcon::SpeedHigh, FluentQt::FluentIcon::StopWatch,
-            FluentQt::FluentIcon::ZipFolder, FluentQt::FluentIcon::Basketball, FluentQt::FluentIcon::Brightness,
-            FluentQt::FluentIcon::Dictionary, FluentQt::FluentIcon::Microphone, FluentQt::FluentIcon::ArrowDown,
-            FluentQt::FluentIcon::FullScreen, FluentQt::FluentIcon::MixVolumes, FluentQt::FluentIcon::RemoveFrom,
-            FluentQt::FluentIcon::RightArrow, FluentQt::FluentIcon::QuietHours, FluentQt::FluentIcon::Fingerprint,
-            FluentQt::FluentIcon::Application, FluentQt::FluentIcon::Certificate, FluentQt::FluentIcon::Transparent,
-            FluentQt::FluentIcon::ImageExport, FluentQt::FluentIcon::SpeedMedium, FluentQt::FluentIcon::LibraryFill,
-            FluentQt::FluentIcon::MusicFolder, FluentQt::FluentIcon::PowerButton, FluentQt::FluentIcon::SkipForward,
-            FluentQt::FluentIcon::CareUpSolid, FluentQt::FluentIcon::AcceptMedium, FluentQt::FluentIcon::CancelMedium,
-            FluentQt::FluentIcon::ChevronRight, FluentQt::FluentIcon::ClippingTool, FluentQt::FluentIcon::SearchMirror,
-            FluentQt::FluentIcon::ShoppingCart, FluentQt::FluentIcon::FontIncrease, FluentQt::FluentIcon::BackToWindow,
-            FluentQt::FluentIcon::CommandPrompt, FluentQt::FluentIcon::CloudDownload, FluentQt::FluentIcon::DictionaryAdd,
-            FluentQt::FluentIcon::CareDownSolid, FluentQt::FluentIcon::CareLeftSolid, FluentQt::FluentIcon::ClearSelection,
-            FluentQt::FluentIcon::DeveloperTools, FluentQt::FluentIcon::BackgroundFill, FluentQt::FluentIcon::CareRightSolid,
-            FluentQt::FluentIcon::ChevronDownMed, FluentQt::FluentIcon::ChevronRightMed, FluentQt::FluentIcon::EmojiTabSymbols,
-            FluentQt::FluentIcon::ExpressiveInputEntry,
-        };
-
-        for (const FluentQt::FluentIcon iconType : icons) {
-            const QString lightPath = FluentQt::iconPath(iconType, FluentQt::Theme::Light);
-            const QString darkPath = FluentQt::iconPath(iconType, FluentQt::Theme::Dark);
-            QVERIFY2(QFile::exists(lightPath), qPrintable(lightPath));
-            QVERIFY2(QFile::exists(darkPath), qPrintable(darkPath));
-            QVERIFY2(!FluentQt::icon(iconType, FluentQt::Theme::Light).pixmap(QSize(16, 16)).isNull(),
-                     qPrintable(lightPath));
-            QVERIFY2(!FluentQt::icon(iconType, FluentQt::Theme::Dark).pixmap(QSize(16, 16)).isNull(),
-                     qPrintable(darkPath));
-        }
-    }
-
-    void fluentIconPixmapKeepsRequestedDevicePixelRatio()
-    {
-        const QSize logicalSize(16, 16);
-        const qreal requestedDpr = 2.0;
-        const QPixmap pixmap =
-            FluentQt::icon(FluentQt::FluentIcon::Home, FluentQt::Theme::Light)
-                .pixmap(logicalSize, requestedDpr, QIcon::Normal, QIcon::Off);
-
-        QVERIFY(!pixmap.isNull());
-        QCOMPARE(qRound(pixmap.devicePixelRatioF() * 100), 200);
-        QCOMPARE(QSize(qRound(pixmap.width() / pixmap.devicePixelRatioF()),
-                      qRound(pixmap.height() / pixmap.devicePixelRatioF())),
-                 logicalSize);
-        QVERIFY(pixmap.width() >= logicalSize.width() * requestedDpr);
-        QVERIFY(pixmap.height() >= logicalSize.height() * requestedDpr);
-    }
-
-    void iconWidgetTracksIconAndSize()
-    {
-        FluentQt::IconWidget widget;
-        QCOMPARE(widget.property("fqw").toString(), QStringLiteral("IconWidget"));
-        QCOMPARE(widget.iconSize(), QSize(20, 20));
-
-        QSignalSpy iconSpy(&widget, &FluentQt::IconWidget::iconChanged);
-        widget.setIcon(FluentQt::FluentIcon::Setting);
-        QCOMPARE(iconSpy.count(), 1);
-
-        widget.setIconSize(QSize(32, 24));
-        QCOMPARE(widget.iconSize(), QSize(32, 24));
-        QCOMPARE(widget.sizeHint(), QSize(32, 24));
-
-        QCOMPARE(FluentQt::iconName(FluentQt::FluentIcon::Basketball), QStringLiteral("basketball"));
-        QCOMPARE(FluentQt::iconResourceName(FluentQt::FluentIcon::Basketball), QStringLiteral("Basketball"));
-        QVERIFY(QFile::exists(FluentQt::iconPath(FluentQt::FluentIcon::Basketball, FluentQt::Theme::Light)));
-        QVERIFY(!FluentQt::icon(FluentQt::FluentIcon::Basketball).isNull());
-
     }
 
   private:

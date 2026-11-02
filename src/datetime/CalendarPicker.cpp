@@ -9,24 +9,83 @@
 #include <QtCore/QPoint>
 #include <QtCore/QPropertyAnimation>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QPaintEvent>
 #include <QtGui/QGuiApplication>
+#include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QScreen>
 #include <QtGui/QShowEvent>
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsOpacityEffect>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSizePolicy>
 #include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QStyleOptionToolButton>
+#include <QtWidgets/QStylePainter>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 
 namespace FluentQt {
+
+namespace {
+
+// Python's calendar ScrollButton: a transparent tool button that paints its caret itself, 10 px
+// (9 px while pressed) in #5e5e5e, or #9c9c9c on a dark theme.
+class CalendarScrollButton final : public QToolButton
+{
+  public:
+    CalendarScrollButton(FluentIcon icon, QWidget *parent) : QToolButton(parent), m_icon(icon)
+    {
+        setIcon(FluentQt::icon(icon));
+    }
+
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QStylePainter painter(this);
+        QStyleOptionToolButton option;
+        initStyleOption(&option);
+        option.icon = QIcon();
+        painter.drawComplexControl(QStyle::CC_ToolButton, option);
+
+        painter.setRenderHint(QPainter::Antialiasing);
+        const int extent = isDown() ? 9 : 10;
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        const QColor color = dark ? QColor(0x9c, 0x9c, 0x9c) : QColor(0x5e, 0x5e, 0x5e);
+        const QRect iconRect((width() - extent) / 2, (height() - extent) / 2, extent, extent);
+        FluentQt::icon(m_icon, color).paint(&painter, iconRect);
+    }
+
+  private:
+    FluentIcon m_icon;
+};
+
+// Python's year views list the years from a century before this one.
+int firstCalendarYear() { return QDate::currentDate().year() - 100; }
+
+// Python's CalendarView pages through the years three rows (12 years) at a time from that first
+// year; this is the first year on the page that holds `year`.
+int calendarYearPageStart(int year)
+{
+    const int offset = year - firstCalendarYear();
+    const int page = offset >= 0 ? offset / 12 : -((-offset + 11) / 12);
+    return firstCalendarYear() + page * 12;
+}
+
+// Python's ScrollViewBase draws a 1 px top border between the calendar header and its items.
+QWidget *createCalendarSeparator(QWidget *parent)
+{
+    auto *separator = new QWidget(parent);
+    separator->setObjectName(QStringLiteral("calendarSeparator"));
+    separator->setAttribute(Qt::WA_StyledBackground);
+    separator->setFixedHeight(1);
+    return separator;
+}
+
+} // namespace
 
 CalendarView::CalendarView(QWidget *parent) : CalendarView(parent, true) {}
 
@@ -39,12 +98,24 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
     setAttribute(Qt::WA_DeleteOnClose, popup);
     FluentStyleSheet::setRole(this, QStringLiteral("CalendarView"));
 
-    auto *effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(effect);
-    effect->setOpacity(1);
+    auto *outerLayout = new QVBoxLayout(this);
+    outerLayout->setContentsMargins(12, 8, 12, 20);
+    outerLayout->setSpacing(0);
 
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(12, 8, 12, 20);
+    // Python draws the calendar on a 314x355 frame inside these margins, with a drop shadow that
+    // the margins make room for.
+    auto *panel = new QFrame(this);
+    panel->setObjectName(QStringLiteral("calendarPanel"));
+    panel->setFixedSize(314, 355);
+    auto *shadow = new QGraphicsDropShadowEffect(panel);
+    shadow->setBlurRadius(30);
+    shadow->setOffset(0, 8);
+    shadow->setColor(QColor(0, 0, 0, 30));
+    panel->setGraphicsEffect(shadow);
+    outerLayout->addWidget(panel);
+
+    auto *layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
     auto *headerLayout = new QHBoxLayout;
@@ -67,9 +138,9 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
         }
     });
 
-    m_resetButton = createNavigationButton(FluentQt::icon(FluentIcon::Close), QStringLiteral("resetButton"));
-    m_upButton = createNavigationButton(FluentQt::icon(FluentIcon::CareUpSolid), QStringLiteral("upButton"));
-    m_downButton = createNavigationButton(FluentQt::icon(FluentIcon::CareDownSolid), QStringLiteral("downButton"));
+    m_resetButton = createNavigationButton(FluentIcon::Cancel, QStringLiteral("resetButton"));
+    m_upButton = createNavigationButton(FluentIcon::CareUpSolid, QStringLiteral("upButton"));
+    m_downButton = createNavigationButton(FluentIcon::CareDownSolid, QStringLiteral("downButton"));
     connect(m_resetButton, &QToolButton::clicked, this, &CalendarView::reset);
     connect(m_upButton, &QToolButton::clicked, this, &CalendarView::scrollUp);
     connect(m_downButton, &QToolButton::clicked, this, &CalendarView::scrollDown);
@@ -79,9 +150,10 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
     headerLayout->addWidget(m_upButton);
     headerLayout->addWidget(m_downButton);
     layout->addLayout(headerLayout);
+    layout->addWidget(createCalendarSeparator(panel));
 
-    m_stackedWidget = new QStackedWidget(this);
-    m_stackedWidget->setFixedSize(314, 305);
+    m_stackedWidget = new QStackedWidget(panel);
+    m_stackedWidget->setFixedSize(312, 302);
     layout->addWidget(m_stackedWidget);
     createDayPage();
     createMonthPage();
@@ -140,9 +212,7 @@ void CalendarView::exec(const QPoint &pos, bool animated)
     adjustSize();
     const QPoint targetPos = clampedPosition(pos);
     if (!animated) {
-        if (auto *effect = qobject_cast<QGraphicsOpacityEffect *>(graphicsEffect())) {
-            effect->setOpacity(1);
-        }
+        setWindowOpacity(1);
         move(targetPos);
         show();
         raise();
@@ -151,15 +221,15 @@ void CalendarView::exec(const QPoint &pos, bool animated)
 
     const QRect endGeometry(targetPos, size());
     setGeometry(endGeometry.translated(0, -8));
-    if (auto *effect = qobject_cast<QGraphicsOpacityEffect *>(graphicsEffect())) {
-        effect->setOpacity(0);
-        auto *opacityAnimation = new QPropertyAnimation(effect, "opacity", this);
-        opacityAnimation->setDuration(150);
-        opacityAnimation->setEasingCurve(QEasingCurve::OutQuad);
-        opacityAnimation->setStartValue(0.0);
-        opacityAnimation->setEndValue(1.0);
-        opacityAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-    }
+    // Python fades the popup window itself; an opacity effect here would nest the panel's
+    // shadow effect inside it, which Qt cannot grab or render.
+    setWindowOpacity(0);
+    auto *opacityAnimation = new QPropertyAnimation(this, "windowOpacity", this);
+    opacityAnimation->setDuration(150);
+    opacityAnimation->setEasingCurve(QEasingCurve::OutQuad);
+    opacityAnimation->setStartValue(0.0);
+    opacityAnimation->setEndValue(1.0);
+    opacityAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 
     auto *slideAnimation = new QPropertyAnimation(this, "geometry", this);
     slideAnimation->setDuration(150);
@@ -179,7 +249,7 @@ void CalendarView::setDate(const QDate &date)
     if (!m_displayMonth.isValid() || date.isValid()) {
         m_displayMonth = QDate(baseDate.year(), baseDate.month(), 1);
         m_monthPageDate = QDate(baseDate.year(), 1, 1);
-        m_yearPageStart = baseDate.year() - baseDate.year() % 10;
+        m_yearPageStart = calendarYearPageStart(baseDate.year());
     }
     refreshCalendar();
     refreshMonthView();
@@ -226,7 +296,7 @@ void CalendarView::scrollUp()
         m_monthPageDate = m_monthPageDate.addYears(-1);
         refreshMonthView();
     } else {
-        m_yearPageStart -= 10;
+        m_yearPageStart -= 12;
         refreshYearView();
     }
     animateCurrentContent(-1);
@@ -244,7 +314,7 @@ void CalendarView::scrollDown()
         m_monthPageDate = m_monthPageDate.addYears(1);
         refreshMonthView();
     } else {
-        m_yearPageStart += 10;
+        m_yearPageStart += 12;
         refreshYearView();
     }
     animateCurrentContent(1);
@@ -280,21 +350,14 @@ void CalendarView::wheelEvent(QWheelEvent *event)
 
 void CalendarView::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event)
-
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    painter.setPen(dark ? QColor(255, 255, 255, 26) : QColor(0, 0, 0, 26));
-    painter.setBrush(dark ? QColor(37, 37, 37) : QColor(255, 255, 255));
-    painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), 8, 8);
+    // The calendar panel paints itself from the style sheet; the margins around it stay clear.
+    QFrame::paintEvent(event);
 }
 
-QToolButton *CalendarView::createNavigationButton(const QIcon &icon, const QString &objectName)
+QToolButton *CalendarView::createNavigationButton(FluentIcon icon, const QString &objectName)
 {
-    auto *button = new QToolButton(this);
+    auto *button = new CalendarScrollButton(icon, this);
     button->setCursor(Qt::PointingHandCursor);
-    button->setIcon(icon);
     button->setProperty("calendarNavigation", true);
     button->setObjectName(objectName);
     button->setAutoRaise(true);
@@ -323,8 +386,11 @@ void CalendarView::createDayPage()
 
     auto *weekDayGroup = new QWidget(m_dayPage);
     weekDayGroup->setObjectName(QStringLiteral("weekDayGroup"));
+    // Python keeps the weekday row in a fixed 38 px viewport margin, so the day grid starts in the same place
+    // whatever the font.
+    weekDayGroup->setFixedHeight(38);
     auto *weekDayLayout = new QHBoxLayout(weekDayGroup);
-    weekDayLayout->setContentsMargins(3, 12, 3, 12);
+    weekDayLayout->setContentsMargins(3, 12, 3, 9);
     weekDayLayout->setSpacing(0);
     const QStringList weekDays = {tr("Mo"), tr("Tu"), tr("We"), tr("Th"), tr("Fr"), tr("Sa"), tr("Su")};
     for (int i = 0; i < weekDays.size(); ++i) {
@@ -367,7 +433,7 @@ void CalendarView::createMonthPage()
     pageLayout->setSpacing(0);
 
     auto *grid = new QGridLayout(m_monthGridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -395,7 +461,7 @@ void CalendarView::createYearPage()
     pageLayout->setSpacing(0);
 
     auto *grid = new QGridLayout(m_yearGridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -485,14 +551,19 @@ void CalendarView::refreshYearView()
 {
     if (m_yearPageStart <= 0) {
         const QDate page = m_monthPageDate.isValid() ? m_monthPageDate : QDate::currentDate();
-        m_yearPageStart = page.year() - page.year() % 10;
+        m_yearPageStart = calendarYearPageStart(page.year());
     }
 
+    // The page shows 16 years from its start; Python titles it with the decade most of them fall
+    // in (the earlier one on a tie) and dims the years outside that decade.
+    const int visibleStart = m_yearPageStart;
+    const int firstDecade = visibleStart - visibleStart % 10;
+    const int firstDecadeYears = qMin(16, firstDecade + 10 - visibleStart);
+    const int decade = firstDecadeYears >= 16 - firstDecadeYears ? firstDecade : firstDecade + 10;
     if (m_viewMode == ViewMode::Year) {
-        setTitle(QStringLiteral("%1 - %2").arg(m_yearPageStart).arg(m_yearPageStart + 10));
+        setTitle(QStringLiteral("%1 - %2").arg(decade).arg(decade + 10));
     }
 
-    const int visibleStart = m_yearPageStart - m_yearPageStart % 4;
     const int currentYear = QDate::currentDate().year();
     for (int i = 0; i < m_yearButtons.size(); ++i) {
         const int year = visibleStart + i;
@@ -500,7 +571,7 @@ void CalendarView::refreshYearView()
         auto *button = m_yearButtons.at(i);
         button->setText(QString::number(year));
         button->setProperty("date", date);
-        button->setProperty("outOfRange", year < m_yearPageStart || year > m_yearPageStart + 10);
+        button->setProperty("outOfRange", year < decade || year > decade + 10);
         button->setProperty("today", year == currentYear);
         button->setProperty("selected", m_date.isValid() && year == m_date.year());
         FluentStyleSheet::polish(button);
@@ -509,6 +580,9 @@ void CalendarView::refreshYearView()
 
 void CalendarView::switchToDayView()
 {
+    if (m_titleButton) {
+        m_titleButton->setEnabled(true);
+    }
     m_viewMode = ViewMode::Day;
     if (m_stackedWidget && m_dayPage) {
         m_stackedWidget->setCurrentWidget(m_dayPage);
@@ -518,6 +592,9 @@ void CalendarView::switchToDayView()
 
 void CalendarView::switchToMonthView()
 {
+    if (m_titleButton) {
+        m_titleButton->setEnabled(true);
+    }
     const bool fromDayView = m_viewMode == ViewMode::Day;
     m_viewMode = ViewMode::Month;
     if (fromDayView || !m_monthPageDate.isValid()) {
@@ -531,8 +608,12 @@ void CalendarView::switchToMonthView()
 
 void CalendarView::switchToYearView()
 {
+    // Python disables the year view title: there is no view above it.
+    if (m_titleButton) {
+        m_titleButton->setEnabled(false);
+    }
     m_viewMode = ViewMode::Year;
-    m_yearPageStart = m_monthPageDate.year() - m_monthPageDate.year() % 10;
+    m_yearPageStart = calendarYearPageStart(m_monthPageDate.year());
     if (m_stackedWidget && m_yearPage) {
         m_stackedWidget->setCurrentWidget(m_yearPage);
     }
@@ -720,10 +801,9 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
     (*titleButton)->setProperty("fastCalendarTitle", true);
 
     const auto createNavButton = [page](FluentIcon iconValue, const QString &name) {
-        auto *button = new QToolButton(page);
+        auto *button = new CalendarScrollButton(iconValue, page);
         button->setObjectName(name);
         button->setCursor(Qt::PointingHandCursor);
-        button->setIcon(icon(iconValue));
         button->setIconSize(QSize(10, 10));
         button->setAutoRaise(true);
         button->setFixedSize(32, 34);
@@ -732,7 +812,7 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
         return button;
     };
 
-    *resetButton = createNavButton(FluentIcon::Close, QStringLiteral("resetButton"));
+    *resetButton = createNavButton(FluentIcon::Cancel, QStringLiteral("resetButton"));
     *upButton = createNavButton(FluentIcon::CareUpSolid, QStringLiteral("upButton"));
     *downButton = createNavButton(FluentIcon::CareDownSolid, QStringLiteral("downButton"));
 
@@ -741,6 +821,7 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
     headerLayout->addWidget(*upButton, 0, Qt::AlignVCenter);
     headerLayout->addWidget(*downButton, 0, Qt::AlignVCenter);
     layout->addLayout(headerLayout);
+    layout->addWidget(createCalendarSeparator(page));
 
     *bodyLayout = new QVBoxLayout;
     (*bodyLayout)->setContentsMargins(0, 0, 0, 0);
@@ -767,8 +848,11 @@ void FastCalendarView::createDayPage()
 
     auto *weekDayGroup = new QWidget(m_dayView);
     weekDayGroup->setObjectName(QStringLiteral("weekDayGroup"));
+    // Python keeps the weekday row in a fixed 38 px viewport margin, so the day grid starts in the same place
+    // whatever the font.
+    weekDayGroup->setFixedHeight(38);
     auto *weekDayLayout = new QHBoxLayout(weekDayGroup);
-    weekDayLayout->setContentsMargins(3, 12, 3, 12);
+    weekDayLayout->setContentsMargins(3, 12, 3, 9);
     weekDayLayout->setSpacing(0);
     const QStringList weekDays = {tr("Mo"), tr("Tu"), tr("We"), tr("Th"), tr("Fr"), tr("Sa"), tr("Su")};
     for (const QString &day : weekDays) {
@@ -816,7 +900,7 @@ void FastCalendarView::createMonthPage()
     auto *gridWidget = new QWidget(m_monthView);
     gridWidget->setObjectName(QStringLiteral("monthGrid"));
     auto *grid = new QGridLayout(gridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -851,7 +935,7 @@ void FastCalendarView::createYearPage()
     auto *gridWidget = new QWidget(m_yearView);
     gridWidget->setObjectName(QStringLiteral("yearGrid"));
     auto *grid = new QGridLayout(gridWidget);
-    grid->setContentsMargins(5, 0, 5, 0);
+    grid->setContentsMargins(1, 0, 1, 0);
     grid->setSpacing(0);
     for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 4; ++column) {
@@ -963,7 +1047,9 @@ void FastCalendarView::refreshYearView()
     }
 
     m_yearTitleButton->setText(QStringLiteral("%1 - %2").arg(m_yearPageStart).arg(m_yearPageStart + 9));
-    const int visibleStart = m_yearPageStart - m_yearPageStart % 4;
+    // Python lays the years out in rows of four counted from the first year it lists.
+    const int column = ((m_yearPageStart - firstCalendarYear()) % 4 + 4) % 4;
+    const int visibleStart = m_yearPageStart - column;
     const int currentYear = QDate::currentDate().year();
     for (int i = 0; i < m_yearButtons.size(); ++i) {
         const int year = visibleStart + i;
@@ -1083,7 +1169,6 @@ CalendarPicker::CalendarPicker(QWidget *parent) : QPushButton(parent)
 {
     m_dateFormat = QLocale().dateFormat(QLocale::ShortFormat);
 
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     setText(tr("Pick a date"));
     setProperty("hasDate", false);

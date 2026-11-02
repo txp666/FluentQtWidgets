@@ -1,5 +1,8 @@
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 
+#include "../core/FontUtils_p.h"
+
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
@@ -36,14 +39,11 @@ QString badgeText(int count)
 
 InfoBadge::InfoBadge(QWidget *parent) : QLabel(parent)
 {
-    setAlignment(Qt::AlignCenter);
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-    QFont badgeFont = font();
-    badgeFont.setPixelSize(11);
-    setFont(badgeFont);
+    setFont(Private::fluentFont(11));
 
     updateRole();
 }
@@ -194,18 +194,6 @@ void InfoBadge::paintEvent(QPaintEvent *event)
     painter.drawText(rect(), Qt::AlignCenter, text());
 }
 
-QSize InfoBadge::sizeHint() const
-{
-    const QSize labelSize = QLabel::sizeHint();
-    return QSize(qMax(labelSize.width(), labelSize.height()), labelSize.height());
-}
-
-QSize InfoBadge::minimumSizeHint() const
-{
-    const QSize labelSize = QLabel::minimumSizeHint();
-    return QSize(qMax(labelSize.width(), labelSize.height()), labelSize.height());
-}
-
 QColor InfoBadge::backgroundColor() const
 {
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
@@ -219,13 +207,13 @@ QColor InfoBadge::backgroundColor() const
     case InfoLevel::Success:
         return dark ? QColor(108, 203, 95) : QColor(15, 123, 15);
     case InfoLevel::Attention:
-        return ThemeManager::instance()->accentColor();
+        return themeColor();
     case InfoLevel::Warning:
         return dark ? QColor(255, 244, 206) : QColor(157, 93, 0);
     case InfoLevel::Error:
         return dark ? QColor(255, 153, 164) : QColor(196, 43, 28);
     }
-    return ThemeManager::instance()->accentColor();
+    return themeColor();
 }
 
 QString InfoBadge::levelToken() const
@@ -325,9 +313,10 @@ IconInfoBadge::IconInfoBadge(const QIcon &icon, InfoLevel level, QWidget *parent
     setIcon(icon);
 }
 
-IconInfoBadge::IconInfoBadge(FluentIcon icon, InfoLevel level, QWidget *parent)
-    : IconInfoBadge(FluentQt::icon(icon, badgeIconTheme()), level, parent)
+IconInfoBadge::IconInfoBadge(FluentIcon icon, InfoLevel level, QWidget *parent) : IconInfoBadge(parent)
 {
+    setLevel(level);
+    setIcon(icon);
 }
 
 IconInfoBadge *IconInfoBadge::create(const QIcon &icon, InfoLevel level, QWidget *parent, QWidget *target,
@@ -415,27 +404,34 @@ IconInfoBadge *IconInfoBadge::custom(const QIcon &icon, const QColor &lightBackg
 IconInfoBadge *IconInfoBadge::custom(FluentIcon icon, const QColor &lightBackground, const QColor &darkBackground,
                                      QWidget *parent, QWidget *target, InfoBadgePosition position)
 {
-    return custom(FluentQt::icon(icon, badgeIconTheme()), lightBackground, darkBackground, parent, target, position);
+    auto *badge = create(icon, InfoLevel::Info, parent);
+    badge->setCustomBackgroundColor(lightBackground, darkBackground);
+    return attachBadge(badge, target, position);
 }
 
 QIcon IconInfoBadge::icon() const { return m_icon; }
 
 QSize IconInfoBadge::iconSize() const { return m_iconSize; }
 
-QSize IconInfoBadge::sizeHint() const { return QSize(16, 16); }
-
 void IconInfoBadge::setIcon(const QIcon &icon)
 {
-    if (m_icon.cacheKey() == icon.cacheKey()) {
+    if (!m_fluentIcon && m_icon.cacheKey() == icon.cacheKey()) {
         return;
     }
 
+    m_fluentIcon.reset();
     m_icon = icon;
     update();
     emit iconChanged(m_icon);
 }
 
-void IconInfoBadge::setIcon(FluentIcon icon) { setIcon(FluentQt::icon(icon, badgeIconTheme())); }
+void IconInfoBadge::setIcon(FluentIcon icon)
+{
+    m_fluentIcon = icon;
+    m_icon = FluentQt::icon(icon, badgeIconTheme());
+    update();
+    emit iconChanged(m_icon);
+}
 
 void IconInfoBadge::setIconSize(const QSize &size)
 {
@@ -456,14 +452,15 @@ void IconInfoBadge::paintEvent(QPaintEvent *)
     painter.setBrush(backgroundColor());
     painter.drawEllipse(rect());
 
-    if (m_icon.isNull()) {
+    const QIcon icon = m_fluentIcon ? FluentQt::icon(*m_fluentIcon, badgeIconTheme()) : m_icon;
+    if (icon.isNull()) {
         return;
     }
 
     const QSize boundedSize(qMin(width(), m_iconSize.width()), qMin(height(), m_iconSize.height()));
     const QRect iconRect((width() - boundedSize.width()) / 2, (height() - boundedSize.height()) / 2,
                          boundedSize.width(), boundedSize.height());
-    m_icon.paint(&painter, iconRect, Qt::AlignCenter);
+    icon.paint(&painter, iconRect, Qt::AlignCenter);
 }
 
 } // namespace FluentQt

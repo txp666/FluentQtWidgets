@@ -21,10 +21,12 @@ inline QEasingCurve cubicBezierEasing(qreal x1, qreal y1, qreal x2, qreal y2)
     return curve;
 }
 
-QPropertyAnimation *opacityAnimation(QObject *target, int duration, qreal start, qreal end, QObject *parent)
+QPropertyAnimation *opacityAnimation(QObject *target, int duration, qreal start, qreal end, const QEasingCurve &easing,
+                                     QObject *parent)
 {
     auto *animation = new QPropertyAnimation(target, "opacity", parent);
     animation->setDuration(duration);
+    animation->setEasingCurve(easing);
     animation->setStartValue(start);
     animation->setEndValue(end);
     return animation;
@@ -468,16 +470,19 @@ void EntranceTransitionStackedWidget::setupTransitionAnimation(int nextIndex, in
     const int offset = 140;
     const int outDuration = 150;
     const int inDuration = duration > 0 ? duration : 300;
+    const QEasingCurve inCurve = cubicBezierEasing(0.1, 0.9, 0.2, 1.0);
+    const QEasingCurve outCurve = cubicBezierEasing(0.7, 0.0, 1.0, 0.5);
     QWidget *current = currentWidget();
     QWidget *next = widget(nextIndex);
 
     if (current) {
         renderSnapshot(current, currentSnapshot());
         current->hide();
-        animationGroup()->addAnimation(opacityAnimation(currentSnapshot()->graphicsEffect(), outDuration, 1.0, 0.0, this));
+        animationGroup()->addAnimation(
+            opacityAnimation(currentSnapshot()->graphicsEffect(), outDuration, 1.0, 0.0, outCurve, this));
         if (isBack) {
-            animationGroup()->addAnimation(posAnimation(currentSnapshot(), outDuration, QPoint(0, 0),
-                                                       QPoint(0, offset), cubicBezierEasing(0.1, 0.9, 0.2, 1.0), this));
+            animationGroup()->addAnimation(
+                posAnimation(currentSnapshot(), outDuration, QPoint(0, 0), QPoint(0, offset), outCurve, this));
         }
     }
 
@@ -489,8 +494,7 @@ void EntranceTransitionStackedWidget::setupTransitionAnimation(int nextIndex, in
 
     if (!isBack) {
         next->setGeometry(0, offset, width(), height());
-        nextGroup->addAnimation(posAnimation(next, inDuration, QPoint(0, offset), QPoint(0, 0),
-                                             cubicBezierEasing(0.7, 0.0, 1.0, 0.5), this));
+        nextGroup->addAnimation(posAnimation(next, inDuration, QPoint(0, offset), QPoint(0, 0), inCurve, this));
     } else {
         next->setGeometry(rect());
     }
@@ -504,6 +508,9 @@ void DrillInTransitionStackedWidget::setupTransitionAnimation(int nextIndex, int
     const qreal outScale = isBack ? 0.96 : 1.04;
     const int inDuration = duration > 0 ? duration : 333;
     const int outDuration = 100;
+    const QEasingCurve scaleCurve = cubicBezierEasing(0.1, 0.9, 0.2, 1.0);
+    const QEasingCurve opacityCurve = cubicBezierEasing(0.17, 0.17, 0.0, 1.0);
+    const QEasingCurve inScaleCurve = isBack ? cubicBezierEasing(0.12, 0.0, 0.0, 1.0) : scaleCurve;
     const QRect r = rect();
     QWidget *current = currentWidget();
     QWidget *next = widget(nextIndex);
@@ -513,25 +520,25 @@ void DrillInTransitionStackedWidget::setupTransitionAnimation(int nextIndex, int
         currentSnapshot()->setScaledContents(true);
         current->hide();
 
-        const int outW = qRound(r.width() * outScale);
-        const int outH = qRound(r.height() * outScale);
+        const int outW = static_cast<int>(r.width() * outScale);
+        const int outH = static_cast<int>(r.height() * outScale);
         const QRect outRect((r.width() - outW) / 2, (r.height() - outH) / 2, outW, outH);
-        animationGroup()->addAnimation(geometryAnimation(currentSnapshot(), outDuration, r, outRect,
-                                                        cubicBezierEasing(0.7, 0.0, 1.0, 0.5), this));
-        animationGroup()->addAnimation(opacityAnimation(currentSnapshot()->graphicsEffect(), outDuration, 1.0, 0.0, this));
+        animationGroup()->addAnimation(geometryAnimation(currentSnapshot(), outDuration, r, outRect, scaleCurve, this));
+        animationGroup()->addAnimation(
+            opacityAnimation(currentSnapshot()->graphicsEffect(), outDuration, 1.0, 0.0, opacityCurve, this));
     }
 
     renderSnapshot(next, nextSnapshot());
     nextSnapshot()->setScaledContents(true);
     next->hide();
 
-    const int inW = qRound(r.width() * inScale);
-    const int inH = qRound(r.height() * inScale);
+    const int inW = static_cast<int>(r.width() * inScale);
+    const int inH = static_cast<int>(r.height() * inScale);
     const QRect inRect((r.width() - inW) / 2, (r.height() - inH) / 2, inW, inH);
     nextSnapshot()->setGeometry(inRect);
-    animationGroup()->addAnimation(geometryAnimation(nextSnapshot(), inDuration, inRect, r,
-                                                    cubicBezierEasing(0.7, 0.0, 1.0, 0.5), this));
-    animationGroup()->addAnimation(opacityAnimation(nextSnapshot()->graphicsEffect(), inDuration, 0.0, 1.0, this));
+    animationGroup()->addAnimation(geometryAnimation(nextSnapshot(), inDuration, inRect, r, inScaleCurve, this));
+    animationGroup()->addAnimation(
+        opacityAnimation(nextSnapshot()->graphicsEffect(), inDuration, 0.0, 1.0, opacityCurve, this));
 }
 
 } // namespace FluentQt

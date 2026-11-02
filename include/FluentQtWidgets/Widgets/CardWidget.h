@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/Global.h>
 
+#include <QtCore/QPointer>
 #include <QtCore/QSize>
 #include <QtGui/QColor>
 #include <QtGui/QIcon>
@@ -17,11 +18,11 @@ class QLabel;
 class QVBoxLayout;
 class QHBoxLayout;
 class QPropertyAnimation;
+class QVariantAnimation;
 class QGraphicsDropShadowEffect;
 
 namespace FluentQt {
 
-// Forward declarations
 class IconWidget;
 
 class FQW_API CardWidget : public QFrame
@@ -64,11 +65,21 @@ protected:
     virtual QColor selectedBackgroundColor() const;
     QColor borderColor() const;
 
+    // The background of the current state, or the colour on the way to it while it fades in.
+    QColor backgroundColor() const;
+    // Fades the background to the current state's colour, as Python's BackgroundAnimationWidget.
+    void updateBackgroundColor();
+
     bool m_hover = false;
     bool m_pressed = false;
     bool m_selected = false;
     int m_borderRadius = 5;
     bool m_clickEnabled = false;
+
+  private:
+    QColor stateBackgroundColor() const;
+
+    QVariantAnimation *m_backgroundAni = nullptr;
 };
 
 class FQW_API SimpleCardWidget : public CardWidget
@@ -80,6 +91,9 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+
+    QColor hoverBackgroundColor() const override;
+    QColor pressedBackgroundColor() const override;
 };
 
 class FQW_API ElevatedCardWidget : public SimpleCardWidget
@@ -104,8 +118,11 @@ protected:
 
 private:
     void startElevateAnimation(const QPoint &start, const QPoint &end);
+    void fadeShadow(bool hover);
 
-    QGraphicsDropShadowEffect *m_shadowEffect = nullptr;
+    QPointer<QGraphicsDropShadowEffect> m_shadowEffect;
+    QPropertyAnimation *m_shadowAni = nullptr;
+    bool m_shadowHover = false;
     QPropertyAnimation *m_elevateAni = nullptr;
     QPoint m_originalPos;
 };

@@ -21,7 +21,7 @@ QIcon IconWidget::icon() const { return m_icon; }
 
 QSize IconWidget::iconSize() const { return m_iconSize; }
 
-QSize IconWidget::sizeHint() const { return m_iconSize.expandedTo(QSize(20, 20)); }
+QSize IconWidget::sizeHint() const { return m_iconSize.isValid() ? m_iconSize : QWidget::sizeHint(); }
 
 void IconWidget::setIcon(const QIcon &icon)
 {
@@ -57,8 +57,7 @@ void IconWidget::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    const QSize boundedSize(m_iconSize.width() > 0 ? qMin(width(), m_iconSize.width()) : width(),
-                            m_iconSize.height() > 0 ? qMin(height(), m_iconSize.height()) : height());
+    const QSize boundedSize(m_iconSize.isValid() ? m_iconSize.boundedTo(size()) : size());
     const QRect target((width() - boundedSize.width()) / 2, (height() - boundedSize.height()) / 2, boundedSize.width(),
                        boundedSize.height());
     m_icon.paint(&painter, target, Qt::AlignCenter);

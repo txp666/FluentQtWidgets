@@ -48,8 +48,7 @@ QLabel#contentLabel:disabled {
     color: rgba(0, 0, 0, 0.36);
 }
 
-QWidget[fqw="FolderItem"] QLabel#titleLabel,
-FolderItem>QLabel {
+QWidget[fqw="FolderItem"] QLabel#titleLabel {
     font: 14px --FontFamilies;
 }
 

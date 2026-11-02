@@ -1,73 +1,16 @@
 // Combo boxes, editable and model combo boxes and their menus.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <functional>
-#include <QtCore/QBuffer>
 #include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QPointer>
 #include <QtCore/QSortFilterProxyModel>
 #include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
 #include <QtGui/QStandardItem>
 #include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
 
 #include "TestSupport.h"
 
@@ -209,6 +152,39 @@ class ComboBoxTest : public QObject
         QTRY_VERIFY(acrylicCombo.dropMenu() == nullptr);
     }
 
+    // As Python's TranslateYAnimation, the arrow dips 2 px while the mouse is down and springs back
+    // on release, even as the menu opens. The port moved it with the menu instead: down while the
+    // menu was open, then back without the spring, and not at all when there was nothing to show.
+    void comboArrowDipsWhilePressedNotWhileTheMenuIsOpen()
+    {
+        FluentQt::ComboBox combo;
+        FluentQt::ModelComboBox modelCombo;
+        combo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
+        modelCombo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
+        const std::initializer_list<std::pair<QPushButton *, FluentQt::ArrowAnimation *>> combos = {
+            {&combo, combo.arrowAni()}, {&modelCombo, modelCombo.arrowAni()}};
+        for (const auto &[button, arrow] : combos) {
+            button->resize(160, 33);
+            button->show();
+            QVERIFY(QTest::qWaitForWindowExposed(button));
+            const QPoint center = button->rect().center();
+
+            QTest::mousePress(button, Qt::LeftButton, Qt::NoModifier, center);
+            QCOMPARE(arrow->duration(), 150);
+            QCOMPARE(arrow->easingCurve().type(), QEasingCurve::OutQuad);
+            QTRY_COMPARE(arrow->y(), 2.0);
+
+            QTest::mouseRelease(button, Qt::LeftButton, Qt::NoModifier, center);
+            QCOMPARE(arrow->duration(), 500);
+            QCOMPARE(arrow->easingCurve().type(), QEasingCurve::OutElastic);
+            QTRY_VERIFY(FqwTest::findVisibleTopLevel<FluentQt::ComboBoxMenu>() != nullptr);
+            QTRY_COMPARE(arrow->state(), QAbstractAnimation::Stopped);
+            QCOMPARE(arrow->y(), 0.0);
+            FqwTest::findVisibleTopLevel<FluentQt::ComboBoxMenu>()->close();
+            button->hide();
+        }
+    }
+
     void comboBoxArrowUsesPythonLightTint()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
@@ -216,33 +192,14 @@ class ComboBoxTest : public QObject
         FluentQt::ComboBox combo;
         combo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
         combo.resize(160, 32);
-        combo.ensurePolished();
-
-        QPixmap pixmap(combo.size());
-        pixmap.fill(Qt::transparent);
-        combo.render(&pixmap);
-
-        const QImage image = pixmap.toImage();
+        const QImage image = FqwTest::render(combo);
         const QRect arrowRect(combo.width() - 22, combo.height() / 2 - 5, 10, 10);
-        int sampled = 0;
-        int graySum = 0;
-        for (int y = arrowRect.top(); y <= arrowRect.bottom(); ++y) {
-            for (int x = arrowRect.left(); x <= arrowRect.right(); ++x) {
-                const QColor color = image.pixelColor(x, y);
-                const int gray = qGray(color.rgb());
-                if (color.alpha() > 0 && gray < 180) {
-                    ++sampled;
-                    graySum += gray;
-                }
-            }
-        }
-
-        QVERIFY(sampled > 0);
-        QVERIFY(graySum / sampled > 40);
-        QVERIFY(graySum / sampled < 130);
+        const int gray = FqwTest::averageGray(image, arrowRect, 0, 179);
+        QVERIFY(gray > 40);
+        QVERIFY(gray < 130);
     }
 
-    void comboBoxPlaceholderAndInsertMatchPythonBehavior()
+    void comboPlaceholderShowsUntilSelectionAndInsertClampsIndex()
     {
         FluentQt::ComboBox combo;
         combo.addItems({QStringLiteral("Alpha"), QStringLiteral("Beta")});
@@ -344,7 +301,6 @@ class ComboBoxTest : public QObject
         const auto verify = [](auto &combo, const QString &role) {
             using Combo = std::remove_reference_t<decltype(combo)>;
             QCOMPARE(combo.property("fqw").toString(), role);
-            QVERIFY(qobject_cast<QLineEdit *>(&combo));
             QVERIFY(combo.metaObject()->indexOfProperty("isPressed") >= 0);
             QVERIFY(combo.metaObject()->indexOfProperty("isHover") >= 0);
             QVERIFY(combo.metaObject()->indexOfProperty("dropButton") >= 0);
@@ -392,6 +348,54 @@ class ComboBoxTest : public QObject
         verify(combo, QStringLiteral("EditableComboBox"));
         FluentQt::EditableModelComboBox modelCombo;
         verify(modelCombo, QStringLiteral("EditableModelComboBox"));
+    }
+
+    // Python's editable combo boxes are line edits and take line_edit.qss: 10 px side padding and
+    // the line edit's colours, with 29 px of text margin for the drop button. The port gave them
+    // the combo box's 11/31 px padding on top of that margin, 22 px wider than Python.
+    void editableCombosLookLikeLineEdits()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            LineEdit line;
+            EditableComboBox editable;
+            EditableModelComboBox editableModel;
+            for (QLineEdit *edit : std::initializer_list<QLineEdit *>{&line, &editable, &editableModel}) {
+                edit->ensurePolished();
+                edit->resize(200, 33);
+            }
+            QCOMPARE(editable.sizeHint(), line.sizeHint() + QSize(29, 0));
+            QCOMPARE(editableModel.sizeHint(), line.sizeHint() + QSize(29, 0));
+
+            // Same border and fill as a line edit, left of the drop button.
+            const QImage lineImage = line.grab().toImage();
+            for (QLineEdit *edit : std::initializer_list<QLineEdit *>{&editable, &editableModel}) {
+                const QImage image = edit->grab().toImage();
+                for (const QPoint &point : {QPoint(1, 16), QPoint(20, 1), QPoint(20, 16), QPoint(20, 32)}) {
+                    const qreal ratio = image.devicePixelRatio();
+                    const QPoint pixel(qRound(point.x() * ratio), qRound(point.y() * ratio));
+                    QCOMPARE(image.pixelColor(pixel), lineImage.pixelColor(pixel));
+                }
+            }
+        }
+    }
+
+    // Python sets the combo boxes' font in code (setFont(self): the Fluent families at 14 px) and
+    // leaves it out of combo_box.qss, so setFont() works; a style sheet font overrides it.
+    void comboBoxesTakeTheirFontInCode()
+    {
+        ComboBox combo;
+        AcrylicComboBox acrylic;
+        ModelComboBox model;
+        for (QPushButton *button : std::initializer_list<QPushButton *>{&combo, &acrylic, &model}) {
+            button->ensurePolished();
+            QCOMPARE(button->font().pixelSize(), 14);
+            QFont font = button->font();
+            font.setPixelSize(20);
+            button->setFont(font);
+            button->ensurePolished();
+            QCOMPARE(button->font().pixelSize(), 20);
+        }
     }
 
     void editableCombosClearButtonClearsText()
@@ -466,7 +470,6 @@ class ComboBoxTest : public QObject
         QStandardItemModel model;
         QSortFilterProxyModel proxy;
         proxy.setSourceModel(&model);
-        QCOMPARE(proxy.rowCount(), 0);
 
         ModelComboBox combo;
         combo.setModel(&model);

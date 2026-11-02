@@ -111,7 +111,7 @@ class AcrylicBrushCard : public QWidget
         , m_acrylicBrush(this, 15)
     {
         setFixedSize(180, 180);
-        m_acrylicBrush.setImagePath(QStringLiteral(":/gallery/images/shoko.png"));
+        m_acrylicBrush.setImage(QStringLiteral(":/gallery/images/shoko.png"));
         updateClipPath();
     }
 

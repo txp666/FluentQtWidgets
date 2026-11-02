@@ -3,18 +3,19 @@ QLineEdit[fqw="AcrylicLineEdit"],
 QLineEdit[fqw="SearchLineEdit"],
 QLineEdit[fqw="AcrylicSearchLineEdit"],
 QLineEdit[fqw="PasswordLineEdit"],
+QLineEdit[fqw="EditableComboBox"],
+QLineEdit[fqw="AcrylicEditableComboBox"],
+QLineEdit[fqw="EditableModelComboBox"],
 QTextEdit[fqw="TextEdit"],
 QPlainTextEdit[fqw="PlainTextEdit"],
 QTextBrowser[fqw="TextBrowser"] {
     color: white;
-    font: 14px --FontFamilies;
-    min-height: 32px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-bottom: 1px solid rgba(255, 255, 255, 0.5442);
     border-radius: 5px;
     padding: 0px 10px;
     background-color: rgba(255, 255, 255, 0.0605);
-    selection-background-color: @accentColor;
+    selection-background-color: --ThemeColorPrimary;
     selection-color: black;
 }
 
@@ -29,6 +30,9 @@ QLineEdit[fqw="AcrylicLineEdit"]:hover,
 QLineEdit[fqw="SearchLineEdit"]:hover,
 QLineEdit[fqw="AcrylicSearchLineEdit"]:hover,
 QLineEdit[fqw="PasswordLineEdit"]:hover,
+QLineEdit[fqw="EditableComboBox"]:hover,
+QLineEdit[fqw="AcrylicEditableComboBox"]:hover,
+QLineEdit[fqw="EditableModelComboBox"]:hover,
 QTextEdit[fqw="TextEdit"]:hover,
 QPlainTextEdit[fqw="PlainTextEdit"]:hover,
 QTextBrowser[fqw="TextBrowser"]:hover {
@@ -39,7 +43,10 @@ QLineEdit[fqw="LineEdit"][transparent="true"]:focus,
 QLineEdit[fqw="AcrylicLineEdit"][transparent="true"]:focus,
 QLineEdit[fqw="SearchLineEdit"][transparent="true"]:focus,
 QLineEdit[fqw="AcrylicSearchLineEdit"][transparent="true"]:focus,
-QLineEdit[fqw="PasswordLineEdit"][transparent="true"]:focus {
+QLineEdit[fqw="PasswordLineEdit"][transparent="true"]:focus,
+QLineEdit[fqw="EditableComboBox"][transparent="true"]:focus,
+QLineEdit[fqw="AcrylicEditableComboBox"][transparent="true"]:focus,
+QLineEdit[fqw="EditableModelComboBox"][transparent="true"]:focus {
     background: rgba(30, 30, 30, 0.7);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -48,14 +55,17 @@ QLineEdit[fqw="LineEdit"][transparent="false"]:focus,
 QLineEdit[fqw="AcrylicLineEdit"][transparent="false"]:focus,
 QLineEdit[fqw="SearchLineEdit"][transparent="false"]:focus,
 QLineEdit[fqw="AcrylicSearchLineEdit"][transparent="false"]:focus,
-QLineEdit[fqw="PasswordLineEdit"][transparent="false"]:focus {
+QLineEdit[fqw="PasswordLineEdit"][transparent="false"]:focus,
+QLineEdit[fqw="EditableComboBox"][transparent="false"]:focus,
+QLineEdit[fqw="AcrylicEditableComboBox"][transparent="false"]:focus,
+QLineEdit[fqw="EditableModelComboBox"][transparent="false"]:focus {
     background: rgb(31, 31, 31);
 }
 
 QTextEdit[fqw="TextEdit"]:focus,
 QPlainTextEdit[fqw="PlainTextEdit"]:focus,
 QTextBrowser[fqw="TextBrowser"]:focus {
-    border-bottom: 1px solid @accentColor;
+    border-bottom: 1px solid --ThemeColorPrimary;
     background-color: rgba(30, 30, 30, 0.7);
 }
 
@@ -64,6 +74,9 @@ QLineEdit[fqw="AcrylicLineEdit"]:disabled,
 QLineEdit[fqw="SearchLineEdit"]:disabled,
 QLineEdit[fqw="AcrylicSearchLineEdit"]:disabled,
 QLineEdit[fqw="PasswordLineEdit"]:disabled,
+QLineEdit[fqw="EditableComboBox"]:disabled,
+QLineEdit[fqw="AcrylicEditableComboBox"]:disabled,
+QLineEdit[fqw="EditableModelComboBox"]:disabled,
 QTextEdit[fqw="TextEdit"]:disabled,
 QPlainTextEdit[fqw="PlainTextEdit"]:disabled,
 QTextBrowser[fqw="TextBrowser"]:disabled {

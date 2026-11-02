@@ -415,9 +415,7 @@ int FlowLayout::alignedItemY(QLayoutItem *item, int rowY, int rowHeight, int ite
     return rowY;
 }
 
-// ==========================================
-// AdaptiveFlowLayout
-// ==========================================
+// --- AdaptiveFlowLayout ---
 
 AdaptiveFlowLayout::AdaptiveFlowLayout(QWidget *parent, bool animation, bool tight)
     : FlowLayout(parent, animation, tight)
@@ -552,9 +550,7 @@ int AdaptiveFlowLayout::doLayout(const QRect &rect, bool move)
     return y + rowHeight + margins.bottom() - rect.y();
 }
 
-// ==========================================
-// ExpandLayout
-// ==========================================
+// --- ExpandLayout ---
 
 ExpandLayout::ExpandLayout(QWidget *parent) : QLayout(parent) {}
 

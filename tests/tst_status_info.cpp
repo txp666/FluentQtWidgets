@@ -1,84 +1,30 @@
 // Info bars, info badges, state tooltips, tooltips and progress indicators.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 #include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
 #include <FluentQtWidgets/Widgets/InfoBar.h>
 #include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
 #include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
 #include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <functional>
-#include <QtCore/QBuffer>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
 #include <QtGui/QGuiApplication>
+#include <QtGui/QHelpEvent>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
 #include <QtGui/QScreen>
 #include <QtGui/QStandardItem>
 #include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
-#include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QCompleter>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QListView>
+#include <QtWidgets/QProgressBar>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -88,6 +34,20 @@
 using namespace FluentQt;
 
 namespace {
+
+bool hasBrokenSurrogates(const QString &text)
+{
+    for (qsizetype i = 0; i < text.size(); ++i) {
+        const QChar ch = text.at(i);
+        if (ch.isHighSurrogate() && (i + 1 >= text.size() || !text.at(i + 1).isLowSurrogate())) {
+            return true;
+        }
+        if (ch.isLowSurrogate() && (i == 0 || !text.at(i - 1).isHighSurrogate())) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // Reads the manager's per-parent bar lists without instantiating the abstract class.
 struct InfoBarManagerPeek : InfoBarManager
@@ -115,7 +75,7 @@ class StatusInfoTest : public QObject
         m_globalState.reset();
     }
 
-    void infoBarExposesPythonIconApiAndWidgets()
+    void infoBarTracksIconSeverityAndFactories()
     {
         FluentQt::InfoBarIconWidget iconWidget(FluentQt::InfoBarIcon::Information);
         QCOMPARE(iconWidget.icon(), FluentQt::InfoBarIcon::Information);
@@ -131,9 +91,7 @@ class StatusInfoTest : public QObject
         iconWidget.setIcon(FluentQt::icon(FluentQt::FluentIcon::GitHub));
         QVERIFY(!iconWidget.customIcon().isNull());
 
-        QImage image(iconWidget.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        iconWidget.render(&image);
+        const QImage image = FqwTest::render(iconWidget);
         QVERIFY(FqwTest::hasPaintedPixel(image));
 
         FluentQt::InfoBar bar(FluentQt::InfoBarIcon::Information, QStringLiteral("Title"),
@@ -185,7 +143,9 @@ class StatusInfoTest : public QObject
 
         auto *first = InfoBar::info(QStringLiteral("t"), QStringLiteral("c"), Qt::Horizontal, true, -1,
                                     InfoBarPosition::TopRight, &parent);
-        QTest::qWait(300);
+        auto *slide = first->property("slideAni").value<QAbstractAnimation *>();
+        QVERIFY(slide);
+        QTRY_COMPARE(slide->state(), QAbstractAnimation::Stopped);
         const int firstY = first->y();
 
         delete first;
@@ -247,9 +207,27 @@ class StatusInfoTest : public QObject
         FluentQt::InfoBadge textBadge(QStringLiteral("3"));
         QCOMPARE(textBadge.level(), FluentQt::InfoLevel::Attention);
 
-        FluentQt::InfoBadge singleDigitBadge(QStringLiteral("1"));
-        QVERIFY(singleDigitBadge.sizeHint().width() >= singleDigitBadge.sizeHint().height());
-        QVERIFY(singleDigitBadge.minimumSizeHint().width() >= singleDigitBadge.minimumSizeHint().height());
+        // Python's badges are plain QLabels in size: info_badge.qss's padding, the default (left)
+        // alignment and no size hint of their own. Its InfoBadge selector matches the dot and icon
+        // badges too, so they get the same padding.
+        for (const QString &text : {QString(), QStringLiteral("1"), QStringLiteral("88")}) {
+            FluentQt::InfoBadge badge(text);
+            QLabel reference(text);
+            reference.setFont(badge.font());
+            badge.ensurePolished();
+            reference.setStyleSheet(QStringLiteral("QLabel { padding: 1px 3px 1px 3px; }"));
+            QCOMPARE(badge.sizeHint(), reference.sizeHint());
+        }
+        FluentQt::InfoBadge emptyBadge;
+        FluentQt::DotInfoBadge dotBadge;
+        FluentQt::IconInfoBadge emptyIconBadge;
+        for (QWidget *badge : {static_cast<QWidget *>(&emptyBadge), static_cast<QWidget *>(&dotBadge),
+                               static_cast<QWidget *>(&emptyIconBadge)}) {
+            badge->ensurePolished();
+        }
+        QCOMPARE(dotBadge.sizeHint().height(), emptyBadge.sizeHint().height());
+        // QLabel expands its hint to the fixed 16x16.
+        QCOMPARE(emptyIconBadge.sizeHint().height(), qMax(emptyBadge.sizeHint().height(), 16));
 
         auto *infoBadge = FluentQt::InfoBadge::info(120);
         QCOMPARE(infoBadge->text(), QStringLiteral("120"));
@@ -268,18 +246,11 @@ class StatusInfoTest : public QObject
 
         FluentQt::DotInfoBadge dot;
         QCOMPARE(dot.property("fqw").toString(), QStringLiteral("DotInfoBadge"));
-        QCOMPARE(dot.size(), QSize(4, 4));
-        QCOMPARE(dot.minimumSize(), QSize(4, 4));
-        QCOMPARE(dot.maximumSize(), QSize(4, 4));
         QCOMPARE(dot.level(), FluentQt::InfoLevel::Attention);
 
         FluentQt::IconInfoBadge iconBadge(FluentQt::FluentIcon::Accept);
         QCOMPARE(iconBadge.property("fqw").toString(), QStringLiteral("IconInfoBadge"));
         QCOMPARE(iconBadge.level(), FluentQt::InfoLevel::Attention);
-        QCOMPARE(iconBadge.size(), QSize(16, 16));
-        QCOMPARE(iconBadge.minimumSize(), QSize(16, 16));
-        QCOMPARE(iconBadge.maximumSize(), QSize(16, 16));
-        QCOMPARE(iconBadge.sizeHint(), QSize(16, 16));
         QCOMPARE(iconBadge.iconSize(), QSize(8, 8));
         QVERIFY(!iconBadge.icon().isNull());
         QVERIFY(!iconBadge.pixmap());
@@ -316,6 +287,66 @@ class StatusInfoTest : public QObject
                                                               FluentQt::InfoBadgePosition::Right);
         QVERIFY(attachedIcon->manager());
         QCOMPARE(attachedIcon->level(), FluentQt::InfoLevel::Success);
+    }
+
+    // Python writes badge text in white on the light theme's dark badges and in black on the
+    // dark theme's light ones; the port used white in both, which is faint on the dark theme's
+    // pale yellow, pink and green badges.
+    void infoBadgeTextFollowsPythonThemeColour()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            InfoBadge badge(QStringLiteral("88"), InfoLevel::Info);
+            badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
+            badge.ensurePolished();
+            badge.adjustSize();
+            const QImage image = FqwTest::render(badge);
+            int darkest = 255;
+            int lightest = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (color.alpha() == 255) {
+                        darkest = qMin(darkest, color.value());
+                        lightest = qMax(lightest, color.value());
+                    }
+                }
+            }
+            if (theme == Theme::Dark) {
+                QVERIFY2(darkest < 60, qPrintable(QString::number(darkest)));
+            } else {
+                QVERIFY2(lightest > 200, qPrintable(QString::number(lightest)));
+            }
+        }
+    }
+
+    // Python renders a Fluent icon badge's icon in the opposite theme each time it paints, so it
+    // turns black when the app switches to the dark theme. The port fixed the colour when the
+    // badge was made, leaving a white icon on the dark theme's pale badge.
+    void iconInfoBadgeIconFollowsThemeChanges()
+    {
+        auto *manager = ThemeManager::instance();
+        manager->setTheme(Theme::Light);
+        IconInfoBadge badge(FluentIcon::Accept, InfoLevel::Attention);
+        badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
+        const auto iconExtremes = [&badge]() {
+            const QImage image = FqwTest::render(badge);
+            int darkest = 255;
+            int lightest = 0;
+            for (int y = 4; y < 12; ++y) {
+                for (int x = 4; x < 12; ++x) {
+                    darkest = qMin(darkest, image.pixelColor(x, y).value());
+                    lightest = qMax(lightest, image.pixelColor(x, y).value());
+                }
+            }
+            return qMakePair(darkest, lightest);
+        };
+        // On the grey (value 128) background: a white icon in the light theme, black in the dark.
+        QVERIFY2(iconExtremes().second > 170, qPrintable(QString::number(iconExtremes().second)));
+
+        manager->setTheme(Theme::Dark);
+        QVERIFY2(iconExtremes().first < 86, qPrintable(QString::number(iconExtremes().first)));
     }
 
     void deletedInfoBadgeTakesItsManager()
@@ -402,6 +433,55 @@ class StatusInfoTest : public QObject
         QVERIFY(point.y() >= 0);
     }
 
+    // The state tooltip sits on the accent colour, so Python draws its spinner, tick and close
+    // icons in the opposite theme: white in the light theme, black in the dark. The port drew
+    // them in the current theme, black on the light theme's dark accent.
+    void stateToolTipIconsUseTheOppositeTheme()
+    {
+        auto *manager = ThemeManager::instance();
+        const auto paintedValues = [](QWidget *widget, const QRect &area) {
+            const QImage image = FqwTest::render(widget, Qt::transparent, QWidget::DrawChildren);
+            int lightest = 0;
+            int darkest = 255;
+            for (int y = area.top(); y <= area.bottom(); ++y) {
+                for (int x = area.left(); x <= area.right(); ++x) {
+                    const QColor color = QColor::fromRgba(image.pixel(x, y));
+                    if (color.alpha() > 200) {
+                        lightest = qMax(lightest, color.value());
+                        darkest = qMin(darkest, color.value());
+                    }
+                }
+            }
+            return qMakePair(darkest, lightest);
+        };
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            StateToolTip tip(QStringLiteral("Title"), QStringLiteral("Content"));
+            StateCloseButton *close = tip.closeButton();
+            const auto [closeDark, closeLight] = paintedValues(close, close->rect());
+            tip.setState(true);
+            const QImage tick = tip.grab().toImage();
+            const int background = tick.pixelColor(tip.width() / 2, 3).value();
+            int tickDark = 255;
+            int tickLight = 0;
+            for (int y = 10; y < 26; ++y) {
+                for (int x = 11; x < 27; ++x) {
+                    tickDark = qMin(tickDark, tick.pixelColor(x, y).value());
+                    tickLight = qMax(tickLight, tick.pixelColor(x, y).value());
+                }
+            }
+            if (theme == Theme::Light) {
+                QVERIFY2(closeLight > 200, qPrintable(QString::number(closeLight)));
+                QVERIFY2(tickLight > background + 60,
+                         qPrintable(QStringLiteral("%1 on %2").arg(tickLight).arg(background)));
+            } else {
+                QVERIFY2(closeDark < 60, qPrintable(QString::number(closeDark)));
+                QVERIFY2(tickDark < background - 100,
+                         qPrintable(QStringLiteral("%1 on %2").arg(tickDark).arg(background)));
+            }
+        }
+    }
+
     void stateToolTipStopsSpinningWhileHidden()
     {
         QWidget parent;
@@ -435,7 +515,7 @@ class StatusInfoTest : public QObject
         QVERIFY(tip.shadowEffect() != nullptr);
         QCOMPARE(tip.shadowEffect()->blurRadius(), 25.0);
         QCOMPARE(tip.shadowEffect()->offset(), QPointF(0, 5));
-        QCOMPARE(tip.shadowEffect()->color(), QColor(0, 0, 0, 60));
+        QCOMPARE(tip.shadowEffect()->color(), QColor(0, 0, 0, 50));
         QVERIFY(!(tip.windowFlags() & Qt::WindowStaysOnTopHint));
         QVERIFY(tip.label() != nullptr);
         QCOMPARE(tip.label()->objectName(), QStringLiteral("contentLabel"));
@@ -501,6 +581,103 @@ class StatusInfoTest : public QObject
         QVERIFY(!shownAcrylicTip->isVisible());
     }
 
+    // Python shows the tooltip without activating it and without a native window shadow. On
+    // macOS the port's tooltip became the active window when shown, taking the keyboard focus
+    // from the line edit being hovered, and the native shadow doubled the drawn one.
+    void toolTipShowsWithoutActivationOrNativeShadowFlags()
+    {
+        ToolTip plainTip(QStringLiteral("Hi"));
+        QVERIFY(plainTip.testAttribute(Qt::WA_ShowWithoutActivating));
+        QVERIFY(plainTip.windowFlags().testFlag(Qt::NoDropShadowWindowHint));
+    }
+
+    void toolTipLeavesTheActiveWindowAndFocusAlone()
+    {
+        if (QGuiApplication::platformName() == QLatin1String("offscreen")) {
+            QSKIP("The offscreen platform activates every window it shows, whatever the attribute says");
+        }
+        QWidget window;
+        auto *edit = new QLineEdit(&window);
+        window.resize(400, 300);
+        window.show();
+        window.activateWindow();
+        if (!QTest::qWaitForWindowActive(&window)) {
+            QSKIP("The window cannot become active while another application has the focus");
+        }
+        edit->setFocus();
+        QTRY_COMPARE(QApplication::focusWidget(), edit);
+
+        ToolTip tip(QStringLiteral("Hi"), &window);
+        tip.adjustPos(edit, ToolTipPosition::Bottom);
+        tip.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&tip));
+        QTest::qWait(100);
+        QCOMPARE(QApplication::activeWindow(), &window);
+        QCOMPARE(QApplication::focusWidget(), edit);
+    }
+
+    // Python's tooltip label does not wrap: a long tooltip is one wide line. The port wrapped
+    // it, so a 100-character tip came out half as wide and two lines tall.
+    void toolTipKeepsLongTextOnOneLine()
+    {
+        ToolTip tip(QStringLiteral("Hi"));
+        const int oneLineHeight = tip.sizeHint().height();
+        const QString longText = QStringLiteral("This is a fairly long tooltip text that goes on and on and on and "
+                                                "on and on for a while to check wrapping");
+        tip.setText(longText);
+        QVERIFY(!tip.label()->wordWrap());
+        QCOMPARE(tip.height(), oneLineHeight);
+        QVERIFY(tip.width() > tip.label()->fontMetrics().horizontalAdvance(longText));
+    }
+
+    // Python fills the tooltip with rgb(249, 249, 249) in the light theme and rgb(43, 43, 43)
+    // in the dark one; the port's light tooltip was a darker rgb(243, 243, 243).
+    void toolTipUsesPythonBackground()
+    {
+        auto *manager = ThemeManager::instance();
+        const QList<QPair<Theme, QColor>> cases = {{Theme::Light, QColor(249, 249, 249)},
+                                                   {Theme::Dark, QColor(43, 43, 43)}};
+        for (const auto &[theme, background] : cases) {
+            manager->setTheme(theme);
+            ToolTip tip(QStringLiteral("Hi"));
+            tip.ensurePolished();
+            tip.container()->ensurePolished();
+            tip.adjustSize();
+            const QImage image = FqwTest::render(tip);
+            const QRect container = tip.container()->geometry();
+            const QColor pixel = image.pixelColor(container.left() + 4, container.center().y());
+            QCOMPARE(pixel.rgb(), background.rgb());
+        }
+    }
+
+    // Python's item view tooltip goes through the same screen clamp as every other tooltip, so
+    // the tip of a first-row item at the top of the screen stays on the screen. The port placed
+    // it above the item with no clamp, partly off the screen.
+    void itemViewToolTipStaysOnScreen()
+    {
+        const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+        QStandardItemModel model(3, 1);
+        model.setItem(0, 0, new QStandardItem(QStringLiteral("First")));
+        model.item(0, 0)->setToolTip(QStringLiteral("First row tooltip"));
+        QListView view;
+        view.setModel(&model);
+        view.resize(200, 120);
+        view.move(available.topLeft());
+        view.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+        ItemViewToolTipDelegate delegate(&view, 0, ItemViewToolTipType::List);
+        const QModelIndex index = model.index(0, 0);
+        const QPoint itemCenter = view.visualRect(index).center();
+        QHelpEvent help(QEvent::ToolTip, itemCenter, view.viewport()->mapToGlobal(itemCenter));
+        QVERIFY(delegate.helpEvent(&help, &view, QStyleOptionViewItem(), index));
+        ToolTip *tip = nullptr;
+        QTRY_VERIFY((tip = view.findChild<ToolTip *>()) && tip->isVisible());
+        QVERIFY2(tip->y() >= available.top(),
+                 qPrintable(QStringLiteral("tooltip at y=%1, screen top %2").arg(tip->y()).arg(available.top())));
+        tip->hide();
+    }
+
     void toolTipShowTextCleansUpAfterItself()
     {
         QWidget target;
@@ -511,11 +688,10 @@ class StatusInfoTest : public QObject
         QTRY_VERIFY(tip.isNull());
     }
 
-    void progressIndicatorsExposePythonParityApi()
+    void progressBarTracksValuePauseAndError()
     {
         FluentQt::ProgressBar bar(nullptr, false);
         QCOMPARE(bar.property("fqw").toString(), QStringLiteral("ProgressBar"));
-        QCOMPARE(bar.height(), 4);
         QCOMPARE(bar.useAni(), false);
         QVERIFY(bar.metaObject()->indexOfProperty("lightBarColor") >= 0);
         QVERIFY(bar.metaObject()->indexOfProperty("darkBarColor") >= 0);
@@ -546,7 +722,10 @@ class StatusInfoTest : public QObject
         bar.setError(false);
         QCOMPARE(bar.isError(), false);
         QCOMPARE(bar.isPaused(), false);
+    }
 
+    void indeterminateProgressBarTracksPauseAndError()
+    {
         FluentQt::IndeterminateProgressBar indeterminateBar(nullptr, false);
         QCOMPARE(indeterminateBar.property("fqw").toString(), QStringLiteral("IndeterminateProgressBar"));
         QVERIFY(indeterminateBar.metaObject()->indexOfProperty("lightBarColor") >= 0);
@@ -578,11 +757,17 @@ class StatusInfoTest : public QObject
         indeterminateBar.setError(true);
         QCOMPARE(indeterminateBar.isError(), true);
         QCOMPARE(indeterminateBar.isStarted(), false);
+    }
 
+    void progressRingKeepsQProgressBarHintAndText()
+    {
         FluentQt::ProgressRing ring(nullptr, false);
         QCOMPARE(ring.property("fqw").toString(), QStringLiteral("ProgressRing"));
-        QCOMPARE(ring.size(), QSize(100, 100));
-        QCOMPARE(ring.sizeHint(), QSize(100, 100));
+        // Python fixes the size but keeps QProgressBar's hint.
+        QProgressBar plainBar;
+        plainBar.setFont(ring.font());
+        plainBar.setTextVisible(false);
+        QCOMPARE(ring.sizeHint(), plainBar.sizeHint());
         QCOMPARE(ring.strokeWidth(), 6);
         QCOMPARE(ring.useAni(), false);
         ring.setProperty("lightBarColor", QColor(QStringLiteral("#112233")));
@@ -600,10 +785,12 @@ class StatusInfoTest : public QObject
         QCOMPARE(ring.val(), 72.0);
         ring.setTextVisible(true);
         QCOMPARE(ring.isTextVisible(), true);
+    }
 
+    void indeterminateProgressRingTracksStrokeAndState()
+    {
         FluentQt::IndeterminateProgressRing indeterminateRing(nullptr, false);
         QCOMPARE(indeterminateRing.property("fqw").toString(), QStringLiteral("IndeterminateProgressRing"));
-        QCOMPARE(indeterminateRing.size(), QSize(80, 80));
         QCOMPARE(indeterminateRing.strokeWidth(), 6);
         QVERIFY(indeterminateRing.metaObject()->indexOfProperty("lightBarColor") >= 0);
         QVERIFY(indeterminateRing.metaObject()->indexOfProperty("darkBarColor") >= 0);
@@ -652,6 +839,14 @@ class StatusInfoTest : public QObject
         QCOMPARE(indeterminateRing.spanAngle(), 0);
     }
 
+    // Python's ProgressRing calls setFont(self), giving its percentage text the 14 px Fluent body
+    // size; the port left the application font (13 pt on macOS).
+    void progressRingTextUsesPythonFontSize()
+    {
+        ProgressRing ring;
+        QCOMPARE(ring.font().pixelSize(), 14);
+    }
+
     void progressBarFillHonoursMinimum()
     {
         ProgressBar bar(nullptr, false);
@@ -673,6 +868,23 @@ class StatusInfoTest : public QObject
         }
         const qreal share = qreal(filled) / image.width();
         QVERIFY2(qAbs(share - 0.5) <= 0.03, qPrintable(QString::number(share)));
+    }
+
+    void infoBarWrapKeepsSurrogatePairsTogether()
+    {
+        QWidget parent;
+        parent.resize(400, 300);
+        // The leading letter puts every surrogate pair on an odd offset, so a cut by UTF-16 code
+        // units at an even line width lands inside a pair.
+        QString content = QStringLiteral("a");
+        for (int i = 0; i < 60; ++i) {
+            content += QStringLiteral("\U0001F600");
+        }
+        auto *bar =
+            InfoBar::info(QStringLiteral("Emoji"), content, Qt::Horizontal, true, -1, InfoBarPosition::None, &parent);
+        QVERIFY(bar->contentLabel()->text().contains(QLatin1Char('\n')));
+        QVERIFY(!hasBrokenSurrogates(bar->contentLabel()->text()));
+        QVERIFY(!bar->contentLabel()->text().contains(QChar(0xFFFD)));
     }
 
   private:

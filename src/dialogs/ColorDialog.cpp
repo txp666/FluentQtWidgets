@@ -337,7 +337,9 @@ ColorDialog::ColorDialog(const QColor &color, const QString &title, QWidget *par
     setShadowEffect(60, QPoint(0, 10), QColor(0, 0, 0, 80));
     setMaskColor(QColor(0, 0, 0, 76));
 
-    m_widget->setFixedSize(488, 696 + (m_alphaEnabled ? 40 : 0));
+    // As in Python, a maximum size: in a shorter window the dialog shrinks and scrolls.
+    m_widget->setMaximumSize(488, 696 + (m_alphaEnabled ? 40 : 0));
+    m_widget->resize(m_widget->maximumSize());
 
     auto *scrollArea = new ColorDialogScrollArea(m_widget);
     m_scrollArea = scrollArea;
@@ -356,7 +358,8 @@ ColorDialog::ColorDialog(const QColor &color, const QString &title, QWidget *par
     m_buttonGroup->setObjectName(QStringLiteral("buttonGroup"));
     m_buttonGroup->setFixedSize(486, 81);
     m_yesButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
-    m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
+    // A plain QPushButton styled by #cancelButton in the dialog sheet, as in Python, not a Fluent PushButton.
+    m_cancelButton = new QPushButton(tr("Cancel"), m_buttonGroup);
     m_yesButton->setObjectName(QStringLiteral("yesButton"));
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
     m_yesButton->setFixedWidth(216);

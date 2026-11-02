@@ -1,6 +1,5 @@
 QCheckBox[fqw="CheckBox"] {
     color: black;
-    font: 14px --FontFamilies;
     spacing: 8px;
     min-width: 28px;
     min-height: 22px;

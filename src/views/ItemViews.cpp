@@ -1,20 +1,25 @@
 #include <FluentQtWidgets/Views/ItemViews.h>
 
+#include "../core/FontUtils_p.h"
+
+#include <FluentQtWidgets/Color.h>
+#include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 
+#include <QtCore/QEvent>
 #include <QtCore/QItemSelectionModel>
 #include <QtCore/QMargins>
 #include <QtCore/QVariant>
-#include <QtCore/QEvent>
 #include <QtGui/QBrush>
 #include <QtGui/QHelpEvent>
 #include <QtGui/QIcon>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QPalette>
 #include <QtWidgets/QAbstractItemView>
 #include <QtWidgets/QHeaderView>
@@ -30,7 +35,7 @@ QColor resolvedCheckedColor(const QColor &light, const QColor &dark, Theme theme
 {
     const Theme resolvedTheme = theme == Theme::Auto ? ThemeManager::instance()->effectiveTheme() : theme;
     const QColor color = resolvedTheme == Theme::Dark ? dark : light;
-    return color.isValid() ? color : ThemeManager::instance()->accentColor();
+    return color.isValid() ? color : themeColor();
 }
 
 QString checkBoxIconPath(Qt::CheckState state)
@@ -39,6 +44,16 @@ QString checkBoxIconPath(Qt::CheckState state)
     const QString color = dark ? QStringLiteral("black") : QStringLiteral("white");
     const QString name = state == Qt::PartiallyChecked ? QStringLiteral("PartialAccept") : QStringLiteral("Accept");
     return QStringLiteral(":/qfluentwidgets/images/check_box/%1_%2.svg").arg(name, color);
+}
+
+// The item font of the Python delegates, getFont(13): the Fluent families at 13 px, whatever the
+// view's own font.
+QFont itemFont()
+{
+    QFont font;
+    font.setFamilies(Private::resolvedFontFamilies(FluentConfig::instance()->fontFamilies()));
+    font.setPixelSize(13);
+    return font;
 }
 
 void updateDelegateParent(QObject *delegate)
@@ -113,7 +128,6 @@ void initTableLikeView(QTableView *view, TableItemDelegate *delegate, const QStr
     view->setMouseTracking(true);
     view->setAlternatingRowColors(true);
     view->setSelectionBehavior(QAbstractItemView::SelectRows);
-    view->setSelectionMode(QAbstractItemView::SingleSelection);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setItemDelegate(delegate);
     view->setProperty("isBorderVisible", false);
@@ -252,21 +266,17 @@ void TableItemDelegate::initStyleOption(QStyleOptionViewItem *option, const QMod
 {
     QStyledItemDelegate::initStyleOption(option, index);
 
-    // Use font role if available
     const QVariant fontData = index.data(Qt::FontRole);
-    if (fontData.canConvert<QFont>()) {
-        option->font = fontData.value<QFont>();
-    }
+    option->font = fontData.canConvert<QFont>() ? fontData.value<QFont>() : itemFont();
 
-    // Text color: white in dark, black in light
+    // Text colour: white in dark, black in light, unless the item has its own
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    const QColor textColor = dark ? Qt::white : Qt::black;
+    QColor textColor = dark ? Qt::white : Qt::black;
     const QVariant textBrush = index.data(Qt::ForegroundRole);
     if (textBrush.canConvert<QBrush>()) {
-        option->palette.setColor(QPalette::Text, textBrush.value<QBrush>().color());
-    } else {
-        option->palette.setColor(QPalette::Text, textColor);
+        textColor = textBrush.value<QBrush>().color();
     }
+    option->palette.setColor(QPalette::Text, textColor);
     option->palette.setColor(QPalette::HighlightedText, textColor);
 }
 
@@ -344,7 +354,7 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         alpha = 17;
     }
 
-    // QAbstractItemView can paint the platform selection color before the
+    // QAbstractItemView can paint the platform selection colour before the
     // delegate on macOS. Clear that opaque native layer first; the rounded
     // Fluent selection fill below is intentionally translucent.
     if (selected) {
@@ -355,7 +365,8 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
                                                       : QBrush(QColor(channel, channel, channel, alpha)));
     drawBackground(painter, itemOption, index);
 
-    if (selected && index.column() == 0) {
+    // Scrolled sideways, the first column is not at the edge where the indicator goes.
+    if (selected && index.column() == 0 && (!view || view->horizontalScrollBar()->value() == 0)) {
         drawIndicator(painter, itemOption, index);
     }
 
@@ -368,16 +379,11 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     itemOption.state &= ~QStyle::State_Selected;
     itemOption.state &= ~QStyle::State_MouseOver;
     // Some platform styles still resolve the selected palette while painting
-    // the text/background even after State_Selected has been cleared.  Keep
+    // the text/background even after State_Selected has been cleared. Keep
     // the native highlight transparent so the Fluent row fill and accent
     // indicator above remain the only selection visuals.
     itemOption.palette.setColor(QPalette::Highlight, Qt::transparent);
     itemOption.palette.setColor(QPalette::HighlightedText, itemOption.palette.color(QPalette::Text));
-    if (index.column() == 0) {
-        // Reserve space for the Fluent selection indicator so it never
-        // overlaps the first column's text.
-        itemOption.rect.adjust(10, 0, 0, 0);
-    }
     QStyledItemDelegate::paint(painter, itemOption, index);
 }
 
@@ -426,15 +432,7 @@ void TableItemDelegate::drawCheckBox(QPainter *painter, const QStyleOptionViewIt
 
     const auto checkState = static_cast<Qt::CheckState>(checkStateData.toInt());
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    QRect indicatorRect;
-    if (option.widget) {
-        indicatorRect = option.widget->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option,
-                                                               option.widget);
-    }
-    if (indicatorRect.isEmpty()) {
-        indicatorRect = QRect(option.rect.x() + 15, qRound(option.rect.center().y() - 9.5), 19, 19);
-    }
-    const QRectF rect(indicatorRect.center().x() - 9.5, indicatorRect.center().y() - 9.5, 19, 19);
+    const QRectF rect(option.rect.x() + 15, option.rect.center().y() - 9.5, 19, 19);
 
     painter->save();
     if (checkState == Qt::Unchecked) {
@@ -506,6 +504,12 @@ void TreeItemDelegate::setHoverIndex(const QModelIndex &index)
     updateDelegateParent(this);
 }
 
+// Unlike the table and list delegates, Python's tree delegate adds no margin to the item's size.
+QSize TreeItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    return QStyledItemDelegate::sizeHint(option, index);
+}
+
 void TreeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItem itemOption(option);
@@ -545,11 +549,42 @@ bool TreeItemDelegate::isIndexHovered(const QModelIndex &index) const { return m
 void TreeItemDelegate::drawBackground(QPainter *painter, const QStyleOptionViewItem &option,
                                       const QModelIndex &index) const
 {
-    Q_UNUSED(index)
-
+    // One rounded row across the columns: the first column rounds the left end, the last the right.
     const auto *view = qobject_cast<const QTreeView *>(parent());
-    const int width = view ? view->width() : option.rect.width();
-    painter->drawRoundedRect(QRect(4, option.rect.y() + 2, width - 8, option.rect.height() - 4), 4, 4);
+    const int column = index.column();
+    const int lastColumn = view && view->header() ? view->header()->count() - 1 : column;
+    constexpr qreal radius = 4.0;
+
+    QRectF rect(option.rect);
+    rect.setTop(option.rect.y() + 2);
+    rect.setHeight(option.rect.height() - 4);
+    if (column == 0) {
+        rect.setX(4);
+    }
+
+    QPainterPath path;
+    if (column == 0 && column == lastColumn) {
+        path.addRoundedRect(rect, radius, radius);
+    } else if (column == 0) {
+        path.moveTo(rect.right(), rect.top());
+        path.lineTo(rect.right(), rect.bottom());
+        path.lineTo(rect.x() + radius, rect.bottom());
+        path.arcTo(rect.x(), rect.bottom() - 2 * radius, 2 * radius, 2 * radius, 270, -90);
+        path.lineTo(rect.x(), rect.top() + radius);
+        path.arcTo(rect.x(), rect.top(), 2 * radius, 2 * radius, 180, -90);
+        path.closeSubpath();
+    } else if (column == lastColumn) {
+        path.moveTo(rect.x(), rect.top());
+        path.lineTo(rect.right() - radius, rect.top());
+        path.arcTo(rect.right() - 2 * radius, rect.top(), 2 * radius, 2 * radius, 90, -90);
+        path.lineTo(rect.right(), rect.bottom() - radius);
+        path.arcTo(rect.right() - 2 * radius, rect.bottom() - 2 * radius, 2 * radius, 2 * radius, 0, -90);
+        path.lineTo(rect.x(), rect.bottom());
+        path.closeSubpath();
+    } else {
+        path.addRect(rect);
+    }
+    painter->drawPath(path);
 }
 
 void TreeItemDelegate::drawIndicator(QPainter *painter, const QStyleOptionViewItem &option,
@@ -666,7 +701,6 @@ void ListView::init()
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initListLikeView(this, m_delegate, QStringLiteral("ListView"));
 
-    setViewportMargins(0, 2, 0, 2);
     setAlternatingRowColors(false);
     setProperty("isBorderVisible", false);
 }
@@ -678,11 +712,9 @@ bool ListView::isBorderVisible() const { return property("isBorderVisible").toBo
 void ListView::setBorderVisible(bool visible)
 {
     setBorderProperty(this, visible);
-    if (visible) {
-        setViewportMargins(0, 3, 0, 3);
-    } else {
-        setViewportMargins(0, 2, 0, 2);
-    }
+    // Python lists have no border option; keep rows off the rounded border's corners.
+    const int margin = visible ? 3 : 0;
+    setViewportMargins(0, margin, 0, margin);
 }
 
 void ListView::setBorderRadius(int radius) { applyBorderRadius(this, QStringLiteral("QListView"), radius); }
@@ -759,7 +791,6 @@ void ListWidget::init()
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initListLikeView(this, m_delegate, QStringLiteral("ListWidget"));
 
-    setViewportMargins(0, 2, 0, 2);
     setAlternatingRowColors(false);
     setProperty("isBorderVisible", false);
 }
@@ -771,11 +802,9 @@ bool ListWidget::isBorderVisible() const { return property("isBorderVisible").to
 void ListWidget::setBorderVisible(bool visible)
 {
     setBorderProperty(this, visible);
-    if (visible) {
-        setViewportMargins(0, 3, 0, 3);
-    } else {
-        setViewportMargins(0, 2, 0, 2);
-    }
+    // Python lists have no border option; keep rows off the rounded border's corners.
+    const int margin = visible ? 3 : 0;
+    setViewportMargins(0, margin, 0, margin);
 }
 
 void ListWidget::setBorderRadius(int radius) { applyBorderRadius(this, QStringLiteral("QListView"), radius); }
@@ -859,7 +888,6 @@ void TableView::init()
     m_delegate = new TableItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTableLikeView(this, m_delegate, QStringLiteral("TableView"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 void TableView::updateSelectedRows() { viewport()->update(); }
@@ -943,7 +971,6 @@ void TableWidget::init()
     m_delegate = new TableItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTableLikeView(this, m_delegate, QStringLiteral("TableWidget"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 void TableWidget::updateSelectedRows() { viewport()->update(); }
@@ -1026,7 +1053,6 @@ void TreeView::init()
     m_delegate = new TreeItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTreeLikeView(this, m_delegate, QStringLiteral("TreeView"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 TreeWidget::TreeWidget(QWidget *parent) : QTreeWidget(parent) { init(); }
@@ -1109,7 +1135,6 @@ void TreeWidget::init()
     m_delegate = new TreeItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTreeLikeView(this, m_delegate, QStringLiteral("TreeWidget"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 } // namespace FluentQt

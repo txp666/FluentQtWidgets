@@ -34,7 +34,7 @@ It is a **C++/Qt Widgets port** of the Python [PyQt-Fluent-Widgets](https://gith
 </table>
 
 <p align="center">
-  <img src="docs/images/gallery/PixPin_2026-07-02_11-23-30.gif" alt="FluentQtWidgets Gallery demo" width="860">
+  <img src="docs/images/gallery/gallery-tour.gif" alt="FluentQtWidgets Gallery demo" width="860">
 </p>
 
 <table>
@@ -50,13 +50,13 @@ It is a **C++/Qt Widgets port** of the Python [PyQt-Fluent-Widgets](https://gith
 
 ## Features
 
-- **200+ widgets and components**: buttons of every kind (accent, drop-down, split, toggle, pill, hyperlink), check boxes, radio buttons, switches, sliders, combo boxes, line edits and spin boxes; date and time pickers; navigation panels, pivots, segmented controls, breadcrumbs and tabs; list, table and tree views; dialogs, flyouts, teaching tips, rounded menus and command bars; info bars, badges, progress bars and rings; setting cards.
+- **200+ widgets and components**: buttons of every kind (accent, drop-down, split, toggle, pill, hyperlink), check boxes, radio buttons, switches, sliders, combo boxes, line edits and spin boxes; date and time pickers; navigation panels, pivots, segmented controls, breadcrumbs and tabs; list, table and tree views; dialogs, flyouts, teaching tips, rounded menus and command bars; info bars, badges, progress bars and rings; setting cards; media play bars and a video widget (with Qt Multimedia).
 - **Native charts**: `ChartWidget` draws bar, line, area, donut, scatter, radar, gauge and heatmap charts from an ECharts-style JSON option; `RealtimePlotWidget` handles dense live data streams; `AudioWaveformWidget` shows waveforms.
 - **Theming**: light, dark or follow the system, with a custom accent colour, all switchable at run time. Your own widgets can get one style sheet per theme with `FluentStyleSheet::setCustomStyleSheet()`.
 - **Windows and materials**: frameless `FluentWindow`, `MSFluentWindow` and `SplitFluentWindow`, Mica backgrounds on Windows 11, and acrylic menus, flyouts, line edits and tooltips.
 - **170+ Fluent icons** that follow the light and dark themes.
 - **Translations**: Simplified and Traditional Chinese built in.
-- **Plenty of examples**: 75 standalone examples and a complete Gallery application with in-app updates.
+- **Plenty of examples**: 75 standalone examples and a complete Gallery application that checks for updates.
 - **Cross-platform**: Windows, macOS and Linux, with CI on all three.
 
 ## Getting started
@@ -108,107 +108,29 @@ To try it first, download the Gallery for your platform from [Releases](https://
 
 ## Requirements
 
-- CMake 3.21+
-- C++17
+- CMake 3.21+ and a C++17 compiler
 - Qt 6.5+ (Core, Gui, Widgets, Svg, Network)
-- Optional Qt modules:
-  - Multimedia + MultimediaWidgets
-  - WebEngineWidgets, only for the standalone WebEngine example
+- Optional: Qt Multimedia + MultimediaWidgets for the media widgets (a separately installed Qt Multimedia also needs `QT_ADDITIONAL_PACKAGES_PREFIX_PATH`, see [Quick start](docs/quick-start.md)); Qt WebEngineWidgets only for the standalone WebEngine example
 
 ## Building
 
 ```bash
-cmake -S . -B build -DFQW_BUILD_EXAMPLES=ON -DFQW_BUILD_TESTS=ON
+cmake -S . -B build -DFQW_BUILD_TESTS=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
-```
-
-### Installing and linking
-
-```bash
 cmake --install build --prefix <install-prefix>
 ```
 
-```cmake
-find_package(FluentQtWidgets CONFIG REQUIRED)
-target_link_libraries(my_app PRIVATE FluentQtWidgets::Widgets)
-```
-
-### Choosing a Qt kit on Windows
-
-The compiler and generator CMake uses must match the installed Qt kit: build a MinGW Qt kit with MinGW and an MSVC Qt kit with MSVC. If CMake cannot find `Qt6Config.cmake`, point `CMAKE_PREFIX_PATH` at the Qt kit's root, or set `Qt6_DIR` to the directory that contains `Qt6Config.cmake`.
-
-The repository's `CMakePresets.json` does not hard-code local Qt, compiler or debugger paths. Machine-specific settings belong in environment variables, the IDE's kit selection, or an ignored `CMakeUserPresets.json`; `CMakeUserPresets.json.example` is a template for it.
-
-With a local Qt MinGW kit, make the Qt kit, the MinGW compiler and Ninja visible in the terminal first, then use the repository's `mingw-debug` preset:
-
-```powershell
-$env:CMAKE_PREFIX_PATH = "<path-to-qt-mingw-kit>"
-$env:Path = "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$env:Path"
-
-cmake --preset mingw-debug
-cmake --build --preset mingw-debug --parallel
-ctest --preset mingw-debug
-```
-
-VS Code tasks inherit the environment VS Code was started with. For one-click builds, start VS Code from a terminal where the variables above are set, set equivalent user environment variables, or copy `CMakeUserPresets.json.example` to an ignored `CMakeUserPresets.json` with your local paths. On Windows, `Gallery: Debug` uses `gdb.exe`, so VS Code must find MinGW's `bin` directory on PATH before debugging.
-
-Close a running Gallery window before rebuilding, or the linker cannot replace the running `.exe`. If you see `ninja: error: loading 'build.ninja': The system cannot find the file specified.`, run `cmake --preset mingw-debug` to regenerate `build/mingw/build.ninja`, then build again. If PowerShell shows duplicate `PATH`/`Path` variables, start a clean terminal or fix the user environment first; otherwise the MinGW tools can fail without a compiler diagnostic.
-
-With Visual Studio/MSVC, install the matching Qt MSVC kit and point `CMAKE_PREFIX_PATH` or `Qt6_DIR` at it. Do not commit your local `CMakeUserPresets.json`.
-
-### Running the Gallery
-
-Use the preset for your platform. Each platform has its own build directory, because CMake caches the generator, compiler and Qt kit in it.
-
-```bash
-# macOS/Linux
-cmake --build --preset debug --target FluentQtWidgetsGallery --parallel
-./build/debug/examples/gallery/FluentQtWidgetsGallery
-# macOS:
-# open ./build/debug/examples/gallery/FluentQtWidgetsGallery.app
-```
-
-```powershell
-# Windows MinGW
-cmake --build --preset mingw-debug --target FluentQtWidgetsGallery --parallel
-.\build\mingw\examples\gallery\FluentQtWidgetsGallery.exe
-```
-
-## Standalone examples
-
-Use `--preset debug` on macOS/Linux and `--preset mingw-debug` with Windows MinGW:
-
-```bash
-cmake --build --preset debug --target fqw_basic_input_button_demo --parallel
-cmake --build --preset debug --target fqw_basic_input_check_box_demo --parallel
-cmake --build --preset debug --target fqw_basic_input_combo_box_demo --parallel
-cmake --build --preset debug --target fqw_basic_input_model_combo_box_demo --parallel
-cmake --build --preset debug --target fqw_basic_input_radio_button_demo --parallel
-cmake --build --preset debug --target fqw_basic_input_slider_demo --parallel
-cmake --build --preset debug --target fqw_basic_input_switch_button_demo --parallel
-```
-
-Every example target is listed in the `CMakeLists.txt` of its `examples/` subdirectory.
-
-## Gallery updates (OTA)
-
-The Gallery shows and compares versions using the CMake project version, `project(... VERSION ...)`. Updates come from GitHub Releases by default. Tags, assets and checksums are described in [Release and OTA](docs/release.md).
+Examples are built by default (`FQW_BUILD_EXAMPLES`). [Quick start](docs/quick-start.md) covers the CMake presets, Windows Qt kits (MinGW and MSVC), running the Gallery and the 75 examples, and using the library from your own project.
 
 ## Documentation
 
-- [Quick start](docs/quick-start.md)
-- [Release and OTA](docs/release.md)
-- [API roadmap](docs/api-roadmap.md)
-- [Basic controls](docs/controls-basic.md)
-- [Architecture](docs/architecture.md)
-- [Porting guide](docs/porting-guide.md)
-- [Contributing](CONTRIBUTING.md)
-
-## Helper scripts
-
-- `scripts/generate_vscode_examples.py` generates `.vscode/tasks.json` and `.vscode/launch.json`.
-- `scripts/run_example.py` runs demo targets from the generated example manifest.
+- [Quick start](docs/quick-start.md): building, running the Gallery and examples, using the library
+- [Controls](docs/controls.md): the widgets by area, with examples
+- [Architecture](docs/architecture.md): library layers, themes and style sheets
+- [Porting guide](docs/porting-guide.md): how the port follows the Python original
+- [Release and OTA](docs/release.md): versions, release tags and Gallery update checks
+- [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
 ## License
 

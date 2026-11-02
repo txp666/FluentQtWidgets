@@ -5,39 +5,15 @@
 #include "GalleryWindow.h"
 
 #include <FluentQtWidgets/Config.h>
-#include <FluentQtWidgets/DateTime/CalendarPicker.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
-#include <FluentQtWidgets/Widgets/FlipView.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/SpinBox.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>
 #include <QtCore/QPointer>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QFrame>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QTreeWidgetItemIterator>
-#include <QtWidgets/QVBoxLayout>
 
 #include "TestSupport.h"
 
@@ -48,17 +24,16 @@ class GalleryTranslationTest : public QObject
     Q_OBJECT
 
   private slots:
-    void init() { m_globalState.emplace(); }
+    // The Gallery's setting cards save the configuration: keep it out of the user's file.
+    void init()
+    {
+        m_globalState.emplace();
+        m_globalState->useTemporaryConfigFile();
+    }
 
     void cleanup()
     {
-        const auto widgets = QApplication::topLevelWidgets();
-        for (QWidget *widget : widgets) {
-            if (auto *window = qobject_cast<GalleryWindow *>(widget)) {
-                window->close();
-            }
-        }
-        FqwTest::drainDeferredDeletes();
+        FqwTest::closeTopLevels<GalleryWindow>();
         m_globalState.reset();
     }
 
@@ -309,7 +284,7 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(QCoreApplication::translate("GalleryTray", "Quit"), QStringLiteral("Quit"));
     }
 
-    void languageReloadDoesNotDeleteStackWindow()
+    void languageChangeReopensGalleryAndKeepsOldWindowAlive()
     {
         auto *app = qobject_cast<QApplication *>(QCoreApplication::instance());
         QVERIFY(app != nullptr);
@@ -338,7 +313,7 @@ class GalleryTranslationTest : public QObject
         }
         QVERIFY(languageCard != nullptr);
 
-        languageCard->setCurrentIndex(0);
+        languageCard->comboBox()->setCurrentIndex(0);
 
         GalleryWindow *newWindow = nullptr;
         QTRY_VERIFY([&]() {
@@ -360,7 +335,6 @@ class GalleryTranslationTest : public QObject
 
         newWindow->close();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-        FluentQt::FluentConfig::instance()->setLocaleName(previousLocale);
         GalleryTranslation::installTranslators(app, previousLocale);
         QApplication::setQuitOnLastWindowClosed(previousQuitOnLastWindowClosed);
     }
@@ -449,7 +423,6 @@ class GalleryTranslationTest : public QObject
         GalleryTranslation::installTranslators(qApp, QStringLiteral("zh_CN"));
 
         auto *config = FluentQt::FluentConfig::instance();
-        const int previousAcrylicBlurRadius = config->acrylicBlurRadius();
         config->setAcrylicBlurRadius(23);
 
         GalleryWindow window;
@@ -484,13 +457,14 @@ class GalleryTranslationTest : public QObject
         QCOMPARE(acrylicLabel->minimumSize(), QSize(197, 145));
         QCOMPARE(acrylicLabel->maximumSize(), QSize(787, 579));
         QCOMPARE(acrylicLabel->blurRadius(), 23);
-        QVERIFY(!acrylicLabel->isNull());
+        QCOMPARE(acrylicLabel->imagePath(), QStringLiteral(":/gallery/images/chidanta.jpg"));
+        QTRY_VERIFY(!acrylicLabel->blurPixmap().isNull());
+        QVERIFY(acrylicLabel->blurThread()->wait());
 
         config->setAcrylicBlurRadius(31);
         QCOMPARE(acrylicLabel->blurRadius(), 31);
-        QVERIFY(!acrylicLabel->isNull());
-
-        config->setAcrylicBlurRadius(previousAcrylicBlurRadius);
+        QCOMPARE(acrylicLabel->blurThread()->blurRadius(), 31);
+        QVERIFY(acrylicLabel->blurThread()->wait());
     }
 
   private:

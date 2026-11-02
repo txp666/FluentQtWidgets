@@ -161,6 +161,10 @@
         <source>Custom color</source>
         <translation>自定义颜色</translation>
     </message>
+    <message>
+        <source>Choose color</source>
+        <translation>选择颜色</translation>
+    </message>
 </context>
 <context>
     <name>FluentQt::DatePicker</name>
@@ -175,6 +179,47 @@
     <message>
         <source>day</source>
         <translation>日</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::FluentTitleBar</name>
+    <message>
+        <source>Restore</source>
+        <translation>还原</translation>
+    </message>
+    <message>
+        <source>Maximize</source>
+        <translation>最大化</translation>
+    </message>
+    <message>
+        <source>Minimize</source>
+        <translation>最小化</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::MessageBoxBase</name>
+    <message>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::MessageDialog</name>
+    <message>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
     </message>
 </context>
 <context>
@@ -264,16 +309,20 @@
         <translation>完成</translation>
     </message>
     <message>
-        <source>Add folder</source>
-        <translation>添加文件夹</translation>
-    </message>
-    <message>
         <source>Are you sure you want to delete the folder?</source>
         <translation>确定要删除此文件夹吗？</translation>
     </message>
     <message>
-        <source>If you delete the &quot;%1&quot; folder and remove it from the list, the folder will no longer appear in the list, but will not be deleted.</source>
-        <translation>如果删除“%1”文件夹并将其从列表中移除，该文件夹将不再显示在列表中，但不会从磁盘删除。</translation>
+        <source>Choose folder</source>
+        <translation>选择文件夹</translation>
+    </message>
+    <message>
+        <source>If you delete the </source>
+        <translation>如果将 </translation>
+    </message>
+    <message>
+        <source> folder and remove it from the list, the folder will no longer appear in the list, but will not be deleted.</source>
+        <translation> 文件夹从列表中移除，则该文件夹不会再出现在列表中，但不会被删除。</translation>
     </message>
 </context>
 <context>
@@ -282,20 +331,21 @@
         <source>Add folder</source>
         <translation>添加文件夹</translation>
     </message>
-</context>
-<context>
-    <name>FluentQt::FolderPickerDialog</name>
     <message>
         <source>Choose folder</source>
         <translation>选择文件夹</translation>
     </message>
     <message>
-        <source>Cancel</source>
-        <translation>取消</translation>
+        <source>Are you sure you want to delete the folder?</source>
+        <translation>确定要删除此文件夹吗？</translation>
     </message>
     <message>
-        <source>Select folder</source>
-        <translation>选择文件夹</translation>
+        <source>If you delete the </source>
+        <translation>如果将 </translation>
+    </message>
+    <message>
+        <source> folder and remove it from the list, the folder will no longer appear in the list, but will not be deleted.</source>
+        <translation> 文件夹从列表中移除，则该文件夹不会再出现在列表中，但不会被删除。</translation>
     </message>
 </context>
 <context>
@@ -351,6 +401,21 @@
     </message>
 </context>
 <context>
+    <name>FluentQt::NavigationPanel</name>
+    <message>
+        <source>Close Navigation</source>
+        <translation>关闭导航</translation>
+    </message>
+    <message>
+        <source>Open Navigation</source>
+        <translation>打开导航</translation>
+    </message>
+    <message>
+        <source>Back</source>
+        <translation>返回</translation>
+    </message>
+</context>
+<context>
     <name>FluentQt::PipsPager</name>
     <message>
         <source>Previous Page</source>
@@ -363,6 +428,28 @@
     <message>
         <source>Page %1</source>
         <translation>第 %1 页</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::PlayButton</name>
+    <message>
+        <source>Pause</source>
+        <translation>暂停</translation>
+    </message>
+    <message>
+        <source>Play</source>
+        <translation>播放</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::SwitchButton</name>
+    <message>
+        <source>On</source>
+        <translation>开</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>关</translation>
     </message>
 </context>
 <context>
@@ -501,6 +588,17 @@
     <message>
         <source>PNG images (*.png)</source>
         <translation>PNG 图片 (*.png)</translation>
+    </message>
+</context>
+<context>
+    <name>FluentQt::VolumeView</name>
+    <message>
+        <source>Unmute</source>
+        <translation>取消静音</translation>
+    </message>
+    <message>
+        <source>Mute</source>
+        <translation>静音</translation>
     </message>
 </context>
 </TS>

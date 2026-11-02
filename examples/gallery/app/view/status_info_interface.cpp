@@ -29,7 +29,7 @@ QWidget *GalleryWindow::createStatusInfoPage()
     const QString progressBarSource = exampleSourceUrl("status_info/progress_bar");
     const QString progressRingSource = exampleSourceUrl("status_info/progress_ring");
 
-    // -- StateToolTip --
+    // --- StateToolTip ---
     auto *stateBtn = new PushButton(tx("StatusInfoInterface", "Show StateToolTip"));
     QPointer<StateToolTip> stateTip;
     connect(stateBtn, &QPushButton::clicked, page, [stateBtn, stateTip]() mutable {
@@ -48,7 +48,7 @@ QWidget *GalleryWindow::createStatusInfoPage()
     });
     page->addExampleCard(tx("StatusInfoInterface", "State tool tip"), stateBtn, stateToolTipSource);
 
-    // -- ToolTip (with ToolTipFilter) --
+    // --- ToolTip (with ToolTipFilter) ---
     {
         auto *tooltipBtn = new PushButton(tx("StatusInfoInterface", "Button with a simple ToolTip"));
         tooltipBtn->setToolTip(tx("StatusInfoInterface", "Simple ToolTip"));
@@ -56,7 +56,7 @@ QWidget *GalleryWindow::createStatusInfoPage()
         page->addExampleCard(tx("StatusInfoInterface", "A button with a simple ToolTip"), tooltipBtn, toolTipSource);
     }
 
-    // -- Label with ToolTip --
+    // --- Label with ToolTip ---
     {
         auto *tooltipLabel = new PixmapLabel(page);
         tooltipLabel->setPixmap(QPixmap(QStringLiteral(":/gallery/images/kunkun.png"))
@@ -68,7 +68,7 @@ QWidget *GalleryWindow::createStatusInfoPage()
         page->addExampleCard(tx("StatusInfoInterface", "A label with a ToolTip"), tooltipLabel, toolTipSource);
     }
 
-    // -- InfoBadge --
+    // --- InfoBadge ---
     auto *badgeWidget = new QWidget(page);
     auto *badgeLayout = new QHBoxLayout(badgeWidget);
     badgeLayout->setContentsMargins(0, 10, 0, 10);
@@ -82,21 +82,21 @@ QWidget *GalleryWindow::createStatusInfoPage()
                                              QColor(QStringLiteral("#60cdff"))));
     page->addExampleCard(tx("StatusInfoInterface", "InfoBadge in different styles"), badgeWidget, infoBarSource);
 
-    // -- Short InfoBar --
+    // --- Short InfoBar ---
     auto *infoBarShort = InfoBar::success(
         tx("StatusInfoInterface", "Success"),
         tx("StatusInfoInterface", "The Anthem of man is the Anthem of courage."), Qt::Horizontal, true,
         -1, InfoBarPosition::None, page);
     page->addExampleCard(tx("StatusInfoInterface", "A closable InfoBar"), infoBarShort, infoBarSource);
 
-    // -- Long InfoBar --
+    // --- Long InfoBar ---
     auto *infoBarLong = InfoBar::warning(
         tx("StatusInfoInterface", "Warning"),
         tx("StatusInfoInterface", "My name is kira yoshikake, 33 years old. Living in the villa area northeast of duwangting, unmarried. I work in Guiyou chain store. Every day I have to work overtime until 8 p.m. to go home. I don't smoke. The wine is only for a taste. Sleep at 11 p.m. for 8 hours a day. Before I go to bed, I must drink a cup of warm milk, then do 20 minutes of soft exercise, get on the bed, and immediately fall asleep. Never leave fatigue and stress until the next day. Doctors say I'm normal."),
         Qt::Vertical, true, -1, InfoBarPosition::None, page);
     page->addExampleCard(tx("StatusInfoInterface", "A closable InfoBar with long message"), infoBarLong, infoBarSource);
 
-    // -- InfoBar with custom icon and widget --
+    // --- InfoBar with custom icon and widget ---
     {
         auto *customInfoBar = new InfoBar(icon(FluentIcon::GitHub),
             tx("StatusInfoInterface", "GitHub"),
@@ -107,7 +107,7 @@ QWidget *GalleryWindow::createStatusInfoPage()
         page->addExampleCard(tx("StatusInfoInterface", "An InfoBar with custom icon, background color and widget."), customInfoBar, infoBarSource);
     }
 
-    // -- InfoBar different positions --
+    // --- InfoBar different positions ---
     auto *infoBarPosWidget = new QWidget(page);
     auto *posLayout = new QHBoxLayout(infoBarPosWidget);
     posLayout->setContentsMargins(0, 0, 0, 0);
@@ -167,14 +167,14 @@ QWidget *GalleryWindow::createStatusInfoPage()
     posLayout->addStretch();
     page->addExampleCard(tx("StatusInfoInterface", "InfoBar with different pop-up locations"), infoBarPosWidget, infoBarSource);
 
-    // -- Indeterminate progress bar --
+    // --- Indeterminate progress bar ---
     auto *indeterminateBar = new IndeterminateProgressBar(page);
     indeterminateBar->setFixedWidth(200);
     auto *indeterminateBarCard = page->addExampleCard(tx("StatusInfoInterface", "An indeterminate progress bar"),
                                                       indeterminateBar, progressBarSource);
     setCardTopMargins(indeterminateBarCard, QMargins(12, 24, 12, 24));
 
-    // -- Determinate progress bar --
+    // --- Determinate progress bar ---
     {
         auto *barRow = new QWidget(page);
         auto *barRowLayout = new QHBoxLayout(barRow);
@@ -193,13 +193,13 @@ QWidget *GalleryWindow::createStatusInfoPage()
         page->addExampleCard(tx("StatusInfoInterface", "An determinate progress bar"), barRow, progressBarSource);
     }
 
-    // -- Indeterminate progress ring --
+    // --- Indeterminate progress ring ---
     auto *indeterminateRing = new IndeterminateProgressRing(page);
     indeterminateRing->setFixedSize(70, 70);
     page->addExampleCard(tx("StatusInfoInterface", "An indeterminate progress ring"), indeterminateRing,
                          progressRingSource);
 
-    // -- Determinate progress ring --
+    // --- Determinate progress ring ---
     {
         auto *ringRow = new QWidget(page);
         auto *ringRowLayout = new QHBoxLayout(ringRow);

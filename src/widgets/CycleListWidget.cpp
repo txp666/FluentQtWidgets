@@ -29,7 +29,6 @@ QColor scrollIconColor()
 ScrollButton::ScrollButton(FluentIcon icon, QWidget *parent) : QToolButton(parent), m_icon(icon)
 {
     setIcon(QIcon());
-    setProperty("pickerOperation", true);
     FluentStyleSheet::setRole(this, QStringLiteral("ScrollButton"));
     installEventFilter(this);
 }
@@ -85,8 +84,8 @@ CycleListWidget::CycleListWidget(const QStringList &items, const QSize &itemSize
                                  QWidget *parent)
     : QListWidget(parent), m_itemSize(itemSize), m_alignment(alignment)
 {
-    m_upButton = new ScrollButton(FluentIcon::Up, this);
-    m_downButton = new ScrollButton(FluentIcon::ArrowDown, this);
+    m_upButton = new ScrollButton(FluentIcon::CareUpSolid, this);
+    m_downButton = new ScrollButton(FluentIcon::CareDownSolid, this);
     m_verticalSmoothScrollBar = new SmoothScrollBar(Qt::Vertical, this);
     m_lastScrollTime.start();
 
@@ -427,6 +426,10 @@ void CycleListWidget::scrollWithAnimation(int index)
 void CycleListWidget::updateGeometryForVisibleItems()
 {
     setFixedSize(m_itemSize.width() + 8, m_itemSize.height() * m_visibleNumber);
+    // A hidden scroll area lays out its viewport only on show, so until then the viewport keeps
+    // the default size, and setSelectedItem() would centre the item in that. Re-setting the
+    // margins lays the viewport out to the new size now.
+    setViewportMargins(viewportMargins());
 }
 
 } // namespace FluentQt

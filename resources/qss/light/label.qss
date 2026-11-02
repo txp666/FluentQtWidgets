@@ -1,15 +1,11 @@
-QLabel[fqw="CaptionLabel"] {
-    color: rgba(0, 0, 0, 0.6063);
-    background: transparent;
-}
-
+QLabel[fqw="CaptionLabel"],
 QLabel[fqw="BodyLabel"],
 QLabel[fqw="StrongBodyLabel"],
 QLabel[fqw="SubtitleLabel"],
 QLabel[fqw="TitleLabel"],
 QLabel[fqw="LargeTitleLabel"],
 QLabel[fqw="DisplayLabel"] {
-    color: #1f1f1f;
+    color: black;
     background: transparent;
 }
 
@@ -19,12 +15,8 @@ QLabel[fqw="AvatarWidget"] {
     background: transparent;
 }
 
-QLabel[fqw="BreadcrumbSeparator"] {
-    color: #616161;
-}
-
 QPushButton[fqw="HyperlinkLabel"] {
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     border: none;
     background-color: transparent;
     text-align: left;

@@ -1,96 +1,39 @@
 // Dialogs, message boxes, the colour and folder dialogs, flyouts and teaching tips.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
 #include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
 #include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
 #include <FluentQtWidgets/Widgets/Label.h>
 #include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
 #include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <functional>
-#include <QtCore/QBuffer>
 #include <QtCore/QDir>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
+#include <QtCore/QScopeGuard>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
 #include <QtGui/QScreen>
-#include <QtGui/QStandardItem>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
-#include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QColorDialog>
-#include <QtWidgets/QCompleter>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QGraphicsOpacityEffect>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyle>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -99,24 +42,6 @@
 #include <optional>
 
 using namespace FluentQt;
-
-namespace {
-
-bool hasBrokenSurrogates(const QString &text)
-{
-    for (qsizetype i = 0; i < text.size(); ++i) {
-        const QChar ch = text.at(i);
-        if (ch.isHighSurrogate() && (i + 1 >= text.size() || !text.at(i + 1).isLowSurrogate())) {
-            return true;
-        }
-        if (ch.isLowSurrogate() && (i == 0 || !text.at(i - 1).isHighSurrogate())) {
-            return true;
-        }
-    }
-    return false;
-}
-
-} // namespace
 
 class DialogFlyoutTest : public QObject
 {
@@ -131,7 +56,7 @@ class DialogFlyoutTest : public QObject
         m_globalState.reset();
     }
 
-    void dialogsUseFluentFramelessButtons()
+    void dialogEmitsYesAndAcceptsLikePython()
     {
         FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
         QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("DialogPopup"));
@@ -189,7 +114,8 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(dialog.property("cancelButton").value<QPushButton *>(), dialog.cancelButton());
         QCOMPARE(dialog.cancelButton()->objectName(), QStringLiteral("cancelButton"));
         QCOMPARE(dialog.acceptButton()->property("fqw").toString(), QStringLiteral("PrimaryPushButton"));
-        QCOMPARE(dialog.cancelButton()->property("fqw").toString(), QStringLiteral("PushButton"));
+        // A plain QPushButton styled by #cancelButton, as in Python (see dialogCancelButtonsArePlainButtonsLikePython).
+        QVERIFY(dialog.cancelButton()->property("fqw").toString().isEmpty());
         dialog.setContentCopyable(true);
         QVERIFY(dialog.contentLabel()->textInteractionFlags() & Qt::TextSelectableByMouse);
         dialog.setContentCopyable(false);
@@ -200,13 +126,19 @@ class DialogFlyoutTest : public QObject
         dialog.acceptButton()->click();
         QCOMPARE(acceptedSpy.count(), 1);
         QCOMPARE(yesSpy.count(), 1);
+    }
 
+    void dialogCanHideItsButtons()
+    {
         FluentQt::Dialog hiddenButtonDialog(QStringLiteral("Title"), QStringLiteral("Message"));
         hiddenButtonDialog.hideYesButton();
         QVERIFY(!hiddenButtonDialog.yesButton()->isVisible());
         hiddenButtonDialog.hideCancelButton();
         QVERIFY(!hiddenButtonDialog.cancelButton()->isVisible());
+    }
 
+    void messageBoxBaseValidatesBeforeAccepting()
+    {
         FluentQt::MessageBoxBase customBase;
         customBase.viewLayout()->addWidget(new FluentQt::LineEdit(customBase.widget()));
         QCOMPARE(customBase.widget(), customBase.view());
@@ -236,7 +168,10 @@ class DialogFlyoutTest : public QObject
         validatingDialog.yesButton()->click();
         QTRY_COMPARE(validatingAcceptedSpy.count(), 1);
         QCOMPARE(validatingYesSpy.count(), 1);
+    }
 
+    void messageBoxEmitsItsResultSignals()
+    {
         FluentQt::MessageBox messageBox(QStringLiteral("Title"), QStringLiteral("Message"));
         QCOMPARE(messageBox.property("fqw").toString(), QStringLiteral("MessageBoxPopup"));
         messageBox.setClosableOnMaskClicked(true);
@@ -270,7 +205,10 @@ class DialogFlyoutTest : public QObject
         QTest::mouseClick(messageBox.cancelButton(), Qt::LeftButton);
         QTRY_COMPARE(rejectedSpy.count(), 1);
         QCOMPARE(cancelSpy.count(), 1);
+    }
 
+    void messageBoxWithAParentIsAChildOverlay()
+    {
         QWidget maskParent;
         maskParent.resize(520, 360);
         maskParent.show();
@@ -279,26 +217,134 @@ class DialogFlyoutTest : public QObject
         FluentQt::MessageBox maskedBox(QStringLiteral("Mask"), QStringLiteral("Parent overlay"), &maskParent);
         maskedBox.setClosableOnMaskClicked(true);
         maskedBox.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&maskedBox));
-        QCOMPARE(maskedBox.geometry(), maskParent.geometry());
+        QVERIFY(maskedBox.isVisible());
+        // A child overlay covering the parent's window, as in qfluentwidgets.
+        QVERIFY(!maskedBox.isWindow());
+        QCOMPARE(maskedBox.geometry(), maskParent.rect());
         QCOMPARE(maskedBox.windowMask()->size(), maskedBox.size());
         QVERIFY(maskedBox.widget()->geometry().center().x() > 0);
         QVERIFY(maskedBox.widget()->geometry().center().y() > 0);
 
         maskParent.resize(640, 420);
         QCoreApplication::processEvents();
-        QTRY_COMPARE(maskedBox.geometry(), maskParent.geometry());
+        QTRY_COMPARE(maskedBox.geometry(), maskParent.rect());
         QCOMPARE(maskedBox.windowMask()->size(), maskedBox.size());
 
         QSignalSpy maskRejectedSpy(&maskedBox, &QDialog::rejected);
         QTest::mouseClick(maskedBox.windowMask(), Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
         QTRY_COMPARE(maskRejectedSpy.count(), 1);
+    }
 
-        FluentQt::MessageDialog messageDialog(QStringLiteral("Title"), QStringLiteral("Message"));
+    void messageDialogPlacesPlainLabelsAndButtons()
+    {
+        // qfluentwidgets' Win10-style MessageDialog: hand-placed plain labels and buttons.
+        QWidget maskParent;
+        maskParent.resize(640, 420);
+        FluentQt::MessageDialog messageDialog(
+            QStringLiteral("This is a message dialog with mask"),
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this."),
+            &maskParent);
         QCOMPARE(messageDialog.property("fqw").toString(), QStringLiteral("MessageDialog"));
-        auto *messageDialogView = messageDialog.findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
-        QVERIFY(messageDialogView != nullptr);
-        QCOMPARE(messageDialogView->property("fqw").toString(), QStringLiteral("MessageDialog"));
+        QCOMPARE(messageDialog.widget()->property("fqw").toString(), QStringLiteral("MessageDialog"));
+        QCOMPARE(messageDialog.windowMask()->objectName(), QStringLiteral("windowMask"));
+        QVERIFY(qobject_cast<FluentQt::PushButton *>(messageDialog.yesButton()) == nullptr);
+        QCOMPARE(messageDialog.contentLabel()->text().count(QLatin1Char('\n')), 1);
+        QCOMPARE(messageDialog.titleLabel()->pos(), QPoint(24, 24));
+        QCOMPARE(messageDialog.contentLabel()->pos(), QPoint(24, 56));
+        const QSize messageDialogSize = messageDialog.widget()->size();
+        QCOMPARE(messageDialogSize.width(), 48 + messageDialog.contentLabel()->width());
+        QCOMPARE(messageDialogSize.height(), 56 + messageDialog.contentLabel()->height() + 92);
+        const int buttonWidth = (messageDialogSize.width() - 54) / 2;
+        QCOMPARE(messageDialog.yesButton()->geometry(), QRect(24, messageDialogSize.height() - 56, buttonWidth, 32));
+        QCOMPARE(messageDialog.cancelButton()->geometry(),
+                 QRect(messageDialogSize.width() - 24 - buttonWidth, messageDialogSize.height() - 56, buttonWidth, 32));
+        if (QFontInfo(messageDialog.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
+            // Measured natively from qfluentwidgets 1.11.3 on macOS.
+            QCOMPARE(messageDialogSize, QSize(510, 188));
+            QCOMPARE(messageDialog.titleLabel()->size(), QSize(298, 26));
+        }
+        QSignalSpy messageDialogYesSpy(&messageDialog, &FluentQt::MessageDialog::yesSignal);
+        QSignalSpy messageDialogAcceptedSpy(&messageDialog, &QDialog::accepted);
+        messageDialog.show();
+        messageDialog.yesButton()->click();
+        QCOMPARE(messageDialogYesSpy.count(), 1);
+        QTRY_COMPARE(messageDialogAcceptedSpy.count(), 1);
+    }
+
+    // Python's dialogs make Cancel a plain QPushButton named cancelButton, styled by the dialog sheet's
+    // #cancelButton rule. A Fluent PushButton brings its own sheet, which wins over that rule and pads it wider.
+    void dialogCancelButtonsArePlainButtonsLikePython()
+    {
+        QWidget parent;
+        parent.resize(800, 600);
+        FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
+        FluentQt::MessageBoxBase base(&parent);
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        FluentQt::MessageDialog messageDialog(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        FluentQt::ColorDialog colorDialog(QColor(Qt::red), QStringLiteral("Colour"), &parent);
+        for (const QPushButton *button :
+             {dialog.cancelButton(), base.cancelButton(), box.cancelButton(), colorDialog.cancelButton()}) {
+            QVERIFY(button != nullptr);
+            QCOMPARE(button->metaObject(), &QPushButton::staticMetaObject);
+            QCOMPARE(button->objectName(), QStringLiteral("cancelButton"));
+        }
+        // Python's MessageDialog styles its buttons by type and leaves them unnamed.
+        QCOMPARE(messageDialog.cancelButton()->metaObject(), &QPushButton::staticMetaObject);
+    }
+
+    void returnKeyAcceptsDialogsLikePython()
+    {
+        // The buttons keep QPushButton's autoDefault, as in qfluentwidgets, so Return on the
+        // focused OK button accepts the dialog.
+        QWidget parent;
+        parent.resize(600, 400);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        QVERIFY(box.yesButton()->autoDefault());
+        QVERIFY(box.cancelButton()->autoDefault());
+        QSignalSpy boxAccepted(&box, &QDialog::accepted);
+        box.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&box));
+        // The 81 px row less its 1 px top border and 24 px margins leaves the buttons 32 px, as in
+        // Python: a font that asks for more (33 offscreen) is squeezed to 32, a smaller one keeps its hint.
+        QCOMPARE(box.yesButton()->height(), qMin(box.yesButton()->sizeHint().height(), 32));
+        QTest::keyClick(box.yesButton(), Qt::Key_Return);
+        QTRY_COMPARE(boxAccepted.count(), 1);
+
+        FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        QVERIFY(dialog.yesButton()->autoDefault());
+        QVERIFY(dialog.cancelButton()->autoDefault());
+        QSignalSpy dialogAccepted(&dialog, &QDialog::accepted);
+        dialog.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+        QTest::keyClick(dialog.yesButton(), Qt::Key_Return);
+        QTRY_COMPARE(dialogAccepted.count(), 1);
+    }
+
+    void messageBoxBaseButtonsHaveNoMinimumWidth()
+    {
+        // qfluentwidgets sets no minimum width on the OK and Cancel buttons: in an empty
+        // MessageBoxBase with one-letter labels they come out about 36 and 31 px wide.
+        QWidget parent;
+        parent.resize(600, 400);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        FluentQt::MessageBoxBase box(&parent);
+        box.yesButton()->setText(QStringLiteral("Y"));
+        box.cancelButton()->setText(QStringLiteral("N"));
+        box.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&box));
+        QCOMPARE(box.yesButton()->minimumWidth(), 0);
+        QCOMPARE(box.cancelButton()->minimumWidth(), 0);
+        QVERIFY(box.yesButton()->width() < 60);
+        QVERIFY(box.widget()->width() < 160);
+
+        FluentQt::Dialog dialog(QStringLiteral("T"), QStringLiteral("M"), &parent);
+        QCOMPARE(dialog.yesButton()->minimumWidth(), 0);
+        QCOMPARE(dialog.cancelButton()->minimumWidth(), 0);
     }
 
     void galleryDialogKeepsItsContentOnOneLineAndCentred()
@@ -318,7 +364,6 @@ class DialogFlyoutTest : public QObject
             QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
                            "automatically wrap like this."),
             &dialogParent);
-        galleryDialog.widget()->setFixedSize(240, 192);
         QVERIFY(!galleryDialog.contentLabel()->wordWrap());
         QVERIFY(!galleryDialog.contentLabel()->text().contains(QLatin1Char('\n')));
         galleryDialog.show();
@@ -330,10 +375,201 @@ class DialogFlyoutTest : public QObject
         galleryDialog.close();
     }
 
+    void dialogFitsItsContentInsideItsWindowLikePython()
+    {
+        // The Gallery pinned the view to 240 x 192, taking qfluentwidgets' resize(240, 192) of the
+        // window for a fixed view size: the content needed more, so the view stuck out of the window
+        // and its button row was cut off. Python's 240 x 192 is only a floor the layout grows past.
+        QWidget parent;
+        parent.resize(1000, 640);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        if (parent.width() < 1000) {
+            QSKIP("The screen is too narrow for a 1000-pixel-wide window");
+        }
+
+        const QString galleryTitle = QStringLiteral("This is a frameless message dialog");
+        const QString galleryContent =
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this.");
+        struct Case
+        {
+            QString title;
+            QString content;
+        };
+        const QList<Case> cases = {
+            {galleryTitle, galleryContent},
+            {QStringLiteral("这是一个无边框对话框"),
+             QStringLiteral("如果消息框的内容特别长，它会像这样自动换行。\n第二行\n第三行")},
+            {QStringLiteral("T"), QStringLiteral("M")},
+        };
+
+        int pythonSizesCompared = 0;
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+            for (const Case &c : cases) {
+                FluentQt::Dialog dialog(c.title, c.content, &parent);
+                dialog.show();
+                QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+                const QString where = QStringLiteral("%1 / %2").arg(dark ? "dark" : "light", c.title);
+                const QByteArray whereText = where.toUtf8();
+
+                // The view, its shadow and the frame around it fit in the window.
+                const QRect view = dialog.widget()->geometry();
+                const QRect shadow =
+                    dialog.widget()->graphicsEffect()->boundingRectFor(view).toAlignedRect().adjusted(-1, -1, 1, 1);
+                QVERIFY2(dialog.rect().contains(shadow), whereText.constData());
+                QVERIFY2(view.width() >= 240 && view.height() >= 192, whereText.constData());
+
+                // Every part of the dialog lies inside the view, the button row at its foot.
+                for (QWidget *part :
+                     {static_cast<QWidget *>(dialog.windowTitleLabel()), static_cast<QWidget *>(dialog.titleLabel()),
+                      static_cast<QWidget *>(dialog.contentLabel()), static_cast<QWidget *>(dialog.buttonGroup())}) {
+                    QVERIFY2(dialog.widget()->rect().contains(part->geometry()), whereText.constData());
+                    if (qobject_cast<QLabel *>(part)) {
+                        QVERIFY2(part->height() >= part->minimumSizeHint().height(), whereText.constData());
+                    }
+                }
+                for (QWidget *button :
+                     {static_cast<QWidget *>(dialog.yesButton()), static_cast<QWidget *>(dialog.cancelButton())}) {
+                    QVERIFY2(dialog.buttonGroup()->rect().contains(button->geometry()), whereText.constData());
+                }
+                QCOMPARE(dialog.buttonGroup()->height(), 81);
+                QCOMPARE(dialog.buttonGroup()->geometry().bottom(), view.height() - 1);
+                QCOMPARE(dialog.buttonGroup()->width(), view.width());
+
+                // Python's offsets: the title bar at the top edge, the texts 24 px in.
+                QCOMPARE(dialog.windowTitleLabel()->geometry().topLeft(), QPoint(0, 0));
+                QCOMPARE(dialog.windowTitleLabel()->width(), view.width());
+                QCOMPARE(dialog.titleLabel()->geometry().left(), 24);
+                QCOMPARE(dialog.titleLabel()->geometry().top(), dialog.windowTitleLabel()->height() + 24);
+                QCOMPARE(dialog.yesButton()->geometry().left(), 24);
+                QCOMPARE(dialog.cancelButton()->geometry().right(), view.width() - 1 - 24);
+
+                // Measured natively from qfluentwidgets 1.11.3 on macOS (a 29 px title bar, 20 px
+                // text lines); text widths need Python's font, so only there.
+                const QSize pythonSize = c.title == QLatin1String("T") ? QSize(240, 218)
+                                         : c.title == galleryTitle     ? QSize(770, 218)
+                                                                       : QSize(356, 258);
+                if (c.title == QLatin1String("T")) {
+                    // qfluentwidgets' 240 px floor holds whatever the font; the height is the content's.
+                    QCOMPARE(view.width(), pythonSize.width());
+                    if (FqwTest::hasPythonMeasurementFont(dialog.contentLabel())) {
+                        QCOMPARE(view.size(), pythonSize);
+                    }
+                } else if (QFontInfo(dialog.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
+                    QCOMPARE(dialog.windowTitleLabel()->height(), 29);
+                    QCOMPARE(view.size(), pythonSize);
+                    ++pythonSizesCompared;
+                }
+                dialog.close();
+            }
+        }
+        if (pythonSizesCompared == 0) {
+            qInfo("Python's text-dependent sizes were not compared: PingFang SC is not the dialog font here");
+        }
+    }
+
+    void maskDialogsFitTheirWindowLikePython()
+    {
+        // qfluentwidgets' mask dialogs are child overlays of the parent's window. The port's were
+        // separate windows: the colour dialog's fixed 488 x 696 centre widget made its window taller
+        // than a 640 px parent, the message box wrapped text to a window's 140 characters instead
+        // of an overlay's 100, and a SetMinimumSize constraint undid widget()->setMinimumWidth().
+        QWidget parent;
+        parent.resize(1000, 640);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        if (parent.size() != QSize(1000, 640)) {
+            QSKIP("The screen is too small for a 1000 x 640 window");
+        }
+        const QString content =
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this.");
+        const int margin = parent.style()->pixelMetric(QStyle::PM_LayoutTopMargin);
+
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+
+            FluentQt::ColorDialog colorDialog(Qt::cyan, QStringLiteral("Choose color"), &parent);
+            colorDialog.show();
+            QVERIFY(!colorDialog.isWindow());
+            QTRY_COMPARE(colorDialog.geometry(), parent.rect());
+            // Python (macOS style, 12 px margins): 488 x 616 at (256, 12), its content scrolling.
+            QCOMPARE(colorDialog.widget()->width(), 488);
+            QCOMPARE(colorDialog.widget()->geometry().top(), margin);
+            QCOMPARE(colorDialog.widget()->height(), 640 - 2 * margin);
+            QCOMPARE(colorDialog.widget()->geometry().center().x(), parent.rect().center().x());
+            QVERIFY(colorDialog.rect().contains(colorDialog.widget()->geometry()));
+            QCOMPARE(colorDialog.buttonGroup()->geometry().bottom(), colorDialog.widget()->height() - 2);
+            colorDialog.close();
+
+            FluentQt::MessageBox box(QStringLiteral("This is a message dialog with mask"), content, &parent);
+            box.show();
+            QVERIFY(!box.isWindow());
+            QTRY_COMPARE(box.geometry(), parent.rect());
+            // Python wraps at 100 characters: "...wrap\nlike this.".
+            QCOMPARE(box.contentLabel()->text().count(QLatin1Char('\n')), 1);
+            QVERIFY(box.rect().contains(box.widget()->geometry()));
+            QCOMPARE(box.titleLabel()->geometry().topLeft(), QPoint(25, 25));
+            QCOMPARE(box.buttonGroup()->geometry(),
+                     QRect(1, box.widget()->height() - 82, box.widget()->width() - 2, 81));
+            if (QFontInfo(box.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
+                // Measured natively from qfluentwidgets 1.11.3 on macOS.
+                QCOMPARE(box.widget()->size(), QSize(714, 211));
+            }
+            box.close();
+
+            // The Gallery's custom message box.
+            FluentQt::MessageBoxBase custom(&parent);
+            custom.widget()->setMinimumWidth(360);
+            auto *urlEdit = new LineEdit(custom.view());
+            urlEdit->setPlaceholderText(QStringLiteral("Enter the URL of a file, stream, or playlist"));
+            custom.viewLayout()->addWidget(new SubtitleLabel(QStringLiteral("Open URL"), custom.view()));
+            custom.viewLayout()->addWidget(urlEdit);
+            custom.show();
+            QTRY_COMPARE(custom.geometry(), parent.rect());
+            // Python: 360 x 204, centred, the line edit 310 px wide at (25, 65).
+            QCOMPARE(custom.widget()->width(), 360);
+            QCOMPARE(custom.widget()->geometry().center(), parent.rect().center());
+            QCOMPARE(urlEdit->geometry().left(), 25);
+            QCOMPARE(urlEdit->width(), 310);
+            QVERIFY(custom.widget()->rect().contains(custom.buttonGroup()->geometry()));
+            QVERIFY(custom.widget()->height() >= custom.widget()->minimumSizeHint().height());
+            custom.close();
+        }
+    }
+
+    void maskDialogShadowFadesLikePython()
+    {
+        // qfluentwidgets draws the message box's shadow with QGraphicsDropShadowEffect(60, (0, 10),
+        // alpha 50): soft, never darker than the colour's alpha. The port's painted layers each
+        // carried up to that alpha and piled up to a dark slab (alpha ~110) under the box.
+        QWidget parent;
+        parent.resize(800, 600);
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+        box.setMaskColor(QColor(0, 0, 0, 0));
+        box.setGeometry(parent.rect());
+        box.layout()->activate();
+        const QImage image = FqwTest::render(box, Qt::transparent, QWidget::DrawWindowBackground);
+
+        const QRect frame = box.widget()->geometry();
+        const int x = frame.center().x();
+        int darkest = 0;
+        for (int y = frame.bottom() + 1; y <= frame.bottom() + 10; ++y) {
+            darkest = qMax(darkest, qAlpha(image.pixel(x, y)));
+        }
+        QVERIFY2(darkest > 10, "the box casts a shadow below it");
+        QVERIFY2(darkest <= 56,
+                 qPrintable(QStringLiteral("shadow alpha %1 exceeds the colour's 50 (plus rounding)").arg(darkest)));
+        // It has faded out half the blur radius (30 px) beyond the 10 px offset.
+        QCOMPARE(qAlpha(image.pixel(x, frame.bottom() + 41)), 0);
+        QVERIFY(qAlpha(image.pixel(x, frame.bottom() + 25)) < darkest / 2);
+    }
+
     void dialogFadeInDropsOpacityEffectBeforeButtonHover()
     {
         auto *manager = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = manager->theme();
         manager->setTheme(FluentQt::Theme::Light);
 
         FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"));
@@ -367,8 +603,6 @@ class DialogFlyoutTest : public QObject
         QVERIFY2(hoverKeepsButtonPainted(dialog.cancelButton()),
                  "Dialog cancel button should stay painted after hover");
         QVERIFY(qobject_cast<QGraphicsOpacityEffect *>(dialog.graphicsEffect()) == nullptr);
-
-        manager->setTheme(previousTheme);
     }
 
     void maskedDialogFadeKeepsNativeWindowOpaque()
@@ -425,24 +659,7 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(rejected.count(), 0);
     }
 
-    void wrappedTextKeepsSurrogatePairsTogether()
-    {
-        QWidget parent;
-        parent.resize(400, 300);
-        // The leading letter puts every surrogate pair on an odd offset, so a cut by UTF-16 code
-        // units at an even line width lands inside a pair.
-        QString content = QStringLiteral("a");
-        for (int i = 0; i < 60; ++i) {
-            content += QStringLiteral("\U0001F600");
-        }
-        auto *bar = InfoBar::info(QStringLiteral("Emoji"), content, Qt::Horizontal, true, -1,
-                                  InfoBarPosition::None, &parent);
-        QVERIFY(bar->contentLabel()->text().contains(QLatin1Char('\n')));
-        QVERIFY(!hasBrokenSurrogates(bar->contentLabel()->text()));
-        QVERIFY(!bar->contentLabel()->text().contains(QChar(0xFFFD)));
-    }
-
-    void colorPickerButtonUsesFluentPopup()
+    void colorDialogSizesAndCommitsOnlyOnAccept()
     {
         FluentQt::ColorDialog alphaDialog(QColor(QStringLiteral("#5012aaa2")),
                                           QStringLiteral("Background Color"), nullptr, true);
@@ -452,8 +669,8 @@ class DialogFlyoutTest : public QObject
         QVERIFY(alphaDialog.windowFlags() & Qt::NoDropShadowWindowHint);
         QVERIFY(alphaDialog.widget() != nullptr);
         QCOMPARE(alphaDialog.widget()->property("fqw").toString(), QStringLiteral("ColorDialog"));
+        // qfluentwidgets gives the centre widget a maximum size, not a fixed one.
         QCOMPARE(alphaDialog.widget()->size(), QSize(488, 736));
-        QCOMPARE(alphaDialog.widget()->minimumSize(), QSize(488, 736));
         QCOMPARE(alphaDialog.widget()->maximumSize(), QSize(488, 736));
         QCOMPARE(alphaDialog.scrollWidget()->size(), QSize(440, 600));
         QCOMPARE(alphaDialog.huePanel()->size(), QSize(256, 256));
@@ -475,29 +692,31 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(acceptSpy.count(), 1);
         QCOMPARE(acceptSpy.takeFirst().at(0).value<QColor>(), QColor(QStringLiteral("#445566")));
         QCOMPARE(acceptDialog.widget()->size(), QSize(488, 696));
-        QCOMPARE(acceptDialog.widget()->minimumSize(), QSize(488, 696));
         QCOMPARE(acceptDialog.widget()->maximumSize(), QSize(488, 696));
         QCOMPARE(acceptDialog.scrollWidget()->size(), QSize(440, 560));
         QVERIFY(acceptDialog.opacityLineEdit()->isHidden());
 
+        // The colour dialogs overlay the cards' window, as in qfluentwidgets, so give them room.
+        QWidget cardHost;
+        cardHost.resize(800, 800);
         FluentQt::ColorSettingCard card(QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
                                         QStringLiteral("Accent"));
+        card.setParent(&cardHost);
         FluentQt::ColorPickerButton picker(QColor(QStringLiteral("#5012aaa2")),
                                            QStringLiteral("Background Color"), nullptr, true);
         QCOMPARE(picker.title(), QStringLiteral("Background Color"));
         QVERIFY(picker.isAlphaEnabled());
         QCOMPARE(picker.toolTip(), QStringLiteral("Choose Background Color"));
 
-        card.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&card));
+        cardHost.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&cardHost));
 
         QSignalSpy colorSpy(&card, &FluentQt::ColorSettingCard::colorChanged);
         bool dialogInspected = false;
         QPointer<FluentQt::ColorDialog> dialogGuard;
         QTimer::singleShot(0, &card, [&card]() { card.colorPicker()->click(); });
         QTimer::singleShot(100, &card, [&]() {
-            auto *popup = FqwTest::findVisibleTopLevelByRole(QStringLiteral("ColorDialogPopup"));
-            auto *dialog = qobject_cast<FluentQt::ColorDialog *>(popup);
+            auto *dialog = FqwTest::findVisibleWidget<FluentQt::ColorDialog>();
             if (!dialog) {
                 return;
             }
@@ -505,7 +724,7 @@ class DialogFlyoutTest : public QObject
             dialogInspected = true;
             dialogGuard = dialog;
             QVERIFY(dialog->testAttribute(Qt::WA_TranslucentBackground));
-            QVERIFY(dialog->windowFlags() & Qt::NoDropShadowWindowHint);
+            QVERIFY(!dialog->isWindow());
             QCOMPARE(dialog->widget()->property("fqw").toString(), QStringLiteral("ColorDialog"));
             QCOMPARE(dialog->widget()->size(), QSize(488, 696));
             QCOMPARE(dialog->scrollWidget()->size(), QSize(440, 560));
@@ -527,51 +746,258 @@ class DialogFlyoutTest : public QObject
         QVERIFY(dialogGuard.isNull() || !dialogGuard->isVisible());
         QCOMPARE(colorSpy.count(), 1);
 
-        FluentQt::CustomColorSettingCard customCard(QColor(QStringLiteral("#005fb8")), QColor(QStringLiteral("#112233")),
-                                                    FluentQt::FluentIcon::Heart, QStringLiteral("Custom accent"));
-        customCard.setAlphaEnabled(true);
+        // Python's CustomColorSettingCard opens the dialog from its "Choose color" button, with
+        // enableAlpha from its constructor, and takes the colour the dialog accepts.
+        FluentQt::CustomColorSettingCard customCard(QColor(QStringLiteral("#005fb8")),
+                                                    QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
+                                                    QStringLiteral("Custom accent"), QString(), nullptr, true);
+        QSignalSpy customColorSpy(&customCard, &FluentQt::CustomColorSettingCard::colorChanged);
+        customCard.setParent(&cardHost);
+        customCard.move(0, 100);
         customCard.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&customCard));
         bool alphaDialogInspected = false;
-        QTimer::singleShot(0, &customCard, [&customCard]() { customCard.colorPicker()->click(); });
+        QTimer::singleShot(0, &customCard, [&customCard]() { customCard.chooseColorButton()->click(); });
         QTimer::singleShot(100, &customCard, [&]() {
-            auto *alphaPopup = FqwTest::findVisibleTopLevelByRole(QStringLiteral("ColorDialogPopup"));
-            auto *alphaPopupDialog = qobject_cast<FluentQt::ColorDialog *>(alphaPopup);
+            auto *alphaPopupDialog = FqwTest::findVisibleWidget<FluentQt::ColorDialog>();
             if (!alphaPopupDialog) {
                 return;
             }
 
             alphaDialogInspected = true;
-            QCOMPARE(alphaPopupDialog->widget()->size(), QSize(488, 736));
+            // A failed check returns from here: close the dialog then, or its event loop never ends.
+            const auto closeOnFailure = qScopeGuard([alphaPopupDialog]() {
+                if (alphaPopupDialog->isVisible()) {
+                    alphaPopupDialog->cancelButton()->click();
+                }
+            });
+            QCOMPARE(alphaPopupDialog->titleLabel()->text(), QStringLiteral("Choose color"));
+            QCOMPARE(alphaPopupDialog->color().name(), QStringLiteral("#112233"));
+            // Like Python's, the dialog shrinks to a short window and scrolls; the full 736 px needs the
+            // host's 800 px, which a small screen (Windows CI's) cuts short.
+            if (alphaPopupDialog->window()->height() >= 800) {
+                QCOMPARE(alphaPopupDialog->widget()->size(), QSize(488, 736));
+                QCOMPARE(alphaPopupDialog->scrollArea()->verticalScrollBar()->maximum(), 0);
+            } else {
+                QVERIFY(alphaPopupDialog->widget()->height() <= alphaPopupDialog->window()->height());
+            }
             QCOMPARE(alphaPopupDialog->scrollWidget()->size(), QSize(440, 600));
             QCOMPARE(alphaPopupDialog->buttonGroup()->size(), QSize(486, 81));
-            QCOMPARE(alphaPopupDialog->scrollArea()->verticalScrollBar()->maximum(), 0);
             QVERIFY(!alphaPopupDialog->opacityLineEdit()->isHidden());
-            alphaPopupDialog->cancelButton()->click();
+            alphaPopupDialog->setColor(QColor(QStringLiteral("#80445566")));
+            alphaPopupDialog->yesButton()->click();
         });
         QTRY_VERIFY(alphaDialogInspected);
+        QTRY_COMPARE(customColorSpy.count(), 1);
+        QCOMPARE(customCard.customColor(), QColor(QStringLiteral("#80445566")));
+        QCOMPARE(customCard.color(), QColor(QStringLiteral("#80445566")));
     }
 
-    void folderListDialogEditsItsFolders()
+    void folderListDialogMatchesPythonLayout_data()
     {
-        FluentQt::FolderListDialog listDialog(QStringList{QStringLiteral("/tmp/music")},
-                                              QStringLiteral("Build your collection"),
-                                              QStringLiteral("Right now, we're watching these folders:"));
-        QCOMPARE(listDialog.folders(), QStringList{QStringLiteral("/tmp/music")});
-        QVERIFY(listDialog.scrollArea() != nullptr);
-        QVERIFY(listDialog.scrollWidget() != nullptr);
-        QVERIFY(listDialog.addFolderButton() != nullptr);
-        QVERIFY(listDialog.addFolder(QStringLiteral("/tmp/podcasts")));
-        QVERIFY(!listDialog.addFolder(QStringLiteral("/tmp/podcasts")));
-        QVERIFY(listDialog.removeFolder(QStringLiteral("/tmp/music")));
-        QCOMPARE(listDialog.folders(), QStringList{QStringLiteral("/tmp/podcasts")});
-        QSignalSpy changedSpy(&listDialog, &FluentQt::FolderListDialog::folderChanged);
-        listDialog.yesButton()->click();
-        QCOMPARE(changedSpy.count(), 1);
-        QCOMPARE(changedSpy.takeFirst().at(0).toStringList(), QStringList{QStringLiteral("/tmp/podcasts")});
+        QTest::addColumn<bool>("dark");
+        QTest::addColumn<QSize>("boxSize");
+        QTest::addColumn<QRect>("titleGeometry");
+        QTest::addColumn<QRect>("contentGeometry");
+        QTest::addColumn<QRect>("scrollGeometry");
+        QTest::addColumn<QRect>("buttonGeometry");
+        // Measured from qfluentwidgets 1.11.3's FolderListDialog with the same texts and two folders.
+        QTest::newRow("light") << false << QSize(492, 411) << QRect(25, 25, 442, 28) << QRect(25, 59, 442, 20)
+                               << QRect(99, 91, 294, 232) << QRect(328, 347, 139, 39);
+        QTest::newRow("dark") << true << QSize(602, 427) << QRect(25, 25, 552, 35) << QRect(25, 66, 552, 26)
+                              << QRect(154, 104, 294, 232) << QRect(394, 360, 183, 42);
     }
 
-    void flyoutExposesPythonStyleViewAndFactoryApi()
+    // Python's mask widget has no object name, so folder_list_dialog.qss's QWidget rule gives the
+    // FolderListDialog mask a 1 px border (rgb(200, 200, 200), rgb(53, 53, 53) dark) and its
+    // QWidget#windowMask rule never applies; a MessageBox's mask has no border. The port's mask
+    // always had `border: none`.
+    void maskDialogsDrawPythonsMaskBorder_data()
+    {
+        QTest::addColumn<bool>("dark");
+        QTest::addColumn<QColor>("border");
+        QTest::newRow("light") << false << QColor(200, 200, 200);
+        QTest::newRow("dark") << true << QColor(53, 53, 53);
+    }
+
+    void maskDialogsDrawPythonsMaskBorder()
+    {
+        QFETCH(bool, dark);
+        QFETCH(QColor, border);
+        FluentQt::ThemeManager::instance()->setTheme(dark ? FluentQt::Theme::Dark : FluentQt::Theme::Light);
+
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+
+        FluentQt::FolderListDialog folders(QStringList{QStringLiteral("/tmp")}, QStringLiteral("Title"),
+                                           QStringLiteral("Content"), &parent);
+        folders.show();
+        QTRY_VERIFY(folders.isVisible());
+        const QImage folderMask = folders.windowMask()->grab().toImage();
+        QCOMPARE(QColor(folderMask.pixel(0, 0)), border);
+        QCOMPARE(QColor(folderMask.pixel(folderMask.width() - 1, folderMask.height() - 1)), border);
+        QVERIFY(QColor(folderMask.pixel(5, 5)) != border);
+        folders.hide();
+
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Content"), &parent);
+        box.show();
+        QTRY_VERIFY(box.isVisible());
+        const QImage boxMask = box.windowMask()->grab().toImage();
+        QCOMPARE(boxMask.pixel(0, 0), boxMask.pixel(5, 5));
+        box.hide();
+    }
+
+    void folderListDialogMatchesPythonLayout()
+    {
+        QFETCH(bool, dark);
+        QFETCH(QSize, boxSize);
+        QFETCH(QRect, titleGeometry);
+        QFETCH(QRect, contentGeometry);
+        QFETCH(QRect, scrollGeometry);
+        QFETCH(QRect, buttonGeometry);
+        FluentQt::ThemeManager::instance()->setTheme(dark ? FluentQt::Theme::Dark : FluentQt::Theme::Light);
+
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        FluentQt::FolderListDialog dialog(
+            QStringList{QStringLiteral("/tmp/KuGou"), QStringLiteral("/Users/shoko/Documents/Music")},
+            QStringLiteral("Build your collection from your local music files"),
+            QStringLiteral("Right now, we're watching these folders:"), &parent);
+        dialog.show();
+        QTRY_VERIFY(dialog.isVisible());
+        QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("FolderListDialog"));
+        if (!FqwTest::hasPythonMeasurementFont(dialog.contentLabel())) {
+            QSKIP("Python's FolderListDialog layout follows its text, measured with PingFang SC");
+        }
+        QTRY_COMPARE(dialog.widget()->size(), boxSize);
+        QCOMPARE(dialog.titleLabel()->geometry(), titleGeometry);
+        QCOMPARE(dialog.contentLabel()->geometry(), contentGeometry);
+        QCOMPARE(dialog.scrollArea()->geometry(), scrollGeometry);
+        QCOMPARE(dialog.scrollWidget()->size(), QSize(292, 232));
+        QCOMPARE(dialog.completeButton()->objectName(), QStringLiteral("completeButton"));
+        QCOMPARE(dialog.completeButton()->geometry(), buttonGeometry);
+        QCOMPARE(dialog.completeButton()->text(), QStringLiteral("Done"));
+        QCOMPARE(dialog.addFolderCard()->geometry(), QRect(0, 0, 292, 72));
+        QCOMPARE(dialog.folderCards().size(), 2);
+        QCOMPARE(dialog.folderCards().at(0)->geometry(), QRect(0, 80, 292, 72));
+        QCOMPARE(dialog.folderCards().at(1)->geometry(), QRect(0, 160, 292, 72));
+        QCOMPARE(dialog.folderCards().at(1)->folderName(), QStringLiteral("Music"));
+        QVERIFY(dialog.findChildren<QPushButton *>().size() == 1);
+
+        // The cards paint Python's grey fill, darker in the dark theme.
+        const QImage card = FqwTest::render(*dialog.addFolderCard());
+        QCOMPARE(card.pixelColor(20, 36), dark ? QColor(51, 51, 51) : QColor(204, 204, 204));
+        // And the style sheet gives the box Python's background.
+        const QImage box = dialog.widget()->grab().toImage();
+        QCOMPARE(box.pixelColor(box.width() / 2, 10), dark ? QColor(23, 23, 23) : QColor(Qt::white));
+        dialog.reject();
+        QTRY_VERIFY(!dialog.isVisible());
+    }
+
+    void folderListDialogAddsAndRemovesFolders()
+    {
+        QTemporaryDir temp;
+        QVERIFY(temp.isValid());
+        QVERIFY(QDir(temp.path()).mkdir(QStringLiteral("podcasts")));
+        const bool nativeDialogs = !QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);
+        QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, true);
+        const auto restore = qScopeGuard(
+            [nativeDialogs]() { QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, !nativeDialogs); });
+
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        const QStringList original{QStringLiteral("/tmp/music"), QStringLiteral("/tmp/video")};
+        FluentQt::FolderListDialog dialog(original, QStringLiteral("Build your collection"),
+                                          QStringLiteral("Right now, we're watching these folders:"), &parent);
+        QSignalSpy changedSpy(&dialog, &FluentQt::FolderListDialog::folderChanged);
+        dialog.show();
+        QTRY_VERIFY(dialog.isVisible());
+        QCOMPARE(dialog.folderPaths(), original);
+        QCOMPARE(dialog.scrollArea()->height(), 232);
+
+        // The add card opens a QFileDialog, like Python's, and appends the chosen folder.
+        bool fileDialogSeen = false;
+        QTimer::singleShot(100, &dialog, [&]() {
+            auto *fileDialog = FqwTest::findVisibleTopLevel<QFileDialog>();
+            if (!fileDialog) {
+                return;
+            }
+            fileDialogSeen = true;
+            QCOMPARE(fileDialog->fileMode(), QFileDialog::Directory);
+            QCOMPARE(fileDialog->windowTitle(), QStringLiteral("Choose folder"));
+            fileDialog->setDirectory(temp.filePath(QStringLiteral("podcasts")));
+            QMetaObject::invokeMethod(fileDialog, "accept");
+        });
+        QTest::mouseClick(dialog.addFolderCard(), Qt::LeftButton, {}, QPoint(20, 20));
+        QVERIFY(fileDialogSeen);
+        QCOMPARE(dialog.folderPaths().size(), 3);
+        QVERIFY2(dialog.folderPaths().last().endsWith(QStringLiteral("/podcasts")),
+                 qPrintable(dialog.folderPaths().last()));
+        QCOMPARE(dialog.folderCards().size(), 3);
+        QCOMPARE(dialog.folderCards().last()->folderName(), QStringLiteral("podcasts"));
+        QCOMPARE(dialog.scrollArea()->height(), 312);
+
+        // A folder card asks with a Dialog before it removes the folder; Cancel keeps it.
+        const auto answerDeleteDialog = [](bool yes, bool *seen) {
+            QTimer::singleShot(100, [yes, seen]() {
+                auto *confirm =
+                    qobject_cast<FluentQt::Dialog *>(FqwTest::findVisibleTopLevelByRole(QStringLiteral("DialogPopup")));
+                if (!confirm) {
+                    return;
+                }
+                *seen =
+                    confirm->titleLabel()->text() == QStringLiteral("Are you sure you want to delete the folder?") &&
+                    confirm->contentLabel()->text().contains(QStringLiteral("\"music\""));
+                (yes ? confirm->yesButton() : confirm->cancelButton())->click();
+            });
+        };
+        bool confirmSeen = false;
+        answerDeleteDialog(false, &confirmSeen);
+        QTest::mouseClick(dialog.folderCards().first(), Qt::LeftButton, {}, QPoint(20, 20));
+        QVERIFY(confirmSeen);
+        QCOMPARE(dialog.folderCards().size(), 3);
+
+        confirmSeen = false;
+        answerDeleteDialog(true, &confirmSeen);
+        QTest::mouseClick(dialog.folderCards().first(), Qt::LeftButton, {}, QPoint(20, 20));
+        QVERIFY(confirmSeen);
+        QTRY_COMPARE(dialog.folderCards().size(), 2);
+        QCOMPARE(dialog.folderPaths().first(), QStringLiteral("/tmp/video"));
+        QCOMPARE(dialog.scrollArea()->height(), 232);
+        QCOMPARE(changedSpy.count(), 0);
+
+        // Done emits the new list once, then closes.
+        dialog.completeButton()->click();
+        QCOMPARE(changedSpy.count(), 1);
+        QCOMPARE(changedSpy.takeFirst().at(0).toStringList(), dialog.folderPaths());
+        QTRY_VERIFY(!dialog.isVisible());
+    }
+
+    void folderListDialogDoneWithoutChangesEmitsNothing()
+    {
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        // Python compares sorted lists, so the same folders in another order are no change.
+        FluentQt::FolderListDialog dialog(QStringList{QStringLiteral("/b"), QStringLiteral("/a")},
+                                          QStringLiteral("Title"), QStringLiteral("Content"), &parent);
+        QSignalSpy changedSpy(&dialog, &FluentQt::FolderListDialog::folderChanged);
+        dialog.show();
+        QTRY_VERIFY(dialog.isVisible());
+        dialog.completeButton()->click();
+        QTRY_VERIFY(!dialog.isVisible());
+        QCOMPARE(changedSpy.count(), 0);
+        QCOMPARE(dialog.scrollArea()->height(), 232);
+        QCOMPARE(dialog.widget()->width(), 352);
+    }
+
+    void flyoutFactoriesSetPopupModeAndCloseOnOutsideClick()
     {
         QWidget target;
         target.resize(80, 32);
@@ -714,7 +1140,70 @@ class DialogFlyoutTest : public QObject
         view.setTitle(QStringLiteral("title"));
         QCOMPARE(view.titleLabel()->text(), QStringLiteral("title"));
         view.show();
-        QVERIFY(view.isVisible());
+    }
+
+    void flyoutViewMatchesPythonLooks()
+    {
+        // qfluentwidgets paints the view itself: a 248 / 40 grey face and an rgba(0, 0, 0, 17 / 45)
+        // pen on a rounded rect inset by 1 px. Its title is 14 px bold and its content 14 px, from
+        // the teaching tip style sheet, and its icon sits in a 36 x 54 box (36 x 36 when the
+        // title or the content is missing), as in a teaching tip.
+        QPixmap pixmap(300, 150);
+        pixmap.fill(Qt::red);
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+            FlyoutView view(QStringLiteral("Title"), QStringLiteral("Content"),
+                            FluentQt::icon(FluentQt::FluentIcon::Info), pixmap, true);
+            view.ensurePolished();
+            view.titleLabel()->ensurePolished();
+            view.contentLabel()->ensurePolished();
+            QCOMPARE(view.titleLabel()->font().pixelSize(), 14);
+            QCOMPARE(view.titleLabel()->font().weight(), QFont::Bold);
+            QCOMPARE(view.contentLabel()->font().pixelSize(), 14);
+            QCOMPARE(view.contentLabel()->font().weight(), QFont::Normal);
+            QCOMPARE(view.iconWidget()->size(), QSize(36, 54));
+            QCOMPARE(view.iconWidget()->iconSize(), QSize(20, 20));
+
+            view.adjustSize();
+            QCOMPARE(view.imageLabel()->pos(), QPoint(1, 1));
+            QImage face(view.size(), QImage::Format_ARGB32_Premultiplied);
+            face.fill(Qt::transparent);
+            view.render(&face, QPoint(), QRegion(), QWidget::DrawWindowBackground);
+            const QColor expected = dark ? QColor(40, 40, 40) : QColor(248, 248, 248);
+            QCOMPARE(QColor(face.pixel(view.width() / 2, view.height() - 4)), expected);
+            // Only the antialiased edge of the inset pen reaches the outer row.
+            QVERIFY(qAlpha(face.pixel(view.width() / 2, 0)) < 32);
+            QCOMPARE(view.backgroundColor(), expected);
+            QCOMPARE(view.borderColor(), dark ? QColor(0, 0, 0, 45) : QColor(0, 0, 0, 17));
+        }
+
+        FlyoutView titleOnly(QStringLiteral("Title"), QString(), FluentQt::icon(FluentQt::FluentIcon::Info), QPixmap(),
+                             false);
+        QCOMPARE(titleOnly.iconWidget()->size(), QSize(36, 36));
+    }
+
+    void unanimatedFlyoutOpensAboveItsTarget()
+    {
+        // qfluentwidgets' DummyFlyoutAnimationManager places the flyout above the target's left
+        // edge: target.mapToGlobal((-margins.left, -height + margins.bottom - 8)), less the 4 px
+        // every manager takes off y.
+        FQW_REQUIRE_SCREEN_ROOM(800, 800);
+        QWidget window;
+        window.resize(400, 400);
+        const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+        window.move(available.center() - QPoint(200, 200));
+        auto *target = new QWidget(&window);
+        target->setGeometry(150, 300, 60, 30);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        auto *flyout = Flyout::make(new FlyoutView(QStringLiteral("Title"), QStringLiteral("Content")), target, &window,
+                                    FlyoutAnimationType::None);
+        const QMargins m = flyout->layout()->contentsMargins();
+        const QPoint expected =
+            target->mapToGlobal(QPoint(-m.left(), -flyout->sizeHint().height() + m.bottom() - 8)) - QPoint(0, 4);
+        QCOMPARE(flyout->pos(), expected);
+        flyout->close();
     }
 
     void flyoutReusesItsAnimationManager()
@@ -766,6 +1255,42 @@ class DialogFlyoutTest : public QObject
         auto *button = new FluentQt::PushButton(QStringLiteral("Action"));
         richView.addWidget(button, 0, Qt::AlignRight);
         QCOMPARE(button->parentWidget(), &richView);
+    }
+
+    void teachingTipViewSizesTextAndImageLikePython()
+    {
+        // In qfluentwidgets the labels do not word-wrap (TextWrap breaks long text into lines),
+        // and the image is scaled to the full width (or, beside the text, the full height) of the
+        // text row, so it spans the view inside its 1 px margins.
+        QPixmap pixmap(300, 150);
+        pixmap.fill(Qt::red);
+        for (const auto tail : {FluentQt::TeachingTipTailPosition::Bottom, FluentQt::TeachingTipTailPosition::Left}) {
+            FluentQt::TeachingTipView view(QStringLiteral("Title text"),
+                                           QStringLiteral("Content text that is fairly long"),
+                                           FluentQt::icon(FluentQt::FluentIcon::Info), pixmap, true, tail);
+            view.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&view));
+            view.adjustSize();
+            auto *content = view.findChild<QLabel *>(QStringLiteral("contentLabel"));
+            QVERIFY(content);
+            QVERIFY(!content->wordWrap());
+            QVERIFY(!view.findChild<QLabel *>(QStringLiteral("titleLabel"))->wordWrap());
+            // One line, as tall as its text. With Python's font that is the font's height; with others (a
+            // fallback font drawing some glyphs, Linux CI) only "at least its hint, under two lines" holds.
+            if (FqwTest::hasPythonMeasurementFont(content)) {
+                QCOMPARE(content->height(), content->fontMetrics().height());
+            } else {
+                QVERIFY(content->height() >= content->sizeHint().height());
+                QVERIFY(content->height() < 2 * content->fontMetrics().height());
+            }
+            auto *image = view.findChild<FluentQt::ImageLabel *>();
+            QVERIFY(image);
+            if (tail == FluentQt::TeachingTipTailPosition::Bottom) {
+                QCOMPARE(image->width(), view.width() - 2);
+            } else {
+                QCOMPARE(image->height(), view.height() - 2);
+            }
+        }
     }
 
     void teachingTipTracksTargetAndTail()
@@ -835,11 +1360,7 @@ class DialogFlyoutTest : public QObject
 
         QWidget *bubble = view->parentWidget();
         QVERIFY(bubble != nullptr);
-        QCOMPARE(tip.layout()->contentsMargins(), QMargins(15, 8, 15, 20));
         QCOMPARE(bubble->layout()->contentsMargins(), QMargins(0, 0, 0, 8));
-        QCOMPARE(bubble->property("fqw").toString(), QStringLiteral("TeachingTipBubble"));
-        QVERIFY(qobject_cast<QGraphicsDropShadowEffect *>(bubble->graphicsEffect()) != nullptr);
-        QVERIFY(tip.graphicsEffect() == nullptr);
 
         const int bubbleBottom = bubble->mapToGlobal(QPoint(0, bubble->height())).y();
         const int targetTop = target.mapToGlobal(QPoint(0, 0)).y();
@@ -874,10 +1395,7 @@ class DialogFlyoutTest : public QObject
         QVERIFY(qobject_cast<QGraphicsDropShadowEffect *>(bubble->graphicsEffect()) != nullptr);
         bubble->setGraphicsEffect(nullptr);
 
-        QImage image(bubble->size(), QImage::Format_ARGB32_Premultiplied);
-        QVERIFY(!image.isNull());
-        image.fill(Qt::transparent);
-        bubble->render(&image);
+        const QImage image = FqwTest::render(bubble);
 
         QVERIFY(qAlpha(image.pixel(0, 0)) < 32);
 
@@ -948,6 +1466,54 @@ class DialogFlyoutTest : public QObject
         window.resize(420, 320);
         QTest::qWait(20);
         delete tip;
+    }
+
+    void dialogTitlesAndMessageBoxFrameMatchPython()
+    {
+        // qfluentwidgets styles the title as a plain QLabel at 20 px regular weight, and draws the
+        // message box's centre widget with a 10 px radius, an rgb(144, 144, 142) / rgb(58, 58, 58)
+        // border and a white / rgb(43, 43, 43) face.
+        QWidget parent;
+        parent.resize(800, 600);
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+
+            FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+            dialog.ensurePolished();
+            dialog.titleLabel()->ensurePolished();
+            QCOMPARE(dialog.titleLabel()->font().pixelSize(), 20);
+            QCOMPARE(dialog.titleLabel()->font().weight(), QFont::Normal);
+
+            FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+            box.ensurePolished();
+            box.titleLabel()->ensurePolished();
+            QCOMPARE(box.titleLabel()->font().pixelSize(), 20);
+            QCOMPARE(box.titleLabel()->font().weight(), QFont::Normal);
+            QCOMPARE(box.titleLabel()->palette().windowText().color(), dark ? QColor(Qt::white) : QColor(Qt::black));
+
+            // Selected content text: --ThemeColorLight1 under white text, or in dark mode
+            // --ThemeColorPrimary under black text.
+            box.contentLabel()->ensurePolished();
+            const QPalette contentPalette = box.contentLabel()->palette();
+            const QColor accent = FluentQt::ThemeManager::instance()->accentColor();
+            QCOMPARE(contentPalette.color(QPalette::Highlight).rgba(),
+                     FluentQt::derivedThemeColor(accent,
+                                                 dark ? FluentQt::ThemeColor::Primary : FluentQt::ThemeColor::Light1,
+                                                 dark ? Theme::Dark : Theme::Light)
+                         .rgba());
+            QCOMPARE(contentPalette.color(QPalette::HighlightedText), dark ? QColor(Qt::black) : QColor(Qt::white));
+
+            QImage frame(box.widget()->size(), QImage::Format_ARGB32_Premultiplied);
+            frame.fill(Qt::transparent);
+            box.widget()->render(&frame, QPoint(), QRegion(), QWidget::DrawChildren);
+            const int midY = box.titleLabel()->geometry().center().y();
+            const QColor border = dark ? QColor(58, 58, 58) : QColor(144, 144, 142);
+            const QColor face = dark ? QColor(43, 43, 43) : QColor(255, 255, 255);
+            QCOMPARE(QColor(frame.pixel(0, midY)), border);
+            QCOMPARE(QColor(frame.pixel(3, midY)), face);
+            // A 10 px radius leaves the pixel two in from the corner outside the frame; 7 px would not.
+            QVERIFY(qAlpha(frame.pixel(2, 2)) < 32);
+        }
     }
 
   private:

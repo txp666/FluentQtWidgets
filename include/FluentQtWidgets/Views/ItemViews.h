@@ -93,6 +93,7 @@ class FQW_API TreeItemDelegate : public TableItemDelegate
 
     void setHoverIndex(const QModelIndex &index);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
   protected:
     void drawBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;

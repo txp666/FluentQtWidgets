@@ -1,73 +1,12 @@
 // Flow, adaptive flow, expand and box layouts, and separators.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <functional>
-#include <QtCore/QBuffer>
 #include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
-#include <QtGui/QStandardItem>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
 
 #include "TestSupport.h"
 
@@ -194,11 +133,10 @@ class LayoutTest : public QObject
         delete layout->itemAt(0)->widget();
         parent.resize(300, 200);
         parent.show();
-        QTest::qWait(50);
-        QCOMPARE(layout->count(), 2);
+        QTRY_COMPARE(layout->count(), 2);
     }
 
-    void adaptiveAndExpandLayoutsMatchPythonGeometry()
+    void adaptiveFlowAndExpandLayoutsPlaceWidgets()
     {
         QWidget adaptiveParent;
         FluentQt::AdaptiveFlowLayout adaptiveLayout(&adaptiveParent);
@@ -269,7 +207,7 @@ class LayoutTest : public QObject
         QCOMPARE(expandLayout.count(), 1);
     }
 
-    void vBoxLayoutTracksWidgetsLikePythonReference()
+    void vBoxLayoutAddRemoveDeleteKeepWidgetList()
     {
         QWidget parent;
         FluentQt::VBoxLayout layout(&parent);
@@ -321,16 +259,8 @@ class LayoutTest : public QObject
         QCOMPARE(layout->widgets().size(), 0);
     }
 
-    void separatorsMatchPythonMetricsAndThemeColors()
+    void separatorsAreThreePixelsAndPaintInBothThemes()
     {
-        auto render = [](QWidget &widget, const QColor &background) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(background);
-            widget.render(&pixmap);
-            return pixmap.toImage();
-        };
-
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
         FluentQt::HorizontalSeparator horizontal;
@@ -338,7 +268,7 @@ class LayoutTest : public QObject
         QCOMPARE(horizontal.property("fqw").toString(), QStringLiteral("HorizontalSeparator"));
         QCOMPARE(horizontal.height(), 3);
 
-        QImage horizontalImage = render(horizontal, Qt::white);
+        QImage horizontalImage = FqwTest::render(horizontal, Qt::white);
         int lightPaintedPixels = 0;
         for (int y = 0; y < horizontalImage.height(); ++y) {
             for (int x = 0; x < horizontalImage.width(); ++x) {
@@ -355,7 +285,7 @@ class LayoutTest : public QObject
         QCOMPARE(vertical.property("fqw").toString(), QStringLiteral("VerticalSeparator"));
         QCOMPARE(vertical.width(), 3);
 
-        QImage verticalImage = render(vertical, Qt::white);
+        QImage verticalImage = FqwTest::render(vertical, Qt::white);
         int verticalPaintedPixels = 0;
         for (int y = 0; y < verticalImage.height(); ++y) {
             for (int x = 0; x < verticalImage.width(); ++x) {
@@ -368,7 +298,7 @@ class LayoutTest : public QObject
         QVERIFY(verticalPaintedPixels > 0);
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Dark);
-        horizontalImage = render(horizontal, Qt::black);
+        horizontalImage = FqwTest::render(horizontal, Qt::black);
         int darkPaintedPixels = 0;
         for (int y = 0; y < horizontalImage.height(); ++y) {
             for (int x = 0; x < horizontalImage.width(); ++x) {

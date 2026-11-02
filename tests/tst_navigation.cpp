@@ -1,89 +1,27 @@
 // Navigation interface, panel, bar and history, pivots, segmented controls, breadcrumbs and tabs.
 
-#include <array>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
 #include <FluentQtWidgets/Navigation/NavigationHistory.h>
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
 #include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
 #include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <limits>
-#include <QtCore/QDir>
-#include <QtCore/QEventLoop>
-#include <QtCore/QFile>
-#include <QtCore/QJsonArray>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
+#include <QtCore/QPropertyAnimation>
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QContextMenuEvent>
+#include <QtCore/QVariantAnimation>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
-#include <QtGui/QPalette>
-#include <QtGui/QPixmap>
 #include <QtGui/QRegion>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyle>
-#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <array>
 
 #include "TestSupport.h"
 
@@ -104,83 +42,152 @@ class NavigationTest : public QObject
         m_globalState.reset();
     }
 
-    void navigationInterfaceTracksRouteKeys()
+    // Python's NavigationInterface wraps a NavigationPanel and holds no pages; the port's also kept
+    // the page stack, the route keys and the current page.
+    void navigationInterfaceWrapsThePanel()
     {
-        FluentQt::NavigationInterface navigation;
-        auto *home = new QWidget;
-        auto *settings = new QWidget;
-        auto *duplicate = new QWidget;
+        QWidget window;
+        window.resize(1200, 700);
+        auto *navigation = new FluentQt::NavigationInterface(&window);
+        QVERIFY(navigation->findChildren<QStackedWidget *>().isEmpty());
+        QCOMPARE(navigation->panel()->parentWidget(), navigation);
+        QCOMPARE(navigation->width(), 48);
+        QCOMPARE(navigation->minimumWidth(), 48);
+        QVERIFY(navigation->testAttribute(Qt::WA_TranslucentBackground));
+        QVERIFY(navigation->panel()->isMenuButtonVisible());
+        QVERIFY(!navigation->panel()->isReturnButtonVisible());
 
-        QCOMPARE(navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home")), 0);
-        QCOMPARE(navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings")), 1);
-        QCOMPARE(navigation.addPage(duplicate, QStringLiteral("Duplicate"), QIcon(), QStringLiteral("home")), -1);
-        delete duplicate;
+        QSignalSpy clicked(navigation->panel(), &FluentQt::NavigationPanel::itemClicked);
+        auto *home = navigation->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"),
+                                         FluentQt::NavigationItemPosition::Top);
+        const int heightWithHome = navigation->minimumHeight();
+        QCOMPARE(heightWithHome, navigation->panel()->layoutMinHeight());
+        QCOMPARE(heightWithHome, 124); // Python's, measured
+        navigation->addItem(QStringLiteral("settings"), QIcon(), QStringLiteral("Settings"),
+                            FluentQt::NavigationItemPosition::Bottom);
+        QCOMPARE(navigation->minimumHeight(), heightWithHome + 36 + 4);
+        QFrame *separator = navigation->insertSeparator(0, FluentQt::NavigationItemPosition::Top);
+        QVERIFY(separator != nullptr);
+        // Python's layoutMinHeight() counts a separator in its layout and again on its own: +14.
+        QCOMPARE(navigation->minimumHeight(), heightWithHome + 40 + 14);
+        QCOMPARE(navigation->widget(QStringLiteral("home")), home);
 
-        QVERIFY(navigation.addSeparator(FluentQt::NavigationItemPosition::Scroll) != nullptr);
-        QCOMPARE(navigation.count(), 2);
-        QCOMPARE(navigation.currentIndex(), 0);
-        QCOMPARE(navigation.currentRouteKey(), QStringLiteral("home"));
-        QCOMPARE(navigation.navigationPanel()->currentRouteKey(), QStringLiteral("home"));
-        QCOMPARE(navigation.routeKeys(), QList<QString>({QStringLiteral("home"), QStringLiteral("settings")}));
-        QCOMPARE(navigation.widget(QStringLiteral("settings")), settings);
-        QVERIFY(navigation.contains(QStringLiteral("home")));
+        navigation->setCurrentItem(QStringLiteral("settings"));
+        QCOMPARE(navigation->panel()->currentRouteKey(), QStringLiteral("settings"));
 
-        QSignalSpy indexSpy(&navigation, &FluentQt::NavigationInterface::currentIndexChanged);
-        QSignalSpy routeSpy(&navigation, &FluentQt::NavigationInterface::currentRouteKeyChanged);
-        QSignalSpy itemSpy(&navigation, &FluentQt::NavigationInterface::navigationItemClicked);
-        navigation.setCurrentRouteKey(QStringLiteral("settings"));
-        QCOMPARE(navigation.currentIndex(), 1);
-        QCOMPARE(navigation.currentWidget(), settings);
-        QCOMPARE(indexSpy.count(), 1);
-        QCOMPARE(routeSpy.takeFirst().at(0).toString(), QStringLiteral("settings"));
-
-        auto *support = navigation.addItem(QStringLiteral("support"), QIcon(), QStringLiteral("Support"),
-                                           FluentQt::NavigationItemPosition::Bottom, QString(), false);
-        QVERIFY(support != nullptr);
+        auto *support = navigation->addItem(QStringLiteral("support"), QIcon(), QStringLiteral("Support"),
+                                            FluentQt::NavigationItemPosition::Bottom, QString(), false);
         QCOMPARE(support->isSelectable(), false);
         QCOMPARE(support->cursor().shape(), Qt::PointingHandCursor);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
         QTest::mouseClick(support, Qt::LeftButton, Qt::NoModifier, support->rect().center());
-        QCOMPARE(navigation.currentRouteKey(), QStringLiteral("settings"));
-        QCOMPARE(itemSpy.count(), 1);
-        QCOMPARE(itemSpy.takeFirst().at(0).toInt(), -1);
+        QCOMPARE(clicked.size(), 1);
+        QCOMPARE(clicked.takeFirst().at(0).toString(), QStringLiteral("support"));
+        QCOMPARE(navigation->panel()->currentRouteKey(), QStringLiteral("settings"));
 
-        QPointer<QWidget> homePointer(home);
-        QPointer<QWidget> settingsPointer(settings);
-        QVERIFY(navigation.removePage(QStringLiteral("home")));
-        QCOMPARE(navigation.count(), 1);
-        QCOMPARE(navigation.currentIndex(), 0);
-        QCOMPARE(navigation.currentRouteKey(), QStringLiteral("settings"));
-        QCOMPARE(indexSpy.count(), 2);
-        QCOMPARE(routeSpy.count(), 0);
-        QVERIFY(!homePointer.isNull());
-        delete home;
+        navigation->removeWidget(QStringLiteral("support"));
+        QCOMPARE(navigation->widget(QStringLiteral("support")), nullptr);
 
-        QVERIFY(navigation.removePage(QStringLiteral("settings")));
-        QCOMPARE(navigation.count(), 0);
-        QCOMPARE(navigation.currentIndex(), -1);
-        QCOMPARE(navigation.currentRouteKey(), QString());
-        QCOMPARE(routeSpy.takeFirst().at(0).toString(), QString());
-        QVERIFY(!settingsPointer.isNull());
-        delete settings;
+        // The return button and a panel that cannot collapse, as Python's constructor arguments.
+        FluentQt::NavigationInterface fixed(nullptr, true, true, false);
+        QVERIFY(!fixed.panel()->isMenuButtonVisible());
+        QVERIFY(fixed.panel()->isReturnButtonVisible());
+        QVERIFY(!fixed.panel()->isCollapsible());
+        QCOMPARE(fixed.panel()->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+    }
+
+    // The interface is as wide as the panel when compact or expanded in place, so a window layout
+    // gives the rest to the content; as a menu the panel moves onto the window, over the content,
+    // and the interface stays 48 px.
+    // Python's addItem(), addWidget(), addSeparator() and addItemHeader() and FluentWindow's
+    // addSubInterface() default to NavigationItemPosition.TOP: the items stay put above the
+    // scroll area unless asked for SCROLL.
+    void navigationItemsDefaultToTheTop()
+    {
+        NavigationInterface navigation;
+        auto *scrollArea = navigation.panel()->findChild<FluentQt::ScrollArea *>();
+        QVERIFY(scrollArea);
+        NavigationTreeWidget *item = navigation.addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        QFrame *separator = navigation.addSeparator();
+        QWidget *header = navigation.addItemHeader(QStringLiteral("Header"));
+        auto *widget = new NavigationAvatarWidget(QStringLiteral("zhiyiYo"));
+        navigation.addWidget(QStringLiteral("avatar"), widget);
+        for (QWidget *added : std::initializer_list<QWidget *>{item, separator, header, widget}) {
+            QVERIFY(added);
+            QVERIFY(!scrollArea->isAncestorOf(added));
+        }
+        NavigationTreeWidget *scrolled = navigation.addItem(QStringLiteral("music"), QIcon(), QStringLiteral("Music"),
+                                                            NavigationItemPosition::Scroll);
+        QVERIFY(scrollArea->isAncestorOf(scrolled));
+
+        FluentWindow window;
+        window.addSubInterface(new QWidget, QIcon(), QStringLiteral("Page"), QStringLiteral("page"));
+        auto *windowScrollArea = window.navigationInterface()->panel()->findChild<FluentQt::ScrollArea *>();
+        QVERIFY(windowScrollArea);
+        QWidget *pageItem = window.navigationInterface()->panel()->widget(QStringLiteral("page"));
+        QVERIFY(pageItem);
+        QVERIFY(!windowScrollArea->isAncestorOf(pageItem));
+    }
+
+    void navigationInterfaceFollowsThePanelWidth()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(0);
+        auto *navigation = new FluentQt::NavigationInterface(&window);
+        auto *content = new QWidget(&window);
+        layout->addWidget(navigation);
+        layout->addWidget(content, 1);
+        navigation->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        window.resize(1200, 700);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCOMPARE(navigation->width(), 48);
+        QCOMPARE(navigation->panel()->height(), navigation->height());
+
+        QSignalSpy modes(navigation, &FluentQt::NavigationInterface::displayModeChanged);
+        navigation->expand(false);
+        QCOMPARE(navigation->panel()->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+        QCOMPARE(modes.size(), 1);
+        QCOMPARE(navigation->width(), 322);
+        QTRY_COMPARE(content->x(), 322);
+
+        navigation->panel()->collapse(false);
+        QCOMPARE(navigation->width(), 48);
+        QTRY_COMPARE(content->x(), 48);
+
+        // Too narrow to expand in place: a menu over the content.
+        window.resize(800, 700);
+        navigation->expand(false);
+        FluentQt::NavigationPanel *panel = navigation->panel();
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
+        QCOMPARE(panel->parentWidget(), &window);
+        QCOMPARE(panel->width(), 322);
+        QCOMPARE(navigation->width(), 48);
+        QCOMPARE(window.childAt(QPoint(200, 300)) == panel || panel->isAncestorOf(window.childAt(QPoint(200, 300))),
+                 true);
+
+        panel->collapse(false);
+        QCOMPARE(panel->parentWidget(), navigation);
+        QCOMPARE(panel->pos(), QPoint(0, 0));
+        QVERIFY(panel->isVisible());
+        QCOMPARE(navigation->width(), 48);
     }
 
     void navigationInterfaceSupportsNestedRouteItems()
     {
         FluentQt::NavigationInterface navigation;
-        auto *root = new QWidget;
-        auto *child = new QWidget;
+        navigation.addItem(QStringLiteral("albums"), QIcon(), QStringLiteral("Albums"));
+        navigation.addItem(QStringLiteral("album1"), QIcon(), QStringLiteral("Album 1"),
+                           FluentQt::NavigationItemPosition::Scroll, QStringLiteral("albums"));
+        QVERIFY(navigation.panel()->widget(QStringLiteral("albums")) != nullptr);
+        QVERIFY(navigation.widget(QStringLiteral("album1")) != nullptr);
+        QCOMPARE(navigation.panel()->widget(QStringLiteral("albums"))->childItems().size(), 1);
 
-        QCOMPARE(navigation.addPage(root, QStringLiteral("Albums"), QIcon(), QStringLiteral("albums")), 0);
-        QCOMPARE(navigation.addPage(child, QStringLiteral("Album 1"), QIcon(), QStringLiteral("album1"),
-                                    FluentQt::NavigationItemPosition::Scroll, QStringLiteral("albums")),
-                 1);
-        QVERIFY(navigation.navigationPanel()->widget(QStringLiteral("albums")) != nullptr);
-        QVERIFY(navigation.navigationPanel()->widget(QStringLiteral("album1")) != nullptr);
-        QCOMPARE(navigation.navigationPanel()->widget(QStringLiteral("albums"))->childItems().size(), 1);
-
-        navigation.setCurrentRouteKey(QStringLiteral("album1"));
-        QCOMPARE(navigation.currentWidget(), child);
-        QCOMPARE(navigation.navigationPanel()->currentRouteKey(), QStringLiteral("album1"));
+        navigation.setCurrentItem(QStringLiteral("album1"));
+        QCOMPARE(navigation.panel()->currentRouteKey(), QStringLiteral("album1"));
     }
 
     void navigationInterfaceSupportsCustomWidgetsAndHeaders()
@@ -192,15 +199,17 @@ class NavigationTest : public QObject
         QVERIFY(header->isCompacted());
         QCOMPARE(header->height(), 0);
 
-        navigation.navigationPanel()->expand(false);
+        // As in Python, the header's height animates even when the panel does not.
+        navigation.panel()->expand(false);
         QVERIFY(!header->isCompacted());
-        QCOMPARE(header->height(), 30);
+        QVERIFY(header->height() < 30);
+        QTRY_COMPARE(header->height(), 30);
 
         auto *avatar = new FluentQt::NavigationAvatarWidget(QStringLiteral("zhiyiYo"));
         QCOMPARE(navigation.addWidget(QStringLiteral("avatar"), avatar, FluentQt::NavigationItemPosition::Bottom),
                  avatar);
-        QCOMPARE(navigation.navigationPanel()->navigationWidget(QStringLiteral("avatar")), avatar);
-        QVERIFY(navigation.navigationPanel()->widget(QStringLiteral("avatar")) == nullptr);
+        QCOMPARE(navigation.panel()->navigationWidget(QStringLiteral("avatar")), avatar);
+        QVERIFY(navigation.panel()->widget(QStringLiteral("avatar")) == nullptr);
         QCOMPARE(avatar->name(), QStringLiteral("zhiyiYo"));
 
         auto *userCard = navigation.addUserCard(QStringLiteral("user"), QIcon(), QStringLiteral("User"),
@@ -210,37 +219,19 @@ class NavigationTest : public QObject
         QCOMPARE(userCard->subtitle(), QStringLiteral("user@example.com"));
         QCOMPARE(userCard->size(), QSize(312, 80));
 
-        navigation.navigationPanel()->collapse(false);
+        navigation.panel()->collapse(false);
         QVERIFY(header->isCompacted());
-        QCOMPARE(header->height(), 0);
+        QTRY_COMPARE(header->height(), 0);
+        QTRY_VERIFY(header->isHidden());
         QCOMPARE(userCard->size(), QSize(40, 36));
     }
 
-    void navigationInterfaceUsesPopUpStackAnimation()
-    {
-        FluentQt::NavigationInterface navigation;
-        auto *home = new QWidget;
-        auto *settings = new QWidget;
-
-        QCOMPARE(navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home")), 0);
-        QCOMPARE(navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings")), 1);
-
-        auto *stack = qobject_cast<FluentQt::PopUpAniStackedWidget *>(navigation.stackedWidget());
-        QVERIFY(stack != nullptr);
-        QSignalSpy startSpy(stack, &FluentQt::PopUpAniStackedWidget::aniStart);
-        QSignalSpy finishedSpy(stack, &FluentQt::PopUpAniStackedWidget::aniFinished);
-
-        navigation.setCurrentRouteKey(QStringLiteral("settings"));
-        QCOMPARE(startSpy.count(), 1);
-        QCOMPARE(navigation.currentIndex(), 1);
-        QCOMPARE(navigation.currentWidget(), settings);
-        QTRY_COMPARE(finishedSpy.count(), 1);
-    }
-
-    void navigationInterfaceCompactBackgroundStaysOpaqueWithAcrylicEnabled()
+    // Acrylic is for the menu only; compact, the panel is transparent as Python's
+    // (NavigationPanel[menu=false]) and the window's background shows through. The port's
+    // interface painted its own window-coloured strip behind it.
+    void navigationInterfaceCompactPanelShowsTheWindowWithAcrylicEnabled()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Dark);
 
         FluentQt::NavigationInterface navigation(nullptr, true);
@@ -249,54 +240,10 @@ class NavigationTest : public QObject
         navigation.show();
         QVERIFY(QTest::qWaitForWindowExposed(&navigation));
 
-        QVERIFY(!navigation.navigationPanel()->property("transparent").toBool());
+        QVERIFY(!navigation.panel()->property("transparent").toBool());
 
-        QImage image(navigation.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        navigation.render(&image);
-        const QColor background = image.pixelColor(8, 100);
-        QCOMPARE(background.alpha(), 255);
-        QCOMPARE(background.red(), 32);
-        QCOMPARE(background.green(), 32);
-        QCOMPARE(background.blue(), 32);
-
-        theme->setTheme(previousTheme);
-    }
-
-    void navigationInterfacePanelStaysAboveContent()
-    {
-        FluentQt::NavigationInterface navigation;
-        navigation.resize(960, 640);
-
-        auto *home = new QWidget;
-        auto *settings = new QWidget;
-        navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home"));
-        navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings"));
-
-        navigation.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&navigation));
-
-        auto *panel = navigation.navigationPanel();
-        panel->expand(false);
-        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
-        QVERIFY(panel->width() > FluentQt::NavigationPanel::kCompactWidth);
-
-        const QPoint overlayPoint(FluentQt::NavigationPanel::kCompactWidth + 20, 100);
-        auto isPanelHit = [&navigation, panel, overlayPoint]() {
-            QWidget *hit = navigation.childAt(overlayPoint);
-            return hit == panel || (hit && panel->isAncestorOf(hit));
-        };
-        QVERIFY(isPanelHit());
-
-        navigation.stackedWidget()->parentWidget()->raise();
-        QVERIFY(!isPanelHit());
-        navigation.stackedWidget()->setCurrentIndex(1);
-        QTRY_VERIFY(isPanelHit());
-
-        navigation.stackedWidget()->parentWidget()->raise();
-        QVERIFY(!isPanelHit());
-        navigation.setCurrentRouteKey(QStringLiteral("home"));
-        QTRY_VERIFY(isPanelHit());
+        const QImage image = FqwTest::render(navigation, Qt::transparent, QWidget::DrawChildren);
+        QCOMPARE(image.pixelColor(8, 100).alpha(), 0);
     }
 
     void navigationPanelMenuButtonTogglesExpansion()
@@ -371,9 +318,7 @@ class NavigationTest : public QObject
         item.resize(40, 36);
 
         auto iconCenterX = [](QWidget *widget) {
-            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            widget->render(&image);
+            const QImage image = FqwTest::render(widget);
 
             int left = image.width();
             int right = -1;
@@ -392,21 +337,9 @@ class NavigationTest : public QObject
         QCOMPARE(iconCenterX(&menuButton), iconCenterX(&item));
     }
 
-    void navigationToolButtonClicksWhenNotSelectable()
-    {
-        FluentQt::NavigationToolButton button(FluentQt::icon(FluentQt::FluentIcon::Menu));
-        button.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&button));
-
-        QSignalSpy clickedSpy(&button, &FluentQt::NavigationToolButton::clicked);
-        QTest::mouseClick(&button, Qt::LeftButton, Qt::NoModifier, button.rect().center());
-        QCOMPARE(clickedSpy.count(), 1);
-    }
-
     void navigationIconsUseCurrentThemeTint()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
 
         FluentQt::NavigationTreeWidget item(FluentQt::icon(FluentQt::FluentIcon::Menu), QStringLiteral("Menu"));
         item.setAttribute(Qt::WA_TranslucentBackground, true);
@@ -415,9 +348,7 @@ class NavigationTest : public QObject
 
         auto renderedChannels = [&item, theme](FluentQt::Theme value) {
             theme->setTheme(value);
-            QImage image(item.size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            item.render(&image);
+            const QImage image = FqwTest::render(item);
 
             int paintedPixels = 0;
             int channelTotal = 0;
@@ -437,8 +368,6 @@ class NavigationTest : public QObject
         const auto lightChannels = renderedChannels(FluentQt::Theme::Light);
         const auto darkChannels = renderedChannels(FluentQt::Theme::Dark);
 
-        theme->setTheme(previousTheme);
-
         QVERIFY(lightChannels.first > 0);
         QVERIFY(darkChannels.first > 0);
         QVERIFY(lightChannels.second / lightChannels.first < 96);
@@ -448,7 +377,6 @@ class NavigationTest : public QObject
     void navigationIconsRemainCompleteAtFractionalDeviceScale()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
 
         constexpr qreal dpr = 1.25;
@@ -498,8 +426,84 @@ class NavigationTest : public QObject
             QVERIFY(qAbs(actualBounds.right() - referenceBounds.right()) <= 1);
             QVERIFY(qAbs(actualBounds.bottom() - referenceBounds.bottom()) <= 1);
         }
+    }
 
-        theme->setTheme(previousTheme);
+    // Python draws long item and avatar names unelided, cut at the edge of the text rect; the
+    // port elided them with an ellipsis. A cut "W" leaves ink at cap height just inside the rect's
+    // edge, where an ellipsis has ink only near the baseline, and nothing passes the edge.
+    void navigationTextIsClippedNotElidedAsInPython()
+    {
+        const auto inkAtCapHeight = [](QWidget *widget, int from, int to) {
+            const QImage image = FqwTest::render(widget, Qt::white, QWidget::DrawChildren);
+            for (int x = from; x < to; ++x) {
+                for (int y = 9; y < 17; ++y) {
+                    if (qGray(image.pixel(x, y)) < 160) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        const QString longText(60, QLatin1Char('W'));
+
+        NavigationTreeWidget tree(QIcon(), longText, true);
+        tree.setCompacted(false);
+        QCOMPARE(tree.width(), 312);
+        const int treeEdge = tree.width() - 13;
+        QVERIFY(inkAtCapHeight(&tree, treeEdge - 4, treeEdge));
+        QVERIFY(!inkAtCapHeight(&tree, treeEdge + 1, tree.width()));
+
+        NavigationAvatarWidget avatar(longText);
+        avatar.setCompacted(false);
+        QVERIFY(inkAtCapHeight(&avatar, 299 - 4, 299));
+        QVERIFY(!inkAtCapHeight(&avatar, 300, avatar.width()));
+    }
+
+    // Python's NavigationUserCard animates the avatar's radius (250 ms, OutCubic) and the text's
+    // opacity (200 ms, InOutQuad) when it expands or compacts; the port jumped.
+    void navigationUserCardAnimatesRadiusAndTextOpacity()
+    {
+        NavigationUserCard card;
+        card.setTitle(QStringLiteral("User"));
+        QCOMPARE(card.animationDuration(), 250);
+        QCOMPARE(card.textOpacity(), 0.0);
+        const int compactRadius = card.avatar()->radius();
+        QCOMPARE(compactRadius, 12);
+
+        auto animations = card.findChildren<QPropertyAnimation *>();
+        QPropertyAnimation *radius = nullptr;
+        QPropertyAnimation *opacity = nullptr;
+        for (QPropertyAnimation *animation : animations) {
+            if (animation->propertyName() == "radius") {
+                radius = animation;
+            } else if (animation->propertyName() == "textOpacity") {
+                opacity = animation;
+            }
+        }
+        QVERIFY(radius && opacity);
+        QCOMPARE(radius->duration(), 250);
+        QCOMPARE(radius->easingCurve().type(), QEasingCurve::OutCubic);
+        QCOMPARE(opacity->duration(), 200);
+        QCOMPARE(opacity->easingCurve().type(), QEasingCurve::InOutQuad);
+
+        card.setCompacted(false);
+        QCOMPARE(card.size(), QSize(312, 80));
+        QVERIFY(card.avatar()->radius() < 32);
+        QVERIFY(card.textOpacity() < 1.0);
+        QTRY_COMPARE(card.avatar()->radius(), 32);
+        QTRY_COMPARE(card.textOpacity(), 1.0);
+        QCOMPARE(card.avatar()->pos(), QPoint(16, (80 - card.avatar()->height()) / 2));
+
+        card.setCompacted(true);
+        QCOMPARE(card.size(), QSize(40, 36));
+        QVERIFY(card.avatar()->radius() > 12);
+        QTRY_COMPARE(card.avatar()->radius(), 12);
+        QTRY_COMPARE(card.textOpacity(), 0.0);
+        QCOMPARE(card.avatar()->pos(), QPoint(8, 6));
+
+        card.setAnimationDuration(100);
+        QCOMPARE(radius->duration(), 100);
+        QCOMPARE(opacity->duration(), 80);
     }
 
     void navigationTreeWidgetArrowRotatesWhenExpanded()
@@ -516,6 +520,251 @@ class NavigationTest : public QObject
         QTRY_VERIFY(root.arrowAngle() < 10.0);
     }
 
+    // Python indents a child by 28 px per level inside a full-width row; the port moved the
+    // child 8 px right instead, so its row stuck out of the panel and its icon sat too far left.
+    void navigationTreeChildrenAreIndentedInsideFullWidthRows()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        theme->setTheme(FluentQt::Theme::Light);
+
+        FluentQt::NavigationTreeWidget root(FluentQt::icon(FluentQt::FluentIcon::Folder), QStringLiteral("Folder"));
+        auto *child =
+            new FluentQt::NavigationTreeWidget(FluentQt::icon(FluentQt::FluentIcon::Music), QStringLiteral("Child"));
+        root.insertChild(-1, child);
+        root.setCompacted(false);
+        root.setExpanded(true);
+
+        QCOMPARE(child->x(), 0);
+        QCOMPARE(child->width(), root.width());
+        QCOMPARE(root.indicatorRect(), QRectF(0, 10, 3, 16));
+        QCOMPARE(child->indicatorRect(), QRectF(28, 10, 3, 16));
+
+        child->setSelected(true);
+        const QImage image = FqwTest::render(child, Qt::transparent, QWidget::DrawChildren);
+        const QColor accent = theme->accentColor();
+        const QColor indicator = image.pixelColor(29, 18);
+        QVERIFY(qAbs(indicator.red() - accent.red()) < 8 && qAbs(indicator.green() - accent.green()) < 8);
+        QVERIFY(image.pixelColor(1, 18).alpha() < 40);
+    }
+
+    // An expanded parent holds its children, so the pointer stays "in" it over a child; the port
+    // then filled the whole block, children included. Python only lights the parent's own row.
+    void navigationTreeParentHoverCoversOnlyItsOwnRow()
+    {
+        FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Folder"));
+        auto *child = new FluentQt::NavigationTreeWidget(QIcon(), QStringLiteral("Child"));
+        root.insertChild(-1, child);
+        root.setCompacted(false);
+        root.setExpanded(true);
+
+        // Hidden, so the window system adds no enter or leave events of its own.
+        const auto rowAlpha = [&root]() {
+            const QImage image = FqwTest::render(root, Qt::transparent, QWidget::DrawChildren);
+            return image.pixelColor(150, 18).alpha();
+        };
+
+        // Qt sends the parent no Leave when the pointer moves on into a child.
+        const QPoint overRow = root.mapToGlobal(QPoint(150, 18));
+        QEnterEvent enter(QPointF(150, 18), QPointF(150, 18), QPointF(overRow));
+        QCursor::setPos(overRow);
+        if (QCursor::pos() != overRow) {
+            QSKIP("The platform does not let the test move the pointer.");
+        }
+        QApplication::sendEvent(&root, &enter);
+        QVERIFY(rowAlpha() > 0);
+        QCursor::setPos(child->mapToGlobal(QPoint(150, 18)));
+        QApplication::sendEvent(child, &enter);
+        QCOMPARE(rowAlpha(), 0);
+    }
+
+    // As in Python: a click on an unselected, selectable parent opens it and never closes it, and
+    // a click on the arrow toggles it without selecting the item.
+    void navigationTreeRowClickOpensAndArrowClickToggles()
+    {
+        FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Folder"));
+        root.insertChild(-1, new FluentQt::NavigationTreeWidget(QIcon(), QStringLiteral("Child")));
+        root.setCompacted(false);
+        root.setExpanded(true);
+        QSignalSpy clickedSpy(&root, &FluentQt::NavigationWidget::clicked);
+
+        QTest::mouseClick(&root, Qt::LeftButton, Qt::NoModifier, QPoint(60, 18));
+        QVERIFY(root.isExpanded());
+        QCOMPARE(clickedSpy.count(), 1);
+
+        QTest::mouseClick(&root, Qt::LeftButton, Qt::NoModifier, QPoint(root.width() - 20, 18));
+        QVERIFY(!root.isExpanded());
+        QCOMPARE(clickedSpy.count(), 1);
+    }
+
+    // Python's panel has a 1 px border on every side, so items sit 5 px in (the port left the
+    // left border out: 4 px); its separator is a 3 px line across the whole panel, where the
+    // port's was 9 px tall and inset by 8 px.
+    void navigationPanelKeepsPythonBorderAndSeparator()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        for (const FluentQt::Theme mode : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            theme->setTheme(mode);
+            QWidget window;
+            window.resize(1200, 600);
+            auto *panel = new FluentQt::NavigationPanel(&window);
+            auto *home = panel->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"),
+                                        FluentQt::NavigationItemPosition::Top);
+            QFrame *separator = panel->addSeparator();
+            panel->resize(panel->width(), 600);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            QCOMPARE(home->mapTo(panel, QPoint()).x(), 5);
+            QCOMPARE(separator->size(), QSize(48, 3));
+            panel->expand(false);
+            QTRY_COMPARE(home->mapTo(panel, QPoint()).x(), 5);
+            QCOMPARE(separator->size(), QSize(322, 3));
+            panel->collapse(false);
+            QCOMPARE(separator->size(), QSize(48, 3));
+        }
+    }
+
+    // Python takes any minimum expand width; the port ignored values up to 48, so 0 could not
+    // keep a narrow window's panel expanding in place instead of as a menu.
+    void navigationPanelAcceptsAnyMinimumExpandWidth()
+    {
+        QWidget window;
+        window.resize(400, 600);
+        auto *panel = new FluentQt::NavigationPanel(&window);
+        panel->setMinimumExpandWidth(0);
+        QCOMPARE(panel->minimumExpandWidth(), 0);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        panel->expand(false);
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+        QVERIFY(!panel->isMenu());
+    }
+
+    // Python's setExpandWidth() also sets NavigationWidget.EXPAND_WIDTH to the width minus 10, so
+    // the items fill the wider panel; the port widened only the panel.
+    void navigationPanelExpandWidthWidensItems()
+    {
+        QWidget window;
+        window.resize(1200, 600);
+        auto *panel = new FluentQt::NavigationPanel(&window);
+        auto *home = panel->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        auto *child = panel->addItem(QStringLiteral("child"), QIcon(), QStringLiteral("Child"),
+                                     FluentQt::NavigationItemPosition::Scroll, QStringLiteral("home"));
+        QFrame *separator = panel->addSeparator();
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        panel->setExpandWidth(42);
+        QCOMPARE(panel->expandWidth(), FluentQt::NavigationPanel::kExpandWidth);
+
+        panel->setExpandWidth(280);
+        QCOMPARE(home->expandWidth(), 270);
+        QCOMPARE(child->expandWidth(), 270);
+        panel->expand(false);
+        QCOMPARE(panel->width(), 280);
+        QCOMPARE(home->width(), 270);
+        QCOMPARE(separator->width(), 280);
+
+        // Already expanded: the items follow at once, and later items take the width too.
+        panel->setExpandWidth(400);
+        QCOMPARE(home->width(), 390);
+        QCOMPARE(separator->width(), 400);
+        auto *later = panel->addItem(QStringLiteral("later"), QIcon(), QStringLiteral("Later"));
+        QCOMPARE(later->width(), 390);
+    }
+
+    // Python's ScaleSlideAnimation: the indicator first stretches for 200 ms to cover both items,
+    // then shrinks into the new one by 600 ms. The port slid it in 100 ms without stretching.
+    void pivotIndicatorSquashesAndStretchesAsInPython()
+    {
+        FluentQt::Pivot pivot;
+        pivot.addItem(QStringLiteral("first"), QStringLiteral("First"));
+        pivot.addItem(QStringLiteral("second"), QStringLiteral("Second"));
+        pivot.setCurrentItem(QStringLiteral("first"));
+        pivot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&pivot));
+        const QRect start = pivot.indicatorGeometry();
+        QCOMPARE(start.width(), 16);
+
+        pivot.setCurrentItem(QStringLiteral("second"));
+        auto *animation = pivot.findChild<QVariantAnimation *>();
+        QVERIFY(animation);
+        QCOMPARE(animation->duration(), 600);
+        animation->pause();
+        const int end = pivot.item(QStringLiteral("second"))->geometry().center().x() - 8;
+
+        animation->setCurrentTime(200);
+        QCOMPARE(pivot.indicatorGeometry().x(), start.x());
+        QVERIFY(qAbs(pivot.indicatorGeometry().width() - (end - start.x() + 16)) <= 1);
+        animation->setCurrentTime(600);
+        QVERIFY(qAbs(pivot.indicatorGeometry().x() - end) <= 1);
+        QCOMPARE(pivot.indicatorGeometry().width(), 16);
+    }
+
+    // The first selection, made before the pivot is shown, must still leave a 16 px indicator.
+    void pivotIndicatorShowsForASelectionMadeWhileHidden()
+    {
+        FluentQt::Pivot pivot;
+        pivot.addItem(QStringLiteral("first"), QStringLiteral("First"));
+        pivot.addItem(QStringLiteral("second"), QStringLiteral("Second"));
+        pivot.setCurrentItem(QStringLiteral("second"));
+        pivot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&pivot));
+        QTRY_COMPARE(pivot.indicatorGeometry().width(), 16);
+        QTest::qWait(700);
+        QCOMPARE(pivot.indicatorGeometry().width(), 16);
+        QCOMPARE(pivot.indicatorGeometry().center().x(), pivot.item(QStringLiteral("second"))->geometry().center().x());
+    }
+
+    // Python's segmented widgets slide point to point: 187 ms on a (0.55, 0.55, 0, 1) bezier,
+    // where the port used 100 ms of OutQuad.
+    void segmentedIndicatorsSlidePointToPointAsInPython()
+    {
+        FluentQt::SegmentedWidget segmented;
+        FluentQt::SegmentedToggleToolWidget tools;
+        for (QObject *owner : {static_cast<QObject *>(&segmented), static_cast<QObject *>(&tools)}) {
+            auto *animation = owner->findChild<QVariantAnimation *>();
+            QVERIFY(animation);
+            QCOMPARE(animation->duration(), 187);
+            QCOMPARE(animation->easingCurve().type(), QEasingCurve::BezierSpline);
+            QVERIFY(qAbs(animation->easingCurve().valueForProgress(0.5) - 0.921) < 0.01);
+        }
+    }
+
+    // The panel's indicator eases each phase on Python's beziers: 100 ms in, it has stretched
+    // only a little, where the port's linear phases had covered half the distance.
+    void navigationIndicatorEasesAsInPython()
+    {
+        QWidget window;
+        window.resize(400, 400);
+        auto *panel = new FluentQt::NavigationPanel(&window);
+        panel->addItem(QStringLiteral("first"), QIcon(), QStringLiteral("First"));
+        panel->addItem(QStringLiteral("second"), QIcon(), QStringLiteral("Second"));
+        panel->addItem(QStringLiteral("third"), QIcon(), QStringLiteral("Third"));
+        panel->resize(panel->width(), 400);
+        panel->setCurrentItem(QStringLiteral("first"));
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        panel->setCurrentItem(QStringLiteral("third"));
+        QVariantAnimation *animation = nullptr;
+        for (auto *candidate : panel->findChildren<QVariantAnimation *>()) {
+            if (!qobject_cast<QPropertyAnimation *>(candidate)) {
+                animation = candidate;
+            }
+        }
+        QVERIFY(animation);
+        animation->pause();
+        auto *indicator = qobject_cast<QWidget *>(animation->parent());
+        QVERIFY(indicator);
+        const int distance = panel->widget(QStringLiteral("third"))->y() - panel->widget(QStringLiteral("first"))->y();
+
+        animation->setCurrentTime(100);
+        QVERIFY(indicator->height() < 16 + distance / 4);
+        animation->setCurrentTime(200);
+        QVERIFY(qAbs(indicator->height() - (16 + distance)) <= 1);
+    }
+
     void navigationBarTracksItemsAndCommands()
     {
         FluentQt::NavigationBar bar;
@@ -525,7 +774,12 @@ class NavigationTest : public QObject
 
         QVERIFY(home != nullptr);
         QVERIFY(help != nullptr);
-        QCOMPARE(bar.width(), FluentQt::NavigationBar::kBarWidth);
+        // Free, as Python's: a layout gives it its hint, at least 72 px (64 px buttons and 4 px
+        // margins). The hidden scroll bars' minimum hint can add to that, as in Python, whose
+        // bar measures 72 natively on macOS and 93 offscreen.
+        QCOMPARE(bar.minimumWidth(), 0);
+        QCOMPARE(bar.maximumWidth(), QWIDGETSIZE_MAX);
+        QVERIFY(bar.sizeHint().width() >= 72);
         QCOMPARE(home->size(), QSize(64, 58));
         QCOMPARE(help->isSelectable(), false);
         QCOMPARE(bar.widget(QStringLiteral("home")), home);
@@ -546,6 +800,79 @@ class NavigationTest : public QObject
         QCOMPARE(bar.currentRouteKey(), QStringLiteral("home"));
     }
 
+    // Python dims an unselected bar item's icon and text to 0.6 unless the pointer is on it; the
+    // port drew them at full strength.
+    // Python's IconSlideAnimation: with the selected text hidden, the selected icon slides 6 px
+    // down in 100 ms and back up when deselected; the port jumped 6 px.
+    void navigationBarIconSlidesWhenSelectedTextIsHidden()
+    {
+        NavigationBar bar;
+        bar.setSelectedTextVisible(false);
+        auto *home =
+            bar.addItem(QStringLiteral("home"), icon(FluentIcon::Home, QColor(Qt::red)), QStringLiteral("Home"));
+        bar.addItem(QStringLiteral("apps"), icon(FluentIcon::Home), QStringLiteral("Apps"));
+        auto *animation = home->findChild<QPropertyAnimation *>();
+        QVERIFY(animation);
+        QCOMPARE(animation->propertyName(), QByteArray("iconOffset"));
+        QCOMPARE(animation->duration(), 100);
+        QCOMPARE(home->iconOffset(), 0.0);
+
+        bar.setCurrentItem(QStringLiteral("home"));
+        QVERIFY(home->iconOffset() < 6.0);
+        QTRY_COMPARE(home->iconOffset(), 6.0);
+
+        // Painted 6 px lower: the red icon's top edge moves from y = 13 to 19 or so.
+        const auto iconTop = [home]() {
+            const QImage image = FqwTest::render(home, Qt::transparent, QWidget::DrawChildren);
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 22; x < 42; ++x) {
+                    const QColor c = image.pixelColor(x, y);
+                    if (c.alpha() > 100 && c.red() > 150 && c.green() < 100) {
+                        return y;
+                    }
+                }
+            }
+            return -1;
+        };
+        const int lowered = iconTop();
+
+        bar.setCurrentItem(QStringLiteral("apps"));
+        QVERIFY(home->iconOffset() > 0.0);
+        QTRY_COMPARE(home->iconOffset(), 0.0);
+        const int raised = iconTop();
+        QVERIFY(raised >= 0);
+        QCOMPARE(lowered - raised, 6);
+    }
+
+    void navigationBarDimsUnselectedItemsAsInPython()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        theme->setTheme(FluentQt::Theme::Light);
+        FluentQt::NavigationBar bar;
+        bar.addItem(QStringLiteral("home"), FluentQt::icon(FluentQt::FluentIcon::Home, FluentQt::Theme::Light),
+                    QStringLiteral("Home"));
+        auto *help =
+            bar.addItem(QStringLiteral("help"), FluentQt::icon(FluentQt::FluentIcon::Help, FluentQt::Theme::Light),
+                        QStringLiteral("Help"));
+        bar.setCurrentItem(QStringLiteral("home"));
+
+        const auto strongestAlpha = [](QWidget *item) {
+            const QImage image = FqwTest::render(item, Qt::transparent, QWidget::DrawChildren);
+            int strongest = 0;
+            for (int y = 13; y < 33; ++y) {
+                for (int x = 22; x < 42; ++x) {
+                    const QColor pixel = image.pixelColor(x, y);
+                    if (pixel.red() < 100) {
+                        strongest = qMax(strongest, pixel.alpha());
+                    }
+                }
+            }
+            return strongest;
+        };
+        QVERIFY(strongestAlpha(help) <= 160);
+        QVERIFY(strongestAlpha(help) > 0);
+    }
+
     void navigationHistoryRemoveCollapsesDuplicates()
     {
         QStackedWidget stack;
@@ -557,13 +884,15 @@ class NavigationTest : public QObject
         QVERIFY(!history.canGoBack(&stack));
     }
 
-    void navigationControlsTrackCurrentItems()
+    void pivotSegmentedAndBreadcrumbTrackCurrentItems()
     {
         FluentQt::Pivot pivot;
         QVERIFY(pivot.addItem(QStringLiteral("home"), QStringLiteral("Home")) != nullptr);
         QVERIFY(pivot.addItem(QStringLiteral("settings"), QStringLiteral("Settings")) != nullptr);
         QVERIFY(pivot.contains(QStringLiteral("home")));
-        QCOMPARE(pivot.currentItem(), QStringLiteral("home"));
+        // As in Python, adding items selects none of them.
+        QCOMPARE(pivot.currentItem(), QString());
+        QVERIFY(!pivot.item(QStringLiteral("home"))->isChecked());
 
         pivot.setCurrentItem(QStringLiteral("settings"));
         QCOMPARE(pivot.currentItem(), QStringLiteral("settings"));
@@ -576,35 +905,179 @@ class NavigationTest : public QObject
         QCOMPARE(segmented.currentItem(), QStringLiteral("week"));
         QCOMPARE(segmented.item(QStringLiteral("day"))->font().pixelSize(), 14);
         QCOMPARE(segmented.item(QStringLiteral("week"))->property("isSelected").toBool(), true);
+    }
 
+    void breadcrumbTracksCurrentItem()
+    {
         FluentQt::BreadcrumbBar breadcrumb;
         QSignalSpy breadcrumbItemSpy(&breadcrumb, &FluentQt::BreadcrumbBar::currentItemChanged);
         QSignalSpy breadcrumbIndexSpy(&breadcrumb, &FluentQt::BreadcrumbBar::currentIndexChanged);
         breadcrumb.addItem(QStringLiteral("root"), QStringLiteral("Root"));
         breadcrumb.addItem(QStringLiteral("child"), QStringLiteral("Child"));
         breadcrumb.addItem(QStringLiteral("leaf"), QStringLiteral("Leaf"));
+        breadcrumb.addItem(QStringLiteral("leaf"), QStringLiteral("Duplicate"));
         QCOMPARE(breadcrumb.count(), 3);
         QCOMPARE(breadcrumb.items().size(), 3);
         QCOMPARE(breadcrumb.currentIndex(), 2);
-        QCOMPARE(breadcrumb.currentItem(), QStringLiteral("leaf"));
-        QCOMPARE(breadcrumb.itemAt(1).key, QStringLiteral("child"));
-        QCOMPARE(breadcrumb.item(QStringLiteral("leaf")).text, QStringLiteral("Leaf"));
+        QCOMPARE(breadcrumb.currentItem()->routeKey(), QStringLiteral("leaf"));
+        QVERIFY(breadcrumb.currentItem()->isSelected());
+        QVERIFY(!breadcrumb.itemAt(1)->isSelected());
+        QCOMPARE(breadcrumb.itemAt(1)->routeKey(), QStringLiteral("child"));
+        QCOMPARE(breadcrumb.itemAt(3), nullptr);
+        QCOMPARE(breadcrumb.item(QStringLiteral("leaf"))->text(), QStringLiteral("Leaf"));
+        QCOMPARE(breadcrumb.item(QStringLiteral("missing")), nullptr);
+        QCOMPARE(breadcrumbItemSpy.size(), 3);
 
         breadcrumb.setSpacing(20);
         QCOMPARE(breadcrumb.spacing(), 20);
+        QCOMPARE(breadcrumb.itemAt(1)->spacing(), 20);
         breadcrumb.setItemText(QStringLiteral("child"), QStringLiteral("Documents"));
-        QCOMPARE(breadcrumb.item(QStringLiteral("child")).text, QStringLiteral("Documents"));
+        QCOMPARE(breadcrumb.item(QStringLiteral("child"))->text(), QStringLiteral("Documents"));
 
+        // Selecting an earlier item drops the trailing ones, as Python does.
+        QPointer<BreadcrumbItem> leaf = breadcrumb.item(QStringLiteral("leaf"));
         breadcrumb.setCurrentItem(QStringLiteral("child"));
         QCOMPARE(breadcrumb.count(), 2);
         QCOMPARE(breadcrumb.currentIndex(), 1);
-        QCOMPARE(breadcrumb.currentItem(), QStringLiteral("child"));
+        QCOMPARE(breadcrumb.currentItem()->routeKey(), QStringLiteral("child"));
         QCOMPARE(breadcrumbItemSpy.takeLast().at(0).toString(), QStringLiteral("child"));
         QCOMPARE(breadcrumbIndexSpy.takeLast().at(0).toInt(), 1);
+        QCOMPARE(breadcrumb.item(QStringLiteral("leaf")), nullptr);
+        FqwTest::drainDeferredDeletes();
+        QVERIFY(leaf.isNull());
 
         breadcrumb.popItem();
-        QCOMPARE(breadcrumb.currentItem(), QStringLiteral("root"));
+        QCOMPARE(breadcrumb.currentItem()->routeKey(), QStringLiteral("root"));
         QCOMPARE(breadcrumb.count(), 1);
+
+        // Python's setCurrentIndex() ignores -1; clear() and a last popItem() reset without signals.
+        const int emitted = static_cast<int>(breadcrumbIndexSpy.size());
+        breadcrumb.setCurrentIndex(-1);
+        QCOMPARE(breadcrumb.currentIndex(), 0);
+        breadcrumb.popItem();
+        QCOMPARE(breadcrumb.count(), 0);
+        QCOMPARE(breadcrumb.currentIndex(), -1);
+        QCOMPARE(breadcrumb.currentItem(), nullptr);
+        QCOMPARE(breadcrumbIndexSpy.size(), emitted);
+    }
+
+    void breadcrumbItemsAreTextHighWithTheChevronInside()
+    {
+        BreadcrumbBar breadcrumb;
+        breadcrumb.addItem(QStringLiteral("home"), QStringLiteral("Home"));
+        breadcrumb.addItem(QStringLiteral("docs"), QStringLiteral("Documents"));
+
+        // Python paints the items itself: no buttons, no separator labels.
+        QVERIFY(breadcrumb.findChildren<QAbstractButton *>().isEmpty());
+        QVERIFY(breadcrumb.findChildren<QLabel *>().isEmpty());
+        QCOMPARE(breadcrumb.font().pixelSize(), 14);
+
+        BreadcrumbItem *home = breadcrumb.itemAt(0);
+        BreadcrumbItem *docs = breadcrumb.itemAt(1);
+        QVERIFY(home->isRoot());
+        QVERIFY(!docs->isRoot());
+        const QFontMetrics metrics(home->font());
+        QCOMPARE(home->height(), metrics.boundingRect(QStringLiteral("Home")).height());
+        QCOMPARE(home->width(), metrics.boundingRect(QStringLiteral("Home")).width() + 2);
+        // The chevron sits inside every item but the root, spacing() px either side of it.
+        QCOMPARE(docs->width(), metrics.boundingRect(QStringLiteral("Documents")).width() + 2 + 2 * 10);
+        QCOMPARE(breadcrumb.height(), home->height());
+        QCOMPARE(breadcrumb.minimumHeight(), breadcrumb.maximumHeight());
+        QVERIFY2(home->height() <= 22, qPrintable(QString::number(home->height())));
+
+        breadcrumb.setSpacing(5);
+        QCOMPARE(docs->width(), metrics.boundingRect(QStringLiteral("Documents")).width() + 2 + 2 * 5);
+
+        // A bigger font grows the items and the ellipsis button with it.
+        QFont big = breadcrumb.font();
+        big.setPixelSize(28);
+        breadcrumb.setFont(big);
+        QCOMPARE(docs->font().pixelSize(), 28);
+        QCOMPARE(docs->height(), QFontMetrics(big).boundingRect(QStringLiteral("Documents")).height());
+        QCOMPARE(breadcrumb.elideButton()->size(), QSize(32, 32));
+    }
+
+    void breadcrumbHidesLeadingItemsBehindTheEllipsis()
+    {
+        QWidget host;
+        auto *breadcrumb = new BreadcrumbBar(&host);
+        for (const QString &text : {QStringLiteral("Home"), QStringLiteral("Documents"), QStringLiteral("Study"),
+                                    QStringLiteral("Folder1"), QStringLiteral("Folder2")}) {
+            breadcrumb->addItem(text, text);
+        }
+        breadcrumb->resize(2000, breadcrumb->height());
+        host.show();
+
+        QVERIFY(!breadcrumb->isElideVisible());
+        QVERIFY(breadcrumb->elideButton()->isHidden());
+        QVERIFY(breadcrumb->hiddenItems().isEmpty());
+        int x = 0;
+        for (BreadcrumbItem *item : breadcrumb->items()) {
+            QVERIFY(item->isVisible());
+            QCOMPARE(item->x(), x);
+            x += item->width();
+        }
+
+        // Too narrow: the ellipsis comes first and the last item always stays.
+        const QList<BreadcrumbItem *> items = breadcrumb->items();
+        const int width = breadcrumb->elideButton()->width() + items[3]->width() + items[4]->width() + 1;
+        breadcrumb->resize(width, breadcrumb->height());
+        QVERIFY(breadcrumb->isElideVisible());
+        QVERIFY(breadcrumb->elideButton()->isVisible());
+        QCOMPARE(breadcrumb->elideButton()->x(), 0);
+        QCOMPARE(breadcrumb->hiddenItems(), (QList<BreadcrumbItem *>{items[0], items[1], items[2]}));
+        QVERIFY(items[0]->isHidden() && items[1]->isHidden() && items[2]->isHidden());
+        QCOMPARE(items[3]->x(), breadcrumb->elideButton()->width());
+        QCOMPARE(items[4]->x(), items[3]->x() + items[3]->width());
+
+        breadcrumb->resize(1, breadcrumb->height());
+        QCOMPARE(breadcrumb->hiddenItems().size(), 4);
+        QVERIFY(items[4]->isVisible());
+
+        // Picking a hidden item drops the trailing ones and shows everything again.
+        breadcrumb->resize(2000, breadcrumb->height());
+        breadcrumb->setCurrentItem(QStringLiteral("Documents"));
+        QCOMPARE(breadcrumb->count(), 2);
+        QVERIFY(breadcrumb->elideButton()->isHidden());
+    }
+
+    void breadcrumbItemsClickAndPaintTheirState()
+    {
+        QWidget host;
+        auto *breadcrumb = new BreadcrumbBar(&host);
+        breadcrumb->addItem(QStringLiteral("home"), QStringLiteral("Home"));
+        breadcrumb->addItem(QStringLiteral("docs"), QStringLiteral("Documents"));
+        breadcrumb->resize(400, breadcrumb->height());
+        host.show();
+
+        BreadcrumbItem *home = breadcrumb->itemAt(0);
+        const auto ink = [](QWidget *widget) {
+            const QImage image = widget->grab().toImage();
+            qint64 total = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    total += 255 - qGray(image.pixel(x, y));
+                }
+            }
+            return total;
+        };
+        const qint64 normal = ink(home);
+        QVERIFY(normal > 0);
+
+        QEnterEvent enter(QPointF(1, 1), QPointF(1, 1), home->mapToGlobal(QPointF(1, 1)));
+        QApplication::sendEvent(home, &enter);
+        QVERIFY(home->isHover());
+        QVERIFY2(ink(home) > normal, "the hovered text is opaque, the normal one 61 %");
+
+        QTest::mousePress(home, Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
+        QVERIFY(home->isPressed());
+        QVERIFY2(ink(home) < normal, "the pressed text is 45 %");
+
+        QSignalSpy changed(breadcrumb, &BreadcrumbBar::currentItemChanged);
+        QTest::mouseRelease(home, Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
+        QCOMPARE(changed.size(), 1);
+        QCOMPARE(breadcrumb->count(), 1);
+        QVERIFY(home->isSelected());
     }
 
     void pivotKeepsDisplayOrder()
@@ -622,6 +1095,45 @@ class NavigationTest : public QObject
         QCOMPARE(pivot.currentItem(), QStringLiteral("k3"));
     }
 
+    // Python's SegmentedToolWidget: a SegmentedWidget of 38 x 33 icon items, which the port lacked.
+    void segmentedToolWidgetHoldsIconItems()
+    {
+        SegmentedToolWidget tools;
+        SegmentedToolItem *mail = tools.addItem(QStringLiteral("mail"), icon(FluentIcon::Mail));
+        SegmentedToolItem *save = tools.insertItem(0, QStringLiteral("save"), icon(FluentIcon::Save));
+        QVERIFY(mail && save);
+        QCOMPARE(tools.addItem(QStringLiteral("mail"), QIcon()), nullptr);
+        QCOMPARE(tools.routeKeys(), (QList<QString>{QStringLiteral("save"), QStringLiteral("mail")}));
+        QCOMPARE(mail->size(), QSize(38, 33));
+        QCOMPARE(mail->iconSize(), QSize(16, 16));
+        QVERIFY(mail->text().isEmpty());
+        QVERIFY(qobject_cast<SegmentedWidget *>(&tools));
+        QVERIFY(tools.styleSheet().contains(QStringLiteral("SegmentedToolWidget")));
+        QVERIFY(mail->styleSheet().contains(QStringLiteral("QPushButton[fqw=\"SegmentedToolItem\"]")));
+        QCOMPARE(tools.currentItem(), QString());
+
+        tools.setCurrentItem(QStringLiteral("mail"));
+        QCOMPARE(tools.currentItem(), QStringLiteral("mail"));
+        QVERIFY(mail->isChecked());
+
+        // The icon sits in the middle, as a ToolButton draws it.
+        auto *plain = new SegmentedToolItem(icon(FluentIcon::Mail, QColor(Qt::red)));
+        const QImage image = FqwTest::render(plain, Qt::transparent, QWidget::DrawChildren);
+        QRect ink;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QColor c = image.pixelColor(x, y);
+                if (c.alpha() > 100 && c.red() > 150 && c.green() < 100) {
+                    ink |= QRect(x, y, 1, 1);
+                }
+            }
+        }
+        QVERIFY(!ink.isEmpty());
+        QVERIFY2(qAbs(ink.center().x() - 19) <= 1 && qAbs(ink.center().y() - 16) <= 1,
+                 qPrintable(QStringLiteral("icon at %1,%2").arg(ink.center().x()).arg(ink.center().y())));
+        delete plain;
+    }
+
     void segmentedToggleToolWidgetTracksCurrentItem()
     {
         FluentQt::SegmentedToggleToolWidget tools;
@@ -635,7 +1147,10 @@ class NavigationTest : public QObject
         QCOMPARE(first->size(), QSize(50, 32));
         QCOMPARE(second->size(), QSize(50, 32));
         QCOMPARE(tools.routeKeys(), QList<QString>({QStringLiteral("first"), QStringLiteral("second")}));
-        QCOMPARE(tools.currentItem(), QStringLiteral("first"));
+        // As in Python, adding items selects none of them.
+        QCOMPARE(tools.currentItem(), QString());
+        QVERIFY(!first->isChecked());
+        tools.setCurrentItem(QStringLiteral("first"));
         QVERIFY(first->isChecked());
         QTRY_COMPARE(tools.selectionGeometry(), first->geometry());
 
@@ -649,6 +1164,115 @@ class NavigationTest : public QObject
         tools.removeItem(QStringLiteral("second"));
         QCOMPARE(tools.currentItem(), QStringLiteral("first"));
         QVERIFY(!tools.contains(QStringLiteral("second")));
+    }
+
+    // The Python sizes: 36 px tabs in a 46 px bar, and Python's 32x24 TabToolButton for closing
+    // and adding tabs. A style sheet's min-height sizes the content box, so the old
+    // `min-height: 34px` with padding and border made tabs 47 px and the bar 77.
+    void tabBarKeepsThePythonSizes()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            TabBar bar;
+            bar.addTab(QStringLiteral("home"), QStringLiteral("Home"));
+            bar.addTab(QStringLiteral("settings"), QStringLiteral("Settings"));
+            bar.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&bar));
+            QCOMPARE(bar.height(), 46);
+            for (int index = 0; index < bar.count(); ++index) {
+                QCOMPARE(bar.tabItem(index)->height(), 36);
+                QCOMPARE(bar.tabItem(index)->closeButton()->size(), QSize(32, 24));
+                QCOMPARE(bar.tabItem(index)->font().pixelSize(), 12);
+            }
+            QCOMPARE(bar.addButton()->size(), QSize(32, 24));
+        }
+    }
+
+    // Python paints its tabs: the selected one is a 249/40 grey card with a grey bottom edge and
+    // no accent line, the strip behind them is transparent, and the add button follows the last
+    // tab instead of sitting at the far end of the bar.
+    // Python's TabBar.setTabMinimumWidth(), setTabTextColor() and setTabSelectedBackgroundColor(),
+    // which the port lacked (its minimum was a fixed 64 px).
+    void tabBarTakesPythonTabWidthsAndColors()
+    {
+        TabBar bar;
+        bar.addTab(QStringLiteral("a"), QStringLiteral("Alpha"));
+        bar.addTab(QStringLiteral("b"), QStringLiteral("Beta"));
+        QCOMPARE(bar.tabMinimumWidth(), 64);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 64);
+
+        bar.setTabMinimumWidth(120);
+        QCOMPARE(bar.tabMinimumWidth(), 120);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 120);
+        bar.addTab(QStringLiteral("c"), QStringLiteral("Gamma"));
+        QCOMPARE(bar.tabItem(2)->minimumWidth(), 120);
+
+        // A scrolling bar's tabs keep the maximum width.
+        bar.setScrollable(true);
+        bar.setTabMinimumWidth(100);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), bar.tabMaximumWidth());
+        bar.setScrollable(false);
+        QCOMPARE(bar.tabItem(0)->minimumWidth(), 100);
+
+        bar.setTabTextColor(1, QColor(Qt::red));
+        QCOMPARE(bar.tabItem(1)->textColor(), QColor(Qt::red));
+        QVERIFY(!bar.tabItem(0)->textColor().isValid());
+        bar.setTabTextColor(9, QColor(Qt::red));
+
+        bar.setTabSelectedBackgroundColor(QColor(0, 0, 255), QColor(0, 255, 0));
+        bar.addTab(QStringLiteral("d"), QStringLiteral("Delta"));
+        for (int i = 0; i < 4; ++i) {
+            QCOMPARE(bar.tabItem(i)->lightSelectedBackgroundColor(), QColor(0, 0, 255));
+            QCOMPARE(bar.tabItem(i)->darkSelectedBackgroundColor(), QColor(0, 255, 0));
+        }
+
+        // Painted: the selected tab's background and the coloured text.
+        bar.resize(800, 46);
+        bar.setCurrentIndex(1);
+        bar.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&bar));
+        const QImage image = FqwTest::render(bar, Qt::transparent, QWidget::DrawChildren);
+        const QPoint origin = bar.tabItem(1)->mapTo(&bar, QPoint());
+        QCOMPARE(image.pixelColor(origin + QPoint(60, 30)), QColor(0, 0, 255));
+        bool redText = false;
+        for (int x = 10; x < 60 && !redText; ++x) {
+            for (int y = 8; y < 28 && !redText; ++y) {
+                const QColor c = image.pixelColor(origin + QPoint(x, y));
+                redText = c.red() > 150 && c.blue() < 100;
+            }
+        }
+        QVERIFY(redText);
+    }
+
+    void tabBarPaintsAndPlacesTabsAsPython()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            TabBar bar;
+            bar.resize(800, 46);
+            bar.addTab(QStringLiteral("home"), QString());
+            bar.addTab(QStringLiteral("settings"), QString());
+            bar.setCurrentIndex(0);
+            bar.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&bar));
+
+            TabItem *selected = bar.tabItem(0);
+            QCOMPARE(selected->width(), 240);
+            const QPoint addPos = bar.addButton()->mapTo(&bar, QPoint());
+            QCOMPARE(addPos.x(), 5 + 2 * 240 + 5 + 3);
+
+            const QImage image = FqwTest::render(bar, Qt::transparent, QWidget::DrawChildren);
+            const QPoint origin = selected->mapTo(&bar, QPoint());
+            const QColor card = image.pixelColor(origin + QPoint(60, 18));
+            const int grey = theme == Theme::Dark ? 40 : 249;
+            QVERIFY2(qAbs(card.red() - grey) <= 2 && qAbs(card.blue() - grey) <= 2, qPrintable(card.name()));
+            const QColor bottom = image.pixelColor(origin + QPoint(60, selected->height() - 1));
+            QVERIFY2(qAbs(bottom.red() - bottom.blue()) <= 2 && qAbs(bottom.green() - bottom.blue()) <= 2,
+                     qPrintable(bottom.name()));
+            QCOMPARE(image.pixelColor(780, 23).alpha(), 0);
+        }
     }
 
     void tabWidgetsTrackPagesAndRoutes()
@@ -739,7 +1363,7 @@ class NavigationTest : public QObject
         QSignalSpy currentSpy(&tabs, &TabWidget::currentChanged);
 
         // What a drop on the bar reports after moving the tab: the pages follow, and the page that
-        // was current stays current (it used to be replaced by the dragged one).
+        // was current stays current instead of the dragged one.
         emit tabs.tabBar()->tabMoved(2, 0);
         QCOMPARE(tabs.currentWidget(), first);
         QCOMPARE(currentSpy.count(), 0);

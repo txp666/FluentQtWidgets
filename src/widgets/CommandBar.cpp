@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/CommandBar.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Button.h>
@@ -61,6 +63,7 @@ CommandButton::CommandButton(QWidget *parent) : TransparentToggleToolButton(pare
     setCheckable(false);
     setToolButtonStyle(Qt::ToolButtonIconOnly);
     setIconSize(QSize(16, 16));
+    setFont(Private::fluentFont(12));
     FluentStyleSheet::setRole(this, QStringLiteral("CommandButton"));
     installEventFilter(new CommandToolTipFilter(this));
 }
@@ -611,6 +614,10 @@ void CommandBar::resizeToSuitableWidth()
     setFixedWidth(suitableWidth());
 }
 
+// As Python's: room for the more-actions button at least, so a bar a layout does not stretch still
+// shows that button (and the widgets that fit) instead of collapsing to nothing.
+QSize CommandBar::minimumSizeHint() const { return m_overflowButton ? m_overflowButton->size() : QSize(); }
+
 void CommandBar::clear()
 {
     const QList<QAction *> allActions = m_actions + m_hiddenActions;
@@ -637,6 +644,17 @@ void CommandBar::clear()
     relayoutWidgets();
 }
 
+// Python's setFont() passes the font on to the command buttons, which set their own.
+void CommandBar::changeEvent(QEvent *event)
+{
+    QFrame::changeEvent(event);
+    if (event->type() == QEvent::FontChange) {
+        for (CommandButton *button : commandButtons()) {
+            button->setFont(font());
+        }
+    }
+}
+
 void CommandBar::resizeEvent(QResizeEvent *event)
 {
     QFrame::resizeEvent(event);
@@ -651,9 +669,9 @@ void CommandBar::showEvent(QShowEvent *event)
 
 void CommandBar::init()
 {
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setAttribute(Qt::WA_TranslucentBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("CommandBar"));
+    setFont(Private::fluentFont(12));
     m_overflowButton = new MoreActionsButton(this);
     m_overflowButton->hide();
     connect(m_overflowButton, &QToolButton::clicked, this, &CommandBar::showHiddenActionsMenu);
@@ -689,7 +707,10 @@ void CommandBar::syncHeight()
     if (!m_hiddenActions.isEmpty() && m_overflowButton) {
         height = qMax(height, m_overflowButton->height());
     }
-    setFixedHeight(height);
+    // Python fixes the height only once a widget is added; an empty bar keeps a free height.
+    if (height > 0) {
+        setFixedHeight(height);
+    }
 }
 
 void CommandBar::relayoutWidgets()
@@ -1025,6 +1046,16 @@ void CommandBarView::resizeToSuitableWidth()
         m_commandBar->resizeToSuitableWidth();
     }
     setFixedWidth(suitableWidth());
+}
+
+// Python's CommandBarView::setFont() sets the bar's font, and so its buttons'. Only a font set on
+// the view itself: one it inherits does not replace the bar's own 12 px.
+void CommandBarView::changeEvent(QEvent *event)
+{
+    FlyoutViewBase::changeEvent(event);
+    if (event->type() == QEvent::FontChange && m_commandBar && testAttribute(Qt::WA_SetFont)) {
+        m_commandBar->setFont(font());
+    }
 }
 
 void CommandBarView::paintEvent(QPaintEvent *)

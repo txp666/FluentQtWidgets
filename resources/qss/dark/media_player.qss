@@ -1,4 +1,4 @@
-CaptionLabel {
+QLabel[fqw="CaptionLabel"] {
     color: white;
 }
 

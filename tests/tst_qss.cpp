@@ -43,10 +43,20 @@ class QssTest : public QObject
                           {QStringLiteral("\nSpinButton {"), QStringLiteral("\nSpinButton:hover"),
                            QStringLiteral("\nSpinButton:pressed")});
         addStyleSheetRows("line edit", QStringLiteral("line_edit.qss"), kBothThemes,
-                          {QStringLiteral("QTextEdit[fqw=\"TextEdit\"],"), QStringLiteral("font: 14px --FontFamilies;"),
-                           QStringLiteral("padding: 2px 3px 2px 8px;"), QStringLiteral("#lineEditButton"),
-                           QStringLiteral("#lineEditButton:hover"), QStringLiteral("#lineEditButton:pressed"),
-                           QStringLiteral("QLineEdit[fqw=\"LineEdit\"]:disabled")});
+                          {QStringLiteral("QTextEdit[fqw=\"TextEdit\"],"), QStringLiteral("padding: 2px 3px 2px 8px;"),
+                           QStringLiteral("#lineEditButton"), QStringLiteral("#lineEditButton:hover"),
+                           QStringLiteral("#lineEditButton:pressed"),
+                           QStringLiteral("QLineEdit[fqw=\"LineEdit\"]:disabled"),
+                           // Python's editable combo boxes are line edits, styled by line_edit.qss.
+                           QStringLiteral("QLineEdit[fqw=\"EditableComboBox\"]:disabled"),
+                           QStringLiteral("QLineEdit[fqw=\"AcrylicEditableComboBox\"]:hover"),
+                           QStringLiteral("QLineEdit[fqw=\"EditableModelComboBox\"],")},
+                          // Python's line_edit.qss sets no font: the editors call setFont(self), which a
+                          // sheet font would override.
+                          {QStringLiteral("font:")});
+        // Python's tool_tip.qss gives the label the Fluent families, not only a size.
+        addStyleSheetRows("tool tip", QStringLiteral("tool_tip.qss"), kBothThemes,
+                          {QStringLiteral("font: 12px --FontFamilies;")}, {QStringLiteral("font-size:")});
         addStyleSheetRows("line edit focus", QStringLiteral("line_edit.qss"), {QStringLiteral("dark")},
                           {QStringLiteral("selection-color: black;"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"][transparent=\"true\"]:focus"),
@@ -54,9 +64,9 @@ class QssTest : public QObject
         addStyleSheetRows("combo box", QStringLiteral("combo_box.qss"), kBothThemes,
                           {QStringLiteral("QPushButton[fqw=\"ComboBox\"]"),
                            QStringLiteral("QPushButton[fqw=\"ModelComboBox\"]"),
-                           QStringLiteral("QLineEdit[fqw=\"EditableComboBox\"]"),
-                           QStringLiteral("QLineEdit[fqw=\"EditableModelComboBox\"]"),
-                           QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("[isPlaceholderText=\"true\"]")});
+                           QStringLiteral("[isPlaceholderText=\"true\"]")},
+                          // Python sets the font in code; a sheet font would override setFont().
+                          {QStringLiteral("QLineEdit"), QStringLiteral("font:")});
         addStyleSheetRows("calendar picker", QStringLiteral("calendar_picker.qss"), kBothThemes,
                           {QStringLiteral("QFrame[fqw=\"CalendarView\"]"),
                            QStringLiteral("QPushButton[calendarTitle=\"true\"]"),
@@ -66,25 +76,25 @@ class QssTest : public QObject
         // Python metrics; radio buttons are styled with the buttons, not the check boxes.
         addStyleSheetRows("check box", QStringLiteral("check_box.qss"), kBothThemes,
                           {QStringLiteral("QCheckBox[fqw=\"CheckBox\"] {"), QStringLiteral("min-width: 28px;"),
-                           QStringLiteral("min-height: 22px;"), QStringLiteral("font: 14px --FontFamilies;"),
-                           QStringLiteral("margin-left: 1px;"), QStringLiteral("QCheckBox[fqw=\"CheckBox\"]:disabled")},
-                          {QStringLiteral("QRadioButton[fqw=\"RadioButton\"]")});
+                           QStringLiteral("min-height: 22px;"), QStringLiteral("margin-left: 1px;"),
+                           QStringLiteral("QCheckBox[fqw=\"CheckBox\"]:disabled")},
+                          {QStringLiteral("QRadioButton[fqw=\"RadioButton\"]"), QStringLiteral("font:")});
         addStyleSheetRows("radio button", QStringLiteral("button.qss"), kBothThemes,
                           {QStringLiteral("QRadioButton[fqw=\"RadioButton\"] {"),
                            QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("max-height: 24px;"),
                            QStringLiteral("QRadioButton[fqw=\"RadioButton\"]::indicator")});
+        // As in Python, slider.qss styles plain QSliders: no widget applies it on its own, but
+        // FluentStyleSheet::apply(slider, FluentStyleSheetSource::Slider) gives any QSlider the look.
         addStyleSheetRows("slider", QStringLiteral("slider.qss"), kBothThemes,
-                          {QStringLiteral("QSlider[fqw=\"Slider\"]:horizontal"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::sub-page:horizontal"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:horizontal:hover"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:horizontal:pressed"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]:vertical"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::add-page:vertical"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:vertical:hover"),
-                           QStringLiteral("qradialgradient")});
+                          {QStringLiteral("QSlider:horizontal"), QStringLiteral("QSlider::sub-page:horizontal"),
+                           QStringLiteral("QSlider::handle:horizontal:hover"),
+                           QStringLiteral("QSlider::handle:horizontal:pressed"), QStringLiteral("QSlider:vertical"),
+                           QStringLiteral("QSlider::add-page:vertical"),
+                           QStringLiteral("QSlider::handle:vertical:hover"), QStringLiteral("qradialgradient")},
+                          {QStringLiteral("fqw=")});
         addStyleSheetRows("slider disabled", QStringLiteral("slider.qss"), {QStringLiteral("light")},
-                          {QStringLiteral("QSlider[fqw=\"Slider\"]::groove:horizontal:disabled"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:vertical:disabled")});
+                          {QStringLiteral("QSlider::groove:horizontal:disabled"),
+                           QStringLiteral("QSlider::handle:vertical:disabled")});
         addStyleSheetRows("buttons", QStringLiteral("button.qss"), kBothThemes,
                           {QStringLiteral("QToolButton[fqw=\"DropDownToolButton\"]"),
                            QStringLiteral("QToolButton[fqw=\"PrimaryDropDownToolButton\"]"),
@@ -98,7 +108,6 @@ class QssTest : public QObject
                            QStringLiteral("QToolButton[fqw=\"TransparentToggleToolButton\"]:checked"),
                            QStringLiteral("QPushButton[fqw=\"HyperlinkButton\"]:disabled"),
                            QStringLiteral("QPushButton[fqw=\"PillPushButton\"]:disabled:checked"),
-                           QStringLiteral("QToolButton[fqw=\"TabCloseButton\"]:hover"),
                            QStringLiteral("QPushButton[fqw=\"PushButton\"]:disabled"),
                            QStringLiteral("QToolButton[fqw=\"DropDownToolButton\"]:disabled")});
         addStyleSheetRows("switch button", QStringLiteral("switch_button.qss"), kBothThemes,
@@ -148,10 +157,14 @@ class QssTest : public QObject
         const auto addRow = [](const char *role, FluentStyleSheetSource source) {
             QTest::newRow(role) << QString::fromLatin1(role) << static_cast<int>(source);
         };
+        // No widget takes these roles: AcrylicLabel paints itself and the folder picker dialog is gone.
+        addRow("AcrylicLabel", FluentStyleSheetSource::Global);
+        addRow("FolderPickerDialog", FluentStyleSheetSource::Global);
         addRow("ComboBox", FluentStyleSheetSource::ComboBox);
-        addRow("EditableComboBox", FluentStyleSheetSource::ComboBox);
+        addRow("EditableComboBox", FluentStyleSheetSource::LineEdit);
+        addRow("AcrylicEditableComboBox", FluentStyleSheetSource::LineEdit);
         addRow("ModelComboBox", FluentStyleSheetSource::ComboBox);
-        addRow("EditableModelComboBox", FluentStyleSheetSource::ComboBox);
+        addRow("EditableModelComboBox", FluentStyleSheetSource::LineEdit);
         addRow("ComboBoxMenu", FluentStyleSheetSource::Menu);
         addRow("CalendarView", FluentStyleSheetSource::CalendarPicker);
         addRow("FastCalendarView", FluentStyleSheetSource::CalendarPicker);
@@ -161,6 +174,49 @@ class QssTest : public QObject
         addRow("RadioButton", FluentStyleSheetSource::Button);
         addRow("CommandButton", FluentStyleSheetSource::Button);
         addRow("MoreActionsButton", FluentStyleSheetSource::Button);
+        // Port-only variants paint themselves but take the shared Fluent button box.
+        addRow("FilledPushButton", FluentStyleSheetSource::Button);
+        addRow("FilledToolButton", FluentStyleSheetSource::Button);
+        addRow("OutlinedPushButton", FluentStyleSheetSource::Button);
+        addRow("OutlinedToolButton", FluentStyleSheetSource::Button);
+        addRow("TextPushButton", FluentStyleSheetSource::Button);
+        addRow("TextToolButton", FluentStyleSheetSource::Button);
+        addRow("LuminaPushButton", FluentStyleSheetSource::Button);
+        addRow("RoundPushButton", FluentStyleSheetSource::Button);
+        addRow("RoundToolButton", FluentStyleSheetSource::Button);
+        addRow("HyperlinkToolButton", FluentStyleSheetSource::Button);
+        addRow("Chip", FluentStyleSheetSource::Button);
+        addRow("Tag", FluentStyleSheetSource::Button);
+        // These paint themselves, and Python gives them no style sheet; progress_bar.qss is gone.
+        addRow("ProgressBar", FluentStyleSheetSource::Global);
+        addRow("IndeterminateProgressRing", FluentStyleSheetSource::Global);
+        // Python leaves both sliders unstyled; Slider sets its role only as a marker.
+        addRow("Slider", FluentStyleSheetSource::Global);
+        addRow("ClickableSlider", FluentStyleSheetSource::Global);
+    }
+
+    // Python's class-name selectors (`RoundMenu`, `FlipView`) never match the port's classes, which
+    // live in the FluentQt namespace; the sheets select by role instead.
+    void styleSheetsUseNoPythonClassSelectors()
+    {
+        static const QRegularExpression comment(QStringLiteral("/\\*.*?\\*/"),
+                                                QRegularExpression::DotMatchesEverythingOption);
+        static const QRegularExpression ruleStart(QStringLiteral("([^{}]*)\\{"));
+        static const QRegularExpression notTypes(QStringLiteral("\\[[^\\]]*\\]|::?[\\w-]+|#[\\w-]+"));
+        static const QRegularExpression pythonClass(QStringLiteral("\\b(?!Q)[A-Z]\\w*"));
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            for (int i = 0; i <= static_cast<int>(FluentStyleSheetSource::ExpandSettingCard); ++i) {
+                const auto source = static_cast<FluentStyleSheetSource>(i);
+                QString qss = FluentStyleSheet::loadSource(source, theme);
+                qss.remove(comment);
+                for (const QRegularExpressionMatch &rule : ruleStart.globalMatch(qss)) {
+                    QString selectors = rule.captured(1);
+                    selectors.remove(notTypes);
+                    QVERIFY2(!pythonClass.match(selectors).hasMatch(),
+                             qPrintable(styleSheetSourceName(source) + QStringLiteral(": ") + rule.captured(1)));
+                }
+            }
+        }
     }
 
     void rolesUseTheirStyleSheet()
@@ -170,6 +226,44 @@ class QssTest : public QObject
         QCOMPARE(static_cast<int>(styleSheetSourceForRole(role)), source);
     }
 
+    // Python's sheets use only --ThemeColor* tokens, all derived per theme by ThemeColor.color().
+    void styleSheetsOnlyUseThemeColorTokens()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            for (int i = 0; i <= static_cast<int>(FluentStyleSheetSource::ExpandSettingCard); ++i) {
+                const auto source = static_cast<FluentStyleSheetSource>(i);
+                const QString rendered = FluentStyleSheet::render(FluentStyleSheet::loadSource(source, theme), theme);
+                const QString name = styleSheetSourceName(source);
+                QVERIFY2(!rendered.contains(QLatin1Char('@')), qPrintable(name));
+                QVERIFY2(!rendered.contains(QStringLiteral("--ThemeColor")), qPrintable(name));
+            }
+        }
+    }
+
+    // Python's sheets colour hyperlinks, radio indicators, checked command buttons, focused text
+    // edits, selections and the calendar's today/selected items with --ThemeColorPrimary (lightened
+    // in dark mode: #009faa becomes #29f1ff), not the raw accent colour.
+    void accentedRulesUseThePrimaryThemeColor()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            for (const FluentStyleSheetSource source :
+                 {FluentStyleSheetSource::LineEdit, FluentStyleSheetSource::SpinBox, FluentStyleSheetSource::ComboBox,
+                  FluentStyleSheetSource::CalendarPicker}) {
+                const QString qss = FluentStyleSheet::loadSource(source, theme);
+                QVERIFY(!qss.contains(QStringLiteral("@accentColor")));
+            }
+            const QString buttons = FluentStyleSheet::loadSource(FluentStyleSheetSource::Button, theme);
+            for (const char *selector :
+                 {"QPushButton[fqw=\"HyperlinkButton\"] {", "QPushButton[fqw=\"HyperlinkButton\"]:hover {",
+                  "QToolButton[fqw=\"CommandButton\"]:checked {"}) {
+                const int start = buttons.indexOf(QLatin1String(selector));
+                QVERIFY2(start >= 0, selector);
+                const QString rule = buttons.mid(start, buttons.indexOf(QLatin1Char('}'), start) - start);
+                QVERIFY2(rule.contains(QStringLiteral("--ThemeColorPrimary")), selector);
+            }
+        }
+    }
+
     void navigationLightQssPinsTextColor()
     {
         const QString qss = FluentStyleSheet::loadSource(FluentStyleSheetSource::Pivot, Theme::Light);
@@ -177,7 +271,6 @@ class QssTest : public QObject
         QVERIFY(qss.contains(QStringLiteral("QPushButton[fqw=\"SegmentedItem\"]")));
         QVERIFY(qss.contains(QStringLiteral("QToolButton[fqw=\"SegmentedToolItem\"]")));
         QVERIFY(qss.contains(QStringLiteral("QWidget[fqw=\"SegmentedToolWidget\"]")));
-        QVERIFY(qss.contains(QStringLiteral("QPushButton[fqw=\"BreadcrumbItem\"]")));
         QVERIFY(qss.contains(QStringLiteral("color: black;")));
     }
 };

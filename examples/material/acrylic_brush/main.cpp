@@ -16,7 +16,7 @@ public:
     {
         resize(400, 400);
         updateClipPath();
-        m_acrylicBrush.setImagePath(QStringLiteral(":/material/acrylic_brush/resource/shoko.png"));
+        m_acrylicBrush.setImage(QStringLiteral(":/material/acrylic_brush/resource/shoko.png"));
     }
 
 protected:

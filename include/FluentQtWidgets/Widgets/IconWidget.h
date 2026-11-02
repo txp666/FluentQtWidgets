@@ -39,7 +39,8 @@ class FQW_API IconWidget : public QWidget
 
   private:
     QIcon m_icon;
-    QSize m_iconSize = QSize(20, 20);
+    // Unset by default: as in Python, the icon fills the widget and there is no size hint.
+    QSize m_iconSize;
 };
 
 } // namespace FluentQt

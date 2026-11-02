@@ -18,27 +18,17 @@ FluentQtWidgets is organized as a native C++ QWidget library. It is not a Python
 
 4. Applications
 
-   Gallery and examples that only consume public headers and exported CMake targets.
+   The Gallery and the examples, which use only the public headers and the exported CMake target.
 
 ## CMake Targets
 
-The project exposes one public target:
+The installed package exports `FluentQtWidgets::FluentQtWidgets`. Link the alias the package config adds for it:
 
 ```cmake
-FluentQtWidgets::Widgets
+target_link_libraries(my_app PRIVATE FluentQtWidgets::Widgets)
 ```
 
-An alias target is also provided for compatibility:
-
-```cmake
-FluentQtWidgets::FluentQtWidgets
-```
-
-Optional modules are tracked as deferred release targets:
-
-- `FluentQtWidgets::Multimedia`
-- `FluentQtWidgets::DesignerPlugin`
-- `FluentQtWidgets::WindowEffects`
+The library includes the media widgets when Qt Multimedia and MultimediaWidgets are found (`FQW_HAS_MULTIMEDIA`).
 
 ## Resources
 
@@ -49,18 +39,24 @@ Resources use the `:/qfluentwidgets` prefix for compatibility with the Python re
 :/qfluentwidgets/qss/dark/*.qss
 ```
 
-Each control (e.g. `button.qss`, `line_edit.qss`, `navigation_interface.qss`) has its own QSS file, matching the Python reference layout.
+The files and their rules follow the Python reference (`button.qss`, `line_edit.qss`, `navigation_interface.qss`, ...). Rules select widgets by their `fqw` role property rather than by class name, because the port's classes live in the `FluentQt` namespace.
 
 ## Theme
 
 `ThemeManager` owns:
 
-- requested theme: light, dark, auto
-- resolved effective theme
-- accent color
-- application or widget style application
+- the requested theme: light, dark or auto
+- the effective theme (auto follows the system through `SystemThemeListener` and `QStyleHints::colorSchemeChanged`)
+- the accent colour
 
-Qt 6 uses `QStyleHints::colorSchemeChanged` where available for system theme updates. The Qt 5 source path is legacy and is not part of the release CI matrix.
+`themeColor()` returns the accent for the effective theme, as Python's does: in dark mode it is lighter (saturation
+× 0.84, value 1, so `#009faa` becomes `#29f1ff`). `derivedThemeColor()` gives the other shades. Widgets that paint
+the accent themselves call `themeColor()`; style sheets use the tokens `--ThemeColorPrimary`, `--ThemeColorDark1`
+… `--ThemeColorDark3` and `--ThemeColorLight1` … `--ThemeColorLight3`, which the manager replaces when it renders a
+sheet.
+
+Qt 6.5 or later is the supported toolchain. The sources also build against Qt 5.15 (`-DFQW_QT_MAJOR_VERSION=5`,
+without the media widgets), but CI does not test that.
 
 ## Style Management
 
@@ -100,4 +96,4 @@ This avoids verbose call sites while still separating Fluent classes from Qt cla
 
 ## Release Packages
 
-Release tags run the GitHub Actions matrix for Linux, Windows, and macOS. The release job builds `FluentQtWidgets` and `FluentQtWidgetsGallery`, packages the Gallery output with `LICENSE`, `CHANGELOG.md`, and `THIRD_PARTY_NOTICES.md`, and uploads the archives to the matching GitHub Release for Gallery OTA detection.
+Release tags run the GitHub Actions matrix for Linux, Windows, and macOS. The release job builds `FluentQtWidgets` and `FluentQtWidgetsGallery`, packages the Gallery output with `README.md`, `README_EN.md`, `LICENSE`, `CHANGELOG.md`, and `THIRD_PARTY_NOTICES.md`, and uploads the archives to the matching GitHub Release for Gallery OTA detection.

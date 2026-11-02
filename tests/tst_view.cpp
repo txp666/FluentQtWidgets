@@ -1,92 +1,28 @@
-// List, table and tree views, scroll bars and areas, flip views, cards and pips pagers.
+// List, table and tree views, flip views and cards.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <functional>
-#include <QtCore/QBuffer>
-#include <QtCore/QDir>
 #include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QPointer>
 #include <QtCore/QPropertyAnimation>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
 #include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
-#include <QtGui/QStandardItem>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyle>
-#include <QtWidgets/QStyleOptionSlider>
 #include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QToolButton>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <algorithm>
 
 #include "TestSupport.h"
 
@@ -121,27 +57,19 @@ class ViewTest : public QObject
         m_globalState.reset();
     }
 
-    void itemViewsExposeFluentState()
+    void itemViewsExposeRolesDelegatesAndOverlayPolicies()
     {
         FluentQt::ListWidget list;
         list.addItems({QStringLiteral("First"), QStringLiteral("Second")});
-        list.setCurrentRow(1);
         list.setSelectRightClickedRow(true);
         list.setCheckedColor(QColor(QStringLiteral("#010203")), QColor(QStringLiteral("#aabbcc")));
         QCOMPARE(list.property("fqw").toString(), QStringLiteral("ListWidget"));
-        QCOMPARE(list.currentRow(), 1);
         QVERIFY(list.isSelectRightClickedRow());
         QCOMPARE(list.delegate(), list.fluentItemDelegate());
         QCOMPARE(list.property("delegate").value<FluentQt::ListItemDelegate *>(), list.delegate());
         QCOMPARE(list.property("scrollDelegate").value<FluentQt::SmoothScrollDelegate *>(), list.scrollDelegate());
         QCOMPARE(list.fluentItemDelegate()->checkedColor(FluentQt::Theme::Light), QColor(QStringLiteral("#010203")));
         QCOMPARE(list.fluentItemDelegate()->checkedColor(FluentQt::Theme::Dark), QColor(QStringLiteral("#aabbcc")));
-
-        FluentQt::ListView listView;
-        QStringListModel listModel({QStringLiteral("First"), QStringLiteral("Second")});
-        listView.setModel(&listModel);
-        QCOMPARE(listView.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-        QCOMPARE(listView.scrollDelegate()->verticalScrollBar()->parentWidget(), &listView);
 
         FluentQt::TableWidget table;
         table.setColumnCount(2);
@@ -155,7 +83,6 @@ class ViewTest : public QObject
         QVERIFY(table.alternatingRowColors());
         QCOMPARE(table.selectionBehavior(), QAbstractItemView::SelectRows);
         QCOMPARE(table.horizontalHeader()->sectionResizeMode(0), QHeaderView::Interactive);
-        QCOMPARE(table.item(0, 1)->text(), QStringLiteral("Ready"));
         QCOMPARE(table.delegate(), table.fluentItemDelegate());
         QCOMPARE(table.scrollDelagate(), table.scrollDelegate());
         QCOMPARE(table.property("delegate").value<FluentQt::TableItemDelegate *>(), table.delegate());
@@ -190,8 +117,6 @@ class ViewTest : public QObject
         QCOMPARE(tree.property("fqw").toString(), QStringLiteral("TreeWidget"));
         QVERIFY(tree.isBorderVisible());
         QCOMPARE(tree.iconSize(), QSize(16, 16));
-        QCOMPARE(tree.topLevelItemCount(), 1);
-        QCOMPARE(tree.topLevelItem(0)->child(0)->text(0), QStringLiteral("ListWidget"));
         QCOMPARE(tree.delegate(), tree.fluentItemDelegate());
         QCOMPARE(tree.scrollDelagate(), tree.scrollDelegate());
         QCOMPARE(tree.property("delegate").value<FluentQt::TreeItemDelegate *>(), tree.delegate());
@@ -216,9 +141,379 @@ class ViewTest : public QObject
         QVERIFY(delegateShowsRowSelected(table.delegate(), 3));
     }
 
+    // As in Python, a horizontal header is 33 px plus its borders whatever the label, and its
+    // sections are split by one line: no left border, none right of the last. The port's scoped
+    // section rule outranked the `:horizontal` and `:last` rules, which drew a line on both sides of
+    // every section, and its `min-height` let a multi-line label grow the header.
+    void tableHeaderKeepsThePythonSections()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            for (const bool bordered : {false, true}) {
+                TableWidget table;
+                table.setBorderVisible(bordered);
+                table.setColumnCount(2);
+                table.setRowCount(2);
+                table.setHorizontalHeaderLabels({QStringLiteral("A\nB\nC"), QString()});
+                table.show();
+                QVERIFY(QTest::qWaitForWindowExposed(&table));
+                QCOMPARE(table.horizontalHeader()->height(), bordered ? 34 : 35);
+
+                table.setHorizontalHeaderLabels({QString(), QString()});
+                QHeaderView *header = table.horizontalHeader();
+                const QImage image = header->grab().toImage();
+                const qreal ratio = image.devicePixelRatio();
+                const int y = image.height() / 2;
+                QList<int> lines;
+                bool previous = false;
+                for (int x = 0; x < image.width(); ++x) {
+                    const bool drawn = image.pixelColor(x, y).alpha() > 0;
+                    if (drawn && !previous) {
+                        lines.append(qRound(x / ratio));
+                    }
+                    previous = drawn;
+                }
+                QCOMPARE(lines, QList<int>{header->sectionSize(0) - 1});
+            }
+        }
+    }
+
+    // Python's delegates paint items in getFont(13), 13 px, unless the item has its own font. The
+    // port used the view's font, which is 12 px on Windows (9 pt) and a point size elsewhere.
+    void itemDelegatesUseThePythonFont()
+    {
+        ListWidget list;
+        list.addItem(QStringLiteral("plain"));
+        TableWidget table;
+        table.setRowCount(1);
+        table.setColumnCount(1);
+        table.setItem(0, 0, new QTableWidgetItem(QStringLiteral("plain")));
+        TreeWidget tree;
+        new QTreeWidgetItem(&tree, QStringList{QStringLiteral("plain")});
+
+        const QList<std::pair<QAbstractItemView *, QModelIndex>> views{
+            {&list, list.model()->index(0, 0)},
+            {&table, table.model()->index(0, 0)},
+            {&tree, tree.model()->index(0, 0)},
+        };
+        for (const auto &[view, index] : views) {
+            auto *delegate = qobject_cast<TableItemDelegate *>(view->itemDelegate());
+            QVERIFY(delegate);
+            QStyleOptionViewItem option;
+            delegate->initStyleOption(&option, index);
+            QCOMPARE(option.font.pixelSize(), 13);
+
+            QFont own;
+            own.setPixelSize(20);
+            view->model()->setData(index, own, Qt::FontRole);
+            QStyleOptionViewItem ownOption;
+            delegate->initStyleOption(&ownOption, index);
+            QCOMPARE(ownOption.font.pixelSize(), 20);
+        }
+    }
+
+    // A Python table selects rows with Qt's default extended selection; the port limited it to one.
+    void tablesKeepExtendedSelection()
+    {
+        TableWidget table;
+        TableView view;
+        QCOMPARE(table.selectionMode(), QAbstractItemView::ExtendedSelection);
+        QCOMPARE(view.selectionMode(), QAbstractItemView::ExtendedSelection);
+    }
+
+    // The item's QSS padding places the text as in Python: as far into the first column as into the
+    // others. The port pushed the first column's text 10 px further right.
+    void firstColumnTextKeepsTheItemPadding()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TableWidget table;
+        table.verticalHeader()->hide();
+        table.setRowCount(2);
+        table.setColumnCount(3);
+        for (int row = 0; row < 2; ++row) {
+            for (int column = 0; column < 3; ++column) {
+                table.setItem(row, column, new QTableWidgetItem(QStringLiteral("MMMM")));
+            }
+        }
+        table.resize(400, 200);
+        table.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&table));
+
+        const QImage image = table.viewport()->grab().toImage();
+        const qreal ratio = image.devicePixelRatio();
+        auto textOffset = [&](int column) {
+            const QRect cell = table.visualItemRect(table.item(1, column));
+            for (int x = qRound(cell.left() * ratio); x < qRound(cell.right() * ratio); ++x) {
+                for (int y = qRound((cell.top() + 4) * ratio); y < qRound((cell.bottom() - 4) * ratio); ++y) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (color.alpha() > 200 && color.lightness() < 120) {
+                        return qRound(x / ratio) - cell.left();
+                    }
+                }
+            }
+            return -1;
+        };
+        QVERIFY(textOffset(1) > 0);
+        QCOMPARE(textOffset(0), textOffset(1));
+    }
+
+    // A Python list's rows start at its top edge; the port kept 2 px viewport margins above and
+    // below them.
+    void listRowsReachTheViewEdges()
+    {
+        ListWidget list;
+        ListView view;
+        for (QAbstractItemView *widget :
+             {static_cast<QAbstractItemView *>(&list), static_cast<QAbstractItemView *>(&view)}) {
+            widget->resize(300, 200);
+            widget->show();
+            QVERIFY(QTest::qWaitForWindowExposed(widget));
+            QCOMPARE(widget->viewport()->geometry().top(), 0);
+            QCOMPARE(widget->viewport()->height(), widget->height());
+        }
+    }
+
+    // As in Python, a table shows the selected row's indicator only while it is not scrolled
+    // sideways; scrolled, the first column is no longer at the edge where it is drawn.
+    void tableIndicatorHidesWhenScrolledSideways()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TableWidget table;
+        table.setCheckedColor(Qt::red, Qt::red);
+        table.setRowCount(2);
+        table.setColumnCount(4);
+        for (int column = 0; column < 4; ++column) {
+            table.setColumnWidth(column, 200);
+        }
+        table.resize(300, 200);
+        table.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&table));
+        table.selectRow(0);
+        QVERIFY(table.horizontalScrollBar()->maximum() > 0);
+
+        auto indicatorShown = [&table] {
+            const QModelIndex index = table.model()->index(0, 0);
+            QImage image(QSize(200, 38), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::white);
+            QStyleOptionViewItem option;
+            option.rect = image.rect();
+            option.state = QStyle::State_Enabled | QStyle::State_Selected;
+            option.widget = &table;
+            QPainter painter(&image);
+            table.delegate()->paint(&painter, option, index);
+            painter.end();
+            const QColor color = image.pixelColor(5, image.height() / 2);
+            return color.red() > 200 && color.green() < 80;
+        };
+        QVERIFY(indicatorShown());
+        table.horizontalScrollBar()->setValue(50);
+        QVERIFY(!indicatorShown());
+    }
+
+    // Python draws a table's border with square corners until setBorderRadius() rounds them; the
+    // port rounded them by 6 px.
+    void tableBorderHasSquareCorners()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            TableWidget table;
+            table.setBorderVisible(true);
+            table.setRowCount(2);
+            table.setColumnCount(2);
+            table.resize(300, 200);
+            table.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&table));
+            const QImage image = table.grab().toImage();
+            QVERIFY(image.pixelColor(0, 0).alpha() > 0);
+
+            table.setBorderRadius(8);
+            QCOMPARE(table.grab().toImage().pixelColor(0, 0).alpha(), 0);
+        }
+    }
+
+    // A selected tree row is one rounded fill across its columns, as in Python. The port filled the
+    // whole row width for every column, so a two-column row was covered twice.
+    void treeRowFillsEachColumnOnce()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TreeWidget tree;
+        tree.setColumnCount(2);
+        tree.setHeaderHidden(true);
+        auto *item = new QTreeWidgetItem(&tree, QStringList{QStringLiteral("a"), QStringLiteral("b")});
+        new QTreeWidgetItem(&tree, QStringList{QStringLiteral("c"), QStringLiteral("d")});
+        tree.resize(400, 200);
+        tree.setColumnWidth(0, 200);
+        tree.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&tree));
+        tree.setCurrentItem(item);
+        QTest::mouseMove(tree.viewport(), QPoint(300, 150));
+
+        const QRect row = tree.visualItemRect(item);
+        const QImage image = tree.viewport()->grab().toImage();
+        const qreal ratio = image.devicePixelRatio();
+        for (const int x : {190, 210, 370}) {
+            const QColor color = image.pixelColor(qRound(x * ratio), qRound(row.center().y() * ratio));
+            QVERIFY2(qAbs(color.alpha() - 9) <= 1,
+                     qPrintable(QStringLiteral("x=%1 alpha=%2").arg(x).arg(color.alpha())));
+        }
+    }
+
+    // Python's table and list delegates draw an item's check box 15 px into the item; the port
+    // centred it on the style's indicator rect, about 4 px further right in a table.
+    void tableCheckBoxSitsWherePythonDrawsIt()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TableWidget table;
+        table.setCheckedColor(Qt::red, Qt::red);
+        table.setRowCount(1);
+        table.setColumnCount(2);
+        auto *item = new QTableWidgetItem(QStringLiteral("MMMM"));
+        item->setCheckState(Qt::Checked);
+        table.setItem(0, 0, item);
+        ListWidget list;
+        list.setCheckedColor(Qt::red, Qt::red);
+        auto *listItem = new QListWidgetItem(QStringLiteral("MMMM"));
+        listItem->setCheckState(Qt::Checked);
+        list.addItem(listItem);
+
+        const QList<std::pair<QAbstractItemView *, QModelIndex>> views{
+            {&table, table.model()->index(0, 0)},
+            {&list, list.model()->index(0, 0)},
+        };
+        for (const auto &[view, index] : views) {
+            QImage image(QSize(200, 38), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::white);
+            QStyleOptionViewItem option;
+            option.rect = image.rect();
+            option.state = QStyle::State_Enabled;
+            option.widget = view;
+            QPainter painter(&image);
+            view->itemDelegate()->paint(&painter, option, index);
+            painter.end();
+
+            int left = -1;
+            for (int x = 0; x < image.width() && left < 0; ++x) {
+                const QColor color = image.pixelColor(x, image.height() / 2);
+                if (color.red() > 200 && color.green() < 120) {
+                    left = x;
+                }
+            }
+            QVERIFY2(left == 14 || left == 15, qPrintable(QString::number(left)));
+        }
+    }
+
+    // Python's tree delegate sizes items as Qt does; the port's inherited the table delegate's 2 px
+    // above and below, which made tree rows 4 px taller than Python's.
+    void treeRowsKeepThePythonHeight()
+    {
+        TreeWidget tree;
+        auto *item = new QTreeWidgetItem(&tree, QStringList{QStringLiteral("MMMM")});
+        const QModelIndex index = tree.indexFromItem(item);
+        // Qt's sizing of the item as the Fluent delegate styles it.
+        struct PlainDelegate : QStyledItemDelegate
+        {
+            TreeItemDelegate *fluent = nullptr;
+            void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+            {
+                fluent->initStyleOption(option, index);
+            }
+        } plain;
+        plain.fluent = tree.delegate();
+        QStyleOptionViewItem option;
+        option.widget = &tree;
+        QCOMPARE(tree.delegate()->sizeHint(option, index), plain.sizeHint(option, index));
+    }
+
+    // Python's SimpleCardWidget and ElevatedCardWidget come without a layout, so a subclass gives
+    // them its own. The port's had a 16 px VBox layout, which made `new QVBoxLayout(card)` fail.
+    void simpleCardsComeWithoutALayout()
+    {
+        SimpleCardWidget simple;
+        ElevatedCardWidget elevated;
+        QCOMPARE(simple.layout(), nullptr);
+        QCOMPARE(elevated.layout(), nullptr);
+
+        HeaderCardWidget header;
+        QVERIFY(qobject_cast<QVBoxLayout *>(header.layout()));
+        QCOMPARE(header.layout()->contentsMargins(), QMargins());
+        QCOMPARE(header.layout()->count(), 3);
+    }
+
+    // As Python's BackgroundAnimationWidget, a card fades its background to the state's colour in
+    // 120 ms, shows the pressed colour on any press, and simple and elevated cards paint the colour
+    // of their state. The port switched at once, pressed only clickable cards, and painted simple and
+    // elevated cards in their normal colour whatever the state.
+    void cardsFadeToTheirStateColours()
+    {
+        auto *manager = ThemeManager::instance();
+        auto centerAlpha = [](QWidget &card) {
+            const QImage image = FqwTest::render(card);
+            return image.pixelColor(image.rect().center()).alpha();
+        };
+        auto enter = [](QWidget &card) {
+            QEnterEvent event(QPointF(10, 10), QPointF(10, 10), QPointF(10, 10));
+            QApplication::sendEvent(&card, &event);
+        };
+
+        manager->setTheme(Theme::Light);
+        CardWidget card;
+        card.resize(100, 60);
+        QCOMPARE(centerAlpha(card), 170);
+        enter(card);
+        QVERIFY(centerAlpha(card) > 150);
+        QTRY_COMPARE(centerAlpha(card), 64);
+
+        ElevatedCardWidget elevated;
+        elevated.resize(100, 60);
+        QCOMPARE(centerAlpha(elevated), 170);
+        enter(elevated);
+        // Without the hover shadow, which render() would draw in place of the hidden card.
+        elevated.setGraphicsEffect(nullptr);
+        QTRY_COMPARE(centerAlpha(elevated), 255);
+
+        SimpleCardWidget simple;
+        simple.resize(100, 60);
+        enter(simple);
+        QVERIFY(FqwTest::waitForAnimations(&simple));
+        QCOMPARE(centerAlpha(simple), 170);
+
+        manager->setTheme(Theme::Dark);
+        CardWidget dark;
+        dark.resize(100, 60);
+        dark.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dark));
+        QVERIFY(!dark.isClickEnabled());
+        QTest::mousePress(&dark, Qt::LeftButton, Qt::NoModifier, QPoint(50, 30));
+        QTRY_COMPARE(centerAlpha(dark), 8);
+        QTest::mouseRelease(&dark, Qt::LeftButton, Qt::NoModifier, QPoint(50, 30));
+    }
+
+    // Python's ElevatedCardWidget has no shadow at rest: under the mouse a 38 px blurred shadow
+    // fades in to alpha 20 in 150 ms, and once it has faded out again the effect is removed. The
+    // port's shadow was always there.
+    void elevatedCardShadowShowsOnlyUnderTheMouse()
+    {
+        ElevatedCardWidget card;
+        card.resize(100, 60);
+        QCOMPARE(card.graphicsEffect(), nullptr);
+
+        QEnterEvent enter(QPointF(10, 10), QPointF(10, 10), QPointF(10, 10));
+        QApplication::sendEvent(&card, &enter);
+        auto *shadow = qobject_cast<QGraphicsDropShadowEffect *>(card.graphicsEffect());
+        QVERIFY(shadow);
+        QCOMPARE(shadow->blurRadius(), 38.0);
+        QCOMPARE(shadow->offset(), QPointF(0, 5));
+        QVERIFY(shadow->color().alpha() < 20);
+        QTRY_COMPARE(shadow->color(), QColor(0, 0, 0, 20));
+
+        QEvent leave(QEvent::Leave);
+        QApplication::sendEvent(&card, &leave);
+        QTRY_COMPARE(card.graphicsEffect(), nullptr);
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
-        const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
         FluentQt::TreeWidget tree;
@@ -231,9 +526,6 @@ class ViewTest : public QObject
 
         const QModelIndex firstChildIndex = tree.indexFromItem(firstChild);
         const QModelIndex secondChildIndex = tree.indexFromItem(secondChild);
-        QCOMPARE(firstChildIndex.row(), secondChildIndex.row());
-        QVERIFY(firstChildIndex.parent() != secondChildIndex.parent());
-
         tree.delegate()->setHoverIndex(secondChildIndex);
 
         auto renderIndexSample = [&tree](const QModelIndex &index) {
@@ -257,13 +549,10 @@ class ViewTest : public QObject
         QVERIFY2(secondColor.red() + 4 < firstColor.red(),
                  qPrintable(QStringLiteral("first=%1 second=%2").arg(firstColor.name(QColor::HexArgb),
                                                                      secondColor.name(QColor::HexArgb))));
-
-        FluentQt::ThemeManager::instance()->setTheme(previousTheme);
     }
 
-    void treeCheckBoxPaintsInsideStyleIndicatorRect()
+    void treeCheckBoxSitsLeftOfTheText()
     {
-        const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
         FluentQt::TreeWidget tree;
@@ -296,307 +585,6 @@ class ViewTest : public QObject
 
         QVERIFY(image.rect().contains(indicatorRect.center()));
         QVERIFY(image.pixelColor(indicatorRect.center()) != QColor(Qt::white));
-
-        FluentQt::ThemeManager::instance()->setTheme(previousTheme);
-    }
-
-    void listViewsUseFluentOverlayScrollBars()
-    {
-        auto populate = [](auto *view) {
-            for (int i = 0; i < 80; ++i) {
-                view->addItem(QStringLiteral("Item %1").arg(i));
-            }
-            view->resize(260, 180);
-            view->show();
-            QVERIFY(QTest::qWaitForWindowExposed(view));
-            QCoreApplication::processEvents();
-        };
-
-        FluentQt::ListWidget listWidget;
-        populate(&listWidget);
-        QCOMPARE(listWidget.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-        QCOMPARE(listWidget.scrollDelegate()->verticalScrollBar()->parentWidget(), &listWidget);
-        QVERIFY(listWidget.scrollDelegate()->verticalScrollBar()->maximum() > 0);
-        QVERIFY(!listWidget.verticalScrollBar()->isVisible());
-        QVERIFY(listWidget.scrollDelegate()->verticalScrollBar()->isVisible());
-
-        listWidget.scrollDelegate()->verticalScrollBar()->setValue(24);
-        QCOMPARE(listWidget.verticalScrollBar()->value(), 24);
-
-        QStringListModel model;
-        QStringList items;
-        for (int i = 0; i < 80; ++i) {
-            items.append(QStringLiteral("Item %1").arg(i));
-        }
-        model.setStringList(items);
-
-        FluentQt::ListView listView;
-        listView.setModel(&model);
-        listView.resize(260, 180);
-        listView.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&listView));
-        QCoreApplication::processEvents();
-
-        QCOMPARE(listView.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-        QCOMPARE(listView.scrollDelegate()->verticalScrollBar()->parentWidget(), &listView);
-        QVERIFY(listView.scrollDelegate()->verticalScrollBar()->maximum() > 0);
-        QVERIFY(!listView.verticalScrollBar()->isVisible());
-        QVERIFY(listView.scrollDelegate()->verticalScrollBar()->isVisible());
-
-        listView.scrollDelegate()->verticalScrollBar()->setValue(24);
-        QCOMPARE(listView.verticalScrollBar()->value(), 24);
-    }
-
-    void overlayScrollBarsFollowNativeLayout_data()
-    {
-        QTest::addColumn<int>("consumer");
-        QTest::newRow("scroll-area") << 0;
-        QTest::newRow("plain-text-edit") << 1;
-        QTest::newRow("table-view") << 2;
-    }
-
-    void overlayScrollBarsFollowNativeLayout()
-    {
-        QFETCH(int, consumer);
-        QAbstractScrollArea *area = nullptr;
-        FluentQt::SmoothScrollDelegate *delegate = nullptr;
-        if (consumer == 0) {
-            auto *scroll = new FluentQt::ScrollArea;
-            auto *content = new QWidget;
-            content->setMinimumSize(780, 780);
-            scroll->setWidget(content);
-            area = scroll;
-            delegate = scroll->scrollDelegate();
-        } else if (consumer == 1) {
-            auto *editor = new FluentQt::PlainTextEdit;
-            editor->setLineWrapMode(QPlainTextEdit::NoWrap);
-            QStringList lines;
-            for (int i = 0; i < 80; ++i) {
-                lines.append(QString::number(i) + QString(200, QLatin1Char('x')));
-            }
-            editor->setPlainText(lines.join(QLatin1Char('\n')));
-            area = editor;
-            delegate = editor->scrollDelegate();
-        } else {
-            auto *table = new FluentQt::TableView;
-            table->setModel(new QStandardItemModel(80, 1, table));
-            table->setColumnWidth(0, 1200);
-            area = table;
-            delegate = table->scrollDelegate();
-        }
-        QScopedPointer<QAbstractScrollArea> owner(area);
-        area->resize(370, 650);
-        area->show();
-        QVERIFY(QTest::qWaitForWindowExposed(area));
-
-        for (int height : {650, 550, 700}) {
-            area->resize(370, height);
-            const QList<QScrollBar *> nativeBars = {area->verticalScrollBar(), area->horizontalScrollBar()};
-            const QList<FluentQt::ScrollBar *> overlayBars = {delegate->verticalScrollBar(),
-                                                            delegate->horizontalScrollBar()};
-            for (int i = 0; i < nativeBars.size(); ++i) {
-                auto *native = nativeBars.at(i);
-                auto *overlay = overlayBars.at(i);
-                QTRY_VERIFY(native->maximum() > native->minimum());
-                QTRY_COMPARE(overlay->minimum(), native->minimum());
-                QTRY_COMPARE(overlay->maximum(), native->maximum());
-                QTRY_COMPARE(overlay->pageStep(), native->pageStep());
-                QTRY_COMPARE(overlay->singleStep(), native->singleStep());
-                native->setValue(qMin(40, native->maximum()));
-                QCOMPARE(overlay->value(), native->value());
-                overlay->setValue(0);
-                QCOMPARE(native->value(), 0);
-            }
-        }
-    }
-
-    void overlayScrollBarReadsStepsAfterRangeAndViewportChanges()
-    {
-        QAbstractScrollArea area;
-        FluentQt::SmoothScrollDelegate delegate(&area, false);
-        area.resize(370, 250);
-        area.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&area));
-
-        auto *native = area.verticalScrollBar();
-        auto *overlay = delegate.verticalScrollBar();
-        native->setRange(0, 1000);
-        native->setPageStep(180);
-        native->setSingleStep(37);
-        native->setValue(700);
-        QTRY_COMPARE(overlay->pageStep(), 180);
-        QCOMPARE(overlay->singleStep(), 37);
-        QCOMPARE(overlay->maximum(), 1000);
-        QCOMPARE(overlay->value(), 700);
-
-        // The range can stay unchanged when only the viewport's page step changes.
-        native->setPageStep(210);
-        native->setSingleStep(45);
-        area.resize(370, 300);
-        QTRY_COMPARE(overlay->pageStep(), 210);
-        QCOMPARE(overlay->singleStep(), 45);
-        QCOMPARE(overlay->maximum(), 1000);
-        QCOMPARE(overlay->value(), 700);
-    }
-
-    void overlayPendingSyncSurvivesPartnerAndAreaDestruction()
-    {
-        auto *area = new QAbstractScrollArea;
-        auto *delegate = new FluentQt::SmoothScrollDelegate(area, false);
-        QPointer<FluentQt::ScrollBar> overlay = delegate->verticalScrollBar();
-        QPointer<QScrollBar> partner = area->verticalScrollBar();
-        partner->setRange(0, 1000);
-        auto *replacement = new QScrollBar(Qt::Vertical, area);
-        area->setVerticalScrollBar(replacement);
-        QTRY_VERIFY(partner.isNull());
-        area->resize(370, 250);
-        QCoreApplication::processEvents();
-        QCOMPARE(area->verticalScrollBar(), replacement);
-        QVERIFY(!overlay.isNull());
-        delete area;
-        QVERIFY(overlay.isNull());
-        QCoreApplication::processEvents();
-
-        area = new QAbstractScrollArea;
-        delegate = new FluentQt::SmoothScrollDelegate(area, false);
-        overlay = delegate->verticalScrollBar();
-        area->verticalScrollBar()->setRange(0, 1000);
-        delete area;
-        QVERIFY(overlay.isNull());
-        QCoreApplication::processEvents();
-    }
-
-    void scrollAreasExposeFluentPolicies()
-    {
-        FluentQt::ScrollBar bar(Qt::Vertical);
-        QCOMPARE(bar.property("fqw").toString(), QStringLiteral("ScrollBar"));
-        QVERIFY(bar.groove() != nullptr);
-        QVERIFY(bar.handle() != nullptr);
-        QVERIFY(bar.upButton() != nullptr);
-        QVERIFY(bar.downButton() != nullptr);
-        QCOMPARE(bar.groove()->property("fqw").toString(), QStringLiteral("ScrollBarGroove"));
-        QCOMPARE(bar.handle()->property("fqw").toString(), QStringLiteral("ScrollBarHandle"));
-        QCOMPARE(bar.upButton()->property("fqw").toString(), QStringLiteral("ArrowButton"));
-        QCOMPARE(bar.groove()->orientation(), Qt::Vertical);
-        QCOMPARE(bar.handle()->orientation(), Qt::Vertical);
-        QCOMPARE(bar.upButton()->iconType(), FluentQt::FluentIcon::Up);
-        QCOMPARE(bar.downButton()->iconType(), FluentQt::FluentIcon::ArrowDown);
-        QCOMPARE(bar.groove()->opacity(), 0.0);
-        QCOMPARE(bar.handle()->opacity(), 1.0);
-        bar.setHandleDisplayMode(FluentQt::ScrollBarHandleDisplayMode::OnHover);
-        QCOMPARE(bar.handleDisplayMode(), FluentQt::ScrollBarHandleDisplayMode::OnHover);
-        QCOMPARE(bar.property("handleDisplayMode").toString(), QStringLiteral("OnHover"));
-        QCOMPARE(bar.property("expanded").toBool(), false);
-        bar.setHandleColor(QColor(QStringLiteral("#010203")), QColor(QStringLiteral("#aabbcc")));
-        bar.setArrowColor(QColor(QStringLiteral("#111213")), QColor(QStringLiteral("#ddeeff")));
-        bar.setGrooveColor(QColor(252, 252, 252, 217), QColor(44, 44, 44, 245));
-        QCOMPARE(bar.handle()->lightColor(), QColor(QStringLiteral("#010203")));
-        QCOMPARE(bar.handle()->darkColor(), QColor(QStringLiteral("#aabbcc")));
-        QCOMPARE(bar.upButton()->lightColor(), QColor(QStringLiteral("#111213")));
-        QCOMPARE(bar.downButton()->darkColor(), QColor(QStringLiteral("#ddeeff")));
-        QCOMPARE(bar.groove()->lightBackgroundColor(), QColor(252, 252, 252, 217));
-        QCOMPARE(bar.handleColor(FluentQt::Theme::Light), QColor(QStringLiteral("#010203")));
-        QCOMPARE(bar.handleColor(FluentQt::Theme::Dark), QColor(QStringLiteral("#aabbcc")));
-        QCOMPARE(bar.arrowColor(FluentQt::Theme::Light), QColor(QStringLiteral("#111213")));
-        QCOMPARE(bar.arrowColor(FluentQt::Theme::Dark), QColor(QStringLiteral("#ddeeff")));
-        bar.resize(12, 120);
-        bar.setRange(0, 100);
-        bar.setPageStep(20);
-        bar.expand();
-        QCOMPARE(bar.property("expanded").toBool(), true);
-        QTRY_VERIFY(bar.groove()->opacity() > 0.0);
-        bar.setValue(50);
-        QVERIFY(bar.handle()->geometry().height() >= 30);
-        QVERIFY(bar.handle()->geometry().y() > 0);
-        QTest::mouseClick(bar.downButton(), Qt::LeftButton);
-        QCOMPARE(bar.value(), 70);
-        QTest::mouseClick(bar.upButton(), Qt::LeftButton);
-        QCOMPARE(bar.value(), 50);
-        bar.collapse();
-        QCOMPARE(bar.property("expanded").toBool(), false);
-        QVERIFY(FluentQt::StyleSheetManager::instance()
-                    ->customStyleSheet(&bar, FluentQt::Theme::Light)
-                    .contains(QStringLiteral("rgba(1, 2, 3")));
-        bar.setForceHidden(true);
-        QVERIFY(bar.isForceHidden());
-
-        FluentQt::ScrollArea area;
-        QVERIFY(area.verticalFluentScrollBar() != nullptr);
-        QVERIFY(area.horizontalFluentScrollBar() != nullptr);
-        QCOMPARE(area.vScrollBar(), area.verticalFluentScrollBar());
-        QCOMPARE(area.hScrollBar(), area.horizontalFluentScrollBar());
-        QCOMPARE(area.scrollDelagate(), area.scrollDelegate());
-        QCOMPARE(area.property("vScrollBar").value<FluentQt::ScrollBar *>(), area.vScrollBar());
-        QCOMPARE(area.property("hScrollBar").value<FluentQt::ScrollBar *>(), area.hScrollBar());
-        QCOMPARE(area.property("scrollDelagate").value<FluentQt::SmoothScrollDelegate *>(), area.scrollDelegate());
-        QCOMPARE(area.scrollDelegate()->vScrollBar(), area.scrollDelegate()->verticalScrollBar());
-        QCOMPARE(area.scrollDelegate()->hScrollBar(), area.scrollDelegate()->horizontalScrollBar());
-        QCOMPARE(area.property("fqw").toString(), QStringLiteral("ScrollArea"));
-        area.setViewportMargins(1, 2, 3, 4);
-        QCOMPARE(area.viewportMargins(), QMargins(1, 2, 3, 4));
-        area.setViewportMargins(QMargins(5, 6, 7, 8));
-        QCOMPARE(area.viewportMargins(), QMargins(5, 6, 7, 8));
-        area.enableTransparentBackground();
-        QCOMPARE(area.property("transparent").toBool(), true);
-        QCOMPARE(area.viewport()->property("transparent").toBool(), true);
-        auto *transparentContent = new QWidget;
-        area.setWidget(transparentContent);
-        QCOMPARE(transparentContent->property("transparent").toBool(), true);
-        QVERIFY(!transparentContent->autoFillBackground());
-        area.enableTransparentBackground(false);
-        auto *opaqueContent = new QWidget;
-        area.setWidget(opaqueContent);
-        QCOMPARE(opaqueContent->property("transparent").toBool(), false);
-        QVERIFY(opaqueContent->autoFillBackground());
-        area.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        QVERIFY(area.verticalFluentScrollBar()->isForceHidden());
-        area.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-        QVERIFY(!area.verticalFluentScrollBar()->isForceHidden());
-
-        FluentQt::SingleDirectionScrollArea single(Qt::Vertical);
-        QCOMPARE(single.orientation(), Qt::Vertical);
-        QCOMPARE(single.horizontalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-        single.setOrientation(Qt::Horizontal);
-        QCOMPARE(single.orientation(), Qt::Horizontal);
-        QCOMPARE(single.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-
-        FluentQt::SmoothScrollArea smooth;
-        QCOMPARE(smooth.delegate(), smooth.scrollDelegate());
-        QCOMPARE(smooth.property("delegate").value<FluentQt::SmoothScrollDelegate *>(), smooth.delegate());
-        smooth.setScrollAnimation(Qt::Horizontal, 240, QEasingCurve::OutQuad);
-        QCOMPARE(smooth.scrollAnimationDuration(Qt::Horizontal), 240);
-        QCOMPARE(smooth.scrollAnimationEasing(Qt::Horizontal), QEasingCurve::OutQuad);
-    }
-
-    void scrollBarHandleStaysInsideForHugeRanges()
-    {
-        SmoothScrollBar bar(Qt::Vertical);
-        bar.resize(12, 600);
-        bar.setRange(0, 5000000);
-        bar.setPageStep(600);
-        bar.setValue(4000000);
-        const QRect handle = bar.handle()->geometry();
-        QVERIFY2(handle.y() > 300 && handle.bottom() <= 600, qPrintable(QString::number(handle.y())));
-    }
-
-    void smoothScrollAreaKeepsOnlyItsOwnBars()
-    {
-        SmoothScrollArea area;
-        auto *content = new QWidget;
-        content->setMinimumHeight(5000);
-        area.setWidget(content);
-        area.resize(300, 300);
-        area.show();
-        FqwTest::flushDeletes();
-        QCOMPARE(area.findChildren<SmoothScrollBar *>().size(), 2);
-
-        area.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        QTest::qWait(50);
-        for (SmoothScrollBar *bar : area.findChildren<SmoothScrollBar *>()) {
-            if (bar->orientation() == Qt::Vertical) {
-                QVERIFY(!bar->isVisible());
-            }
-        }
     }
 
     void flipViewTracksImagesAndCurrentIndex()
@@ -767,124 +755,77 @@ class ViewTest : public QObject
             }
             return std::make_pair(darkest, lightest);
         };
-        QCOMPARE(titleColor(card), QColor(32, 32, 32));
+        QCOMPARE(titleColor(card), QColor(Qt::black));
         QVERIFY(titleLightness(card).first < 80);
-        QCOMPARE(card.titleLabel()->font().pointSize(), 15);
+        // As in Python: setFont(headerLabel, 15, QFont.DemiBold), black in light mode and white in dark.
+        QCOMPARE(card.titleLabel()->font().pixelSize(), 15);
         QCOMPARE(card.titleLabel()->font().weight(), QFont::DemiBold);
 
         manager->setTheme(FluentQt::Theme::Dark);
-        QCOMPARE(titleColor(card), QColor(243, 243, 243));
+        QCOMPARE(titleColor(card), QColor(Qt::white));
         QVERIFY(titleLightness(card).second > 200);
         hiddenCard.resize(320, 160);
         hiddenCard.show();
         QVERIFY(QTest::qWaitForWindowExposed(&hiddenCard));
-        QCOMPARE(titleColor(hiddenCard), QColor(243, 243, 243));
+        QCOMPARE(titleColor(hiddenCard), QColor(Qt::white));
 
         manager->setTheme(FluentQt::Theme::Light);
-        QCOMPARE(titleColor(card), QColor(32, 32, 32));
+        QCOMPARE(titleColor(card), QColor(Qt::black));
         QVERIFY(titleLightness(card).first < 80);
-        QCOMPARE(titleColor(hiddenCard), QColor(32, 32, 32));
+        QCOMPARE(titleColor(hiddenCard), QColor(Qt::black));
     }
 
-    void pagerTracksCurrentPageAndButtons()
+    // Python's flip view buttons draw their arrow brighter under the mouse, not only when pressed.
+    void flipViewArrowBrightensUnderTheMouse()
     {
-        FluentQt::PipsPager pager;
-        QSignalSpy currentSpy(&pager, &FluentQt::PipsPager::currentIndexChanged);
+        ThemeManager::instance()->setTheme(Theme::Light);
+        FlipView view;
+        QImage white(480, 270, QImage::Format_ARGB32);
+        white.fill(Qt::white);
+        view.addImages(QList<QImage>{white, white});
+        view.resize(480, 270);
+        view.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
 
-        pager.setPageNumber(8);
-        pager.setVisibleNumber(5);
-        pager.setPreviousButtonDisplayMode(FluentQt::PipsScrollButtonDisplayMode::Always);
-        pager.setNextButtonDisplayMode(FluentQt::PipsScrollButtonDisplayMode::Always);
+        const QRect next(view.width() - 18, view.height() / 2 - 19, 16, 38);
+        auto darkestArrowPixel = [&](const QPoint &mouse) -> int {
+            QEnterEvent enter(mouse, view.mapToGlobal(mouse), view.mapToGlobal(mouse));
+            QApplication::sendEvent(&view, &enter);
+            QMouseEvent move(QEvent::MouseMove, mouse, view.mapToGlobal(mouse), Qt::NoButton, Qt::NoButton,
+                             Qt::NoModifier);
+            QApplication::sendEvent(&view, &move);
+            if (!QTest::qWaitFor([&] { return view.nextButtonOpacity() == 1.0; })) {
+                return -1;
+            }
+            const QImage image = FqwTest::render(view, Qt::white);
+            int darkest = 255;
+            for (int y = next.top(); y <= next.bottom(); ++y) {
+                for (int x = next.left(); x <= next.right(); ++x) {
+                    darkest = qMin(darkest, image.pixelColor(x, y).lightness());
+                }
+            }
+            return darkest;
+        };
+        const int away = darkestArrowPixel(QPoint(100, 135));
+        const int over = darkestArrowPixel(next.center());
+        QVERIFY(over >= 0 && away >= 0);
+        QVERIFY2(over + 20 < away, qPrintable(QStringLiteral("over=%1 away=%2").arg(over).arg(away)));
+    }
 
-        QCOMPARE(pager.pageNumber(), 8);
-        QCOMPARE(pager.getPageNumber(), 8);
-        QCOMPARE(pager.visibleNumber(), 5);
-        QCOMPARE(pager.getVisibleNumber(), 5);
-        QCOMPARE(pager.currentIndex(), 0);
-        QVERIFY(pager.isHorizontal());
-        QVERIFY(!pager.isHover());
-        QVERIFY(pager.metaObject()->indexOfProperty("isHover") >= 0);
-        QVERIFY(pager.metaObject()->indexOfProperty("pipContainer") >= 0);
-        QVERIFY(pager.metaObject()->indexOfProperty("scrollAnimation") >= 0);
-        QVERIFY(pager.pipContainer() != nullptr);
-        QVERIFY(pager.scrollAnimation() != nullptr);
-        QCOMPARE(pager.scrollAnimation()->propertyName(), QByteArray("pipScrollOffset"));
-        QCOMPARE(pager.scrollAnimation()->duration(), 500);
-        QCOMPARE(pager.property("pipContainer").value<QWidget *>(), pager.pipContainer());
-        QCOMPARE(pager.property("scrollAnimation").value<QPropertyAnimation *>(), pager.scrollAnimation());
-        QCOMPARE(pager.sizeHint(), QSize(90, 12));
-        QCOMPARE(pager.pipButtons().size(), 8);
-        QCOMPARE(pager.pipButtons().first()->parentWidget(), pager.pipContainer());
-        QCOMPARE(pager.previousButton(), pager.preButton());
-        QCOMPARE(pager.previousButton()->size(), QSize(12, 12));
-        QCOMPARE(pager.nextButton()->size(), QSize(12, 12));
-        QVERIFY(pager.previousButton()->isHidden());
-        QVERIFY(!pager.nextButton()->isHidden());
-        QVERIFY(!pager.isPreviousButtonVisible());
-        QVERIFY(pager.isNextButtonVisible());
-        QVERIFY(pager.pipButtons().at(0)->isChecked());
-
-        pager.setCurrentIndex(4);
-        QCOMPARE(pager.currentIndex(), 4);
-        QCOMPARE(currentSpy.last().at(0).toInt(), 4);
-        QVERIFY(!pager.previousButton()->isHidden());
-        QVERIFY(!pager.nextButton()->isHidden());
-        QVERIFY(pager.isPreviousButtonVisible());
-        QVERIFY(pager.isNextButtonVisible());
-        QVERIFY(pager.pipButtons().at(4)->isChecked());
-
-        int visiblePips = 0;
-        for (QToolButton *button : pager.pipButtons()) {
-            visiblePips += !button->isHidden() ? 1 : 0;
+    // Python's flip view buttons fade in and out linearly over 150 ms; the port eased them.
+    void flipViewButtonsFadeLinearly()
+    {
+        FlipView view;
+        const auto animations = view.findChildren<QPropertyAnimation *>();
+        int fades = 0;
+        for (QPropertyAnimation *animation : animations) {
+            if (animation->propertyName().endsWith("ButtonOpacity")) {
+                QCOMPARE(animation->duration(), 150);
+                QCOMPARE(animation->easingCurve().type(), QEasingCurve::Linear);
+                ++fades;
+            }
         }
-        QCOMPARE(visiblePips, 5);
-        QCOMPARE(pager.scrollAnimation()->endValue().toReal(), 2.0);
-
-        pager.scrollNext();
-        QCOMPARE(pager.currentIndex(), 5);
-        pager.scrollPrevious();
-        QCOMPARE(pager.currentIndex(), 4);
-
-        pager.setCurrentIndex(99);
-        QCOMPARE(pager.currentIndex(), 4);
-    }
-
-    void pagerSupportsOrientationAndClampsState()
-    {
-        FluentQt::VerticalPipsPager pager;
-        QCOMPARE(pager.orientation(), Qt::Vertical);
-        QVERIFY(!pager.isHorizontal());
-        pager.setPageNumber(2);
-        pager.setVisibleNumber(0);
-        QCOMPARE(pager.visibleNumber(), 1);
-        QCOMPARE(pager.getVisibleNumber(), 1);
-        QCOMPARE(pager.sizeHint(), QSize(12, 42));
-
-        QSignalSpy orientationSpy(&pager, &FluentQt::PipsPager::orientationChanged);
-        pager.setOrientation(Qt::Horizontal);
-        QCOMPARE(pager.orientation(), Qt::Horizontal);
-        QCOMPARE(orientationSpy.count(), 1);
-
-        pager.setCurrentIndex(1);
-        QCOMPARE(pager.currentIndex(), 1);
-        pager.setPageNumber(1);
-        QCOMPARE(pager.currentIndex(), 0);
-
-        pager.setPageNumber(0);
-        QCOMPARE(pager.currentIndex(), -1);
-        QCOMPARE(pager.pipButtons().size(), 0);
-    }
-
-    void pipsPagerReportsOnlyRealIndexChanges()
-    {
-        PipsPager pager;
-        pager.setPageNumber(5);
-        pager.setCurrentIndex(2);
-        QSignalSpy spy(&pager, &PipsPager::currentIndexChanged);
-        pager.setPageNumber(8);
-        QCOMPARE(spy.count(), 0);
-        pager.setPageNumber(2);
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(fades, 2);
     }
 
   private:

@@ -1,0 +1,2 @@
+{ "synchronousWindowSystemEvents": true, "windowFrameMargins": false,
+  "screens": [ { "name": "shot", "x": 0, "y": 0, "width": 3200, "height": 2000, "logicalDpi": 96 } ] }

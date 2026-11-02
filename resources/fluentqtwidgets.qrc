@@ -24,7 +24,6 @@
         <file>qss/dark/navigation_interface.qss</file>
         <file>qss/dark/pips_pager.qss</file>
         <file>qss/dark/pivot.qss</file>
-        <file>qss/dark/progress_bar.qss</file>
         <file>qss/dark/scroll_bar.qss</file>
         <file>qss/dark/media_player.qss</file>
         <file>qss/dark/message_dialog.qss</file>
@@ -64,7 +63,6 @@
         <file>qss/light/navigation_interface.qss</file>
         <file>qss/light/pips_pager.qss</file>
         <file>qss/light/pivot.qss</file>
-        <file>qss/light/progress_bar.qss</file>
         <file>qss/light/scroll_bar.qss</file>
         <file>qss/light/media_player.qss</file>
         <file>qss/light/message_dialog.qss</file>
@@ -87,6 +85,10 @@
         <file>images/color_dialog/Clear_black.svg</file>
         <file>images/color_dialog/Clear_white.svg</file>
         <file>images/color_dialog/HuePanel.png</file>
+        <file>images/folder_list_dialog/Add_black.png</file>
+        <file>images/folder_list_dialog/Add_white.png</file>
+        <file>images/folder_list_dialog/Close_black.png</file>
+        <file>images/folder_list_dialog/Close_white.png</file>
         <file>images/tree_view/TreeViewClose_black.svg</file>
         <file>images/tree_view/TreeViewClose_white.svg</file>
         <file>images/tree_view/TreeViewOpen_black.svg</file>

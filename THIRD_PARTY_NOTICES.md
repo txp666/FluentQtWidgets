@@ -10,7 +10,7 @@ The reference project is GPLv3 licensed. This C++ project follows GPL-compatible
 
 The C++ port copies selected SVG icon resources from the reference project into `resources/images/icons` so the themed icon engine can resolve `:/qfluentwidgets/images/icons/*_{black,white}.svg` paths. These copied SVG files remain under the reference project's GPL license terms.
 
-Gallery image resources copied from the reference gallery into `examples/gallery/resource/images` are included under the reference project's GPL license terms to improve visual parity with the original example gallery.
+Gallery image resources copied from the reference gallery into `examples/gallery/resource/images` are included under the reference project's GPL license terms to improve visual parity with the original example gallery. The FluentQtWidgets logo (`examples/gallery/resource/images/logo.svg` and the logo and app icons rendered from it) is this project's own and is not taken from the reference project.
 
 ## Qt
 

@@ -31,8 +31,8 @@ enum class FramelessArea
     BottomRight
 };
 
-/// Helper class that encapsulates frameless window behavior (resize, move, cursor updates).
-/// Used by FluentWidget, FluentWindow, and MSFluentWindow to eliminate code duplication.
+// The frameless window behaviour (moving, resizing, edge cursors) that FluentWidget and the
+// FluentWindow classes share.
 class FQW_API FramelessWindowHelper
 {
 public:
@@ -41,29 +41,28 @@ public:
     void setTitleBar(FluentTitleBar *titleBar);
     FluentTitleBar *titleBar() const;
 
-    // ---- Non-Windows event handlers ----
-    // Call from host's mousePressEvent / mouseMoveEvent / mouseReleaseEvent
+    // --- Non-Windows event handlers ---
+    // Call from the host's mousePressEvent(), mouseMoveEvent() and mouseReleaseEvent().
     void handleMousePress(const QPoint &globalPos, Qt::MouseButton button);
     void handleMouseMove(const QPoint &globalPos);
     void handleMouseRelease();
 
-    // Returns true while a frameless move/resize is active (base widget should skip default handling)
+    // True while a frameless move or resize is under way; the host then skips its default handling.
     bool isProcessingFramelessAction() const;
 
-    // ---- Windows native event handler ----
+    // --- Windows native event handler ---
     bool handleNativeEvent(const QByteArray &eventType, void *message, qintptr *result);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // Qt 5's nativeEvent() hands out a long, which is 32 bits on 64-bit Windows.
     bool handleNativeEvent(const QByteArray &eventType, void *message, long *result);
 #endif
 
-    // Call from host's changeEvent (WindowStateChange)
+    // Call from the host's changeEvent() on QEvent::WindowStateChange.
     void handleWindowStateChange();
 
-    // Update cursor based on position (for frameless edge detection)
+    // Sets the resize cursor for the edge under localPos.
     void updateFramelessCursor(const QPoint &localPos);
 
-    // Hit test for frameless areas
     FramelessArea hitTestFramelessArea(const QPoint &localPos) const;
 
 private:
@@ -76,7 +75,6 @@ private:
     QPointer<FluentTitleBar> m_titleBar;
     QPointer<TransparentToolButton> m_pressedMaxButton;
 
-    // Frameless interaction state
     bool m_mousePressed = false;
     bool m_usingSystemMove = false;
     bool m_resizing = false;

@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/LineEdit.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
@@ -8,7 +10,6 @@
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 
-#include <QtCore/QPointer>
 #include <QtCore/QTimer>
 #include <QtGui/QClipboard>
 #include <QtGui/QFocusEvent>
@@ -29,43 +30,47 @@ namespace FluentQt {
 
 namespace {
 
-QAction *addMenuAction(RoundMenu *menu, FluentIcon iconType, const QString &text, const QKeySequence &shortcut,
+QAction *addMenuAction(RoundMenu *menu, const QIcon &icon, const QString &text, const QKeySequence &shortcut,
                        const QObject *receiver, const std::function<void()> &slot, bool enabled = true)
 {
-    QAction *action = menu->addAction(FluentQt::icon(iconType), text);
+    QAction *action = menu->addAction(icon, text);
     action->setShortcut(shortcut);
     action->setEnabled(enabled);
     QObject::connect(action, &QAction::triggered, receiver, slot);
     return action;
 }
 
-// Draws the focus underline over the editor's viewport. It is a child of the
-// editor rather than the viewport: scrolling moves the viewport's children
-// with the content, which would carry the underline up with the text.
+QAction *addMenuAction(RoundMenu *menu, FluentIcon iconType, const QString &text, const QKeySequence &shortcut,
+                       const QObject *receiver, const std::function<void()> &slot, bool enabled = true)
+{
+    return addMenuAction(menu, FluentQt::icon(iconType), text, shortcut, receiver, slot, enabled);
+}
+
+// Draws the focus underline along the bottom of the whole editor, as Python's EditLayer does. It
+// is a child of the editor rather than the viewport: scrolling moves the viewport's children with
+// the content, which would carry the underline up with the text.
 class EditLayer : public QWidget
 {
   public:
     explicit EditLayer(QAbstractScrollArea *editor)
         : QWidget(editor)
         , m_editor(editor)
-        , m_viewport(editor->viewport())
     {
         setObjectName(QStringLiteral("editLayer"));
         setProperty("fqw", QStringLiteral("EditLayer"));
         setAttribute(Qt::WA_TransparentForMouseEvents);
         setAttribute(Qt::WA_NoSystemBackground);
-        setGeometry(m_viewport->geometry());
+        setGeometry(editor->rect());
         raise();
         editor->installEventFilter(this);
-        m_viewport->installEventFilter(this);
     }
 
   protected:
     bool eventFilter(QObject *obj, QEvent *event) override
     {
         const QEvent::Type type = event->type();
-        if (m_viewport && obj == m_viewport && (type == QEvent::Resize || type == QEvent::Move)) {
-            setGeometry(m_viewport->geometry());
+        if (obj == m_editor && type == QEvent::Resize) {
+            setGeometry(m_editor->rect());
         } else if (obj == m_editor && (type == QEvent::FocusIn || type == QEvent::FocusOut)) {
             update();
         }
@@ -99,7 +104,6 @@ class EditLayer : public QWidget
 
   private:
     QAbstractScrollArea *m_editor = nullptr;
-    QPointer<QWidget> m_viewport;
 };
 
 template <typename Editor>
@@ -107,9 +111,7 @@ void initMultilineTextEdit(Editor *editor, const QString &role, QWidget **layer,
                            SmoothScrollDelegate **scrollDelegate)
 {
     FluentStyleSheet::setRole(editor, role);
-    QFont font = editor->font();
-    font.setPixelSize(14);
-    editor->setFont(font);
+    editor->setFont(Private::fluentFont(14));
     if (layer) {
         *layer = new EditLayer(editor);
     }
@@ -120,9 +122,7 @@ void initMultilineTextEdit(Editor *editor, const QString &role, QWidget **layer,
 
 } // namespace
 
-// ============================================================================
-// LineEditButton
-// ============================================================================
+// --- LineEditButton ---
 
 LineEditButton::LineEditButton(FluentIcon iconType, QWidget *parent)
     : QToolButton(parent)
@@ -227,9 +227,7 @@ void LineEditButton::paintEvent(QPaintEvent *e)
     iconToPaint.paint(&painter, rect.toRect());
 }
 
-// ============================================================================
-// LineEdit
-// ============================================================================
+// --- LineEdit ---
 
 LineEdit::LineEdit(QWidget *parent)
     : QLineEdit(parent)
@@ -258,9 +256,7 @@ void LineEdit::init()
     setFixedHeight(33);
     setAttribute(Qt::WA_MacShowFocusRect, false);
 
-    QFont font = this->font();
-    font.setPixelSize(14);
-    setFont(font);
+    setFont(Private::fluentFont(14));
 
     m_layout = new QHBoxLayout(this);
 
@@ -496,9 +492,7 @@ void LineEdit::paintEvent(QPaintEvent *e)
     painter.fillPath(path, focusedBorderColor());
 }
 
-// ============================================================================
-// SearchLineEdit
-// ============================================================================
+// --- SearchLineEdit ---
 
 SearchLineEdit::SearchLineEdit(QWidget *parent)
     : LineEdit(parent)
@@ -532,9 +526,7 @@ void SearchLineEdit::setClearButtonEnabled(bool enable)
 
 LineEditButton *SearchLineEdit::searchButton() const { return m_searchButton; }
 
-// ============================================================================
-// PasswordLineEdit
-// ============================================================================
+// --- PasswordLineEdit ---
 
 PasswordLineEdit::PasswordLineEdit(QWidget *parent)
     : LineEdit(parent)
@@ -606,9 +598,7 @@ QVariant PasswordLineEdit::inputMethodQuery(Qt::InputMethodQuery query) const
     return QLineEdit::inputMethodQuery(query);
 }
 
-// ============================================================================
-// CompleterMenu
-// ============================================================================
+// --- CompleterMenu ---
 
 CompleterMenu::CompleterMenu(LineEdit *lineEdit)
     : RoundMenu(QString(), nullptr)
@@ -681,6 +671,9 @@ bool CompleterMenu::eventFilter(QObject *obj, QEvent *event)
 
     auto *keyEvent = static_cast<QKeyEvent *>(event);
     QApplication::sendEvent(m_lineEdit, keyEvent);
+    // The list takes the arrow keys, as in Python. Called directly, not sent: a key the list
+    // ignores would otherwise propagate to this menu and back into this filter.
+    static_cast<QObject *>(view())->event(keyEvent);
 
     if (keyEvent->key() == Qt::Key_Escape) {
         close();
@@ -740,9 +733,7 @@ void CompleterMenu::popup()
     m_lineEdit->setFocus();
 }
 
-// ============================================================================
-// Edit context menus
-// ============================================================================
+// --- Edit context menus ---
 
 LineEditMenu::LineEditMenu(QLineEdit *parent)
     : RoundMenu(QString(), parent)
@@ -789,7 +780,8 @@ void LineEditMenu::createActions()
                       [this]() { m_editor->undo(); });
     };
     auto addSelectAll = [this]() {
-        addMenuAction(this, FluentIcon::Accept, tr("Select all"), QKeySequence::SelectAll, this,
+        // Python's "Select all" has no icon.
+        addMenuAction(this, QIcon(), tr("Select all"), QKeySequence::SelectAll, this,
                       [this]() { m_editor->selectAll(); });
     };
 
@@ -858,7 +850,8 @@ AcrylicLineEditMenu::AcrylicLineEditMenu(QLineEdit *parent) : LineEditMenu(paren
 
 AcrylicCompleterMenu::AcrylicCompleterMenu(LineEdit *lineEdit) : CompleterMenu(lineEdit)
 {
-    setMenuView(new AcrylicMenuActionListWidget(this));
+    // Python's placeholder rows are 6 px at both ends, where CompleterMenu has a 2 px top margin.
+    setMenuView(new AcrylicCompleterMenuActionListWidget(this));
     view()->setObjectName(QStringLiteral("completerListWidget"));
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -953,8 +946,8 @@ void TextEditMenu::createActions()
         addMenuAction(this, FluentIcon::Cancel, tr("Cancel"), QKeySequence::Undo, this, [this]() { undo(); });
     };
     auto addSelectAll = [this]() {
-        addMenuAction(this, FluentIcon::Accept, tr("Select all"), QKeySequence::SelectAll, this,
-                      [this]() { selectAll(); });
+        // Python's "Select all" has no icon.
+        addMenuAction(this, QIcon(), tr("Select all"), QKeySequence::SelectAll, this, [this]() { selectAll(); });
     };
 
     if (pasteAvailable) {
@@ -1190,9 +1183,7 @@ void reapplyZoom(Editor *editor, QEvent *event, int zoom)
 
 } // namespace
 
-// ============================================================================
-// TextEdit
-// ============================================================================
+// --- TextEdit ---
 
 TextEdit::TextEdit(QWidget *parent)
     : QTextEdit(parent)
@@ -1224,9 +1215,7 @@ void TextEdit::changeEvent(QEvent *event)
     reapplyZoom(this, event, m_zoom);
 }
 
-// ============================================================================
-// PlainTextEdit
-// ============================================================================
+// --- PlainTextEdit ---
 
 PlainTextEdit::PlainTextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -1258,9 +1247,7 @@ void PlainTextEdit::changeEvent(QEvent *event)
     reapplyZoom(this, event, m_zoom);
 }
 
-// ============================================================================
-// TextBrowser
-// ============================================================================
+// --- TextBrowser ---
 
 TextBrowser::TextBrowser(QWidget *parent)
     : QTextBrowser(parent)

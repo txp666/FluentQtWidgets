@@ -1,7 +1,10 @@
 #include <FluentQtWidgets/Settings/SettingCard.h>
 
+#include "../core/FontUtils_p.h"
+
+#include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/Dialogs/ColorDialog.h>
-#include <FluentQtWidgets/Dialogs/FolderListDialog.h>
+#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -11,16 +14,18 @@
 #include <FluentQtWidgets/Widgets/IconWidget.h>
 #include <FluentQtWidgets/Widgets/Label.h>
 #include <FluentQtWidgets/Widgets/LineEdit.h>
+#include <FluentQtWidgets/Widgets/ScrollArea.h>
 #include <FluentQtWidgets/Widgets/Selection.h>
 #include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
 #include <FluentQtWidgets/Widgets/SwitchButton.h>
 
 #include <QtCore/QAbstractAnimation>
 #include <QtCore/QDir>
 #include <QtCore/QEasingCurve>
 #include <QtCore/QEvent>
+#include <QtCore/QFileInfo>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QScopedValueRollback>
 #include <QtCore/QSignalBlocker>
 #include <QtCore/QVariantAnimation>
 #include <QtGui/QEnterEvent>
@@ -57,6 +62,63 @@ QColor normalizedColor(const QColor &color)
 {
     return color.isValid() ? color : ThemeManager::instance()->accentColor();
 }
+
+// Python's SettingIconWidget paints a disabled card's icon at 0.36 opacity, not as the icon's
+// greyed disabled pixmap.
+constexpr qreal kDisabledIconOpacity = 0.36;
+
+// The card's icon label: a QLabel, as the port's API has it, that paints like Python's
+// SettingIconWidget. A disabled QLabel would draw its pixmap greyed by the style instead.
+class SettingIconLabel : public QLabel
+{
+  public:
+    using QLabel::QLabel;
+
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        const QPixmap pix = pixmap();
+#else
+        const QPixmap pix = pixmap(Qt::ReturnByValue);
+#endif
+        if (pix.isNull()) {
+            return;
+        }
+
+        QPainter painter(this);
+        if (!isEnabled()) {
+            painter.setOpacity(kDisabledIconOpacity);
+        }
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        const QSize logicalSize = pix.size() / pix.devicePixelRatio();
+        painter.drawPixmap(QRect(QPoint(), logicalSize)
+                               .translated((width() - logicalSize.width()) / 2, (height() - logicalSize.height()) / 2),
+                           pix);
+    }
+};
+
+// Python's GroupWidget icon is a SettingIconWidget too: the whole icon rect, faded when disabled.
+class SettingIconWidget : public IconWidget
+{
+  public:
+    using IconWidget::IconWidget;
+
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        if (icon().isNull()) {
+            return;
+        }
+
+        QPainter painter(this);
+        if (!isEnabled()) {
+            painter.setOpacity(kDisabledIconOpacity);
+        }
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        icon().paint(&painter, rect());
+    }
+};
 
 class SpaceWidget : public QWidget
 {
@@ -106,6 +168,26 @@ class ExpandBorderWidget : public QWidget
             painter.drawLine(1, cardHeight, width() - 1, cardHeight);
         }
     }
+};
+
+// Python's card has no right margin: each card that adds a widget adds 16 px after it. So 16 px
+// after the action layout while it shows something, none for a bare card.
+class TrailingSpace : public QLayoutItem
+{
+  public:
+    explicit TrailingSpace(QLayout *actions) : m_actions(actions) {}
+
+    QSize sizeHint() const override { return QSize(m_actions->isEmpty() ? 0 : 16, 0); }
+    QSize minimumSize() const override { return sizeHint(); }
+    QSize maximumSize() const override { return sizeHint(); }
+    Qt::Orientations expandingDirections() const override { return {}; }
+    bool isEmpty() const override { return m_actions->isEmpty(); }
+    void setGeometry(const QRect &rect) override { m_rect = rect; }
+    QRect geometry() const override { return m_rect; }
+
+  private:
+    QLayout *m_actions;
+    QRect m_rect;
 };
 
 } // namespace
@@ -206,6 +288,21 @@ void SettingCard::changeEvent(QEvent *event)
     QFrame::changeEvent(event);
 }
 
+void SettingCard::paintEvent(QPaintEvent *)
+{
+    // Python paints the card itself; a style sheet border would also shrink the contents by 1 px.
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (ThemeManager::instance()->effectiveTheme() == Theme::Dark) {
+        painter.setBrush(QColor(255, 255, 255, 13));
+        painter.setPen(QColor(0, 0, 0, 50));
+    } else {
+        painter.setBrush(QColor(255, 255, 255, 170));
+        painter.setPen(QColor(0, 0, 0, 19));
+    }
+    painter.drawRoundedRect(rect().adjusted(1, 1, -1, -1), 6, 6);
+}
+
 QVBoxLayout *SettingCard::outerLayout() const { return m_outerLayout; }
 
 void SettingCard::init()
@@ -213,16 +310,16 @@ void SettingCard::init()
     setFrameShape(QFrame::NoFrame);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    m_iconLabel = new QLabel(this);
+    m_iconLabel = new SettingIconLabel(this);
     m_iconLabel->setFixedSize(m_iconSize);
     m_iconLabel->setScaledContents(false);
     m_iconLabel->setVisible(false);
 
-    m_titleLabel = new BodyLabel(this);
-    m_titleLabel->setObjectName(QStringLiteral("SettingCardTitle"));
+    // Plain labels, as in Python: setting_card.qss gives them their fonts and colours.
+    m_titleLabel = new QLabel(this);
 
-    m_contentLabel = new CaptionLabel(this);
-    m_contentLabel->setObjectName(QStringLiteral("SettingCardContent"));
+    m_contentLabel = new QLabel(this);
+    m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
     m_contentLabel->setWordWrap(false);
     m_contentLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -231,7 +328,7 @@ void SettingCard::init()
     m_outerLayout->setSpacing(0);
 
     m_mainLayout = new QHBoxLayout;
-    m_mainLayout->setContentsMargins(16, 0, 16, 0);
+    m_mainLayout->setContentsMargins(16, 0, 0, 0);
     m_mainLayout->setSpacing(0);
     m_mainLayout->setAlignment(Qt::AlignVCenter);
 
@@ -253,6 +350,7 @@ void SettingCard::init()
     m_textLayout->addWidget(m_contentLabel, 0, Qt::AlignLeft);
     m_mainLayout->addSpacing(16);
     m_mainLayout->addLayout(m_actionLayout, 0);
+    m_mainLayout->addItem(new TrailingSpace(m_actionLayout));
 
     m_outerLayout->addLayout(m_mainLayout);
 
@@ -291,8 +389,7 @@ void SettingCard::refreshIcon()
     }
 
     m_iconLabel->setVisible(true);
-    m_iconLabel->setPixmap(m_icon.pixmap(m_iconSize, devicePixelRatioF(),
-                                         isEnabled() ? QIcon::Normal : QIcon::Disabled));
+    m_iconLabel->setPixmap(m_icon.pixmap(m_iconSize, devicePixelRatioF()));
     if (m_iconSpacer) {
         m_iconSpacer->changeSize(16, 0, QSizePolicy::Fixed, QSizePolicy::Minimum);
     }
@@ -308,7 +405,9 @@ SettingCardGroup::SettingCardGroup(const QString &title, QWidget *parent) : QWid
     layout->setSpacing(0);
     layout->setAlignment(Qt::AlignTop);
 
-    m_titleLabel = new SubtitleLabel(title, this);
+    m_titleLabel = new QLabel(title, this);
+    m_titleLabel->setFont(Private::fluentFont(20, QFont::Normal));
+    m_titleLabel->adjustSize();
     layout->addWidget(m_titleLabel);
     layout->addSpacing(12);
 
@@ -392,8 +491,11 @@ PushSettingCard::PushSettingCard(ButtonStyle style, const QString &buttonText, c
                                  const QString &content, QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_button = style == ButtonStyle::Primary ? static_cast<QPushButton *>(new PrimaryPushButton(buttonText, this))
-                                             : static_cast<QPushButton *>(new PushButton(buttonText, this));
+    // A plain QPushButton, as in Python: setting_card.qss styles it, and a primary one by its name.
+    m_button = new QPushButton(buttonText, this);
+    if (style == ButtonStyle::Primary) {
+        m_button->setObjectName(QStringLiteral("primaryButton"));
+    }
     actionLayout()->addWidget(m_button, 0, Qt::AlignRight);
     connect(m_button, &QPushButton::clicked, this, &PushSettingCard::clicked);
 
@@ -462,7 +564,7 @@ void HyperlinkCard::setUrl(const QString &url)
 SwitchSettingCard::SwitchSettingCard(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_switchButton = new SwitchButton(this);
+    m_switchButton = new SwitchButton(this, IndicatorPosition::Right);
     actionLayout()->addWidget(m_switchButton, 0, Qt::AlignRight);
     connect(m_switchButton, &SwitchButton::checkedChanged, this, &SwitchSettingCard::checkedChanged);
 
@@ -499,12 +601,10 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, const QI
                                    const QString &content, QWidget *parent)
     : SettingCard(icon, title, content, parent)
 {
-    m_valueLabel = new CaptionLabel(this);
-    m_valueLabel->setObjectName(QStringLiteral("SettingCardValue"));
-    m_valueLabel->setMinimumWidth(32);
-    m_valueLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_valueLabel = new QLabel(this);
+    m_valueLabel->setObjectName(QStringLiteral("valueLabel"));
 
-    m_slider = new ClickableSlider(Qt::Horizontal, this);
+    m_slider = new Slider(Qt::Horizontal, this);
     m_slider->setMinimumWidth(268);
     m_slider->setRange(minimum, maximum);
     m_slider->setValue(value);
@@ -514,7 +614,7 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, const QI
     actionLayout()->addWidget(m_valueLabel, 0, Qt::AlignRight);
     actionLayout()->addWidget(m_slider, 0, Qt::AlignRight);
 
-    connect(m_slider, &ClickableSlider::valueChanged, this, [this](int sliderValue) {
+    connect(m_slider, &Slider::valueChanged, this, [this](int sliderValue) {
         updateValueLabel(sliderValue);
         emit valueChanged(sliderValue);
     });
@@ -528,7 +628,7 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, FluentIc
 {
 }
 
-ClickableSlider *RangeSettingCard::slider() const { return m_slider; }
+Slider *RangeSettingCard::slider() const { return m_slider; }
 
 QLabel *RangeSettingCard::valueLabel() const { return m_valueLabel; }
 
@@ -563,68 +663,97 @@ void RangeSettingCard::setRange(int minimum, int maximum)
 void RangeSettingCard::updateValueLabel(int value)
 {
     if (m_valueLabel) {
-        m_valueLabel->setText(QString::number(value));
+        m_valueLabel->setNum(value);
+        m_valueLabel->adjustSize();
     }
 }
 
-ComboBoxSettingCard::ComboBoxSettingCard(const QIcon &icon, const QString &title, const QString &content,
-                                         QWidget *parent)
-    : SettingCard(icon, title, content, parent)
+namespace {
+
+// Python's ComboBoxSettingCard.__init__: one item per text and option, the item's value selected,
+// and the card and the item kept in step.
+template <typename Card>
+void initOptionsComboBox(Card *card, ComboBox *comboBox, OptionsConfigItem *configItem, const QStringList &texts)
+{
+    card->actionLayout()->addWidget(comboBox, 0, Qt::AlignRight);
+    if (!configItem) {
+        return;
+    }
+
+    const QVariantList options = configItem->options();
+    for (int i = 0; i < qMin(texts.size(), options.size()); ++i) {
+        comboBox->addItem(texts.at(i), QIcon(), options.at(i));
+    }
+    comboBox->setCurrentIndex(comboBox->findData(configItem->value()));
+
+    QObject::connect(comboBox, &ComboBox::currentIndexChanged, card, [comboBox, configItem](int index) {
+        if (index >= 0) {
+            configItem->setValue(comboBox->itemData(index));
+        }
+    });
+    QObject::connect(configItem, &ConfigItem::valueChanged, card,
+                     [card](const QVariant &value) { card->setValue(value); });
+}
+
+void setOptionsComboBoxValue(ComboBox *comboBox, OptionsConfigItem *configItem, const QVariant &value)
+{
+    const int index = comboBox->findData(value);
+    if (index < 0) {
+        return;
+    }
+    comboBox->setCurrentIndex(index);
+    if (configItem) {
+        configItem->setValue(value);
+    }
+}
+
+} // namespace
+
+ComboBoxSettingCard::ComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon, const QString &title,
+                                         const QString &content, const QStringList &texts, QWidget *parent)
+    : SettingCard(icon, title, content, parent), m_configItem(configItem)
 {
     m_comboBox = new ComboBox(this);
-    m_comboBox->setMinimumWidth(160);
-    actionLayout()->addWidget(m_comboBox, 0, Qt::AlignRight);
-
-    connect(m_comboBox, &ComboBox::currentIndexChanged, this,
-            &ComboBoxSettingCard::currentIndexChanged);
-    connect(m_comboBox, &ComboBox::currentTextChanged, this, &ComboBoxSettingCard::currentTextChanged);
-
+    initOptionsComboBox(this, m_comboBox, configItem, texts);
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxSettingCard"));
 }
 
-ComboBoxSettingCard::ComboBoxSettingCard(FluentIcon icon, const QString &title, const QString &content, QWidget *parent)
-    : ComboBoxSettingCard(FluentQt::icon(icon), title, content, parent)
-{
-}
-
-ComboBoxSettingCard::ComboBoxSettingCard(const QStringList &items, const QIcon &icon, const QString &title,
-                                         const QString &content, QWidget *parent)
-    : ComboBoxSettingCard(icon, title, content, parent)
-{
-    addItems(items);
-}
-
-ComboBoxSettingCard::ComboBoxSettingCard(const QStringList &items, FluentIcon icon, const QString &title,
-                                         const QString &content, QWidget *parent)
-    : ComboBoxSettingCard(items, FluentQt::icon(icon), title, content, parent)
+ComboBoxSettingCard::ComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon, const QString &title,
+                                         const QString &content, const QStringList &texts, QWidget *parent)
+    : ComboBoxSettingCard(configItem, FluentQt::icon(icon), title, content, texts, parent)
 {
 }
 
 ComboBox *ComboBoxSettingCard::comboBox() const { return m_comboBox; }
 
-int ComboBoxSettingCard::currentIndex() const { return m_comboBox ? m_comboBox->currentIndex() : -1; }
+OptionsConfigItem *ComboBoxSettingCard::configItem() const { return m_configItem; }
 
-QString ComboBoxSettingCard::currentText() const { return m_comboBox ? m_comboBox->currentText() : QString(); }
+void ComboBoxSettingCard::setValue(const QVariant &value) { setOptionsComboBoxValue(m_comboBox, m_configItem, value); }
 
-void ComboBoxSettingCard::addItem(const QString &text, const QVariant &userData)
+AcrylicComboBoxSettingCard::AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon,
+                                                       const QString &title, const QString &content,
+                                                       const QStringList &texts, QWidget *parent)
+    : SettingCard(icon, title, content, parent), m_configItem(configItem)
 {
-    if (m_comboBox) {
-        m_comboBox->addItem(text, QIcon(), userData);
-    }
+    m_comboBox = new AcrylicComboBox(this);
+    initOptionsComboBox(this, m_comboBox, configItem, texts);
+    FluentStyleSheet::setRole(this, QStringLiteral("ComboBoxSettingCard"));
 }
 
-void ComboBoxSettingCard::addItems(const QStringList &texts)
+AcrylicComboBoxSettingCard::AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon,
+                                                       const QString &title, const QString &content,
+                                                       const QStringList &texts, QWidget *parent)
+    : AcrylicComboBoxSettingCard(configItem, FluentQt::icon(icon), title, content, texts, parent)
 {
-    if (m_comboBox) {
-        m_comboBox->addItems(texts);
-    }
 }
 
-void ComboBoxSettingCard::setCurrentIndex(int index)
+AcrylicComboBox *AcrylicComboBoxSettingCard::comboBox() const { return m_comboBox; }
+
+OptionsConfigItem *AcrylicComboBoxSettingCard::configItem() const { return m_configItem; }
+
+void AcrylicComboBoxSettingCard::setValue(const QVariant &value)
 {
-    if (m_comboBox) {
-        m_comboBox->setCurrentIndex(index);
-    }
+    setOptionsComboBoxValue(m_comboBox, m_configItem, value);
 }
 
 ColorPickerButton::ColorPickerButton(const QColor &color, QWidget *parent) : QToolButton(parent)
@@ -681,7 +810,7 @@ void ColorPickerButton::paintEvent(QPaintEvent *)
     }
 
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    const QColor border = dark ? QColor(80, 80, 80) : QColor(214, 214, 214);
+    const QColor border = dark ? QColor(255, 255, 255, 10) : QColor(234, 234, 234);
     QColor fill = m_color;
     if (!m_alphaEnabled) {
         fill.setAlpha(255);
@@ -694,16 +823,17 @@ void ColorPickerButton::paintEvent(QPaintEvent *)
 
 void ColorPickerButton::showColorDialog()
 {
-    ColorDialog dialog(m_color, m_title.isEmpty() ? tr("Choose color") : m_title, window(), m_alphaEnabled);
+    ColorDialog dialog(m_color, m_title.isEmpty() ? tr("Choose color") : tr("Choose %1").arg(m_title), window(),
+                       m_alphaEnabled);
     connect(&dialog, &ColorDialog::colorChanged, this, &ColorPickerButton::setColor);
     dialog.exec();
 }
 
 ColorSettingCard::ColorSettingCard(const QColor &color, const QIcon &icon, const QString &title, const QString &content,
-                                   QWidget *parent)
+                                   QWidget *parent, bool enableAlpha)
     : SettingCard(icon, title, content, parent)
 {
-    m_colorPicker = new ColorPickerButton(color, this);
+    m_colorPicker = new ColorPickerButton(color, title, this, enableAlpha);
     actionLayout()->addWidget(m_colorPicker, 0, Qt::AlignRight);
     connect(m_colorPicker, &ColorPickerButton::colorChanged, this, &ColorSettingCard::colorChanged);
 
@@ -711,8 +841,8 @@ ColorSettingCard::ColorSettingCard(const QColor &color, const QIcon &icon, const
 }
 
 ColorSettingCard::ColorSettingCard(const QColor &color, FluentIcon icon, const QString &title, const QString &content,
-                                   QWidget *parent)
-    : ColorSettingCard(color, FluentQt::icon(icon), title, content, parent)
+                                   QWidget *parent, bool enableAlpha)
+    : ColorSettingCard(color, FluentQt::icon(icon), title, content, parent, enableAlpha)
 {
 }
 
@@ -968,6 +1098,7 @@ ExpandSettingCard::ExpandSettingCard(const QIcon &icon, const QString &title, co
 
     m_viewLayout = new QVBoxLayout(m_view);
     m_viewLayout->setContentsMargins(9, 9, 9, 9);
+    m_view->installEventFilter(this);
 
     setWidget(m_scrollWidget);
     setViewportMargins(0, m_card->height(), 0, 0);
@@ -1100,6 +1231,18 @@ void ExpandSettingCard::wheelEvent(QWheelEvent *event)
     event->ignore();
 }
 
+bool ExpandSettingCard::eventFilter(QObject *watched, QEvent *event)
+{
+    // The view's layout asks for a new layout whenever its content changes: a widget is added,
+    // shown or hidden, or its size hint changes once a style sheet polishes it. Python only
+    // measures when a widget is added or the card expands, so its height depends on the order
+    // of those calls; measuring on every request keeps it right in any order.
+    if (watched == m_view && event->type() == QEvent::LayoutRequest && !m_adjustingViewSize) {
+        adjustViewSize();
+    }
+    return QScrollArea::eventFilter(watched, event);
+}
+
 void ExpandSettingCard::refreshExpandedGeometry()
 {
     adjustViewSize();
@@ -1116,6 +1259,7 @@ void ExpandSettingCard::adjustViewSize(bool updateHeight)
         return;
     }
 
+    const QScopedValueRollback<bool> adjusting(m_adjustingViewSize, true);
     m_viewLayout->activate();
     const int headerHeight = m_card->height();
     const int viewHeight = qMax(0, expandedContentHeight());
@@ -1192,12 +1336,12 @@ GroupWidget::GroupWidget(const QIcon &icon, const QString &title, const QString 
 {
     setMinimumHeight(60);
 
-    m_iconWidget = new IconWidget(icon, this);
+    m_iconWidget = new SettingIconWidget(icon, this);
     m_iconWidget->setFixedSize(16, 16);
 
-    m_titleLabel = new BodyLabel(title, this);
+    m_titleLabel = new QLabel(title, this);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
-    m_contentLabel = new CaptionLabel(content, this);
+    m_contentLabel = new QLabel(content, this);
     m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
     m_contentLabel->setVisible(!content.isEmpty());
 
@@ -1326,9 +1470,13 @@ void ExpandGroupSettingCard::addGroupWidget(QWidget *widget)
         return;
     }
 
+    // Show it now rather than at Qt's queued show, so the view's layout counts it at once. A
+    // widget the caller hid stays hidden.
+    const bool hiddenByCaller = widget->testAttribute(Qt::WA_WState_ExplicitShowHide) && widget->isHidden();
     widget->setParent(view());
     m_groupWidgets.append(widget);
     viewLayout()->addWidget(widget);
+    widget->setVisible(!hiddenByCaller);
     rebuildGroupSeparators();
     refreshExpandedGeometry();
 }
@@ -1344,17 +1492,6 @@ void ExpandGroupSettingCard::removeGroupWidget(QWidget *widget)
     widget->setParent(nullptr);
     rebuildGroupSeparators();
     refreshExpandedGeometry();
-}
-
-int ExpandGroupSettingCard::expandedContentHeight() const
-{
-    int height = 0;
-    for (QWidget *widget : m_groupWidgets) {
-        if (widget) {
-            height += widget->sizeHint().height() + 3;
-        }
-    }
-    return height;
 }
 
 void ExpandGroupSettingCard::rebuildGroupSeparators()
@@ -1378,7 +1515,9 @@ void ExpandGroupSettingCard::rebuildGroupSeparators()
     for (int i = 1; i < m_groupWidgets.size(); ++i) {
         const int index = layout->indexOf(m_groupWidgets.at(i));
         if (index >= 0) {
-            layout->insertWidget(index, new GroupSeparator(view()));
+            auto *separator = new GroupSeparator(view());
+            layout->insertWidget(index, separator);
+            separator->show();
         }
     }
 }
@@ -1396,15 +1535,10 @@ SimpleExpandGroupSettingCard::SimpleExpandGroupSettingCard(FluentIcon icon, cons
 {
 }
 
-int SimpleExpandGroupSettingCard::expandedContentHeight() const
-{
-    return viewLayout() ? viewLayout()->sizeHint().height() : 0;
-}
-
 OptionsSettingCard::OptionsSettingCard(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)
     : ExpandSettingCard(icon, title, content, parent)
 {
-    m_choiceLabel = new CaptionLabel(this);
+    m_choiceLabel = new QLabel(this);
     m_choiceLabel->setObjectName(QStringLiteral("titleLabel"));
     addWidget(m_choiceLabel);
 
@@ -1516,7 +1650,7 @@ FolderItem::FolderItem(const QString &path, QWidget *parent) : QWidget(parent)
     layout->setSpacing(0);
     layout->setAlignment(Qt::AlignVCenter);
 
-    m_pathLabel = new BodyLabel(this);
+    m_pathLabel = new QLabel(this);
     m_pathLabel->setObjectName(QStringLiteral("titleLabel"));
     m_pathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
@@ -1561,7 +1695,6 @@ FolderListSettingCard::FolderListSettingCard(const QStringList &folders, const Q
     : ExpandSettingCard(icon, title, content, parent), m_dialogDirectory(dialogDirectory)
 {
     m_addFolderButton = new PushButton(FluentQt::icon(FluentIcon::FolderAdd), tr("Add folder"), this);
-    m_addFolderButton->setMinimumWidth(128);
     addWidget(m_addFolderButton);
 
     if (viewLayout()) {
@@ -1605,7 +1738,7 @@ void FolderListSettingCard::setFolders(const QStringList &folders)
 
     m_folders = uniqueFolders;
     rebuildFolderItems();
-    emit foldersChanged(m_folders);
+    emit folderChanged(m_folders);
 }
 
 void FolderListSettingCard::setDialogDirectory(const QString &directory) { m_dialogDirectory = directory; }
@@ -1617,8 +1750,7 @@ bool FolderListSettingCard::addFolder(const QString &folder)
     }
     m_folders.append(folder);
     insertFolderItem(folder);
-    emit folderAdded(folder);
-    emit foldersChanged(m_folders);
+    emit folderChanged(m_folders);
     return true;
 }
 
@@ -1637,8 +1769,7 @@ bool FolderListSettingCard::removeFolder(const QString &folder)
         item->deleteLater();
     }
     refreshExpandedGeometry();
-    emit folderRemoved(folder);
-    emit foldersChanged(m_folders);
+    emit folderChanged(m_folders);
     return true;
 }
 
@@ -1674,8 +1805,16 @@ void FolderListSettingCard::insertFolderItem(const QString &folder)
 {
     auto *item = new FolderItem(folder, view());
 
+    // As in Python, a folder leaves the list only once the user confirms it.
     connect(item, &FolderItem::removeRequested, this, [this](const QString &path) {
-        removeFolder(path);
+        const QString name = QFileInfo(path).fileName();
+        Dialog dialog(tr("Are you sure you want to delete the folder?"),
+                      tr("If you delete the ") + QStringLiteral("\"%1\"").arg(name) +
+                          tr(" folder and remove it from the list, the folder will no longer appear in the list, "
+                             "but will not be deleted."),
+                      window());
+        connect(&dialog, &Dialog::yesSignal, this, [this, path]() { removeFolder(path); });
+        dialog.exec();
     });
 
     m_folderItems.append(item);
@@ -1685,70 +1824,65 @@ void FolderListSettingCard::insertFolderItem(const QString &folder)
     refreshExpandedGeometry();
 }
 
-CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor,
-                                               const QIcon &icon, const QString &title, const QString &content,
-                                               QWidget *parent)
+CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, const QIcon &icon,
+                                               const QString &title, const QString &content, QWidget *parent,
+                                               bool enableAlpha)
     : ExpandGroupSettingCard(icon, title, content, parent), m_defaultColor(normalizedColor(defaultColor)),
-      m_customColor(normalizedColor(customColor))
+      m_customColor(normalizedColor(customColor)), m_alphaEnabled(enableAlpha)
 {
     m_customColorEnabled = m_customColor != m_defaultColor;
 
-    m_choiceLabel = new CaptionLabel(this);
+    m_choiceLabel = new QLabel(this);
+
+    m_radioWidget = new QWidget(view());
+    m_radioLayout = new QVBoxLayout(m_radioWidget);
+    m_defaultRadioButton = new RadioButton(tr("Default color"), m_radioWidget);
+    m_customRadioButton = new RadioButton(tr("Custom color"), m_radioWidget);
+    m_buttonGroup = new QButtonGroup(this);
+
+    m_customColorWidget = new QWidget(view());
+    m_customColorLayout = new QHBoxLayout(m_customColorWidget);
+    m_customLabel = new QLabel(tr("Custom color"), m_customColorWidget);
+    m_chooseColorButton = new QPushButton(tr("Choose color"), m_customColorWidget);
+    // Named before the layouts first measure (and so polish) them; Python repolishes the card when
+    // it expands, which picks up names set later.
     m_choiceLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_customLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_chooseColorButton->setObjectName(QStringLiteral("chooseColorButton"));
+
     addWidget(m_choiceLabel);
 
-    m_buttonGroup = new QButtonGroup(this);
-    m_buttonGroup->setExclusive(true);
-
-    m_defaultRadioButton = new RadioButton(tr("Default color"), view());
-    m_customRadioButton = new RadioButton(tr("Custom color"), view());
+    m_radioLayout->setSpacing(19);
+    m_radioLayout->setAlignment(Qt::AlignTop);
+    m_radioLayout->setContentsMargins(48, 18, 0, 18);
     m_buttonGroup->addButton(m_customRadioButton);
     m_buttonGroup->addButton(m_defaultRadioButton);
+    m_radioLayout->addWidget(m_customRadioButton);
+    m_radioLayout->addWidget(m_defaultRadioButton);
+    m_radioLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    auto *radioWidget = new QWidget(view());
-    auto *radioLayout = new QVBoxLayout(radioWidget);
-    radioLayout->setContentsMargins(48, 18, 0, 18);
-    radioLayout->setSpacing(19);
-    radioLayout->setAlignment(Qt::AlignTop);
-    radioLayout->addWidget(m_customRadioButton);
-    radioLayout->addWidget(m_defaultRadioButton);
-    radioLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    m_customColorLayout->setContentsMargins(48, 18, 44, 18);
+    m_customColorLayout->addWidget(m_customLabel, 0, Qt::AlignLeft);
+    m_customColorLayout->addWidget(m_chooseColorButton, 0, Qt::AlignRight);
+    m_customColorLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    auto *customRow = new QWidget(view());
-    auto *customLayout = new QHBoxLayout(customRow);
-    customLayout->setContentsMargins(48, 18, 44, 18);
-    auto *customLabel = new BodyLabel(tr("Custom color"), customRow);
-    customLabel->setObjectName(QStringLiteral("titleLabel"));
-    customLayout->addWidget(customLabel, 0, Qt::AlignLeft | Qt::AlignVCenter);
-    customLayout->addStretch(1);
+    viewLayout()->setSpacing(0);
+    viewLayout()->setContentsMargins(0, 0, 0, 0);
+    addGroupWidget(m_radioWidget);
+    addGroupWidget(m_customColorWidget);
 
-    m_colorPicker = new ColorPickerButton(m_customColor, customRow);
-    customLayout->addWidget(m_colorPicker, 0, Qt::AlignRight | Qt::AlignVCenter);
-    customLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-    if (viewLayout()) {
-        viewLayout()->setSpacing(0);
-        viewLayout()->setContentsMargins(0, 0, 0, 0);
-    }
-    addGroupWidget(radioWidget);
-    addGroupWidget(customRow);
-
-    connect(m_defaultRadioButton, &QAbstractButton::clicked, this,
-            [this]() { setCustomColorEnabled(false); });
-    connect(m_customRadioButton, &QAbstractButton::clicked, this,
-            [this]() { setCustomColorEnabled(true); });
-    connect(m_colorPicker, &ColorPickerButton::colorChanged, this, [this](const QColor &color) {
-        setCustomColor(color);
-        setCustomColorEnabled(true);
-    });
+    connect(m_defaultRadioButton, &QAbstractButton::clicked, this, [this]() { setCustomColorEnabled(false); });
+    connect(m_customRadioButton, &QAbstractButton::clicked, this, [this]() { setCustomColorEnabled(true); });
+    connect(m_chooseColorButton, &QPushButton::clicked, this, &CustomColorSettingCard::showColorDialog);
 
     updateColorControls();
     FluentStyleSheet::setRole(this, QStringLiteral("CustomColorSettingCard"));
 }
 
 CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, FluentIcon icon,
-                                               const QString &title, const QString &content, QWidget *parent)
-    : CustomColorSettingCard(defaultColor, customColor, FluentQt::icon(icon), title, content, parent)
+                                               const QString &title, const QString &content, QWidget *parent,
+                                               bool enableAlpha)
+    : CustomColorSettingCard(defaultColor, customColor, FluentQt::icon(icon), title, content, parent, enableAlpha)
 {
 }
 
@@ -1760,15 +1894,27 @@ QColor CustomColorSettingCard::customColor() const { return m_customColor; }
 
 bool CustomColorSettingCard::isCustomColorEnabled() const { return m_customColorEnabled; }
 
-bool CustomColorSettingCard::isAlphaEnabled() const { return m_colorPicker && m_colorPicker->isAlphaEnabled(); }
+bool CustomColorSettingCard::isAlphaEnabled() const { return m_alphaEnabled; }
 
 QLabel *CustomColorSettingCard::choiceLabel() const { return m_choiceLabel; }
 
 RadioButton *CustomColorSettingCard::defaultRadioButton() const { return m_defaultRadioButton; }
 
+QWidget *CustomColorSettingCard::radioWidget() const { return m_radioWidget; }
+
+QVBoxLayout *CustomColorSettingCard::radioLayout() const { return m_radioLayout; }
+
 RadioButton *CustomColorSettingCard::customRadioButton() const { return m_customRadioButton; }
 
-ColorPickerButton *CustomColorSettingCard::colorPicker() const { return m_colorPicker; }
+QButtonGroup *CustomColorSettingCard::buttonGroup() const { return m_buttonGroup; }
+
+QWidget *CustomColorSettingCard::customColorWidget() const { return m_customColorWidget; }
+
+QHBoxLayout *CustomColorSettingCard::customColorLayout() const { return m_customColorLayout; }
+
+QLabel *CustomColorSettingCard::customLabel() const { return m_customLabel; }
+
+QPushButton *CustomColorSettingCard::chooseColorButton() const { return m_chooseColorButton; }
 
 void CustomColorSettingCard::setColor(const QColor &color)
 {
@@ -1834,11 +1980,16 @@ void CustomColorSettingCard::setCustomColorEnabled(bool enabled)
     }
 }
 
-void CustomColorSettingCard::setAlphaEnabled(bool enabled)
+void CustomColorSettingCard::setAlphaEnabled(bool enabled) { m_alphaEnabled = enabled; }
+
+void CustomColorSettingCard::showColorDialog()
 {
-    if (m_colorPicker) {
-        m_colorPicker->setAlphaEnabled(enabled);
-    }
+    ColorDialog dialog(color(), tr("Choose color"), window(), m_alphaEnabled);
+    connect(&dialog, &ColorDialog::colorChanged, this, [this](const QColor &color) {
+        setCustomColor(color);
+        setCustomColorEnabled(true);
+    });
+    dialog.exec();
 }
 
 void CustomColorSettingCard::updateColorControls()
@@ -1854,10 +2005,11 @@ void CustomColorSettingCard::updateColorControls()
         const QSignalBlocker blocker(m_customRadioButton);
         m_customRadioButton->setChecked(m_customColorEnabled);
     }
-    if (m_colorPicker) {
-        const QSignalBlocker blocker(m_colorPicker);
-        m_colorPicker->setColor(m_customColor);
-        m_colorPicker->setEnabled(m_customColorEnabled);
+    if (m_choiceLabel) {
+        m_choiceLabel->adjustSize();
+    }
+    if (m_chooseColorButton) {
+        m_chooseColorButton->setEnabled(m_customColorEnabled);
     }
 }
 

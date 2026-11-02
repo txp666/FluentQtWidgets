@@ -33,6 +33,7 @@ SeparatorWidget::SeparatorWidget(Qt::Orientation orientation, QWidget *parent)
         setFixedWidth(1);
     }
     setProperty("pickerSeparator", true);
+    setAttribute(Qt::WA_StyledBackground);
     FluentStyleSheet::setRole(this, QStringLiteral("SeparatorWidget"));
     FluentStyleSheet::apply(this, FluentStyleSheetSource::TimePicker);
 }
@@ -138,7 +139,7 @@ void ItemMaskWidget::paintEvent(QPaintEvent *)
 
 QColor ItemMaskWidget::backgroundColor() const
 {
-    const QColor fallback = ThemeManager::instance()->accentColor();
+    const QColor fallback = themeColor();
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     const QColor custom = dark ? m_darkBackgroundColor : m_lightBackgroundColor;
     return custom.isValid() ? custom : fallback;
@@ -261,14 +262,13 @@ PickerPanel::PickerPanel(QWidget *parent)
     m_itemMaskWidget = new ItemMaskWidget(m_listWidgets, this);
     m_hSeparatorWidget = new SeparatorWidget(Qt::Horizontal, m_view);
     m_yesButton = new TransparentToolButton(icon(FluentIcon::Accept), m_view);
-    m_resetButton = new TransparentToolButton(icon(FluentIcon::Remove), m_view);
+    m_resetButton = new TransparentToolButton(icon(FluentIcon::Cancel), m_view);
     m_cancelButton = new TransparentToolButton(icon(FluentIcon::Close), m_view);
 
     m_yesButton->setObjectName(QStringLiteral("pickerConfirmButton"));
     m_resetButton->setObjectName(QStringLiteral("pickerResetButton"));
     m_cancelButton->setObjectName(QStringLiteral("pickerCancelButton"));
     for (auto *button : {m_yesButton, m_resetButton, m_cancelButton}) {
-        button->setProperty("pickerOperation", true);
         button->setFixedHeight(33);
         button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
@@ -498,10 +498,13 @@ QPoint PickerPanel::clampedPosition(const QPoint &preferred) const
         return preferred;
     }
 
+    // Python moves the panel left by its layout margin, so the view (not the shadow margin) lines
+    // up with the requested point, and 4 px up; it keeps 5 px of slack at the right and bottom.
     const QRect available = screen->availableGeometry();
+    const QMargins margins = m_hBoxLayout->contentsMargins();
     QPoint pos = preferred;
-    pos.setX(qBound(available.left(), pos.x(), available.right() - width()));
-    pos.setY(qBound(available.top(), pos.y(), available.bottom() - height()));
+    pos.setX(qMax(available.left(), qMin(pos.x() - margins.left(), available.right() - width() - 5)));
+    pos.setY(qMax(available.top(), qMin(pos.y() - 4, available.bottom() - height() + 5)));
     return pos;
 }
 

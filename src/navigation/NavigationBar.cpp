@@ -1,13 +1,17 @@
 #include <FluentQtWidgets/Navigation/NavigationBar.h>
 
+#include "../core/FontUtils_p.h"
+
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 
+#include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 
@@ -20,10 +24,31 @@ NavigationBarPushButton::NavigationBarPushButton(const QIcon &icon, const QStrin
     : NavigationWidget(selectable, parent), m_icon(icon), m_selectedIcon(selectedIcon), m_text(text)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationBarPushButton"));
-    QFont f = font();
-    f.setPixelSize(11);
-    setFont(f);
+    setFont(Private::fluentFont(11));
     setFixedSize(sizeHint());
+
+    m_iconAnimation = new QPropertyAnimation(this, "iconOffset", this);
+    m_iconAnimation->setDuration(100);
+}
+
+qreal NavigationBarPushButton::iconOffset() const { return m_iconOffset; }
+
+void NavigationBarPushButton::setIconOffset(qreal offset)
+{
+    m_iconOffset = offset;
+    update();
+}
+
+void NavigationBarPushButton::setSelected(bool selected)
+{
+    if (selected == m_selected) {
+        return;
+    }
+
+    NavigationWidget::setSelected(selected);
+    m_iconAnimation->stop();
+    m_iconAnimation->setEndValue(selected ? 6.0 : 0.0);
+    m_iconAnimation->start();
 }
 
 QString NavigationBarPushButton::text() const { return m_text; }
@@ -90,10 +115,6 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
 
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    if (m_pressed) {
-        painter.setOpacity(0.7);
-    }
-
     if (m_selected) {
         painter.setBrush(dark ? QColor(255, 255, 255, 42) : QColor(Qt::white));
         painter.drawRoundedRect(rect(), 5, 5);
@@ -106,20 +127,28 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
         painter.drawRoundedRect(rect(), 5, 5);
     }
 
-    QIcon paintIcon = (m_selected && !m_selectedIcon.isNull()) ? m_selectedIcon : m_icon;
-    QRect iconRect(22, 13, 20, 20);
-    if (m_selected && !m_selectedTextVisible) {
-        iconRect.translate(0, 6);
+    // As in Python, an unselected item's icon and text are dimmed unless it is hovered and not
+    // pressed, and a disabled item's more so.
+    if ((m_pressed || !m_hovered) && !m_selected) {
+        painter.setOpacity(0.6);
     }
+    if (!isEnabled()) {
+        painter.setOpacity(0.4);
+    }
+
+    QIcon paintIcon = (m_selected && !m_selectedIcon.isNull()) ? m_selectedIcon : m_icon;
+    const QRectF iconRect(22, m_selectedTextVisible ? 13 : 13 + m_iconOffset, 20, 20);
     if (!paintIcon.isNull()) {
-        paintIcon.paint(&painter, iconRect);
+        const qreal dpr = painter.device()->devicePixelRatioF();
+        QPixmap pixmap = paintIcon.pixmap(QSize(20, 20) * dpr);
+        pixmap.setDevicePixelRatio(dpr);
+        painter.drawPixmap(iconRect, pixmap, QRectF(QPointF(0, 0), QSizeF(pixmap.size())));
     }
 
     if (m_selected && !m_selectedTextVisible) {
         return;
     }
 
-    painter.setOpacity(isEnabled() ? 1.0 : 0.4);
     painter.setPen(m_selected ? selectedColor() : textColor());
     painter.setFont(font());
     painter.drawText(QRect(0, 32, width(), 26), Qt::AlignCenter,
@@ -130,15 +159,17 @@ QColor NavigationBarPushButton::selectedColor() const
 {
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     const QColor custom = dark ? m_darkSelectedColor : m_lightSelectedColor;
-    return custom.isValid() ? custom : ThemeManager::instance()->accentColor();
+    return custom.isValid() ? custom : themeColor();
 }
 
 NavigationBar::NavigationBar(QWidget *parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
-    setFixedWidth(kBarWidth);
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationBar"));
     initLayout();
+    // Not fixed, as in Python: in a window the layout gives it its size hint, 72 px (64 px buttons
+    // and 4 px margins).
+    resize(48, height());
 }
 
 NavigationBarPushButton *NavigationBar::addItem(const QString &routeKey, const QIcon &icon, const QString &text,

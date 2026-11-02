@@ -1,3 +1,5 @@
+// Date, time and calendar pickers, their panels and the calendar views.
+
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
 #include <QtCore/QPointer>
@@ -6,10 +8,12 @@
 #include <QtTest/QtTest>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QToolButton>
@@ -17,7 +21,7 @@
 #include "TestSupport.h"
 
 #include <algorithm>
-#include <functional>
+#include <cmath>
 #include <optional>
 
 class SecondsFormatter : public FluentQt::PickerColumnFormatter
@@ -59,11 +63,6 @@ static void sendWheel(QWidget *target, int deltaY)
     QApplication::sendEvent(target, &event);
 }
 
-static void waitCalendarScrollAnimation()
-{
-    QTest::qWait(450);
-}
-
 class DateTimeTest : public QObject
 {
     Q_OBJECT
@@ -75,6 +74,385 @@ class DateTimeTest : public QObject
     {
         FqwTest::drainDeferredDeletes();
         m_globalState.reset();
+    }
+
+    // A style sheet's min-height sizes the content box, so the picker's old `min-height: 32px`
+    // grew it to 45 px with padding and border, against 33 for a push button beside it.
+    void calendarPickersAreAsTallAsPushButtons()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            auto *push = new FluentQt::PushButton(QStringLiteral("Button"), &window);
+            auto *picker = new FluentQt::CalendarPicker(&window);
+            auto *fastPicker = new FluentQt::FastCalendarPicker(&window);
+            for (QWidget *widget : {static_cast<QWidget *>(push), static_cast<QWidget *>(picker),
+                                    static_cast<QWidget *>(fastPicker)}) {
+                layout->addWidget(widget, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (const QWidget *widget : {static_cast<QWidget *>(picker), static_cast<QWidget *>(fastPicker)}) {
+                QVERIFY2(qAbs(widget->height() - push->height()) <= 1,
+                         qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
+                                        .arg(QString::fromLatin1(widget->metaObject()->className()))
+                                        .arg(widget->height())
+                                        .arg(push->height())));
+                // Python sets no minimum: the height comes from the style sheet's padding alone.
+                QCOMPARE(widget->minimumSize(), QSize(0, 0));
+            }
+        }
+    }
+
+    // Python's pickers are exactly as big as their 30 px columns (a time picker is 240x30). The
+    // port's min-height (QSS and code), DatePicker's 10 px side padding and the QFrame border
+    // turned into contents margins made them 32 px tall and up to 22 px wider.
+    void dateAndTimePickersAreAsBigAsTheirColumns()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QList<QFrame *> pickers = {new FluentQt::DatePicker(&window), new FluentQt::ZhDatePicker(&window),
+                                             new FluentQt::TimePicker(&window), new FluentQt::AMTimePicker(&window)};
+            for (QFrame *picker : pickers) {
+                layout->addWidget(picker, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (QFrame *picker : pickers) {
+                int columnsWidth = 0;
+                for (QPushButton *column : pickerButtons(picker)) {
+                    QCOMPARE(column->y(), 0);
+                    columnsWidth += column->width();
+                }
+                const QString name = QString::fromLatin1(picker->metaObject()->className());
+                QVERIFY2(picker->size() == QSize(columnsWidth, 30),
+                         qPrintable(QStringLiteral("%1 is %2x%3, its columns %4x30")
+                                        .arg(name)
+                                        .arg(picker->width())
+                                        .arg(picker->height())
+                                        .arg(columnsWidth)));
+            }
+            QCOMPARE(pickers.at(2)->width(), 240);
+            QCOMPARE(pickers.at(3)->width(), 240);
+        }
+    }
+
+    // Python styles both pickers as PickerBase: the same border, a pressed background while the
+    // mouse is down, and value text that turns grey when disabled. The port's DatePicker had its
+    // own border colours, `:pressed` never matched a QFrame, and the column colours drifted.
+    void dateAndTimePickersUsePythonColours()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setTheme(FluentQt::Theme::Light);
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *datePicker = new FluentQt::DatePicker(&window);
+        auto *timePicker = new FluentQt::TimePicker(&window);
+        layout->addWidget(datePicker);
+        layout->addWidget(timePicker);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QList<QImage> releasedImages;
+        for (QFrame *picker : {static_cast<QFrame *>(datePicker), static_cast<QFrame *>(timePicker)}) {
+            const QString name = QString::fromLatin1(picker->metaObject()->className());
+            const QPoint probe(picker->width() - 5, picker->height() / 2);
+            const QImage released = FqwTest::render(picker, Qt::black);
+            releasedImages.append(released);
+            QTest::mousePress(picker, Qt::LeftButton, Qt::NoModifier, probe);
+            QVERIFY(picker->property("pressed").toBool());
+            const QImage pressed = FqwTest::render(picker, Qt::black);
+            QVERIFY2(pressed.pixelColor(probe).red() < released.pixelColor(probe).red() - 40, qPrintable(name));
+            QCOMPARE(picker->size(), released.size());
+            // Undo the press by hand: a release would open the panel.
+            for (QWidget *widget : QList<QWidget *>{picker} + pickerButtonWidgets(picker)) {
+                widget->setProperty("pressed", false);
+                FluentQt::FluentStyleSheet::polish(widget);
+            }
+
+            const QList<QPushButton *> columns = pickerButtons(picker);
+            QVERIFY(!columns.isEmpty());
+            QPushButton *column = columns.first();
+            const auto darkestText = [column]() {
+                const QImage image = FqwTest::render(column, Qt::white, QWidget::DrawChildren);
+                int darkest = 255;
+                for (int y = 0; y < image.height(); ++y) {
+                    for (int x = 0; x < image.width() - 2; ++x) {
+                        darkest = qMin(darkest, image.pixelColor(x, y).red());
+                    }
+                }
+                return darkest;
+            };
+            column->setProperty("enter", true);
+            FluentQt::FluentStyleSheet::polish(column);
+            // rgba(0, 0, 0, 0.896) text over white, not black.
+            QVERIFY2(qAbs(darkestText() - 27) <= 6, qPrintable(name));
+            column->setProperty("enter", false);
+            column->setProperty("hasValue", true);
+            picker->setEnabled(false);
+            FluentQt::FluentStyleSheet::polish(column);
+            // A disabled picker shows its value in rgba(0, 0, 0, 0.36), not black.
+            QVERIFY2(qAbs(darkestText() - 163) <= 6, qPrintable(name));
+            picker->setEnabled(true);
+        }
+        // Same frame rule: the right end of both pickers (background, top and bottom border) matches.
+        for (int y = 0; y < 30; ++y) {
+            QCOMPARE(releasedImages.at(0).pixelColor(releasedImages.at(0).width() - 5, y),
+                     releasedImages.at(1).pixelColor(releasedImages.at(1).width() - 5, y));
+        }
+    }
+
+    // Python's pickers open their panel on clicked(); pressing one and releasing off it does not.
+    void pickersIgnoreAReleaseOutsideThem()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *datePicker = new FluentQt::DatePicker(&window);
+        auto *timePicker = new FluentQt::TimePicker(&window);
+        layout->addWidget(datePicker);
+        layout->addWidget(timePicker);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        for (QFrame *picker : {static_cast<QFrame *>(datePicker), static_cast<QFrame *>(timePicker)}) {
+            QTest::mousePress(picker, Qt::LeftButton, Qt::NoModifier, QPoint(10, 10));
+            QTest::mouseRelease(picker, Qt::LeftButton, Qt::NoModifier, QPoint(10, picker->height() + 20));
+            QCoreApplication::processEvents();
+            QVERIFY(picker->findChildren<FluentQt::PickerPanel *>().isEmpty());
+            QVERIFY(!FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel")));
+            QVERIFY(!FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel")));
+        }
+    }
+
+    // Python insets the item circles from their cells (3 px for days, 8 px for months and years),
+    // so today's day is a 38 px disc in a 44 px cell and a month or year a 60 px one in 76 px.
+    void calendarItemCirclesKeepPythonInsets()
+    {
+        const auto discWidth = [](QPushButton *button) {
+            // Grabbed from the window: rendering the button alone loses its rounded corners.
+            QWidget *window = button->window();
+            QImage image = window->grab(QRect(button->mapTo(window, QPoint()), button->size())).toImage();
+            image = image.scaled(button->size());
+            const QColor accent = FluentQt::ThemeManager::instance()->accentColor();
+            int width = 0;
+            for (int x = 0; x < image.width(); ++x) {
+                const QColor pixel = image.pixelColor(x, image.height() / 4);
+                width += pixel.alpha() > 128 && qAbs(pixel.hue() - accent.hue()) <= 10 ? 1 : 0;
+            }
+            // Measured a quarter of the way down: the chord of a circle of the expected diameter.
+            return width;
+        };
+        const auto todayButton = [](const QList<QPushButton *> &buttons) -> QPushButton * {
+            for (QPushButton *button : buttons) {
+                if (button->property("today").toBool()) {
+                    return button;
+                }
+            }
+            return nullptr;
+        };
+        const auto chord = [](int diameter, int cell) {
+            const double r = diameter / 2.0;
+            const double dy = r - (cell / 4.0 - (cell - diameter) / 2.0);
+            return 2.0 * std::sqrt(r * r - dy * dy);
+        };
+
+        FluentQt::CalendarView view(nullptr, false);
+        view.show();
+        FluentQt::FastCalendarView fastView;
+        fastView.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+        QVERIFY(QTest::qWaitForWindowExposed(&fastView));
+        for (const QList<QPushButton *> &days : {view.dayButtons(), fastView.dayButtons()}) {
+            QPushButton *today = todayButton(days);
+            QVERIFY(today != nullptr);
+            QVERIFY2(qAbs(discWidth(today) - chord(38, 44)) <= 2, qPrintable(QString::number(discWidth(today))));
+        }
+        view.titleButton()->click();
+        fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
+        QCoreApplication::processEvents();
+        for (const QList<QPushButton *> &months : {view.monthButtons(), fastView.monthButtons()}) {
+            QPushButton *thisMonth = todayButton(months);
+            QVERIFY(thisMonth != nullptr);
+            QVERIFY2(qAbs(discWidth(thisMonth) - chord(60, 76)) <= 2,
+                     qPrintable(QString::number(discWidth(thisMonth))));
+        }
+    }
+
+    // Python's calendar scroll buttons paint a 10 px caret in #5e5e5e (#9c9c9c when dark); the
+    // port showed the plain icon, 16 px and black in CalendarView, black in FastCalendarView.
+    void calendarNavigationButtonsPaintPythonCarets()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const QList<QPair<FluentQt::Theme, int>> cases = {{FluentQt::Theme::Light, 0x5e},
+                                                          {FluentQt::Theme::Dark, 0x9c}};
+        for (const auto &[theme, grey] : cases) {
+            manager->setTheme(theme);
+            FluentQt::CalendarView view(nullptr, false);
+            view.show();
+            FluentQt::FastCalendarView fastView;
+            fastView.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&view));
+            QVERIFY(QTest::qWaitForWindowExposed(&fastView));
+            auto *fastUp = fastView.dayView()->findChild<QToolButton *>(QStringLiteral("upButton"));
+            for (QToolButton *button : {view.upButton(), fastUp}) {
+                QWidget *window = button->window();
+                QImage image = window->grab(QRect(button->mapTo(window, QPoint()), button->size())).toImage();
+                image = image.scaled(button->size());
+                const QColor background = image.pixelColor(2, 2);
+                QRect caret;
+                int closest = 255;
+                for (int y = 0; y < image.height(); ++y) {
+                    for (int x = 0; x < image.width(); ++x) {
+                        const QColor pixel = image.pixelColor(x, y);
+                        if (qAbs(pixel.red() - background.red()) > 24) {
+                            caret |= QRect(x, y, 1, 1);
+                            closest = qMin(closest, qAbs(pixel.red() - grey));
+                        }
+                    }
+                }
+                QVERIFY2(caret.width() <= 10 && caret.width() >= 8, qPrintable(QString::number(caret.width())));
+                QVERIFY2(closest <= 4, qPrintable(QString::number(closest)));
+            }
+        }
+    }
+
+    // Python's calendar title is weight 500 in black/white and disabled in the year view, the
+    // weekday names are black/white, and a dark theme puts them on a rgb(32, 32, 32) strip.
+    void calendarTitleAndWeekdaysUsePythonStyle()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            manager->setTheme(theme);
+            FluentQt::CalendarView view(nullptr, false);
+            view.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&view));
+            QCOMPARE(view.titleButton()->font().weight(), QFont::Medium);
+
+            QLabel *weekday = nullptr;
+            for (QLabel *label : view.findChildren<QLabel *>()) {
+                if (label->property("calendarWeekday").toBool()) {
+                    weekday = label;
+                    break;
+                }
+            }
+            QVERIFY(weekday != nullptr);
+            const QImage image = view.grab().toImage().scaled(view.size());
+            const QRect labelRect(weekday->mapTo(&view, QPoint()), weekday->size());
+            int extreme = theme == FluentQt::Theme::Light ? 255 : 0;
+            for (int y = labelRect.top(); y <= labelRect.bottom(); ++y) {
+                for (int x = labelRect.left(); x <= labelRect.right(); ++x) {
+                    const int red = image.pixelColor(x, y).red();
+                    extreme = theme == FluentQt::Theme::Light ? qMin(extreme, red) : qMax(extreme, red);
+                }
+            }
+            QVERIFY2(theme == FluentQt::Theme::Light ? extreme <= 20 : extreme >= 235,
+                     qPrintable(QString::number(extreme)));
+            if (theme == FluentQt::Theme::Dark) {
+                const QWidget *group = weekday->parentWidget();
+                QCOMPARE(image.pixelColor(group->mapTo(&view, QPoint(1, 1))), QColor(32, 32, 32));
+            }
+
+            QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+            QVERIFY(view.titleButton()->isEnabled());
+            QTest::mouseClick(view.titleButton(), Qt::LeftButton);
+            QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+            QVERIFY(!view.titleButton()->isEnabled());
+            QTest::mouseClick(view.yearButtons().at(5), Qt::LeftButton);
+            QVERIFY(view.titleButton()->isEnabled());
+        }
+    }
+
+    // Python's CalendarView is a 338x383 popup holding a 314x355 panel inside 12/8/12/20 margins,
+    // with a drop shadow and a line under the header; the fast view's pages are the same panel.
+    // The port painted the whole 340x385 widget, without shadow or line, and left the fast pages
+    // transparent over the flyout's rgb(248, 248, 248).
+    // Python keeps the weekday row in a fixed 38 px viewport margin. Laid out by its labels instead, the
+    // row followed the font, and with a smaller one (Linux CI's fallback) the day grid moved up.
+    void calendarWeekdayRowKeepsPythonHeightWhateverTheFont()
+    {
+        FluentQt::CalendarView view(nullptr, false);
+        FluentQt::FastCalendarView fastView;
+        for (QWidget *calendar : {static_cast<QWidget *>(&view), static_cast<QWidget *>(&fastView)}) {
+            const auto labels = calendar->findChildren<QLabel *>(QStringLiteral("weekDayLabel"));
+            QVERIFY(!labels.isEmpty());
+            for (QLabel *label : labels) {
+                label->setStyleSheet(QStringLiteral("font-size: 9px;"));
+            }
+            calendar->show();
+            QVERIFY(QTest::qWaitForWindowExposed(calendar));
+            auto *row = calendar->findChild<QWidget *>(QStringLiteral("weekDayGroup"));
+            QVERIFY(row != nullptr);
+            QCOMPARE(row->height(), 38);
+        }
+    }
+
+    void calendarViewsDrawPythonPanel()
+    {
+        FluentQt::CalendarView view(nullptr, false);
+        view.show();
+        FluentQt::FastCalendarView fastView;
+        fastView.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+        QVERIFY(QTest::qWaitForWindowExposed(&fastView));
+
+        QCOMPARE(view.size(), QSize(338, 383));
+        auto *panel = view.findChild<QFrame *>(QStringLiteral("calendarPanel"));
+        QVERIFY(panel != nullptr);
+        QCOMPARE(panel->geometry(), QRect(12, 8, 314, 355));
+        QVERIFY(qobject_cast<QGraphicsDropShadowEffect *>(panel->graphicsEffect()) != nullptr);
+
+        const QImage image = view.grab().toImage().scaled(view.size());
+        QVERIFY(image.pixelColor(2, 2).alpha() < 40);
+        QCOMPARE(image.pixelColor(12 + 157, 8 + 30), QColor(255, 255, 255));
+        QCOMPARE(image.pixelColor(12 + 157, 8 + 51), QColor(240, 240, 240));
+
+        const QImage fastImage = fastView.grab().toImage().scaled(fastView.size());
+        QCOMPARE(fastImage.pixelColor(157, 30), QColor(255, 255, 255));
+        QCOMPARE(fastImage.pixelColor(157, 51), QColor(240, 240, 240));
+    }
+
+    // The year pages depend on the current year: both views count their years from (this year - 100), the
+    // CalendarView in pages of 12 and the fast view in rows of 4, so the pages repeat every 12 years. Measured
+    // with qfluentwidgets 1.11.3 for the current years 2026 to 2037 (QDate.currentDate() patched), opening
+    // the year page of 1 June 2025: the first year on the CalendarView's page, its title, and the first year
+    // on the FastCalendarView's decade page.
+    void calendarYearPagesFollowPython()
+    {
+        struct YearPage
+        {
+            int firstYear;
+            const char *title;
+            int fastFirstYear;
+        };
+        // Indexed by the current year % 12.
+        static const YearPage python[12] = {
+            {2024, "2030 - 2040", 2020}, {2025, "2030 - 2040", 2017}, {2014, "2020 - 2030", 2018},
+            {2015, "2020 - 2030", 2019}, {2016, "2020 - 2030", 2020}, {2017, "2020 - 2030", 2017},
+            {2018, "2020 - 2030", 2018}, {2019, "2020 - 2030", 2019}, {2020, "2020 - 2030", 2020},
+            {2021, "2020 - 2030", 2017}, {2022, "2020 - 2030", 2018}, {2023, "2030 - 2040", 2019},
+        };
+        const YearPage &expected = python[QDate::currentDate().year() % 12];
+
+        FluentQt::CalendarView view(nullptr, false);
+        view.setDate(QDate(2025, 6, 1));
+        view.titleButton()->click();
+        view.titleButton()->click();
+        QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(expected.firstYear, 1, 1));
+        QCOMPARE(view.title(), QString::fromLatin1(expected.title));
+
+        FluentQt::FastCalendarView fastView;
+        fastView.setDate(QDate(2025, 6, 1));
+        fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
+        fastView.monthView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
+        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(), QDate(expected.fastFirstYear, 1, 1));
     }
 
     void calendarPickerTracksDateAndReset()
@@ -110,14 +488,17 @@ class DateTimeTest : public QObject
         QCOMPARE(fastPicker.date(), selected);
     }
 
-    void calendarViewExposesPythonStyleLowLevelControls()
+    void calendarViewIsAFramelessPopupByDefault()
     {
         FluentQt::CalendarView popupProbe;
         QVERIFY(popupProbe.testAttribute(Qt::WA_DeleteOnClose));
         popupProbe.setAttribute(Qt::WA_DeleteOnClose, false);
         QVERIFY(popupProbe.windowFlags() & Qt::FramelessWindowHint);
         QVERIFY(popupProbe.windowFlags() & Qt::NoDropShadowWindowHint);
+    }
 
+    void calendarViewExposesItsPagesAndButtons()
+    {
         FluentQt::CalendarView view(nullptr, false);
         QCOMPARE(view.property("fqw").toString(), QStringLiteral("CalendarView"));
         QVERIFY(view.testAttribute(Qt::WA_TranslucentBackground));
@@ -140,7 +521,11 @@ class DateTimeTest : public QObject
         QVERIFY(std::all_of(dayButtons.cbegin(), dayButtons.cend(), [](QPushButton *button) {
             return button && button->property("calendarItem").toBool() && button->property("calendarDay").toBool();
         }));
+    }
 
+    void calendarViewNavigatesBetweenDayMonthAndYearPages()
+    {
+        FluentQt::CalendarView view(nullptr, false);
         const QDate selected(2024, 6, 23);
         QSignalSpy changedSpy(&view, &FluentQt::CalendarView::dateChanged);
         view.setDate(selected);
@@ -150,10 +535,10 @@ class DateTimeTest : public QObject
 
         view.scrollDown();
         QCOMPARE(view.currentPageDate(), QDate(2024, 7, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         view.scrollUp();
         QCOMPARE(view.currentPageDate(), QDate(2024, 6, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
         QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2024, 1, 1));
@@ -175,27 +560,33 @@ class DateTimeTest : public QObject
         QCOMPARE(view.currentPageDate(), QDate(2025, 6, 1));
         sendWheel(&view, -120);
         QCOMPARE(view.currentPageDate(), QDate(2025, 7, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         sendWheel(&view, 120);
         QCOMPARE(view.currentPageDate(), QDate(2025, 6, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.monthView());
         sendWheel(&view, -120);
         QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2026, 1, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         sendWheel(&view, 120);
         QCOMPARE(view.monthButtons().first()->property("date").toDate(), QDate(2025, 1, 1));
-        waitCalendarScrollAnimation();
+        QVERIFY(FqwTest::waitForAnimations(&view));
         QTest::mouseClick(view.titleButton(), Qt::LeftButton);
         QCOMPARE(view.stackedWidget()->currentWidget(), view.yearView());
+        // Python pages the years 12 at a time (calendarYearPagesFollowPython checks where the pages start).
+        const QDate yearPage2025 = view.yearButtons().first()->property("date").toDate();
         sendWheel(&view, -120);
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(2028, 1, 1));
-        waitCalendarScrollAnimation();
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), yearPage2025.addYears(12));
+        QVERIFY(FqwTest::waitForAnimations(&view));
         sendWheel(&view, 120);
-        QCOMPARE(view.yearButtons().first()->property("date").toDate(), QDate(2020, 1, 1));
-        waitCalendarScrollAnimation();
+        QCOMPARE(view.yearButtons().first()->property("date").toDate(), yearPage2025);
+        QVERIFY(FqwTest::waitForAnimations(&view));
+        QCOMPARE(changedSpy.count(), 0);
+    }
 
+    void calendarViewPopupSlidesDownWhileFadingIn()
+    {
         FluentQt::CalendarView animatedView;
         animatedView.setAttribute(Qt::WA_DeleteOnClose, false);
         const QPoint popupPos(240, 240);
@@ -208,7 +599,13 @@ class DateTimeTest : public QObject
         }
         QTRY_COMPARE(animatedView.pos(), popupTargetPos);
         animatedView.hide();
+    }
 
+    void calendarViewResetClearsTheDateWithoutDateChanged()
+    {
+        FluentQt::CalendarView view(nullptr, false);
+        view.setDate(QDate(2024, 6, 23));
+        QSignalSpy changedSpy(&view, &FluentQt::CalendarView::dateChanged);
         view.setResetEnabled(true);
         QVERIFY(view.isResetEnabled());
         QSignalSpy resetSpy(&view, &FluentQt::CalendarView::resetted);
@@ -216,7 +613,11 @@ class DateTimeTest : public QObject
         QVERIFY(!view.date().isValid());
         QCOMPARE(resetSpy.count(), 1);
         QCOMPARE(changedSpy.count(), 0);
+    }
 
+    void calendarViewWeekdaysStayEnglishAbbreviations()
+    {
+        FluentQt::CalendarView view(nullptr, false);
         auto weekdayTexts = [&view]() {
             QStringList texts;
             const auto labels = view.findChildren<QLabel *>();
@@ -233,10 +634,11 @@ class DateTimeTest : public QObject
         QCOMPARE(englishWeekdays.first(), QStringLiteral("Mo"));
         view.setLocale(QLocale(QLocale::Chinese, QLocale::China));
         const QStringList chineseWeekdays = weekdayTexts();
-        QCOMPARE(chineseWeekdays.size(), 7);
-        QVERIFY(!chineseWeekdays.first().isEmpty());
         QCOMPARE(chineseWeekdays, englishWeekdays);
+    }
 
+    void fastCalendarViewExposesItsPagesAndButtons()
+    {
         FluentQt::FastCalendarView fastView;
         QCOMPARE(fastView.property("fqw").toString(), QStringLiteral("FastCalendarView"));
         QCOMPARE(FluentQt::styleSheetSourceForRole(QStringLiteral("FastCalendarPage")),
@@ -264,6 +666,11 @@ class DateTimeTest : public QObject
             return button && button->property("fastCalendarItem").toBool() &&
                    button->property("date").toDate().isValid();
         }));
+    }
+
+    void fastCalendarViewNavigatesBetweenPages()
+    {
+        FluentQt::FastCalendarView fastView;
         fastView.setDate(QDate(2024, 6, 23));
         QCOMPARE(fastView.date(), QDate(2024, 6, 23));
         auto *fastDayTitle = fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"));
@@ -279,8 +686,17 @@ class DateTimeTest : public QObject
         QTest::mouseClick(fastMonthTitle, Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.yearView());
         sendWheel(&fastView, -120);
-        QCOMPARE(fastView.yearButtons().first()->property("date").toDate(), QDate(2020, 1, 1));
-        QTest::mouseClick(fastView.yearButtons().at(4), Qt::LeftButton);
+        // The decade page of the 2020s, in rows of four (calendarYearPagesFollowPython checks where they start).
+        const int fastFirstYear = fastView.yearButtons().first()->property("date").toDate().year();
+        QVERIFY(fastFirstYear <= 2020 && fastFirstYear + 16 > 2029);
+        QPushButton *fastYear2024 = nullptr;
+        for (QPushButton *button : fastView.yearButtons()) {
+            if (button->property("date").toDate() == QDate(2024, 1, 1)) {
+                fastYear2024 = button;
+            }
+        }
+        QVERIFY(fastYear2024 != nullptr);
+        QTest::mouseClick(fastYear2024, Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.monthView());
         QTest::mouseClick(fastView.monthButtons().at(5), Qt::LeftButton);
         QCOMPARE(fastView.stackedWidget()->currentWidget(), fastView.dayView());
@@ -295,7 +711,7 @@ class DateTimeTest : public QObject
         QVERIFY(selectedFastDay->property("selected").toBool());
     }
 
-    void pickerBaseExposesPythonStyleColumnsAndPanel()
+    void pickerPanelTracksColumnValuesAndConfirms()
     {
         FluentQt::PickerColumnFormatter formatter;
         QCOMPARE(formatter.encode(QVariant(QStringLiteral("June"))), QStringLiteral("June"));
@@ -529,7 +945,7 @@ class DateTimeTest : public QObject
         QCoreApplication::removeTranslator(&chineseTranslator);
     }
 
-    void pickerPopupsUseListColumns()
+    void pickersOpenTheirPanelsAndApplyTheChoice()
     {
         FluentQt::CalendarPicker calendarPicker;
         calendarPicker.show();
@@ -542,8 +958,6 @@ class DateTimeTest : public QObject
         QTRY_VERIFY((calendarPanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
         QVERIFY(calendarPanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(calendarPanel->testAttribute(Qt::WA_StyledBackground));
-        QVERIFY(calendarPanel->testAttribute(Qt::WA_DeleteOnClose));
-        QVERIFY(calendarPanel->windowFlags() & Qt::NoDropShadowWindowHint);
         QVERIFY(!calendarPanel->findChildren<QPushButton *>().isEmpty());
         QVERIFY(!calendarPanel->findChildren<QToolButton *>().isEmpty());
         if (auto *opacityEffect = qobject_cast<QGraphicsOpacityEffect *>(calendarPanel->graphicsEffect())) {
@@ -616,8 +1030,6 @@ class DateTimeTest : public QObject
 
         QWidget *datePanel = nullptr;
         QTRY_VERIFY((datePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel"))) != nullptr);
-        QVERIFY(datePanel->testAttribute(Qt::WA_TranslucentBackground));
-        QVERIFY(datePanel->windowFlags() & Qt::NoDropShadowWindowHint);
         auto *datePanelView = datePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(datePanelView != nullptr);
         QCOMPARE(datePanelView->property("fqw").toString(), QStringLiteral("DatePickerPanel"));
@@ -648,8 +1060,6 @@ class DateTimeTest : public QObject
 
         QWidget *timePanel = nullptr;
         QTRY_VERIFY((timePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel"))) != nullptr);
-        QVERIFY(timePanel->testAttribute(Qt::WA_TranslucentBackground));
-        QVERIFY(timePanel->windowFlags() & Qt::NoDropShadowWindowHint);
         auto *timePanelView = timePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(timePanelView != nullptr);
         QCOMPARE(timePanelView->property("fqw").toString(), QStringLiteral("TimePickerPanel"));
@@ -683,8 +1093,7 @@ class DateTimeTest : public QObject
         QTRY_VERIFY(timePanelGuard.isNull());
     }
 
-
-    void cycleListWidgetMatchesPythonPickerColumnBehavior()
+    void cycleListWidgetCyclesLongListsAndStopsShortOnes()
     {
         FluentQt::CycleListWidget shortList(QStringList{QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("C")},
                                             QSize(50, 20), Qt::AlignCenter);
@@ -702,10 +1111,8 @@ class DateTimeTest : public QObject
         QVERIFY(shortList.downButton() != nullptr);
         QVERIFY(shortList.verticalSmoothScrollBar() != nullptr);
         QCOMPARE(shortList.verticalSmoothScrollBar()->isForceHidden(), true);
-        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::Up);
-        QCOMPARE(shortList.downButton()->fluentIcon(), FluentQt::FluentIcon::ArrowDown);
-        QCOMPARE(shortList.upButton()->property("pickerOperation").toBool(), true);
-        QCOMPARE(shortList.downButton()->property("pickerOperation").toBool(), true);
+        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::CareUpSolid);
+        QCOMPARE(shortList.downButton()->fluentIcon(), FluentQt::FluentIcon::CareDownSolid);
         QVERIFY(shortList.upButton()->metaObject()->indexOfProperty("isPressed") >= 0);
         QVERIFY(shortList.upButton()->metaObject()->indexOfProperty("fluentIcon") >= 0);
 
@@ -756,6 +1163,136 @@ class DateTimeTest : public QObject
         QCOMPARE(cycleList.currentCycleIndex(), 11);
     }
 
+    // The panel rule gave the accept/reset/cancel buttons `min-height: 30px` and a 2 px margin.
+    // min-height sizes the content box, so the buttons came out 41 px tall instead of Python's 33,
+    // and the panel 8 px taller (Python: a 375 px view for 9 rows of 37 px).
+    void pickerPanelButtonsKeepPythonHeight()
+    {
+        for (const QString &role : {QStringLiteral("TimePickerPanel"), QStringLiteral("DatePickerPanel")}) {
+            FluentQt::PickerPanel panel;
+            panel.setPanelRole(role);
+            panel.setViewRole(role);
+            panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 120);
+            panel.addColumn(QStringList{QStringLiteral("3"), QStringLiteral("4")}, 120);
+            panel.adjustSize();
+            for (QToolButton *button :
+                 {static_cast<QToolButton *>(panel.yesButton()), static_cast<QToolButton *>(panel.cancelButton())}) {
+                QCOMPARE(button->height(), 33);
+            }
+            QCOMPARE(panel.view()->size(), QSize(259, 375));
+        }
+    }
+
+    // Python's PickerPanel.exec() shifts the panel left by its 12 px layout margin, so the view is
+    // centred on the picker, and 4 px up; the port placed the shadow margin there instead.
+    void pickerPanelOpensWherePythonPutsIt()
+    {
+        FQW_REQUIRE_SCREEN_ROOM(400, 400);
+        FluentQt::PickerPanel panel;
+        panel.setAttribute(Qt::WA_DeleteOnClose, false);
+        panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 120);
+        const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+        const QPoint requested = available.topLeft() + QPoint(100, 100);
+        panel.exec(requested, false);
+        QCOMPARE(panel.pos(), requested - QPoint(12, 4));
+        panel.hide();
+    }
+
+    // Python's reset buttons show FluentIcon.CANCEL; the port used Remove (picker panel) and
+    // Close (calendar views).
+    void resetButtonsShowTheCancelIcon()
+    {
+        const QImage cancel = FluentQt::icon(FluentQt::FluentIcon::Cancel).pixmap(16, 16).toImage();
+        FluentQt::PickerPanel panel;
+        QCOMPARE(panel.resetButton()->icon().pixmap(16, 16).toImage(), cancel);
+        FluentQt::CalendarView view(nullptr, false);
+        QCOMPARE(view.resetButton()->icon().pixmap(16, 16).toImage(), cancel);
+        FluentQt::FastCalendarView fastView;
+        const auto fastResetButtons = fastView.findChildren<QToolButton *>(QStringLiteral("resetButton"));
+        QCOMPARE(fastResetButtons.size(), 3);
+        for (QToolButton *button : fastResetButtons) {
+            QCOMPARE(button->property("navigationIcon").toString(), QStringLiteral("Cancel"));
+        }
+    }
+
+    // Python paints the separators between the columns and above the buttons; the port's rule
+    // selected QFrame, but SeparatorWidget is a plain QWidget without a styled background.
+    void pickerPanelsDrawTheirSeparators()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const QList<QPair<FluentQt::Theme, QColor>> cases = {{FluentQt::Theme::Light, QColor(234, 234, 234)},
+                                                             {FluentQt::Theme::Dark, QColor(61, 61, 61)}};
+        for (const auto &[theme, line] : cases) {
+            manager->setTheme(theme);
+            for (const QString &role : {QStringLiteral("TimePickerPanel"), QStringLiteral("DatePickerPanel")}) {
+                FluentQt::PickerPanel panel;
+                panel.setPanelRole(role);
+                panel.setViewRole(role);
+                panel.addColumn(QStringList{QStringLiteral("1"), QStringLiteral("2")}, 80);
+                panel.addColumn(QStringList{QStringLiteral("3"), QStringLiteral("4")}, 80);
+                panel.adjustSize();
+                QFrame *view = panel.view();
+                view->setGraphicsEffect(nullptr);
+                view->show();
+                const QImage image = FqwTest::render(view);
+                const QWidget *horizontal = panel.horizontalSeparatorWidget();
+                QCOMPARE(image.pixelColor(horizontal->geometry().center()), line);
+                const auto separators = view->findChildren<FluentQt::SeparatorWidget *>();
+                const auto vertical = std::find_if(separators.cbegin(), separators.cend(), [](auto *separator) {
+                    return separator->orientation() == Qt::Vertical;
+                });
+                QVERIFY(vertical != separators.cend());
+                QCOMPARE(image.pixelColor((*vertical)->geometry().center()), line);
+            }
+        }
+    }
+
+    // Python's column scroll buttons are solid carets on an opaque rounded plate that hides the
+    // item under them; the port drew Up/ArrowDown glyphs on a transparent button.
+    void cycleListScrollButtonsHideTheItemUnderThem()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const QList<QPair<FluentQt::Theme, QColor>> cases = {{FluentQt::Theme::Light, QColor(249, 249, 249)},
+                                                             {FluentQt::Theme::Dark, QColor(44, 44, 44)}};
+        for (const auto &[theme, plate] : cases) {
+            manager->setTheme(theme);
+            FluentQt::PickerPanel panel;
+            panel.addColumn(QStringList{QStringLiteral("8"), QStringLiteral("9"), QStringLiteral("10")}, 80);
+            panel.adjustSize();
+            FluentQt::ScrollButton *button = panel.listWidgets().first()->upButton();
+            QCOMPARE(button->fluentIcon(), FluentQt::FluentIcon::CareUpSolid);
+            button->show();
+            const QImage image = FqwTest::render(button);
+            QCOMPARE(image.pixelColor(10, button->height() / 2), plate);
+        }
+    }
+
+    // A picker panel selects its value before it is shown. The column's viewport then still had
+    // a child widget's default 100x30 size, so the value was scrolled to the top, not the middle.
+    void pickerPanelCentresAValueSelectedBeforeShow()
+    {
+        QStringList hours;
+        for (int hour = 0; hour < 24; ++hour) {
+            hours.append(QString::number(hour));
+        }
+        for (const QString &role : {QStringLiteral("TimePickerPanel"), QStringLiteral("DatePickerPanel")}) {
+            FluentQt::PickerPanel panel;
+            panel.setAttribute(Qt::WA_DeleteOnClose, false);
+            panel.setPanelRole(role);
+            panel.setViewRole(role);
+            panel.addColumn(hours, 80);
+            panel.setColumnValue(0, QStringLiteral("10"));
+            FluentQt::CycleListWidget *column = panel.listWidgets().first();
+            QCOMPARE(column->currentItem()->text(), QStringLiteral("10"));
+            panel.show();
+            const auto offCentre = [column] {
+                return column->visualItemRect(column->currentItem()).center().y()
+                       - column->viewport()->rect().center().y();
+            };
+            QTRY_VERIFY2(qAbs(offCentre()) <= 1, qPrintable(role + QStringLiteral(": %1 px").arg(offCentre())));
+        }
+    }
+
   private:
     std::optional<FqwTest::GlobalState> m_globalState;
 
@@ -800,6 +1337,15 @@ class DateTimeTest : public QObject
         return buttons;
     }
 
+    static QList<QWidget *> pickerButtonWidgets(QWidget *picker)
+    {
+        QList<QWidget *> widgets;
+        for (QPushButton *button : pickerButtons(picker)) {
+            widgets.append(button);
+        }
+        return widgets;
+    }
+
     static void verifyPickerOperationButtons(QWidget *panelView, bool resetVisible)
     {
         auto *confirmButton = panelView->findChild<QToolButton *>(QStringLiteral("pickerConfirmButton"));
@@ -812,9 +1358,6 @@ class DateTimeTest : public QObject
         QCOMPARE(confirmButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
         QCOMPARE(resetButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
         QCOMPARE(cancelButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
-        QVERIFY(confirmButton->property("pickerOperation").toBool());
-        QVERIFY(resetButton->property("pickerOperation").toBool());
-        QVERIFY(cancelButton->property("pickerOperation").toBool());
         QCOMPARE(resetButton->isVisible(), resetVisible);
         QVERIFY(confirmButton->text().isEmpty());
         QVERIFY(cancelButton->text().isEmpty());

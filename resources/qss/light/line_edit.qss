@@ -3,12 +3,13 @@ QLineEdit[fqw="AcrylicLineEdit"],
 QLineEdit[fqw="SearchLineEdit"],
 QLineEdit[fqw="AcrylicSearchLineEdit"],
 QLineEdit[fqw="PasswordLineEdit"],
+QLineEdit[fqw="EditableComboBox"],
+QLineEdit[fqw="AcrylicEditableComboBox"],
+QLineEdit[fqw="EditableModelComboBox"],
 QTextEdit[fqw="TextEdit"],
 QPlainTextEdit[fqw="PlainTextEdit"],
 QTextBrowser[fqw="TextBrowser"] {
     color: black;
-    font: 14px --FontFamilies;
-    min-height: 32px;
     border: 1px solid rgba(0, 0, 0, 13);
     border-bottom: 1px solid rgba(0, 0, 0, 100);
     border-radius: 5px;
@@ -28,6 +29,9 @@ QLineEdit[fqw="AcrylicLineEdit"]:hover,
 QLineEdit[fqw="SearchLineEdit"]:hover,
 QLineEdit[fqw="AcrylicSearchLineEdit"]:hover,
 QLineEdit[fqw="PasswordLineEdit"]:hover,
+QLineEdit[fqw="EditableComboBox"]:hover,
+QLineEdit[fqw="AcrylicEditableComboBox"]:hover,
+QLineEdit[fqw="EditableModelComboBox"]:hover,
 QTextEdit[fqw="TextEdit"]:hover,
 QPlainTextEdit[fqw="PlainTextEdit"]:hover,
 QTextBrowser[fqw="TextBrowser"]:hover {
@@ -38,7 +42,10 @@ QLineEdit[fqw="LineEdit"]:focus,
 QLineEdit[fqw="AcrylicLineEdit"]:focus,
 QLineEdit[fqw="SearchLineEdit"]:focus,
 QLineEdit[fqw="AcrylicSearchLineEdit"]:focus,
-QLineEdit[fqw="PasswordLineEdit"]:focus {
+QLineEdit[fqw="PasswordLineEdit"]:focus,
+QLineEdit[fqw="EditableComboBox"]:focus,
+QLineEdit[fqw="AcrylicEditableComboBox"]:focus,
+QLineEdit[fqw="EditableModelComboBox"]:focus {
     border-bottom: 1px solid rgba(0, 0, 0, 13);
     background-color: white;
 }
@@ -46,7 +53,7 @@ QLineEdit[fqw="PasswordLineEdit"]:focus {
 QTextEdit[fqw="TextEdit"]:focus,
 QPlainTextEdit[fqw="PlainTextEdit"]:focus,
 QTextBrowser[fqw="TextBrowser"]:focus {
-    border-bottom: 1px solid @accentColor;
+    border-bottom: 1px solid --ThemeColorPrimary;
     background-color: white;
 }
 
@@ -55,6 +62,9 @@ QLineEdit[fqw="AcrylicLineEdit"]:disabled,
 QLineEdit[fqw="SearchLineEdit"]:disabled,
 QLineEdit[fqw="AcrylicSearchLineEdit"]:disabled,
 QLineEdit[fqw="PasswordLineEdit"]:disabled,
+QLineEdit[fqw="EditableComboBox"]:disabled,
+QLineEdit[fqw="AcrylicEditableComboBox"]:disabled,
+QLineEdit[fqw="EditableModelComboBox"]:disabled,
 QTextEdit[fqw="TextEdit"]:disabled,
 QPlainTextEdit[fqw="PlainTextEdit"]:disabled,
 QTextBrowser[fqw="TextBrowser"]:disabled {

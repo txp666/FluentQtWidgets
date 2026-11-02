@@ -182,6 +182,8 @@ QSize PipsPager::sizeHint() const
 
 void PipsPager::setPageNumber(int pageNumber)
 {
+    m_lengthFixed = true;
+    updateFixedSize();
     const int boundedPageNumber = qMax(0, pageNumber);
     if (m_pageNumber == boundedPageNumber) {
         return;
@@ -207,11 +209,14 @@ void PipsPager::setPageNumber(int pageNumber)
 void PipsPager::setVisibleNumber(int visibleNumber)
 {
     const int boundedNumber = boundedVisibleNumber(visibleNumber);
+    m_lengthFixed = true;
     if (m_visibleNumber == boundedNumber) {
+        updateFixedSize();
         return;
     }
 
     m_visibleNumber = boundedNumber;
+    updateFixedSize();
     updateVisiblePips();
     updateGeometry();
     emit visibleNumberChanged(m_visibleNumber);
@@ -344,7 +349,9 @@ void PipsPager::init()
     m_scrollAnimation->setEasingCurve(QEasingCurve::OutCubic);
 
     m_layout->addWidget(m_previousButton, 0, Qt::AlignCenter);
-    m_layout->addWidget(m_pipContainer, 0, Qt::AlignCenter);
+    // With fewer pages than visible pips, Python keeps the pips at the start and the next button at
+    // the far end.
+    m_layout->addWidget(m_pipContainer, 1, Qt::AlignLeft | Qt::AlignTop);
     m_layout->addWidget(m_nextButton, 0, Qt::AlignCenter);
 
     FluentStyleSheet::setRole(this, QStringLiteral("PipsPager"));
@@ -463,6 +470,7 @@ void PipsPager::updateLayoutDirection()
         button->setFluentIcon(isHorizontal() ? FluentIcon::CareRightSolid : FluentIcon::CareDownSolid);
     }
     m_layout->setDirection(isHorizontal() ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom);
+    updateFixedSize();
 
     const int extent = qMax(12, m_pageNumber * 12);
     if (isHorizontal()) {
@@ -472,6 +480,22 @@ void PipsPager::updateLayoutDirection()
     }
 
     updatePipContainerOffset();
+}
+
+// As Python's: 12 px thick from the start; once the page or visible number is set, as long as the
+// visible pips plus the two 15 px button margins.
+void PipsPager::updateFixedSize()
+{
+    const int length = m_visibleNumber * 12 + 30;
+    if (isHorizontal()) {
+        setMinimumWidth(m_lengthFixed ? length : 0);
+        setMaximumWidth(m_lengthFixed ? length : QWIDGETSIZE_MAX);
+        setFixedHeight(12);
+    } else {
+        setMinimumHeight(m_lengthFixed ? length : 0);
+        setMaximumHeight(m_lengthFixed ? length : QWIDGETSIZE_MAX);
+        setFixedWidth(12);
+    }
 }
 
 bool PipsPager::isPreviousButtonVisible() const

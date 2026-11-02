@@ -91,10 +91,15 @@ class SettingInterface : public ScrollArea
                                                      {1.0, 1.25, 1.5, 1.75, 2.0, QStringLiteral("Auto")},
                                                      icon(FluentIcon::Zoom), tr("Interface zoom"),
                                                      tr("Change the size of widgets and fonts"), group));
-        group->addSettingCard(new ComboBoxSettingCard({QStringLiteral("简体中文"), QStringLiteral("繁體中文"),
+        // Python's cfg.language: an options config item the combo box card follows.
+        auto *language = new OptionsConfigItem(
+            QStringLiteral("MainWindow"), QStringLiteral("Language"), QStringLiteral("Auto"),
+            {QStringLiteral("zh_CN"), QStringLiteral("zh_HK"), QStringLiteral("en"), QStringLiteral("Auto")}, group);
+        group->addSettingCard(new ComboBoxSettingCard(language, icon(FluentIcon::Language), tr("Language"),
+                                                      tr("Set your preferred language for UI"),
+                                                      {QStringLiteral("简体中文"), QStringLiteral("繁體中文"),
                                                        QStringLiteral("English"), tr("Use system setting")},
-                                                      icon(FluentIcon::Language), tr("Language"),
-                                                      tr("Set your preferred language for UI"), group));
+                                                      group));
         layout->addWidget(group);
     }
 

@@ -1,3 +1,9 @@
 QWidget[fqw="SettingCardGroup"] {
-    background: transparent;
+    background-color: transparent;
+}
+
+QWidget[fqw="SettingCardGroup"] > QLabel {
+    background-color: transparent;
+    color: black;
+    border: none;
 }

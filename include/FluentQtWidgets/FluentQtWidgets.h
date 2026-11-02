@@ -14,7 +14,9 @@
 #include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/Layout/VBoxLayout.h>
 #if defined(FQW_HAS_MULTIMEDIA) && FQW_HAS_MULTIMEDIA
+#include <FluentQtWidgets/Multimedia/MediaPlayBar.h>
 #include <FluentQtWidgets/Multimedia/MediaPlayer.h>
+#include <FluentQtWidgets/Multimedia/VideoWidget.h>
 #endif
 #include <FluentQtWidgets/Navigation/BreadcrumbBar.h>
 #include <FluentQtWidgets/Navigation/NavigationBar.h>

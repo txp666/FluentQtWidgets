@@ -1,72 +1,22 @@
 // Fluent windows, title bars, frameless window hit testing, the splash screen and animated stacks.
 
-#include <array>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
 #include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/FluentWindow.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
-#include <limits>
-#include <QtCore/QDir>
-#include <QtCore/QEventLoop>
-#include <QtCore/QFile>
-#include <QtCore/QJsonArray>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QContextMenuEvent>
 #include <QtGui/QImage>
-#include <QtGui/QMouseEvent>
 #include <QtGui/QRegion>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGraphicsOpacityEffect>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -77,7 +27,6 @@ using namespace FluentQt;
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
-#include <windowsx.h>
 
 namespace {
 
@@ -145,8 +94,7 @@ class WindowTest : public QObject
         QCOMPARE(window.addSubInterface(albumChild, QIcon(), QStringLiteral("Album 1"), QStringLiteral("album1"),
                                         FluentQt::NavigationItemPosition::Scroll, QStringLiteral("albums")),
                  3);
-        QCOMPARE(window.navigationInterface()->navigationPanel()->widget(QStringLiteral("albums"))->childItems().size(),
-                 1);
+        QCOMPARE(window.navigationInterface()->panel()->widget(QStringLiteral("albums"))->childItems().size(), 1);
 
         QPointer<QWidget> settingsPointer(settings);
         QVERIFY(window.removeInterface(QStringLiteral("settings")));
@@ -159,7 +107,7 @@ class WindowTest : public QObject
         delete album;
     }
 
-    void fluentWindowHistoryNavigation()
+    void fluentWindowGoBackReturnsToPreviousInterface()
     {
         FluentQt::FluentWindow window;
         auto *home = new QWidget;
@@ -177,6 +125,41 @@ class WindowTest : public QObject
         QVERIFY(!window.canGoBack());
     }
 
+    // The page stack moved from NavigationInterface to the window, as in Python; it still pops
+    // pages up and keeps the navigation's selection in step.
+    void fluentWindowPopsUpPagesFromItsOwnStack()
+    {
+        FluentQt::FluentWindow window;
+        auto *home = new QWidget;
+        auto *settings = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+        window.addSubInterface(settings, QIcon(), QStringLiteral("Settings"), QStringLiteral("settings"));
+        QCOMPARE(settings->objectName(), QStringLiteral("settings"));
+        QCOMPARE(window.navigationInterface()->panel()->currentRouteKey(), QStringLiteral("home"));
+        QCOMPARE(window.navigationInterface()->findChildren<QStackedWidget *>().size(), 0);
+
+        auto *stack = qobject_cast<FluentQt::PopUpAniStackedWidget *>(window.stackedWidget());
+        QVERIFY(stack != nullptr);
+        QSignalSpy startSpy(stack, &FluentQt::PopUpAniStackedWidget::aniStart);
+        QSignalSpy finishedSpy(stack, &FluentQt::PopUpAniStackedWidget::aniFinished);
+
+        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QCOMPARE(startSpy.count(), 1);
+        QCOMPARE(window.currentInterface(), settings);
+        QCOMPARE(window.navigationInterface()->panel()->currentRouteKey(), QStringLiteral("settings"));
+        QTRY_COMPARE(finishedSpy.count(), 1);
+
+        // A page switched on the stack directly still moves the selection, as Python's
+        // _onCurrentInterfaceChanged does.
+        stack->setCurrentIndex(0);
+        QCOMPARE(window.navigationInterface()->panel()->currentRouteKey(), QStringLiteral("home"));
+        QVERIFY(window.canGoBack());
+
+        QVERIFY(window.removeInterface(home, true));
+        QCOMPARE(window.navigationInterface()->widget(QStringLiteral("home")), nullptr);
+        QCOMPARE(window.currentInterface(), settings);
+    }
+
     void msFluentWindowUsesNavigationBar()
     {
         FluentQt::MSFluentWindow window;
@@ -186,11 +169,21 @@ class WindowTest : public QObject
         apps->setObjectName(QStringLiteral("apps"));
 
         QVERIFY(window.windowFlags() & Qt::FramelessWindowHint);
-        QCOMPARE(window.navigationInterface()->width(), FluentQt::NavigationBar::kBarWidth);
+        // Python's MSFluentWindow: the bar is free and the window's layout gives it its hint (72 px
+        // natively on macOS with Fusion); the stack starts there, 48 px down.
+        window.resize(900, 700);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCOMPARE(window.navigationInterface()->minimumWidth(), 0);
         QCOMPARE(window.addSubInterface(home, QIcon(), QStringLiteral("Home")), 0);
         QCOMPARE(window.addSubInterface(apps, QIcon(), QStringLiteral("Apps")), 1);
         QCOMPARE(window.currentRouteKey(), QStringLiteral("home"));
         QVERIFY(window.navigationInterface()->widget(QStringLiteral("home")) != nullptr);
+        FluentQt::NavigationBar *bar = window.navigationInterface();
+        const int barWidth = qMax(bar->sizeHint().width(), bar->minimumSizeHint().width());
+        QVERIFY(barWidth >= 72);
+        QTRY_COMPARE(bar->width(), barWidth);
+        QCOMPARE(window.stackedWidget()->mapTo(&window, QPoint(0, 0)), QPoint(barWidth, 48));
 
         QVERIFY(window.switchTo(QStringLiteral("apps")));
         QCOMPARE(window.currentInterface(), apps);
@@ -247,7 +240,6 @@ class WindowTest : public QObject
         normalWindow.show();
         QVERIFY(QTest::qWaitForWindowExposed(&normalWindow));
         QVERIFY(normalWindow.titleBar()->x() >= FluentQt::NavigationPanel::kCompactWidth);
-        QCOMPARE(normalWindow.titleBar()->property("navigationBackground").toBool(), true);
 
         FluentQt::SplitFluentWindow splitWindow;
         splitWindow.resize(480, 360);
@@ -255,10 +247,63 @@ class WindowTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&splitWindow));
         QCOMPARE(splitWindow.titleBar()->x(), 0);
         QCOMPARE(splitWindow.titleBar()->width(), splitWindow.width());
-        QCOMPARE(splitWindow.titleBar()->property("navigationBackground").toBool(), false);
     }
 
-    void fluentWindowExposesMicaApi()
+    // Python's FluentWindowBase paints the whole window rgb(240, 244, 249) (rgb(32, 32, 32) dark)
+    // without Mica; the title bar and the navigation interface are transparent over it. The port
+    // painted the window rgb(249, 249, 249) and the title bar and navigation strip rgb(243, 243, 243).
+    void fluentWindowsPaintPythonsBackground()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        FluentQt::FluentWindow fluent;
+        FluentQt::SplitFluentWindow split;
+        FluentQt::MSFluentWindow ms;
+        const QList<QMainWindow *> windows{&fluent, &split, &ms};
+        for (QMainWindow *window : windows) {
+            window->resize(900, 620);
+            window->show();
+            QVERIFY(QTest::qWaitForWindowExposed(window));
+        }
+        const auto sample = [](QMainWindow *window, const QPoint &point) {
+            return window->grab().toImage().pixelColor(point);
+        };
+        for (const auto &[theme, expected] : {std::pair{FluentQt::Theme::Light, QColor(240, 244, 249)},
+                                              std::pair{FluentQt::Theme::Dark, QColor(32, 32, 32)}}) {
+            manager->setTheme(theme);
+            QCoreApplication::processEvents();
+            for (QMainWindow *window : windows) {
+                // The top left corner, the navigation below its last item and the title bar right of
+                // its title (SplitFluentWindow's page stack runs under its title bar, as in Python).
+                QList<QPoint> points{QPoint(20, 4), QPoint(20, window->height() - 120)};
+                if (window != &split) {
+                    points << QPoint(window->width() / 2, 4);
+                }
+                for (const QPoint &point : points) {
+                    const QColor actual = sample(window, point);
+                    const QByteArray label =
+                        QStringLiteral("%1 (%2) at %3,%4: %5")
+                            .arg(QLatin1String(window->metaObject()->className()), FluentQt::themeName(theme))
+                            .arg(point.x())
+                            .arg(point.y())
+                            .arg(actual.name())
+                            .toUtf8();
+                    QVERIFY2(actual == expected, label.constData());
+                }
+            }
+        }
+        QCOMPARE(fluent.lightBackgroundColor(), QColor(240, 244, 249));
+        QCOMPARE(ms.darkBackgroundColor(), QColor(32, 32, 32));
+
+        // Python's setCustomBackgroundColor() on the window.
+        manager->setTheme(FluentQt::Theme::Light);
+        fluent.setCustomBackgroundColor(QColor(10, 20, 30), QColor(40, 50, 60));
+        ms.setCustomBackgroundColor(QColor(10, 20, 30), QColor(40, 50, 60));
+        QCoreApplication::processEvents();
+        QCOMPARE(sample(&fluent, QPoint(fluent.width() / 2, 4)), QColor(10, 20, 30));
+        QCOMPARE(sample(&ms, QPoint(ms.width() / 2, 4)), QColor(10, 20, 30));
+    }
+
+    void fluentWindowMicaFollowsPlatformAvailability()
     {
         FluentQt::FluentWindow window;
         QCOMPARE(window.isMicaEffectEnabled(), false);
@@ -301,20 +346,34 @@ class WindowTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
         auto *navigation = window.navigationInterface();
-        auto *panel = navigation->navigationPanel();
-        const int stackX = navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x();
+        auto *panel = navigation->panel();
+        QStackedWidget *stack = window.stackedWidget();
+        const QPoint stackPos = stack->mapTo(&window, QPoint(0, 0));
 
+        // Python's layout: the 48 px interface beside the stack, which starts below the title bar.
+        QCOMPARE(navigation->width(), FluentQt::NavigationPanel::kCompactWidth);
+        QVERIFY(!navigation->isAncestorOf(stack));
         QCOMPARE(panel->mapTo(&window, QPoint(0, 0)).y(), 0);
-        QCOMPARE(navigation->contentTopMargin(), 48);
-        QCOMPARE(stackX, FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(stackPos, QPoint(FluentQt::NavigationPanel::kCompactWidth, 48));
         QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
 
+        // As a menu the panel moves onto the window, over the stack, which stays put.
         panel->expand(false);
         QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
         QVERIFY(panel->isMenu());
+        QCOMPARE(panel->parentWidget(), &window);
         QVERIFY(panel->width() > FluentQt::NavigationPanel::kCompactWidth);
-        QCOMPARE(navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x(), stackX);
+        QCOMPARE(navigation->width(), FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(stack->mapTo(&window, QPoint(0, 0)), stackPos);
+        QWidget *hit = window.childAt(QPoint(200, 300));
+        QVERIFY(hit == panel || panel->isAncestorOf(hit));
         QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
+
+        // Clicking an item switches the window's page and closes the menu.
+        auto *item = panel->widget(QStringLiteral("settings"));
+        QTest::mouseClick(item, Qt::LeftButton, Qt::NoModifier, item->rect().center());
+        QCOMPARE(window.currentInterface(), settings);
+        QTRY_COMPARE(panel->parentWidget(), navigation);
     }
 
     void fluentWindowNavigationPanelExpandsAtPythonThreshold()
@@ -331,7 +390,7 @@ class WindowTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
         auto *navigation = window.navigationInterface();
-        auto *panel = navigation->navigationPanel();
+        auto *panel = navigation->panel();
         // A narrower window opens the panel as a menu instead, as it should.
         if (window.width() < panel->minimumExpandWidth()) {
             QSKIP("The screen is too narrow for the panel to expand beside the content");
@@ -341,41 +400,57 @@ class WindowTest : public QObject
         QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);
         QVERIFY(!panel->isMenu());
         QCOMPARE(panel->width(), FluentQt::NavigationPanel::kExpandWidth);
-        QCOMPARE(navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x(),
-                 FluentQt::NavigationPanel::kExpandWidth);
+        QCOMPARE(navigation->width(), FluentQt::NavigationPanel::kExpandWidth);
+        QTRY_COMPARE(window.stackedWidget()->mapTo(&window, QPoint(0, 0)).x(), FluentQt::NavigationPanel::kExpandWidth);
     }
 
-    void fluentWindowTitleBarUsesNavigationBackground()
+    // Python's title bars: the buttons hang from the top edge; the title is 13 px black (white) with
+    // 4/10/5 px padding; FluentTitleBar starts the icon at its edge, MSFluentTitleBar 20 px in with
+    // 2 px before the title, SplitTitleBar 12 px right of its 46 px offset. The port centred the
+    // buttons, used a 12 px translucent CaptionLabel and put every icon 16 px in, 4 px from the title.
+    void titleBarsPlaceIconTitleAndButtonsAsPython()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
-        theme->setTheme(FluentQt::Theme::Light);
-
-        FluentQt::FluentWindow window;
-        window.resize(480, 360);
-        auto *home = new QWidget;
-        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
-
-        window.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&window));
-
-        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        window.render(&image);
-
-        const QColor titleBarBackground = image.pixelColor(window.titleBar()->x() + 320, 12);
-        theme->setTheme(previousTheme);
-
-        QCOMPARE(titleBarBackground.alpha(), 255);
-        QCOMPARE(titleBarBackground.red(), 243);
-        QCOMPARE(titleBarBackground.green(), 243);
-        QCOMPARE(titleBarBackground.blue(), 243);
+        for (const FluentQt::Theme mode : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            theme->setTheme(mode);
+            FluentQt::FluentWindow fluent;
+            FluentQt::SplitFluentWindow split;
+            FluentQt::MSFluentWindow ms;
+            struct Expected
+            {
+                FluentQt::FluentTitleBar *titleBar;
+                QWidget *window;
+                int iconX;
+                int padding;
+            };
+            const QList<Expected> windows = {{fluent.titleBar(), &fluent, fluent.titleBar()->x(), 4},
+                                             {split.titleBar(), &split, 58, 5},
+                                             {ms.titleBar(), &ms, 20, 10}};
+            for (const Expected &expected : windows) {
+                expected.window->resize(1000, 700);
+                expected.window->setWindowTitle(QStringLiteral("Hello"));
+                expected.window->show();
+                QVERIFY(QTest::qWaitForWindowExposed(expected.window));
+                FluentQt::FluentTitleBar *bar = expected.titleBar;
+                QCOMPARE(bar->iconLabel()->mapTo(expected.window, QPoint()).x(), expected.iconX);
+                QCOMPARE(bar->titleLabel()->contentsMargins().left(), expected.padding);
+                QCOMPARE(bar->titleLabel()->x(),
+                         bar->iconLabel()->geometry().right() + 1 + (expected.window == &ms ? 2 : 0));
+                QCOMPARE(bar->titleLabel()->font().pixelSize(), 13);
+                QCOMPARE(bar->titleLabel()->palette().color(QPalette::WindowText),
+                         mode == FluentQt::Theme::Dark ? QColor(Qt::white) : QColor(Qt::black));
+                for (QWidget *button :
+                     {static_cast<QWidget *>(bar->minimizeButton()), static_cast<QWidget *>(bar->maximizeButton()),
+                      static_cast<QWidget *>(bar->closeButton())}) {
+                    QCOMPARE(button->y(), 0);
+                }
+            }
+        }
     }
 
     void navigationStackRoundedCornerUsesNavigationBackdrop()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
 
         FluentQt::FluentWindow window;
@@ -390,7 +465,7 @@ class WindowTest : public QObject
         QStackedWidget *stack = window.stackedWidget();
         QVERIFY(stack);
         const QPoint stackOrigin = stack->mapTo(&window, QPoint(0, 0));
-        const QColor navigationSurface(243, 243, 243);
+        const QColor navigationSurface(240, 244, 249);
         QImage rendered(window.size(), QImage::Format_ARGB32_Premultiplied);
         rendered.fill(Qt::transparent);
         window.render(&rendered);
@@ -402,15 +477,12 @@ class WindowTest : public QObject
         QCoreApplication::processEvents();
         rendered.fill(Qt::transparent);
         window.render(&rendered);
-        QCOMPARE(rendered.pixelColor(stackOrigin), QColor(249, 249, 249));
-
-        theme->setTheme(previousTheme);
+        QCOMPARE(rendered.pixelColor(stackOrigin), navigationSurface);
     }
 
     void fluentWindowNavigationStackUsesRoundedTopLeftCorner()
     {
         auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Dark);
 
         FluentQt::FluentWindow window;
@@ -422,14 +494,11 @@ class WindowTest : public QObject
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        window.render(&image);
+        const QImage image = FqwTest::render(window);
 
         const QPoint stackTopLeft = window.stackedWidget()->mapTo(&window, QPoint(0, 0));
         const QColor roundedCorner = image.pixelColor(stackTopLeft + QPoint(1, 1));
         const QColor stackBody = image.pixelColor(stackTopLeft + QPoint(16, 16));
-        theme->setTheme(previousTheme);
 
         QCOMPARE(roundedCorner.alpha(), 255);
         QCOMPARE(roundedCorner.red(), 32);
@@ -496,9 +565,7 @@ class WindowTest : public QObject
             QCOMPARE(button->size(), QSize(46, 32));
             QCOMPARE(button->iconSize(), QSize(10, 10));
 
-            QImage image(button->size(), QImage::Format_ARGB32_Premultiplied);
-            image.fill(Qt::transparent);
-            button->render(&image);
+            const QImage image = FqwTest::render(button);
 
             QVERIFY(FqwTest::hasPaintedPixel(image));
         }
@@ -506,6 +573,7 @@ class WindowTest : public QObject
 
     void fluentTitleBarTracksWindowStateChanges()
     {
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWidget widget;
         widget.resize(360, 240);
         widget.show();
@@ -527,6 +595,7 @@ class WindowTest : public QObject
 
     void fluentTitleBarMaximizeButtonTogglesWindow()
     {
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWidget widget;
         widget.resize(360, 240);
         widget.show();
@@ -730,6 +799,8 @@ class WindowTest : public QObject
     void framelessWindowMaximizeButtonNativeClickTogglesWindow()
     {
 #if defined(Q_OS_WIN)
+        FQW_REQUIRE_PLATFORM("windows");
+        FQW_REQUIRE_MAXIMIZE();
         QWidget host;
         host.resize(320, 240);
         FluentQt::FluentTitleBar titleBar(&host);
@@ -766,6 +837,8 @@ class WindowTest : public QObject
     void fluentWindowMaximizeButtonUsesNativeWorkArea()
     {
 #if defined(Q_OS_WIN)
+        FQW_REQUIRE_PLATFORM("windows");
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWindow window;
         window.resize(960, 780);
         window.show();
@@ -815,6 +888,8 @@ class WindowTest : public QObject
     void fluentWindowCaptionNativeDoubleClickTogglesWindow()
     {
 #if defined(Q_OS_WIN)
+        FQW_REQUIRE_PLATFORM("windows");
+        FQW_REQUIRE_MAXIMIZE();
         FluentQt::FluentWindow window;
         window.resize(960, 780);
         window.show();
@@ -933,10 +1008,11 @@ class WindowTest : public QObject
         const QString navigationSheet = window.navigationInterface()->styleSheet();
         const QString stackSheet = stack->styleSheet();
         const auto titleBarColor = [&window]() {
-            const QImage image = window.titleBar()->grab().toImage();
-            return image.pixelColor(image.width() / 2, 2);
+            const QImage image = window.grab().toImage();
+            const QPoint centre = window.titleBar()->geometry().center();
+            return image.pixelColor(centre.x(), window.titleBar()->y() + 2);
         };
-        QCOMPARE(titleBarColor(), QColor(243, 243, 243));
+        QCOMPARE(titleBarColor(), QColor(240, 244, 249));
 
         manager->setTheme(FluentQt::Theme::Dark);
         QCOMPARE(window.styleSheet(), windowSheet);
@@ -1031,6 +1107,67 @@ class WindowTest : public QObject
         QTest::qWait(50);
         QCOMPARE(stack.currentWidget(), w0);
         QCOMPARE(stack.animationInfos().size(), 1);
+    }
+
+    // The transition curves of Python's stacked widgets. The port swapped the entrance transition's
+    // in and out curves, used the out curve for every drill-in scale and faded both linearly.
+    void transitionStacksUseThePythonCurves()
+    {
+        auto bezier = [](qreal x1, qreal y1, qreal x2, qreal y2) {
+            QEasingCurve curve(QEasingCurve::BezierSpline);
+            curve.addCubicBezierSegment(QPointF(x1, y1), QPointF(x2, y2), QPointF(1.0, 1.0));
+            return curve;
+        };
+        auto sameCurve = [](const QEasingCurve &actual, const QEasingCurve &expected) {
+            for (const qreal progress : {0.25, 0.5, 0.75}) {
+                if (qAbs(actual.valueForProgress(progress) - expected.valueForProgress(progress)) > 1e-6) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        auto animationOf = [](QObject *owner, QObject *target, const QByteArray &property) {
+            for (QPropertyAnimation *animation : owner->findChildren<QPropertyAnimation *>()) {
+                if (animation->targetObject() == target && animation->propertyName() == property) {
+                    return animation;
+                }
+            }
+            return static_cast<QPropertyAnimation *>(nullptr);
+        };
+        const QEasingCurve fluentIn = bezier(0.1, 0.9, 0.2, 1.0);
+        const QEasingCurve fluentOut = bezier(0.7, 0.0, 1.0, 0.5);
+
+        EntranceTransitionStackedWidget entrance;
+        entrance.resize(120, 80);
+        entrance.addWidget(new QWidget);
+        QWidget *entranceNext = new QWidget;
+        entrance.addWidget(entranceNext);
+        entrance.setCurrentIndex(1, 300, false);
+        QPropertyAnimation *slideIn = animationOf(&entrance, entranceNext, "pos");
+        QPropertyAnimation *fadeOut = animationOf(&entrance, entrance.currentSnapshot()->graphicsEffect(), "opacity");
+        QVERIFY(slideIn && fadeOut);
+        QVERIFY(sameCurve(slideIn->easingCurve(), fluentIn));
+        QVERIFY(sameCurve(fadeOut->easingCurve(), fluentOut));
+
+        for (const bool back : {false, true}) {
+            DrillInTransitionStackedWidget drill;
+            drill.resize(120, 80);
+            drill.addWidget(new QWidget);
+            drill.addWidget(new QWidget);
+            if (back) {
+                drill.setAnimationEnabled(false);
+                drill.setCurrentIndex(1);
+                drill.setAnimationEnabled(true);
+            }
+            drill.setCurrentIndex(back ? 0 : 1, 333, back);
+            QPropertyAnimation *scaleIn = animationOf(&drill, drill.nextSnapshot(), "geometry");
+            QPropertyAnimation *scaleOut = animationOf(&drill, drill.currentSnapshot(), "geometry");
+            QPropertyAnimation *fadeIn = animationOf(&drill, drill.nextSnapshot()->graphicsEffect(), "opacity");
+            QVERIFY(scaleIn && scaleOut && fadeIn);
+            QVERIFY(sameCurve(scaleIn->easingCurve(), back ? bezier(0.12, 0.0, 0.0, 1.0) : fluentIn));
+            QVERIFY(sameCurve(scaleOut->easingCurve(), fluentIn));
+            QVERIFY(sameCurve(fadeIn->easingCurve(), bezier(0.17, 0.17, 0.0, 1.0)));
+        }
     }
 
   private:

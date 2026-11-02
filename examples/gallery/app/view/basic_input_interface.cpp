@@ -73,7 +73,7 @@ QWidget *GalleryWindow::createBasicInputPage()
         row.content->setMinimumWidth(row.layout->sizeHint().width());
     };
 
-    // -- Push buttons --
+    // --- Push buttons ---
     page->addExampleCard(B_TR("A simple button with text content"),
                          new PushButton(B_TR("Standard push button")), buttonSource);
 
@@ -88,14 +88,14 @@ QWidget *GalleryWindow::createBasicInputPage()
     page->addExampleCard(B_TR("Accent style applied to tool button"),
                          new PrimaryToolButton(icon(FluentIcon::Basketball)), buttonSource);
 
-    // -- Pill buttons --
+    // --- Pill buttons ---
     page->addExampleCard(B_TR("Pill push button"),
                          new PillPushButton(icon(FluentIcon::Tag), B_TR("Tag")), buttonSource);
 
     page->addExampleCard(B_TR("Pill tool button"),
                          new PillToolButton(icon(FluentIcon::Basketball)), buttonSource);
 
-    // -- Transparent buttons --
+    // --- Transparent buttons ---
     page->addExampleCard(B_TR("A transparent push button"),
                          new TransparentPushButton(icon(FluentIcon::BookShelf),
                                                    B_TR("Transparent push button")), buttonSource);
@@ -103,7 +103,7 @@ QWidget *GalleryWindow::createBasicInputPage()
     page->addExampleCard(B_TR("A transparent tool button"),
                          new TransparentToolButton(icon(FluentIcon::BookShelf)), buttonSource);
 
-    // -- Check boxes --
+    // --- Check boxes ---
     page->addExampleCard(B_TR("A 2-state CheckBox"),
                          new CheckBox(B_TR("Two-state CheckBox")), checkBoxSource);
 
@@ -111,7 +111,7 @@ QWidget *GalleryWindow::createBasicInputPage()
     triCheck->setTristate(true);
     page->addExampleCard(B_TR("A 3-state CheckBox"), triCheck, checkBoxSource);
 
-    // -- ComboBox --
+    // --- ComboBox ---
     auto *combo1 = new ComboBox;
     combo1->addItems({QStringLiteral("shoko 🥰"), QStringLiteral("西宫硝子 😊"),
                       QStringLiteral("一级棒卡哇伊的硝子酱 😘")});
@@ -126,7 +126,7 @@ QWidget *GalleryWindow::createBasicInputPage()
     editableCombo->setMinimumWidth(210);
     page->addExampleCard(B_TR("An editable ComboBox"), editableCombo, comboBoxSource);
 
-    // -- Drop down buttons --
+    // --- Drop down buttons ---
     {
         auto *menu = new RoundMenu(page);
         menu->addAction(FluentIcon::Send, B_TR("Send"));
@@ -161,7 +161,7 @@ QWidget *GalleryWindow::createBasicInputPage()
                              buttonSource);
     }
 
-    // -- Hyperlink button --
+    // --- Hyperlink button ---
     page->addExampleCard(B_TR("A hyperlink button that navigates to a URI"),
                          new HyperlinkButton(icon(FluentIcon::Link),
                                              QStringLiteral(FQW_REPOSITORY_URL),
@@ -309,7 +309,7 @@ QWidget *GalleryWindow::createBasicInputPage()
         page->addExampleCard(B_TR("Tag controls with status colors"), row.view, buttonSource, 1);
     }
 
-    // -- Radio button group --
+    // --- Radio button group ---
     {
         auto *radioWidget = new QWidget;
         auto *radioLayout = new QVBoxLayout(radioWidget);
@@ -330,7 +330,7 @@ QWidget *GalleryWindow::createBasicInputPage()
                              radioButtonSource);
     }
 
-    // -- Horizontal slider --
+    // --- Horizontal slider ---
     {
         auto *slider = new Slider(Qt::Horizontal);
         slider->setRange(0, 100);
@@ -339,7 +339,7 @@ QWidget *GalleryWindow::createBasicInputPage()
         page->addExampleCard(B_TR("A simple horizontal slider"), slider, sliderSource);
     }
 
-    // -- Split buttons --
+    // --- Split buttons ---
     {
         auto *splitPush = new SplitPushButton(icon(FluentIcon::Basketball), B_TR("Choose your stand"));
         auto *standMenu = new RoundMenu(page);
@@ -386,7 +386,7 @@ QWidget *GalleryWindow::createBasicInputPage()
                              buttonSource);
     }
 
-    // -- SwitchButton --
+    // --- SwitchButton ---
     {
         auto *switchBtn = new SwitchButton(B_TR("Off"));
         connect(switchBtn, &SwitchButton::checkedChanged, page,
@@ -394,7 +394,7 @@ QWidget *GalleryWindow::createBasicInputPage()
         page->addExampleCard(B_TR("A simple switch button"), switchBtn, switchButtonSource);
     }
 
-    // -- Toggle buttons --
+    // --- Toggle buttons ---
     page->addExampleCard(B_TR("A simple toggle push button"),
                          new ToggleButton(icon(FluentIcon::Basketball), B_TR("Start practicing")),
                          buttonSource);

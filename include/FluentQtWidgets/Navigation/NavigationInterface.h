@@ -3,101 +3,82 @@
 #include <FluentQtWidgets/Global.h>
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 
-#include <QtCore/QList>
 #include <QtCore/QString>
 #include <QtGui/QIcon>
-#include <QtWidgets/QFrame>
+#include <QtWidgets/QWidget>
 
-class QStackedWidget;
-class QVBoxLayout;
-class QWidget;
 class QEvent;
 class QResizeEvent;
 
 namespace FluentQt {
 
-class NavigationTreeWidget;
-class PopUpAniStackedWidget;
-
-class FQW_API NavigationInterface : public QFrame
+// Python's NavigationInterface: a NavigationPanel in a widget that is as wide as the panel when
+// it is compact (48 px) or expanded in place, and stays 48 px while the panel opens as a menu over
+// the content. It holds no pages: FluentWindow, or the caller, keeps the stack and switches it on
+// the panel's itemClicked().
+class FQW_API NavigationInterface : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
-    Q_PROPERTY(QString currentRouteKey READ currentRouteKey WRITE setCurrentRouteKey NOTIFY currentRouteKeyChanged)
 
   public:
-    explicit NavigationInterface(QWidget *parent = nullptr, bool showReturnButton = false);
+    explicit NavigationInterface(QWidget *parent = nullptr, bool showMenuButton = true, bool showReturnButton = false,
+                                 bool collapsible = true);
 
-    int addPage(QWidget *page, const QString &title, const QIcon &icon = QIcon());
-    int addPage(QWidget *page, const QString &title, const QIcon &icon, const QString &routeKey);
-    int addPage(QWidget *page, const QString &title, const QIcon &icon, const QString &routeKey,
-                NavigationItemPosition position);
-    int addPage(QWidget *page, const QString &title, const QIcon &icon, const QString &routeKey,
-                NavigationItemPosition position, const QString &parentRouteKey);
+    NavigationPanel *panel() const;
+
     NavigationTreeWidget *addItem(const QString &routeKey, const QIcon &icon, const QString &text,
-                                  NavigationItemPosition position = NavigationItemPosition::Scroll,
+                                  NavigationItemPosition position = NavigationItemPosition::Top,
                                   const QString &parentRouteKey = QString(), bool selectable = true);
+    NavigationTreeWidget *insertItem(int index, const QString &routeKey, const QIcon &icon, const QString &text,
+                                     NavigationItemPosition position = NavigationItemPosition::Top,
+                                     const QString &parentRouteKey = QString(), bool selectable = true);
     NavigationWidget *addWidget(const QString &routeKey, NavigationWidget *widget,
-                                NavigationItemPosition position = NavigationItemPosition::Scroll,
+                                NavigationItemPosition position = NavigationItemPosition::Top,
                                 const QString &parentRouteKey = QString());
+    NavigationWidget *insertWidget(int index, const QString &routeKey, NavigationWidget *widget,
+                                   NavigationItemPosition position = NavigationItemPosition::Top,
+                                   const QString &parentRouteKey = QString());
+    QFrame *addSeparator(NavigationItemPosition position = NavigationItemPosition::Top);
+    QFrame *insertSeparator(int index, NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationItemHeader *addItemHeader(const QString &text,
-                                        NavigationItemPosition position = NavigationItemPosition::Scroll);
+                                        NavigationItemPosition position = NavigationItemPosition::Top);
+    NavigationItemHeader *insertItemHeader(int index, const QString &text,
+                                           NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationUserCard *addUserCard(const QString &routeKey, const QIcon &avatar, const QString &title,
                                     const QString &subtitle = QString(),
-                                    NavigationItemPosition position = NavigationItemPosition::Scroll);
+                                    NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationUserCard *addUserCard(const QString &routeKey, const QString &avatarPath, const QString &title,
                                     const QString &subtitle = QString(),
-                                    NavigationItemPosition position = NavigationItemPosition::Scroll);
-    QFrame *addSeparator(NavigationItemPosition position = NavigationItemPosition::Scroll);
-    bool removePage(int index, bool deleteWidget = false);
-    bool removePage(const QString &routeKey, bool deleteWidget = false);
-    int count() const;
-    int currentIndex() const;
-    QString currentRouteKey() const;
-    QWidget *currentWidget() const;
-    QWidget *widget(int index) const;
-    QWidget *widget(const QString &routeKey) const;
-    int indexOf(QWidget *page) const;
-    int indexOf(const QString &routeKey) const;
-    QString routeKey(int index) const;
-    QList<QString> routeKeys() const;
-    bool contains(const QString &routeKey) const;
-    QStackedWidget *stackedWidget() const;
-    NavigationPanel *navigationPanel() const;
-    int contentTopMargin() const;
+                                    NavigationItemPosition position = NavigationItemPosition::Top);
+    NavigationWidget *widget(const QString &routeKey) const;
+
     bool isAcrylicEnabled() const;
+    bool isIndicatorAnimationEnabled() const;
 
   public slots:
-    void setCurrentIndex(int index);
-    void setCurrentRouteKey(const QString &routeKey);
-    void setContentTopMargin(int margin);
-    void setAcrylicEnabled(bool enabled);
+    void removeWidget(const QString &routeKey);
+    void setCurrentItem(const QString &routeKey);
+    void expand(bool animated = true);
+    void toggle();
+    void setExpandWidth(int width);
     void setMinimumExpandWidth(int width);
+    void setMenuButtonVisible(bool visible);
+    void setReturnButtonVisible(bool visible);
+    void setCollapsible(bool collapsible);
+    void setAcrylicEnabled(bool enabled);
+    void setIndicatorAnimationEnabled(bool enabled);
 
   signals:
-    void currentIndexChanged(int index);
-    void currentRouteKeyChanged(const QString &routeKey);
-    void navigationItemClicked(int index, const QString &routeKey);
+    void displayModeChanged(FluentQt::NavigationDisplayMode mode);
 
   protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
   private:
-    QString ensureRouteKey(QWidget *page, const QString &routeKey) const;
-    void onPanelItemClicked(const QString &routeKey);
-    void onCustomNavigationItemClicked(const QString &routeKey);
-    void ensureNavigationPanelOnTop();
-    void updatePanelGeometry();
-    void updateNavigationSpacerWidth();
+    void updateMinimumHeight();
 
     NavigationPanel *m_panel = nullptr;
-    QWidget *m_navigationSpacer = nullptr;
-    QWidget *m_contentWidget = nullptr;
-    QVBoxLayout *m_contentLayout = nullptr;
-    PopUpAniStackedWidget *m_stackedWidget = nullptr;
-    QList<QString> m_routeOrder;
-    int m_contentTopMargin = 0;
 };
 
 } // namespace FluentQt

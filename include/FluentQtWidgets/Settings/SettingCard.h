@@ -34,13 +34,15 @@ class QWheelEvent;
 
 namespace FluentQt {
 
-class ClickableSlider;
+class AcrylicComboBox;
 class ComboBox;
+class OptionsConfigItem;
 class HyperlinkButton;
 class IconWidget;
 class ExpandLayout;
 class RadioButton;
 class ScrollArea;
+class Slider;
 class SwitchButton;
 
 class FQW_API SettingCard : public QFrame
@@ -80,6 +82,7 @@ class FQW_API SettingCard : public QFrame
 
   protected:
     void changeEvent(QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
     QVBoxLayout *outerLayout() const;
 
   private:
@@ -231,7 +234,7 @@ class FQW_API RangeSettingCard : public SettingCard
     RangeSettingCard(int minimum, int maximum, int value, FluentIcon icon, const QString &title,
                      const QString &content = QString(), QWidget *parent = nullptr);
 
-    ClickableSlider *slider() const;
+    Slider *slider() const;
     QLabel *valueLabel() const;
     int value() const;
     int minimum() const;
@@ -247,39 +250,58 @@ class FQW_API RangeSettingCard : public SettingCard
   private:
     void updateValueLabel(int value);
 
-    ClickableSlider *m_slider = nullptr;
+    Slider *m_slider = nullptr;
     QLabel *m_valueLabel = nullptr;
 };
 
+// Python's ComboBoxSettingCard: a combo box with one text per option of the config item, which it
+// keeps in step with the item both ways.
 class FQW_API ComboBoxSettingCard : public SettingCard
 {
     Q_OBJECT
 
   public:
-    ComboBoxSettingCard(const QIcon &icon, const QString &title, const QString &content = QString(),
+    ComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon, const QString &title,
+                        const QString &content = QString(), const QStringList &texts = QStringList(),
                         QWidget *parent = nullptr);
-    ComboBoxSettingCard(FluentIcon icon, const QString &title, const QString &content = QString(),
+    ComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon, const QString &title,
+                        const QString &content = QString(), const QStringList &texts = QStringList(),
                         QWidget *parent = nullptr);
-    ComboBoxSettingCard(const QStringList &items, const QIcon &icon, const QString &title,
-                        const QString &content = QString(), QWidget *parent = nullptr);
-    ComboBoxSettingCard(const QStringList &items, FluentIcon icon, const QString &title,
-                        const QString &content = QString(), QWidget *parent = nullptr);
 
     ComboBox *comboBox() const;
-    int currentIndex() const;
-    QString currentText() const;
+    OptionsConfigItem *configItem() const;
 
   public slots:
-    void addItem(const QString &text, const QVariant &userData = QVariant());
-    void addItems(const QStringList &texts);
-    void setCurrentIndex(int index);
-
-  signals:
-    void currentIndexChanged(int index);
-    void currentTextChanged(const QString &text);
+    // Selects the option's text and sets the config item; an option the card does not list is ignored.
+    void setValue(const QVariant &value);
 
   private:
     ComboBox *m_comboBox = nullptr;
+    OptionsConfigItem *m_configItem = nullptr;
+};
+
+// Python's AcrylicComboBoxSettingCard: ComboBoxSettingCard with an AcrylicComboBox.
+class FQW_API AcrylicComboBoxSettingCard : public SettingCard
+{
+    Q_OBJECT
+
+  public:
+    AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, const QIcon &icon, const QString &title,
+                               const QString &content = QString(), const QStringList &texts = QStringList(),
+                               QWidget *parent = nullptr);
+    AcrylicComboBoxSettingCard(OptionsConfigItem *configItem, FluentIcon icon, const QString &title,
+                               const QString &content = QString(), const QStringList &texts = QStringList(),
+                               QWidget *parent = nullptr);
+
+    AcrylicComboBox *comboBox() const;
+    OptionsConfigItem *configItem() const;
+
+  public slots:
+    void setValue(const QVariant &value);
+
+  private:
+    AcrylicComboBox *m_comboBox = nullptr;
+    OptionsConfigItem *m_configItem = nullptr;
 };
 
 class FQW_API ColorPickerButton : public QToolButton
@@ -322,9 +344,9 @@ class FQW_API ColorSettingCard : public SettingCard
 
   public:
     ColorSettingCard(const QColor &color, const QIcon &icon, const QString &title, const QString &content = QString(),
-                     QWidget *parent = nullptr);
+                     QWidget *parent = nullptr, bool enableAlpha = false);
     ColorSettingCard(const QColor &color, FluentIcon icon, const QString &title, const QString &content = QString(),
-                     QWidget *parent = nullptr);
+                     QWidget *parent = nullptr, bool enableAlpha = false);
 
     ColorPickerButton *colorPicker() const;
     QColor color() const;
@@ -435,6 +457,7 @@ class FQW_API ExpandSettingCard : public QScrollArea
   protected:
     void resizeEvent(QResizeEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void refreshExpandedGeometry();
     virtual int expandedContentHeight() const;
 
@@ -452,6 +475,7 @@ class FQW_API ExpandSettingCard : public QScrollArea
     ExpandButton *m_expandButton = nullptr;
     QVariantAnimation *m_expandAnimation = nullptr;
     bool m_expanded = false;
+    bool m_adjustingViewSize = false;
 };
 
 class FQW_API GroupSeparator : public QWidget
@@ -524,9 +548,6 @@ class FQW_API ExpandGroupSettingCard : public ExpandSettingCard
     void addGroupWidget(QWidget *widget);
     void removeGroupWidget(QWidget *widget);
 
-  protected:
-    virtual int expandedContentHeight() const;
-
   private:
     void rebuildGroupSeparators();
     QList<QWidget *> m_groupWidgets;
@@ -541,9 +562,6 @@ class FQW_API SimpleExpandGroupSettingCard : public ExpandGroupSettingCard
                                  QWidget *parent = nullptr);
     SimpleExpandGroupSettingCard(FluentIcon icon, const QString &title, const QString &content = QString(),
                                  QWidget *parent = nullptr);
-
-  protected:
-    int expandedContentHeight() const override;
 };
 
 class FQW_API OptionsSettingCard : public ExpandSettingCard
@@ -608,7 +626,7 @@ class FQW_API FolderItem : public QWidget
 class FQW_API FolderListSettingCard : public ExpandSettingCard
 {
     Q_OBJECT
-    Q_PROPERTY(QStringList folders READ folders WRITE setFolders NOTIFY foldersChanged)
+    Q_PROPERTY(QStringList folders READ folders WRITE setFolders NOTIFY folderChanged)
     Q_PROPERTY(QString dialogDirectory READ dialogDirectory WRITE setDialogDirectory)
 
   public:
@@ -632,9 +650,8 @@ class FQW_API FolderListSettingCard : public ExpandSettingCard
     void chooseFolder();
 
   signals:
-    void foldersChanged(const QStringList &folders);
-    void folderAdded(const QString &folder);
-    void folderRemoved(const QString &folder);
+    // Python's folderChanged: the list after a folder was added or removed.
+    void folderChanged(const QStringList &folders);
 
   private:
     void rebuildFolderItems();
@@ -657,9 +674,10 @@ class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
 
   public:
     CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, const QIcon &icon,
-                           const QString &title, const QString &content = QString(), QWidget *parent = nullptr);
-    CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, FluentIcon icon,
-                           const QString &title, const QString &content = QString(), QWidget *parent = nullptr);
+                           const QString &title, const QString &content = QString(), QWidget *parent = nullptr,
+                           bool enableAlpha = false);
+    CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, FluentIcon icon, const QString &title,
+                           const QString &content = QString(), QWidget *parent = nullptr, bool enableAlpha = false);
 
     QColor color() const;
     QColor defaultColor() const;
@@ -667,9 +685,16 @@ class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
     bool isCustomColorEnabled() const;
     bool isAlphaEnabled() const;
     QLabel *choiceLabel() const;
+    QWidget *radioWidget() const;
+    QVBoxLayout *radioLayout() const;
     RadioButton *defaultRadioButton() const;
     RadioButton *customRadioButton() const;
-    ColorPickerButton *colorPicker() const;
+    QButtonGroup *buttonGroup() const;
+    QWidget *customColorWidget() const;
+    QHBoxLayout *customColorLayout() const;
+    QLabel *customLabel() const;
+    // Python's "Choose color" button: it opens a ColorDialog for the custom colour.
+    QPushButton *chooseColorButton() const;
 
   public slots:
     void setColor(const QColor &color);
@@ -686,15 +711,22 @@ class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
 
   private:
     void updateColorControls();
+    void showColorDialog();
 
     QColor m_defaultColor;
     QColor m_customColor;
     bool m_customColorEnabled = false;
+    bool m_alphaEnabled = false;
     QLabel *m_choiceLabel = nullptr;
+    QWidget *m_radioWidget = nullptr;
+    QVBoxLayout *m_radioLayout = nullptr;
     RadioButton *m_defaultRadioButton = nullptr;
     RadioButton *m_customRadioButton = nullptr;
-    ColorPickerButton *m_colorPicker = nullptr;
     QButtonGroup *m_buttonGroup = nullptr;
+    QWidget *m_customColorWidget = nullptr;
+    QHBoxLayout *m_customColorLayout = nullptr;
+    QLabel *m_customLabel = nullptr;
+    QPushButton *m_chooseColorButton = nullptr;
 };
 
 } // namespace FluentQt

@@ -1,16 +1,16 @@
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 
-#include <FluentQtWidgets/StyleSheet.h>
-
-#include <QtCore/QtMath>
+#include <QtCore/QMutexLocker>
 #include <QtCore/QPoint>
 #include <QtCore/QRect>
+#include <QtCore/QVector>
 #include <QtGui/QGuiApplication>
-#include <QtGui/QImageReader>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QResizeEvent>
 #include <QtGui/QScreen>
-#include <QtWidgets/QSizePolicy>
+
+#include <cmath>
 
 namespace FluentQt {
 
@@ -28,84 +28,81 @@ bool &screenCaptureEnabled()
     return enabled;
 }
 
-QImage boxBlur(const QImage &source, int radius)
+// scipy.ndimage's "reflect" mode (d c b a | a b c d | d c b a), for any distance from the edge.
+int reflectIndex(int index, int size)
 {
-    if (source.isNull() || radius <= 0) {
-        return source;
+    const int period = 2 * size;
+    index %= period;
+    if (index < 0) {
+        index += period;
     }
-
-    const QImage input = source.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-    const int width = input.width();
-    const int height = input.height();
-    if (width <= 1 || height <= 1) {
-        return input;
-    }
-
-    const int window = radius * 2 + 1;
-    QImage horizontal(width, height, QImage::Format_ARGB32_Premultiplied);
-    QImage output(width, height, QImage::Format_ARGB32_Premultiplied);
-
-    for (int y = 0; y < height; ++y) {
-        const auto *src = reinterpret_cast<const QRgb *>(input.constScanLine(y));
-        auto *dst = reinterpret_cast<QRgb *>(horizontal.scanLine(y));
-
-        int a = 0;
-        int r = 0;
-        int g = 0;
-        int b = 0;
-        for (int i = -radius; i <= radius; ++i) {
-            const QRgb pixel = src[qBound(0, i, width - 1)];
-            a += qAlpha(pixel);
-            r += qRed(pixel);
-            g += qGreen(pixel);
-            b += qBlue(pixel);
-        }
-
-        for (int x = 0; x < width; ++x) {
-            dst[x] = qRgba(r / window, g / window, b / window, a / window);
-            const int removeIndex = qBound(0, x - radius, width - 1);
-            const int addIndex = qBound(0, x + radius + 1, width - 1);
-            const QRgb removePixel = src[removeIndex];
-            const QRgb addPixel = src[addIndex];
-            a += qAlpha(addPixel) - qAlpha(removePixel);
-            r += qRed(addPixel) - qRed(removePixel);
-            g += qGreen(addPixel) - qGreen(removePixel);
-            b += qBlue(addPixel) - qBlue(removePixel);
-        }
-    }
-
-    for (int x = 0; x < width; ++x) {
-        int a = 0;
-        int r = 0;
-        int g = 0;
-        int b = 0;
-        for (int i = -radius; i <= radius; ++i) {
-            const auto *src = reinterpret_cast<const QRgb *>(horizontal.constScanLine(qBound(0, i, height - 1)));
-            const QRgb pixel = src[x];
-            a += qAlpha(pixel);
-            r += qRed(pixel);
-            g += qGreen(pixel);
-            b += qBlue(pixel);
-        }
-
-        for (int y = 0; y < height; ++y) {
-            auto *dst = reinterpret_cast<QRgb *>(output.scanLine(y));
-            dst[x] = qRgba(r / window, g / window, b / window, a / window);
-            const int removeIndex = qBound(0, y - radius, height - 1);
-            const int addIndex = qBound(0, y + radius + 1, height - 1);
-            const auto *removeLine = reinterpret_cast<const QRgb *>(horizontal.constScanLine(removeIndex));
-            const auto *addLine = reinterpret_cast<const QRgb *>(horizontal.constScanLine(addIndex));
-            const QRgb removePixel = removeLine[x];
-            const QRgb addPixel = addLine[x];
-            a += qAlpha(addPixel) - qAlpha(removePixel);
-            r += qRed(addPixel) - qRed(removePixel);
-            g += qGreen(addPixel) - qGreen(removePixel);
-            b += qBlue(addPixel) - qBlue(removePixel);
-        }
-    }
-
-    return output;
+    return index < size ? index : period - 1 - index;
 }
+
+// scipy.ndimage._gaussian_kernel1d(sigma, 0, int(4 * sigma + 0.5)): the centre weight and the
+// weights at distance 1..radius.
+QVector<double> gaussianKernel(double sigma)
+{
+    const int radius = int(4.0 * sigma + 0.5);
+    QVector<double> weights(radius + 1);
+    double sum = 0;
+    for (int x = -radius; x <= radius; ++x) {
+        const double weight = std::exp(-0.5 / (sigma * sigma) * double(x) * double(x));
+        sum += weight;
+        if (x >= 0) {
+            weights[x] = weight;
+        }
+    }
+    for (double &weight : weights) {
+        weight /= sum;
+    }
+    return weights;
+}
+
+// One pass of scipy's correlate1d along `count` lines of `length` samples, the channels of a
+// pixel interleaved; results are truncated to 8 bits like scipy's uint8 output.
+void correlateLines(uchar *data, int count, int length, qsizetype lineStep, qsizetype sampleStep, int channels,
+                    const QVector<double> &weights)
+{
+    const int radius = int(weights.size()) - 1;
+    QVector<double> padded((length + 2 * radius) * channels);
+    for (int line = 0; line < count; ++line) {
+        uchar *base = data + line * lineStep;
+        for (int i = -radius; i < length + radius; ++i) {
+            const uchar *sample = base + reflectIndex(i, length) * sampleStep;
+            for (int c = 0; c < channels; ++c) {
+                padded[(i + radius) * channels + c] = sample[c];
+            }
+        }
+        for (int i = 0; i < length; ++i) {
+            const double *center = padded.constData() + (i + radius) * channels;
+            uchar *out = base + i * sampleStep;
+            for (int c = 0; c < channels; ++c) {
+                // The order of NI_Correlate1D for symmetric weights.
+                double sum = center[c] * weights[0];
+                for (int j = radius; j > 0; --j) {
+                    sum += (center[c - j * channels] + center[c + j * channels]) * weights[j];
+                }
+                out[c] = uchar(sum);
+            }
+        }
+    }
+}
+
+QImage acrylicTexture(const QColor &tintColor, const QColor &luminosityColor, qreal noiseOpacity,
+                      const QImage &noiseImage)
+{
+    QImage texture(64, 64, QImage::Format_ARGB32_Premultiplied);
+    texture.fill(luminosityColor);
+
+    QPainter painter(&texture);
+    painter.fillRect(texture.rect(), tintColor);
+    painter.setOpacity(noiseOpacity);
+    painter.drawImage(texture.rect(), noiseImage);
+    return texture;
+}
+
+QImage loadNoiseImage() { return QImage(QStringLiteral(":/qfluentwidgets/images/acrylic/noise.png")); }
 
 } // namespace
 
@@ -177,12 +174,10 @@ bool AcrylicBrush::isScreenCaptureAvailable()
 
 void AcrylicBrush::setBlurRadius(int radius)
 {
-    const int boundedRadius = qMax(0, radius);
-    if (m_blurRadius == boundedRadius) {
+    if (m_blurRadius == radius) {
         return;
     }
-    m_blurRadius = boundedRadius;
-    invalidateCache();
+    m_blurRadius = radius;
     setImage(m_originalImage);
 }
 
@@ -210,33 +205,29 @@ void AcrylicBrush::setLuminosityColor(const QColor &color)
 
 void AcrylicBrush::setNoiseOpacity(qreal opacity)
 {
-    const qreal boundedOpacity = qBound<qreal>(0.0, opacity, 1.0);
-    if (qFuzzyCompare(m_noiseOpacity, boundedOpacity)) {
+    if (qFuzzyCompare(m_noiseOpacity, opacity)) {
         return;
     }
-    m_noiseOpacity = boundedOpacity;
+    m_noiseOpacity = opacity;
     if (m_device) {
         m_device->update();
     }
 }
 
+// The acrylic widgets set their colours and clip path on every paint (Python assigns the brush's
+// attributes there), so an unchanged value must not schedule another paint.
 void AcrylicBrush::setClipPath(const QPainterPath &path)
 {
+    if (m_clipPath == path) {
+        return;
+    }
     m_clipPath = path;
     if (m_device) {
         m_device->update();
     }
 }
 
-void AcrylicBrush::setBlurPicSize(const QSize &size)
-{
-    if (m_blurPicSize == size) {
-        return;
-    }
-    m_blurPicSize = size;
-    invalidateCache();
-    setImage(m_originalImage);
-}
+void AcrylicBrush::setBlurPicSize(const QSize &size) { m_blurPicSize = size; }
 
 void AcrylicBrush::grabImage(const QRect &globalRect)
 {
@@ -259,12 +250,8 @@ void AcrylicBrush::grabImage(const QRect &globalRect)
 
 void AcrylicBrush::setImage(const QImage &image)
 {
-    m_originalImage = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-    if (m_originalImage.isNull()) {
-        m_image = QImage();
-    } else {
-        m_image = blurredImage(m_originalImage);
-    }
+    m_originalImage = image;
+    m_image = gaussianBlur(image, m_blurRadius, 1, m_blurPicSize);
     if (m_device) {
         m_device->update();
     }
@@ -272,33 +259,17 @@ void AcrylicBrush::setImage(const QImage &image)
 
 void AcrylicBrush::setPixmap(const QPixmap &pixmap) { setImage(pixmap.toImage()); }
 
-bool AcrylicBrush::setImage(const QString &path) { return setImagePath(path); }
-
-bool AcrylicBrush::setImagePath(const QString &path)
+bool AcrylicBrush::setImage(const QString &path)
 {
-    QImageReader reader(path);
-    const QImage loaded = reader.read();
-    if (loaded.isNull()) {
-        return false;
-    }
-    setImage(loaded);
-    return true;
+    const QImage image(path);
+    setImage(image);
+    return !image.isNull();
 }
 
 QImage AcrylicBrush::textureImage() const
 {
-    QImage texture(64, 64, QImage::Format_ARGB32_Premultiplied);
-    texture.fill(m_luminosityColor);
-
-    QPainter texturePainter(&texture);
-    texturePainter.fillRect(texture.rect(), m_tintColor);
-
-    QImage noise(QStringLiteral(":/qfluentwidgets/images/acrylic/noise.png"));
-    if (!noise.isNull() && m_noiseOpacity > 0) {
-        texturePainter.setOpacity(m_noiseOpacity);
-        texturePainter.drawImage(texture.rect(), noise);
-    }
-    return texture;
+    static const QImage noiseImage = loadNoiseImage();
+    return acrylicTexture(m_tintColor, m_luminosityColor, m_noiseOpacity, noiseImage);
 }
 
 void AcrylicBrush::paint(QPainter *painter)
@@ -314,18 +285,17 @@ void AcrylicBrush::paint(QPainter *painter)
     }
 
     painter->save();
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    painter->setRenderHints(QPainter::Antialiasing);
     if (!m_clipPath.isEmpty()) {
         painter->setClipPath(m_clipPath);
     }
 
     if (!m_image.isNull()) {
-        QImage image = m_image.scaled(m_device->size(), Qt::KeepAspectRatioByExpanding,
-                                      Qt::SmoothTransformation);
-        painter->drawImage(QPoint(0, 0), image);
+        painter->drawImage(QPoint(0, 0),
+                           m_image.scaled(m_device->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
     } else {
-        // Nothing captured: an opaque base, so the translucent tint does not turn into a
-        // see-through surface.
+        // Nothing captured (see isAvailable()): an opaque base, so that the translucent tint does
+        // not turn into a see-through surface.
         QColor base = m_tintColor;
         base.setAlpha(255);
         painter->fillRect(m_device->rect(), base);
@@ -335,202 +305,204 @@ void AcrylicBrush::paint(QPainter *painter)
     painter->restore();
 }
 
-void AcrylicBrush::invalidateCache() { m_cachedImage = QImage(); }
-
-QImage AcrylicBrush::blurredImage(const QImage &image) const
+QImage gaussianBlur(const QImage &image, qreal blurRadius, qreal brightFactor, const QSize &blurPicSize)
 {
     if (image.isNull()) {
-        return image;
-    }
-
-    QImage source = image;
-    if (m_blurPicSize.isValid() && !m_blurPicSize.isEmpty()) {
-        source = source.scaled(m_blurPicSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-    }
-
-    if (m_blurRadius <= 0) {
-        return source;
-    }
-    QImage blurred = boxBlur(source, m_blurRadius);
-    blurred = boxBlur(blurred, m_blurRadius);
-    return boxBlur(blurred, m_blurRadius);
-}
-
-AcrylicLabel::AcrylicLabel(QWidget *parent) : QWidget(parent)
-{
-    setAttribute(Qt::WA_StyledBackground, true);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    FluentStyleSheet::setRole(this, QStringLiteral("AcrylicLabel"));
-}
-
-AcrylicLabel::AcrylicLabel(int blurRadius, const QColor &tintColor, QWidget *parent) : AcrylicLabel(parent)
-{
-    m_blurRadius = qMax(0, blurRadius);
-    m_tintColor = tintColor;
-}
-
-AcrylicLabel::AcrylicLabel(const QImage &image, QWidget *parent) : AcrylicLabel(parent) { setImage(image); }
-
-AcrylicLabel::AcrylicLabel(const QPixmap &pixmap, QWidget *parent) : AcrylicLabel(parent) { setPixmap(pixmap); }
-
-AcrylicLabel::AcrylicLabel(const QString &imagePath, QWidget *parent) : AcrylicLabel(parent) { setImagePath(imagePath); }
-
-int AcrylicLabel::blurRadius() const { return m_blurRadius; }
-
-QColor AcrylicLabel::tintColor() const { return m_tintColor; }
-
-Qt::AspectRatioMode AcrylicLabel::aspectRatioMode() const { return m_aspectRatioMode; }
-
-QImage AcrylicLabel::image() const { return m_image; }
-
-QPixmap AcrylicLabel::pixmap() const { return QPixmap::fromImage(m_image); }
-
-bool AcrylicLabel::isNull() const { return m_image.isNull(); }
-
-QSize AcrylicLabel::sizeHint() const
-{
-    if (!m_image.isNull()) {
-        return m_image.size();
-    }
-    return QSize(320, 180);
-}
-
-void AcrylicLabel::setBlurRadius(int radius)
-{
-    const int boundedRadius = qMax(0, radius);
-    if (m_blurRadius == boundedRadius) {
-        return;
-    }
-
-    m_blurRadius = boundedRadius;
-    invalidateCache();
-    update();
-    emit blurRadiusChanged(m_blurRadius);
-}
-
-void AcrylicLabel::setTintColor(const QColor &color)
-{
-    if (m_tintColor == color) {
-        return;
-    }
-
-    m_tintColor = color;
-    update();
-    emit tintColorChanged(m_tintColor);
-}
-
-void AcrylicLabel::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    if (m_aspectRatioMode == mode) {
-        return;
-    }
-
-    m_aspectRatioMode = mode;
-    invalidateCache();
-    update();
-}
-
-void AcrylicLabel::setImage(const QImage &image)
-{
-    m_image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-    invalidateCache();
-    updateGeometry();
-    update();
-}
-
-bool AcrylicLabel::setImage(const QString &path) { return setImagePath(path); }
-
-void AcrylicLabel::setPixmap(const QPixmap &pixmap) { setImage(pixmap.toImage()); }
-
-bool AcrylicLabel::setImagePath(const QString &path)
-{
-    QImageReader reader(path);
-    const QImage loaded = reader.read();
-    if (loaded.isNull()) {
-        return false;
-    }
-
-    setImage(loaded);
-    return true;
-}
-
-void AcrylicLabel::paintEvent(QPaintEvent *)
-{
-    QPainter painter(this);
-    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-
-    if (m_image.isNull()) {
-        painter.fillRect(rect(), m_tintColor);
-        return;
-    }
-
-    const qreal dpr = devicePixelRatioF();
-    const QImage image = scaledImageForPaint(dpr);
-    painter.drawImage(rect(), image);
-    painter.fillRect(rect(), m_tintColor);
-}
-
-void AcrylicLabel::resizeEvent(QResizeEvent *event)
-{
-    QWidget::resizeEvent(event);
-    invalidateCache();
-}
-
-void AcrylicLabel::invalidateCache()
-{
-    m_cachedImage = QImage();
-    m_cachedDeviceSize = QSize();
-    m_cachedDevicePixelRatio = 1.0;
-    m_cachedBlurRadius = -1;
-}
-
-QImage AcrylicLabel::scaledImageForPaint(qreal devicePixelRatio) const
-{
-    const QSize deviceSize(qCeil(width() * devicePixelRatio), qCeil(height() * devicePixelRatio));
-    if (!m_cachedImage.isNull() && m_cachedDeviceSize == deviceSize &&
-        qFuzzyCompare(m_cachedDevicePixelRatio, devicePixelRatio) && m_cachedBlurRadius == m_blurRadius) {
-        return m_cachedImage;
-    }
-
-    if (deviceSize.isEmpty()) {
         return QImage();
     }
 
-    QImage scaled = m_image.scaled(deviceSize, m_aspectRatioMode, Qt::SmoothTransformation);
-    if (m_aspectRatioMode == Qt::KeepAspectRatioByExpanding && scaled.size() != deviceSize) {
-        const int x = qMax(0, (scaled.width() - deviceSize.width()) / 2);
-        const int y = qMax(0, (scaled.height() - deviceSize.height()) / 2);
-        scaled = scaled.copy(QRect(QPoint(x, y), deviceSize));
+    // Python converts the pixmap to a PIL image: RGBA when it has alpha, RGB otherwise.
+    QImage result = image.convertToFormat(image.hasAlphaChannel() ? QImage::Format_RGBA8888 : QImage::Format_RGB888);
+    if (blurPicSize.isValid()) {
+        const qreal ratio =
+            qMin(qreal(blurPicSize.width()) / result.width(), qreal(blurPicSize.height()) / result.height());
+        const qreal width = result.width() * ratio;
+        if (width < result.width()) {
+            result = result.scaled(int(width), int(result.height() * ratio), Qt::IgnoreAspectRatio,
+                                   Qt::SmoothTransformation);
+        }
     }
-
-    if (scaled.size() != deviceSize) {
-        QImage canvas(deviceSize, QImage::Format_ARGB32_Premultiplied);
-        canvas.fill(Qt::transparent);
-        QPainter canvasPainter(&canvas);
-        canvasPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-        const QPoint topLeft((deviceSize.width() - scaled.width()) / 2, (deviceSize.height() - scaled.height()) / 2);
-        canvasPainter.drawImage(topLeft, scaled);
-        scaled = canvas;
+    if (result.isNull()) {
+        return result;
     }
+    result.detach();
 
-    m_cachedImage = blurredImage(scaled);
-    m_cachedImage.setDevicePixelRatio(devicePixelRatio);
-    m_cachedDeviceSize = deviceSize;
-    m_cachedDevicePixelRatio = devicePixelRatio;
-    m_cachedBlurRadius = m_blurRadius;
-    return m_cachedImage;
+    const int channels = 3;
+    const int pixelBytes = result.format() == QImage::Format_RGB888 ? 3 : 4;
+    uchar *bits = result.bits();
+    const qsizetype stride = result.bytesPerLine();
+    if (blurRadius > 1e-15) {
+        const QVector<double> weights = gaussianKernel(blurRadius);
+        // Axis 0 (columns) first, then axis 1 (rows), as gaussian_filter does.
+        correlateLines(bits, result.width(), result.height(), pixelBytes, stride, channels, weights);
+        correlateLines(bits, result.height(), result.width(), stride, pixelBytes, channels, weights);
+    }
+    if (brightFactor != 1) {
+        for (int y = 0; y < result.height(); ++y) {
+            uchar *line = bits + y * stride;
+            for (int x = 0; x < result.width(); ++x) {
+                for (int c = 0; c < channels; ++c) {
+                    uchar &value = line[x * pixelBytes + c];
+                    value = uchar(qBound(0.0, value * double(brightFactor), 255.0));
+                }
+            }
+        }
+    }
+    return result;
 }
 
-QImage AcrylicLabel::blurredImage(const QImage &image) const
+QImage gaussianBlur(const QString &imagePath, qreal blurRadius, qreal brightFactor, const QSize &blurPicSize)
 {
-    if (m_blurRadius <= 0) {
-        return image;
-    }
+    return gaussianBlur(QImage(imagePath), blurRadius, brightFactor, blurPicSize);
+}
 
-    // Three box passes approximate a Gaussian blur closely enough for acrylic material.
-    QImage blurred = boxBlur(image, m_blurRadius);
-    blurred = boxBlur(blurred, m_blurRadius);
-    return boxBlur(blurred, m_blurRadius);
+// --- BlurCoverThread ---
+
+BlurCoverThread::BlurCoverThread(QObject *parent) : QThread(parent) {}
+
+BlurCoverThread::~BlurCoverThread() { wait(); }
+
+QString BlurCoverThread::imagePath() const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_imagePath;
+}
+
+int BlurCoverThread::blurRadius() const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_blurRadius;
+}
+
+QSize BlurCoverThread::maxSize() const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_maxSize;
+}
+
+void BlurCoverThread::blur(const QString &imagePath, int blurRadius, const QSize &maxSize)
+{
+    {
+        QMutexLocker locker(&m_mutex);
+        m_imagePath = imagePath;
+        m_blurRadius = blurRadius;
+        if (maxSize.isValid()) {
+            m_maxSize = maxSize;
+        }
+        m_pending = true;
+    }
+    start();
+}
+
+void BlurCoverThread::run()
+{
+    forever
+    {
+        QString imagePath;
+        int blurRadius = 0;
+        QSize maxSize;
+        {
+            QMutexLocker locker(&m_mutex);
+            if (!m_pending) {
+                return;
+            }
+            m_pending = false;
+            imagePath = m_imagePath;
+            blurRadius = m_blurRadius;
+            maxSize = m_maxSize;
+        }
+        if (imagePath.isEmpty()) {
+            continue;
+        }
+        emit blurFinished(gaussianBlur(imagePath, blurRadius, 0.85, maxSize));
+    }
+}
+
+// --- AcrylicTextureLabel ---
+
+AcrylicTextureLabel::AcrylicTextureLabel(const QColor &tintColor, const QColor &luminosityColor, qreal noiseOpacity,
+                                         QWidget *parent)
+    : QLabel(parent), m_tintColor(tintColor), m_luminosityColor(luminosityColor), m_noiseOpacity(noiseOpacity),
+      m_noiseImage(loadNoiseImage())
+{
+    setAttribute(Qt::WA_TranslucentBackground);
+}
+
+QColor AcrylicTextureLabel::tintColor() const { return m_tintColor; }
+
+QColor AcrylicTextureLabel::luminosityColor() const { return m_luminosityColor; }
+
+qreal AcrylicTextureLabel::noiseOpacity() const { return m_noiseOpacity; }
+
+QImage AcrylicTextureLabel::noiseImage() const { return m_noiseImage; }
+
+void AcrylicTextureLabel::setTintColor(const QColor &color)
+{
+    m_tintColor = color;
+    update();
+}
+
+void AcrylicTextureLabel::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.fillRect(rect(), QBrush(acrylicTexture(m_tintColor, m_luminosityColor, m_noiseOpacity, m_noiseImage)));
+}
+
+// --- AcrylicLabel ---
+
+AcrylicLabel::AcrylicLabel(int blurRadius, const QColor &tintColor, const QColor &luminosityColor,
+                           const QSize &maxBlurSize, QWidget *parent)
+    : QLabel(parent), m_blurRadius(blurRadius), m_maxBlurSize(maxBlurSize)
+{
+    m_acrylicTextureLabel = new AcrylicTextureLabel(tintColor, luminosityColor, 0.03, this);
+    m_blurThread = new BlurCoverThread(this);
+    connect(m_blurThread, &BlurCoverThread::blurFinished, this, &AcrylicLabel::onBlurFinished);
+}
+
+AcrylicLabel::AcrylicLabel(int blurRadius, const QColor &tintColor, QWidget *parent)
+    : AcrylicLabel(blurRadius, tintColor, QColor(255, 255, 255, 0), QSize(), parent)
+{
+}
+
+QString AcrylicLabel::imagePath() const { return m_imagePath; }
+
+QPixmap AcrylicLabel::blurPixmap() const { return m_blurPixmap; }
+
+int AcrylicLabel::blurRadius() const { return m_blurRadius; }
+
+void AcrylicLabel::setBlurRadius(int radius) { m_blurRadius = radius; }
+
+QSize AcrylicLabel::maxBlurSize() const { return m_maxBlurSize; }
+
+void AcrylicLabel::setMaxBlurSize(const QSize &size) { m_maxBlurSize = size; }
+
+AcrylicTextureLabel *AcrylicLabel::acrylicTextureLabel() const { return m_acrylicTextureLabel; }
+
+BlurCoverThread *AcrylicLabel::blurThread() const { return m_blurThread; }
+
+void AcrylicLabel::onBlurFinished(const QImage &image)
+{
+    m_blurPixmap = QPixmap::fromImage(image);
+    setPixmap(m_blurPixmap);
+    adjustSize();
+}
+
+void AcrylicLabel::setImage(const QString &imagePath)
+{
+    m_imagePath = imagePath;
+    m_blurThread->blur(imagePath, m_blurRadius, m_maxBlurSize);
+}
+
+void AcrylicLabel::setTintColor(const QColor &color) { m_acrylicTextureLabel->setTintColor(color); }
+
+void AcrylicLabel::resizeEvent(QResizeEvent *event)
+{
+    QLabel::resizeEvent(event);
+    m_acrylicTextureLabel->resize(size());
+
+    if (!m_blurPixmap.isNull() && m_blurPixmap.size() != size()) {
+        setPixmap(m_blurPixmap.scaled(size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+    }
 }
 
 } // namespace FluentQt

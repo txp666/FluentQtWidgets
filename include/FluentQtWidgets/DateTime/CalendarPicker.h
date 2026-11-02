@@ -77,7 +77,7 @@ class FQW_API CalendarView : public QFrame
   private:
     enum class ViewMode { Day, Month, Year };
 
-    QToolButton *createNavigationButton(const QIcon &icon, const QString &objectName);
+    QToolButton *createNavigationButton(FluentIcon icon, const QString &objectName);
     QPushButton *createGridButton(QWidget *parent, const QString &objectName);
     void createDayPage();
     void createMonthPage();

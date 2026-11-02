@@ -1,81 +1,14 @@
 // Round menus, submenus and command bars.
 
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
 #include <QtGui/QAction>
-#include <QtGui/QContextMenuEvent>
+#include <QtGui/QCursor>
 #include <QtGui/QImage>
-#include <QtGui/QPainter>
-#include <QtGui/QPalette>
-#include <QtGui/QPixmap>
 #include <QtGui/QScreen>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyle>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -141,6 +74,26 @@ class MenuTest : public QObject
         delete menuWithExternalLifetime;
     }
 
+    // Python force-hides the overlay scroll bars of every menu but ComboBoxMenu, which shows the
+    // vertical one.
+    void onlyComboBoxMenusShowTheOverlayScrollBar()
+    {
+        const auto forceHidden = [](QWidget *view) {
+            QMap<Qt::Orientation, bool> hidden;
+            for (FluentQt::SmoothScrollBar *bar :
+                 view->findChildren<FluentQt::SmoothScrollBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+                hidden[bar->orientation()] = bar->isForceHidden();
+            }
+            return hidden;
+        };
+        FluentQt::RoundMenu menu;
+        QCOMPARE(forceHidden(menu.view()).value(Qt::Vertical, false), true);
+        QCOMPARE(forceHidden(menu.view()).value(Qt::Horizontal, false), true);
+        FluentQt::ComboBoxMenu comboMenu;
+        QCOMPARE(forceHidden(comboMenu.view()).value(Qt::Vertical, true), false);
+        QCOMPARE(forceHidden(comboMenu.view()).value(Qt::Horizontal, false), true);
+    }
+
     void menuClearRemovesSeparators()
     {
         RoundMenu menu;
@@ -155,6 +108,9 @@ class MenuTest : public QObject
     {
         // The view slides inside a window that sits at its end position, without a mask. Moving
         // the window and masking it flashed the whole menu at the start position on Windows.
+        // Run it on the native platform too: on macOS the window's safe area once pushed the
+        // view's resting place 32 px down, which the offscreen platform cannot show.
+        FQW_REQUIRE_SCREEN_ROOM(600, 600);
         QWidget window;
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
@@ -186,6 +142,105 @@ class MenuTest : public QObject
             QVERIFY(menu.mask().isEmpty());
             menu.close();
         }
+    }
+
+    void fadeInMenusRestWhereQfluentwidgetsPutsThem()
+    {
+        // qfluentwidgets ends a fade-in drop-down 4 px above the anchor, like the plain drop-down,
+        // but a fade-in pull-up 15 px below the menu's height, not the plain pull-up's 13.
+        FQW_REQUIRE_SCREEN_ROOM(600, 600);
+        const QPoint anchor = QGuiApplication::primaryScreen()->availableGeometry().center();
+        for (const MenuAnimationType type : {MenuAnimationType::FadeInDropDown, MenuAnimationType::FadeInPullUp}) {
+            RoundMenu menu;
+            for (int i = 0; i < 5; ++i) {
+                menu.addAction(QStringLiteral("Item %1").arg(i));
+            }
+            const QMargins margins = menu.layout()->contentsMargins();
+            menu.exec(anchor, true, type);
+            const int endY =
+                type == MenuAnimationType::FadeInDropDown ? anchor.y() - 4 : anchor.y() - menu.height() + 15;
+            // The window itself slides 8 px, passing other positions on the way: wait for the end.
+            QTRY_COMPARE(menu.pos(), QPoint(anchor.x() - margins.left(), endY));
+            menu.close();
+        }
+    }
+
+    // Python's acrylic tray menus call adjustPosition() when shown: a menu opened by the tray icon
+    // near the screen's bottom right corner moves inside the screen. The port left it where Qt put it.
+    void acrylicTrayMenusMoveInsideTheScreenWhenShown()
+    {
+        FluentQt::AcrylicSystemTrayMenu tray;
+        FluentQt::AcrylicCheckableSystemTrayMenu checkableTray;
+        for (FluentQt::RoundMenu *menu : std::initializer_list<FluentQt::RoundMenu *>{&tray, &checkableTray}) {
+            menu->addAction(QStringLiteral("Open"));
+            menu->addAction(QStringLiteral("Settings"));
+            menu->addAction(QStringLiteral("Quit"));
+            QScreen *screen = QGuiApplication::screenAt(QCursor::pos());
+            if (!screen) {
+                screen = QGuiApplication::primaryScreen();
+            }
+            const QRect available = screen->availableGeometry();
+            const QSize hint = menu->layout()->sizeHint();
+            menu->adjustSize();
+            menu->move(available.right() - 10, available.bottom() - 10);
+            // adjustPosition() runs as the menu is shown; whether the platform then exposes a menu parked
+            // in the screen corner (Windows CI does not) is not what this checks.
+            menu->show();
+            QTRY_COMPARE(menu->x(), available.right() - (hint.width() + 5));
+            QTRY_COMPARE(menu->y(),
+                         available.bottom() - 10 - hint.height() + menu->layout()->contentsMargins().bottom());
+            menu->hide();
+        }
+    }
+
+    void checkableSystemTrayMenuSizesLikeTheTrayMenu()
+    {
+        // qfluentwidgets has CheckableSystemTrayMenu: a CheckableMenu with SystemTrayMenu's size
+        // hint, which drops the right and bottom shadow margins but keeps 5 px on the right.
+        FluentQt::CheckableSystemTrayMenu menu(QString(), nullptr, FluentQt::MenuIndicatorType::Radio);
+        QVERIFY(qobject_cast<FluentQt::RadioIndicatorMenuItemDelegate *>(menu.view()->itemDelegate()));
+        menu.addCheckableAction(QStringLiteral("Option"), true);
+        const QMargins m = menu.layout()->contentsMargins();
+        const QSize s = menu.layout()->sizeHint();
+        QCOMPARE(menu.sizeHint(), QSize(s.width() - m.right() + 5, s.height() - m.bottom()));
+        FluentQt::CheckableSystemTrayMenu checkMenu;
+        QVERIFY(qobject_cast<FluentQt::CheckIndicatorMenuItemDelegate *>(checkMenu.view()->itemDelegate()));
+    }
+
+    void subMenuArrowSitsWherePythonDrawsIt()
+    {
+        // qfluentwidgets renders FluentIcon.CHEVRON_RIGHT, untinted, in a 9 x 9 box 10 px from the
+        // item's right edge.
+        RoundMenu menu;
+        auto *sub = new RoundMenu(QStringLiteral("More"), &menu);
+        sub->addAction(QStringLiteral("Child"));
+        menu.addMenu(sub);
+        menu.exec(QGuiApplication::primaryScreen()->availableGeometry().center(), false);
+        auto *item = menu.view()->findChild<FluentQt::SubMenuItemWidget *>();
+        QVERIFY(item);
+        QTRY_VERIFY(item->width() > 20);
+
+        const QImage image = FqwTest::render(item, Qt::transparent, QWidget::DrawChildren);
+        int left = image.width();
+        int right = -1;
+        int strongest = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QRgb px = image.pixel(x, y);
+                if (qAlpha(px) > 0) {
+                    left = qMin(left, x);
+                    right = qMax(right, x);
+                    strongest = qMax(strongest, qAlpha(px));
+                }
+            }
+        }
+        QVERIFY(right >= 0);
+        QVERIFY2(left >= item->width() - 10,
+                 qPrintable(QStringLiteral("left %1, width %2").arg(left).arg(item->width())));
+        QVERIFY(right <= item->width() - 1);
+        // Drawn at full strength, not faded by a translucent tint.
+        QVERIFY2(strongest > 120, qPrintable(QString::number(strongest)));
+        menu.close();
     }
 
     void menuExecAndWaitReturnsTriggeredAction()
@@ -238,7 +293,7 @@ class MenuTest : public QObject
         QVERIFY(!sub->parentMenu());
         QCOMPARE(parent.view()->count(), 0);
 
-        // Used to select the parent's deleted list item.
+        // A removed submenu must not reach back into its old parent's list, whose item is deleted.
         sub->exec(QPoint(100, 100), false);
         sub->close();
     }
@@ -349,11 +404,9 @@ class MenuTest : public QObject
         QCOMPARE(bar.hiddenActions().size(), 1);
         QVERIFY(addAction != nullptr);
         QVERIFY(hiddenAction != nullptr);
-        QVERIFY(bar.overflowButton() != nullptr);
         QCOMPARE(bar.commandButtons().size(), 2);
         QVERIFY(qobject_cast<FluentQt::MoreActionsButton *>(bar.overflowButton()) != nullptr);
         QVERIFY(qobject_cast<FluentQt::CommandSeparator *>(bar.findChild<FluentQt::CommandSeparator *>()) != nullptr);
-        QVERIFY(qobject_cast<FluentQt::CommandButton *>(bar.commandButtons().first()) != nullptr);
         QVERIFY(bar.suitableWidth() > 0);
 
         bar.setButtonTight(true);
@@ -382,7 +435,6 @@ class MenuTest : public QObject
         view.addAction(FluentQt::FluentIcon::Heart, QStringLiteral("Favorite"));
         view.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
         view.resizeToSuitableWidth();
-        QVERIFY(view.commandBar() != nullptr);
         QVERIFY(qobject_cast<FluentQt::CommandViewBar *>(view.commandBar()) != nullptr);
         QCOMPARE(view.commandBar()->commandActions().size(), 1);
         QCOMPARE(view.commandBar()->hiddenActions().size(), 1);
@@ -393,6 +445,23 @@ class MenuTest : public QObject
         QVERIFY(view.isMenuVisible());
         view.setMenuDropDown(false);
         QVERIFY(!view.commandBar()->isMenuDropDown());
+    }
+
+    void commandBarUsesTwelvePixelText()
+    {
+        // qfluentwidgets sets 12 px on CommandButton and on CommandBar, which hands its font to
+        // the buttons it creates; the overflow button is a CommandButton too.
+        FluentQt::CommandBar bar;
+        QCOMPARE(bar.font().pixelSize(), 12);
+        bar.setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        bar.addAction(FluentQt::FluentIcon::Add, QStringLiteral("Add"));
+        bar.addHiddenAction(FluentQt::FluentIcon::Setting, QStringLiteral("Settings"));
+        const QList<FluentQt::CommandButton *> buttons = bar.findChildren<FluentQt::CommandButton *>();
+        QCOMPARE(buttons.size(), 2);
+        for (FluentQt::CommandButton *button : buttons) {
+            QCOMPARE(button->font().pixelSize(), 12);
+        }
+        QCOMPARE(FluentQt::CommandButton().font().pixelSize(), 12);
     }
 
     void commandBarOverflowMenuOpensAndClosesSafely()
@@ -450,6 +519,56 @@ class MenuTest : public QObject
         bar.clear();
         QVERIFY(!guard.isNull());
         QVERIFY(own.isNull());
+    }
+
+    // Python's CommandBar has a minimum size hint (the more-actions button's size), so a bar a
+    // layout does not stretch keeps room for it, and fixes its height only once a widget is added.
+    void commandBarSizesFollowPython()
+    {
+        QWidget window;
+        auto *layout = new QVBoxLayout(&window);
+        auto *empty = new CommandBar(&window);
+        auto *bar = new CommandBar(&window);
+        bar->addAction(FluentIcon::Mail, QStringLiteral("Mail"));
+        bar->addAction(FluentIcon::Save, QStringLiteral("Save"));
+        auto *view = new CommandBarView(&window);
+        for (QWidget *widget :
+             {static_cast<QWidget *>(empty), static_cast<QWidget *>(bar), static_cast<QWidget *>(view)}) {
+            layout->addWidget(widget, 0, Qt::AlignLeft | Qt::AlignTop);
+        }
+        window.resize(600, 400);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QCOMPARE(bar->minimumSizeHint(), QSize(40, 34));
+        QCOMPARE(bar->width(), 40);
+        QCOMPARE(empty->maximumHeight(), QWIDGETSIZE_MAX);
+        QCOMPARE(view->height(), 34 + 12);
+        QCOMPARE(view->maximumHeight(), view->layout()->maximumSize().height());
+        QVERIFY(view->maximumHeight() > 46);
+    }
+
+    // Python's CommandBar.setFont() passes the font on to the command buttons, and
+    // CommandBarView.setFont() to its bar.
+    void commandBarPassesItsFontToTheButtons()
+    {
+        CommandBar *bar = new CommandBar;
+        QScopedPointer<CommandBar> owner(bar);
+        bar->addAction(FluentIcon::Mail, QStringLiteral("Mail"));
+        CommandBarView *view = new CommandBarView;
+        QScopedPointer<CommandBarView> viewOwner(view);
+        QFont font = bar->font();
+        font.setPixelSize(17);
+        bar->setFont(font);
+        for (CommandButton *button : bar->commandButtons()) {
+            QCOMPARE(button->font().pixelSize(), 17);
+        }
+        view->addAction(new QAction(QStringLiteral("Copy"), view));
+        view->setFont(font);
+        QCOMPARE(view->commandBar()->font().pixelSize(), 17);
+        for (CommandButton *button : view->commandBar()->commandButtons()) {
+            QCOMPARE(button->font().pixelSize(), 17);
+        }
     }
 
   private:

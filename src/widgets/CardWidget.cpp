@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/CardWidget.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -8,6 +10,7 @@
 
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QVariantAnimation>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/QEnterEvent>
 #endif
@@ -29,9 +32,7 @@ bool isDarkTheme()
 }
 } // namespace
 
-// ==========================================
-// CardWidget
-// ==========================================
+// --- CardWidget ---
 
 CardWidget::CardWidget(QWidget *parent) : QFrame(parent)
 {
@@ -40,6 +41,10 @@ CardWidget::CardWidget(QWidget *parent) : QFrame(parent)
     setAttribute(Qt::WA_StyledBackground, true);
     setAutoFillBackground(false);
     FluentStyleSheet::setRole(this, QStringLiteral("CardWidget"));
+
+    m_backgroundAni = new QVariantAnimation(this);
+    m_backgroundAni->setDuration(120);
+    connect(m_backgroundAni, &QVariantAnimation::valueChanged, this, qOverload<>(&QWidget::update));
 }
 
 int CardWidget::borderRadius() const { return m_borderRadius; }
@@ -84,10 +89,9 @@ void CardWidget::enterEvent(QEvent *event)
 #endif
 {
     m_hover = true;
-    // Trigger style transition
     style()->unpolish(this);
     style()->polish(this);
-    update();
+    updateBackgroundColor();
     QFrame::enterEvent(event);
 }
 
@@ -95,21 +99,19 @@ void CardWidget::leaveEvent(QEvent *event)
 {
     m_hover = false;
     m_pressed = false;
-    // Trigger style transition
     style()->unpolish(this);
     style()->polish(this);
-    update();
+    updateBackgroundColor();
     QFrame::leaveEvent(event);
 }
 
 void CardWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && m_clickEnabled) {
-        m_pressed = true;
-        style()->unpolish(this);
-        style()->polish(this);
-        update();
-    }
+    // As in Python, any press shows the pressed colour, whether or not the card is clickable.
+    m_pressed = true;
+    style()->unpolish(this);
+    style()->polish(this);
+    updateBackgroundColor();
     QFrame::mousePressEvent(event);
 }
 
@@ -118,11 +120,11 @@ void CardWidget::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton && m_clickEnabled && m_pressed && rect().contains(event->pos())) {
         emit clicked();
     }
-    if (event->button() == Qt::LeftButton && m_pressed) {
+    if (m_pressed) {
         m_pressed = false;
         style()->unpolish(this);
         style()->polish(this);
-        update();
+        updateBackgroundColor();
     }
     QFrame::mouseReleaseEvent(event);
 }
@@ -154,6 +156,46 @@ QColor CardWidget::selectedBackgroundColor() const
     return themeColor();
 }
 
+QColor CardWidget::stateBackgroundColor() const
+{
+    if (m_pressed) {
+        return pressedBackgroundColor();
+    }
+    if (m_hover) {
+        return hoverBackgroundColor();
+    }
+    return normalBackgroundColor();
+}
+
+QColor CardWidget::backgroundColor() const
+{
+    if (m_selected) {
+        return selectedBackgroundColor();
+    }
+    if (m_backgroundAni->state() == QAbstractAnimation::Running) {
+        return m_backgroundAni->currentValue().value<QColor>();
+    }
+    return stateBackgroundColor();
+}
+
+void CardWidget::updateBackgroundColor()
+{
+    // Start from the colour shown now: the fade's, or the end of the last one. The colours of a
+    // finished fade are read again at paint time, so a theme change shows at once.
+    QColor start = m_backgroundAni->state() == QAbstractAnimation::Running
+                       ? m_backgroundAni->currentValue().value<QColor>()
+                       : m_backgroundAni->endValue().value<QColor>();
+    const QColor end = stateBackgroundColor();
+    m_backgroundAni->stop();
+    if (!start.isValid()) {
+        start = normalBackgroundColor();
+    }
+    m_backgroundAni->setStartValue(start);
+    m_backgroundAni->setEndValue(end);
+    m_backgroundAni->start();
+    update();
+}
+
 QColor CardWidget::borderColor() const
 {
     return isDarkTheme() ? QColor(0, 0, 0, 48) : QColor(0, 0, 0, 12);
@@ -170,7 +212,6 @@ void CardWidget::paintEvent(QPaintEvent *)
     const int d = 2 * r;
     const bool dark = isDarkTheme();
 
-    // Draw top border
     QPainterPath topPath;
     topPath.arcMoveTo(1, h - d - 1, d, d, 240);
     topPath.arcTo(1, h - d - 1, d, d, 225, -60);
@@ -193,7 +234,6 @@ void CardWidget::paintEvent(QPaintEvent *)
     painter.setBrush(Qt::NoBrush);
     painter.strokePath(topPath, topBorderColor);
 
-    // Draw bottom border
     QPainterPath bottomPath;
     bottomPath.arcMoveTo(1, h - d - 1, d, d, 240);
     bottomPath.arcTo(1, h - d - 1, d, d, 240, 30);
@@ -206,30 +246,16 @@ void CardWidget::paintEvent(QPaintEvent *)
     }
     painter.strokePath(bottomPath, bottomBorderColor);
 
-    // Draw background
     painter.setPen(Qt::NoPen);
     const QRect backgroundRect = rect().adjusted(1, 1, -1, -1);
-    QColor bg = normalBackgroundColor();
-    if (m_selected) {
-        bg = selectedBackgroundColor();
-    } else if (m_pressed) {
-        bg = pressedBackgroundColor();
-    } else if (m_hover) {
-        bg = hoverBackgroundColor();
-    }
-    painter.setBrush(bg);
+    painter.setBrush(backgroundColor());
     painter.drawRoundedRect(backgroundRect, r, r);
 }
 
-// ==========================================
-// SimpleCardWidget
-// ==========================================
+// --- SimpleCardWidget ---
 
 SimpleCardWidget::SimpleCardWidget(QWidget *parent) : CardWidget(parent)
 {
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(16, 16, 16, 16);
-    layout->setSpacing(8);
     FluentStyleSheet::setRole(this, QStringLiteral("SimpleCardWidget"));
 }
 
@@ -237,7 +263,7 @@ void SimpleCardWidget::paintEvent(QPaintEvent * /*event*/)
 {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing);
-    painter.setBrush(CardWidget::normalBackgroundColor());
+    painter.setBrush(backgroundColor());
 
     if (isDarkTheme()) {
         painter.setPen(QColor(0, 0, 0, 48));
@@ -249,17 +275,24 @@ void SimpleCardWidget::paintEvent(QPaintEvent * /*event*/)
     painter.drawRoundedRect(rect().adjusted(1, 1, -1, -1), r, r);
 }
 
-// ==========================================
-// ElevatedCardWidget
-// ==========================================
+QColor SimpleCardWidget::hoverBackgroundColor() const { return normalBackgroundColor(); }
+
+QColor SimpleCardWidget::pressedBackgroundColor() const { return normalBackgroundColor(); }
+
+// --- ElevatedCardWidget ---
 
 ElevatedCardWidget::ElevatedCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 {
-    m_shadowEffect = new QGraphicsDropShadowEffect(this);
-    m_shadowEffect->setOffset(0, 5);
-    m_shadowEffect->setBlurRadius(38);
-    m_shadowEffect->setColor(QColor(0, 0, 0, 20));
-    setGraphicsEffect(m_shadowEffect);
+    // As Python's DropShadowAnimation: the shadow fades in under the mouse and is removed once it
+    // has faded out.
+    m_shadowAni = new QPropertyAnimation(this);
+    m_shadowAni->setPropertyName("color");
+    m_shadowAni->setDuration(150);
+    connect(m_shadowAni, &QPropertyAnimation::finished, this, [this] {
+        if (!m_shadowHover && m_shadowEffect && graphicsEffect() == m_shadowEffect) {
+            setGraphicsEffect(nullptr);
+        }
+    });
 
     m_elevateAni = new QPropertyAnimation(this, "pos", this);
     m_elevateAni->setDuration(100);
@@ -274,6 +307,7 @@ void ElevatedCardWidget::enterEvent(QEvent *event)
 #endif
 {
     SimpleCardWidget::enterEvent(event);
+    fadeShadow(true);
 
     if (m_elevateAni->state() != QPropertyAnimation::Running) {
         m_originalPos = pos();
@@ -285,12 +319,14 @@ void ElevatedCardWidget::enterEvent(QEvent *event)
 void ElevatedCardWidget::leaveEvent(QEvent *event)
 {
     SimpleCardWidget::leaveEvent(event);
+    fadeShadow(false);
     startElevateAnimation(pos(), m_originalPos);
 }
 
 void ElevatedCardWidget::mousePressEvent(QMouseEvent *event)
 {
     SimpleCardWidget::mousePressEvent(event);
+    fadeShadow(false);
     startElevateAnimation(pos(), m_originalPos);
 }
 
@@ -303,6 +339,27 @@ void ElevatedCardWidget::moveEvent(QMoveEvent *event)
     if (m_elevateAni->state() != QPropertyAnimation::Running) {
         m_originalPos = pos();
     }
+}
+
+void ElevatedCardWidget::fadeShadow(bool hover)
+{
+    m_shadowHover = hover;
+    if (!m_shadowEffect || graphicsEffect() != m_shadowEffect) {
+        if (!hover) {
+            return;
+        }
+        m_shadowEffect = new QGraphicsDropShadowEffect(this);
+        m_shadowEffect->setOffset(0, 5);
+        m_shadowEffect->setBlurRadius(38);
+        m_shadowEffect->setColor(QColor(0, 0, 0, 0));
+        setGraphicsEffect(m_shadowEffect);
+    }
+
+    m_shadowAni->stop();
+    m_shadowAni->setTargetObject(m_shadowEffect);
+    m_shadowAni->setStartValue(m_shadowEffect->color());
+    m_shadowAni->setEndValue(hover ? QColor(0, 0, 0, 20) : QColor(0, 0, 0, 0));
+    m_shadowAni->start();
 }
 
 void ElevatedCardWidget::startElevateAnimation(const QPoint &start, const QPoint &end)
@@ -322,9 +379,7 @@ QColor ElevatedCardWidget::pressedBackgroundColor() const
     return isDarkTheme() ? QColor(255, 255, 255, 6) : QColor(255, 255, 255, 118);
 }
 
-// ==========================================
-// CardSeparator
-// ==========================================
+// --- CardSeparator ---
 
 CardSeparator::CardSeparator(QWidget *parent) : QWidget(parent)
 {
@@ -345,17 +400,13 @@ void CardSeparator::paintEvent(QPaintEvent *)
     painter.drawLine(2, 1, width() - 2, 1);
 }
 
-// ==========================================
-// HeaderCardWidget
-// ==========================================
+// --- HeaderCardWidget ---
 
 HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 {
-    auto *mainLayout = qobject_cast<QVBoxLayout *>(layout());
-    if (mainLayout) {
-        mainLayout->setContentsMargins(0, 0, 0, 0);
-        mainLayout->setSpacing(0);
-    }
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
 
     m_headerView = new QWidget(this);
     m_headerView->setFixedHeight(48);
@@ -366,15 +417,12 @@ HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 
     m_titleLabel = new QLabel(m_headerView);
     m_titleLabel->setObjectName(QStringLiteral("headerLabel"));
-    QFont titleFont = m_titleLabel->font();
-    titleFont.setPointSize(15);
-    titleFont.setWeight(QFont::DemiBold);
-    m_titleLabel->setFont(titleFont);
+    m_titleLabel->setFont(Private::fluentFont(15, QFont::DemiBold));
     // A plain label under the card's style sheet takes its colour from the palette when it is polished,
-    // and that sheet is the same in both themes, so a theme change never repolished the title: it kept
-    // the colour of the theme it was created in. Its own sheet follows the theme.
-    FluentStyleSheet::setCustomStyleSheet(m_titleLabel, QStringLiteral("QLabel{color:#202020;}"),
-                                          QStringLiteral("QLabel{color:#f3f3f3;}"));
+    // and that sheet is the same in both themes, so a theme change would never repolish the title: it would
+    // keep the colour of the theme it was created in. Its own sheet follows the theme.
+    FluentStyleSheet::setCustomStyleSheet(m_titleLabel, QStringLiteral("QLabel{color:black;}"),
+                                          QStringLiteral("QLabel{color:white;}"));
     m_headerLayout->addWidget(m_titleLabel);
 
     m_separator = new CardSeparator(this);
@@ -385,11 +433,9 @@ HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
     m_viewLayout = new QHBoxLayout(m_view);
     m_viewLayout->setContentsMargins(24, 24, 24, 24);
 
-    if (mainLayout) {
-        mainLayout->addWidget(m_headerView);
-        mainLayout->addWidget(m_separator);
-        mainLayout->addWidget(m_view);
-    }
+    mainLayout->addWidget(m_headerView);
+    mainLayout->addWidget(m_separator);
+    mainLayout->addWidget(m_view);
 
     FluentStyleSheet::setRole(this, QStringLiteral("HeaderCardWidget"));
 }
@@ -422,9 +468,7 @@ QHBoxLayout *HeaderCardWidget::headerLayout() const { return m_headerLayout; }
 
 QHBoxLayout *HeaderCardWidget::viewLayout() const { return m_viewLayout; }
 
-// ==========================================
-// CardGroupWidget
-// ==========================================
+// --- CardGroupWidget ---
 
 CardGroupWidget::CardGroupWidget(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)
     : QWidget(parent)
@@ -499,9 +543,7 @@ void CardGroupWidget::addWidget(QWidget *widget, int stretch)
     m_hBoxLayout->addWidget(widget, stretch);
 }
 
-// ==========================================
-// GroupHeaderCardWidget
-// ==========================================
+// --- GroupHeaderCardWidget ---
 
 GroupHeaderCardWidget::GroupHeaderCardWidget(QWidget *parent) : HeaderCardWidget(parent)
 {

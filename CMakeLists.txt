@@ -31,7 +31,7 @@ endif()
 
 project(
     FluentQtWidgets
-    VERSION 0.1.10
+    VERSION 0.2.0
     DESCRIPTION "A Fluent Design inspired QWidget library for C++/Qt"
     HOMEPAGE_URL "${FQW_REPOSITORY_URL}"
     LANGUAGES CXX
@@ -44,6 +44,7 @@ endif()
 option(FQW_BUILD_SHARED "Build FluentQtWidgets as a shared library" ON)
 option(FQW_BUILD_EXAMPLES "Build examples" ON)
 option(FQW_BUILD_TESTS "Build tests" OFF)
+option(FQW_BUILD_SCREENSHOTS "Build the tools that render the README screenshots" OFF)
 set(FQW_QT_MAJOR_VERSION "6" CACHE STRING "Qt major version to use")
 set_property(CACHE FQW_QT_MAJOR_VERSION PROPERTY STRINGS 6 5)
 
@@ -97,7 +98,9 @@ set(FQW_PUBLIC_HEADERS
     include/FluentQtWidgets/FluentIcon.h
     include/FluentQtWidgets/Layout/FlowLayout.h
     include/FluentQtWidgets/Layout/VBoxLayout.h
+    include/FluentQtWidgets/Multimedia/MediaPlayBar.h
     include/FluentQtWidgets/Multimedia/MediaPlayer.h
+    include/FluentQtWidgets/Multimedia/VideoWidget.h
     include/FluentQtWidgets/Dialogs/ColorDialog.h
     include/FluentQtWidgets/Dialogs/Dialog.h
     include/FluentQtWidgets/Dialogs/FolderListDialog.h
@@ -171,7 +174,9 @@ set(FQW_SOURCES
     src/dialogs/FolderListDialog.cpp
     src/layout/FlowLayout.cpp
     src/layout/VBoxLayout.cpp
+    src/multimedia/MediaPlayBar.cpp
     src/multimedia/MediaPlayer.cpp
+    src/multimedia/VideoWidget.cpp
     src/navigation/BreadcrumbBar.cpp
     src/navigation/NavigationBar.cpp
     src/navigation/NavigationHistory.cpp
@@ -228,8 +233,14 @@ if(APPLE)
 endif()
 
 if(NOT FQW_HAS_MULTIMEDIA)
-    list(REMOVE_ITEM FQW_PUBLIC_HEADERS include/FluentQtWidgets/Multimedia/MediaPlayer.h)
-    list(REMOVE_ITEM FQW_SOURCES src/multimedia/MediaPlayer.cpp)
+    list(REMOVE_ITEM FQW_PUBLIC_HEADERS
+        include/FluentQtWidgets/Multimedia/MediaPlayBar.h
+        include/FluentQtWidgets/Multimedia/MediaPlayer.h
+        include/FluentQtWidgets/Multimedia/VideoWidget.h)
+    list(REMOVE_ITEM FQW_SOURCES
+        src/multimedia/MediaPlayBar.cpp
+        src/multimedia/MediaPlayer.cpp
+        src/multimedia/VideoWidget.cpp)
 endif()
 
 set(FQW_LIBRARY_TYPE STATIC)
@@ -345,6 +356,10 @@ if(FQW_BUILD_EXAMPLES)
     add_subdirectory(examples/text)
     add_subdirectory(examples/view)
     add_subdirectory(examples/window)
+endif()
+
+if(FQW_BUILD_SCREENSHOTS)
+    add_subdirectory(tools/screenshots)
 endif()
 
 if(FQW_BUILD_TESTS)

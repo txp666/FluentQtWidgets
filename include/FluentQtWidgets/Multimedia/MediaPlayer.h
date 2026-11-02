@@ -2,98 +2,98 @@
 
 #include <FluentQtWidgets/Global.h>
 
+#include <QtCore/QObject>
 #include <QtCore/QUrl>
-#include <QtWidgets/QWidget>
+#include <QtMultimedia/QMediaPlayer>
 
 class QAudioOutput;
-class QHBoxLayout;
-class QLabel;
-class QMediaPlayer;
-class QVideoWidget;
 
 namespace FluentQt {
 
-class BodyLabel;
-class Slider;
-class TransparentToolButton;
-
-class FQW_API SimpleMediaPlayBar : public QWidget
+// The player a media play bar drives (qfluentwidgets.multimedia.MediaPlayerBase). Subclass it to put the
+// play bars in front of another playback engine; MediaPlayer is the QMediaPlayer one.
+class FQW_API MediaPlayerBase : public QObject
 {
     Q_OBJECT
 
   public:
-    explicit SimpleMediaPlayBar(QWidget *parent = nullptr);
+    explicit MediaPlayerBase(QObject *parent = nullptr);
 
-    QMediaPlayer *player() const;
-    QAudioOutput *audioOutput() const;
-    TransparentToolButton *playButton() const;
-    Slider *progressSlider() const;
-    BodyLabel *timeLabel() const;
+    // Whether the media is playing.
+    virtual bool isPlaying() const = 0;
+    virtual QMediaPlayer::MediaStatus mediaStatus() const = 0;
+    virtual QMediaPlayer::PlaybackState playbackState() const = 0;
+    // The duration and the position of the current media, in ms.
+    virtual qint64 duration() const = 0;
+    virtual qint64 position() const = 0;
+    // The volume, 0 to 100.
+    virtual int volume() const = 0;
+    virtual bool isMuted() const = 0;
+    virtual QUrl source() const = 0;
+    virtual qreal playbackRate() const = 0;
+    virtual QObject *videoOutput() const = 0;
 
   public slots:
-    void setSource(const QUrl &source);
-    void play();
-    void pause();
-    void stop();
-    void togglePlay();
-    void setPosition(qint64 position);
+    virtual void pause() = 0;
+    virtual void play() = 0;
+    // Stops, and goes back to the beginning.
+    virtual void stop() = 0;
+    virtual void setPosition(qint64 position) = 0;
+    virtual void setSource(const QUrl &source) = 0;
+    virtual void setPlaybackRate(qreal rate) = 0;
+    virtual void setVolume(int volume) = 0;
+    virtual void setMuted(bool isMuted) = 0;
+    virtual void setVideoOutput(QObject *output) = 0;
 
-  protected:
-    QHBoxLayout *controlsLayout() const;
-    QString formatTime(qint64 milliseconds) const;
-    virtual void syncPlaybackState();
-
-    QMediaPlayer *m_player = nullptr;
-    QAudioOutput *m_audioOutput = nullptr;
-    TransparentToolButton *m_playButton = nullptr;
-    Slider *m_progressSlider = nullptr;
-    BodyLabel *m_timeLabel = nullptr;
-    QHBoxLayout *m_controlsLayout = nullptr;
-    bool m_sliderPressed = false;
+  signals:
+    void mediaStatusChanged(QMediaPlayer::MediaStatus status);
+    void playbackStateChanged(QMediaPlayer::PlaybackState state);
+    void playbackRateChanged(qreal rate);
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
+    void sourceChanged(const QUrl &source);
+    void volumeChanged(int volume);
+    void mutedChanged(bool isMuted);
 };
 
-class FQW_API StandardMediaPlayBar : public SimpleMediaPlayBar
+// A MediaPlayerBase on a QMediaPlayer and its QAudioOutput. Python's MediaPlayer is a QMediaPlayer subclass;
+// in C++ a class can't be both, so this one owns them and hands them out for everything else QMediaPlayer does.
+class FQW_API MediaPlayer : public MediaPlayerBase
 {
     Q_OBJECT
 
   public:
-    explicit StandardMediaPlayBar(QWidget *parent = nullptr);
+    explicit MediaPlayer(QObject *parent = nullptr);
 
-    TransparentToolButton *volumeButton() const;
-    Slider *volumeSlider() const;
-
-  private slots:
-    void setVolume(int value);
-    void syncMutedIcon();
-
-  private:
-    TransparentToolButton *m_volumeButton = nullptr;
-    Slider *m_volumeSlider = nullptr;
-};
-
-class FQW_API VideoWidget : public QWidget
-{
-    Q_OBJECT
-
-  public:
-    explicit VideoWidget(QWidget *parent = nullptr);
-
-    QMediaPlayer *player() const;
+    QMediaPlayer *mediaPlayer() const;
     QAudioOutput *audioOutput() const;
-    QVideoWidget *videoOutput() const;
-    StandardMediaPlayBar *playBar() const;
+
+    bool isPlaying() const override;
+    QMediaPlayer::MediaStatus mediaStatus() const override;
+    QMediaPlayer::PlaybackState playbackState() const override;
+    qint64 duration() const override;
+    qint64 position() const override;
+    int volume() const override;
+    bool isMuted() const override;
+    QUrl source() const override;
+    qreal playbackRate() const override;
+    QObject *videoOutput() const override;
 
   public slots:
-    void setVideo(const QUrl &source);
-    void play();
-    void pause();
-    void stop();
+    void pause() override;
+    void play() override;
+    void stop() override;
+    void setPosition(qint64 position) override;
+    void setSource(const QUrl &source) override;
+    void setPlaybackRate(qreal rate) override;
+    // Emit volumeChanged / mutedChanged only when the value changes, as Python's do.
+    void setVolume(int volume) override;
+    void setMuted(bool isMuted) override;
+    void setVideoOutput(QObject *output) override;
 
   private:
     QMediaPlayer *m_player = nullptr;
     QAudioOutput *m_audioOutput = nullptr;
-    QVideoWidget *m_videoOutput = nullptr;
-    StandardMediaPlayBar *m_playBar = nullptr;
 };
 
 } // namespace FluentQt

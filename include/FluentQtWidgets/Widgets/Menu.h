@@ -7,8 +7,9 @@
 #include <QtCore/QList>
 #include <QtCore/QMargins>
 #include <QtCore/QPoint>
-#include <QtWidgets/QMenu>
+#include <QtGui/QPainterPath>
 #include <QtWidgets/QListWidget>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QStyledItemDelegate>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -168,7 +169,6 @@ public:
     explicit RoundMenu(const QString &title, QWidget *parent = nullptr);
     ~RoundMenu() override;
 
-    // Action management
     void addAction(QAction *action);
     QAction *addAction(const QString &text);
     QAction *addAction(const QIcon &icon, const QString &text);
@@ -181,27 +181,22 @@ public:
     void removeAction(QAction *action);
     QList<QAction *> menuActions() const;
 
-    // Sub-menu management
     void addMenu(RoundMenu *menu);
     void insertMenu(QAction *before, RoundMenu *menu);
     void removeMenu(RoundMenu *menu);
 
-    // Separator
     void addSeparator();
     void clear();
 
-    // View accessor
     MenuActionListWidget *view() const;
 
-    // Parent menu accessor (for sub-menu navigation)
     RoundMenu *parentMenu() const;
 
-    // Properties
     void setIcon(const QIcon &icon);
     QIcon menuIcon() const;
 
     using QMenu::exec;
-    // Shows the menu and returns at once, like QMenu::popup() (and like qfluentwidgets); the
+    // Shows the menu and returns at once, like QMenu::popup() (and like Python); the
     // result is always nullptr. A menu on the stack, or a caller that needs the chosen action,
     // wants execAndWait().
     QAction *exec(const QPoint &pos, bool animated = true,
@@ -221,6 +216,9 @@ public:
     void adjustContentSize(const QPoint &pos = QPoint(),
                            MenuAnimationType animationType = MenuAnimationType::None);
     void setShadowEffect(int blurRadius = 30, int offsetX = 0, int offsetY = 8);
+    // Python's adjustPosition(): keeps the shown menu inside the screen under the cursor, moving it
+    // left of the right edge and above its position when it would pass the bottom edge.
+    void adjustPosition();
 
     void setDefaultAction(QAction *action);
 
@@ -284,7 +282,6 @@ private:
     QListWidgetItem *m_lastHoverItem = nullptr;
     QListWidgetItem *m_lastHoverSubMenuItem = nullptr;
 
-    // Sub-menu parent info
     RoundMenu *m_parentMenu = nullptr;
     QListWidgetItem *m_parentMenuItem = nullptr;
 
@@ -313,6 +310,18 @@ public:
     QSize sizeHint() const override;
 };
 
+class FQW_API CheckableSystemTrayMenu : public CheckableMenu
+{
+    Q_OBJECT
+
+  public:
+    explicit CheckableSystemTrayMenu(QWidget *parent = nullptr);
+    explicit CheckableSystemTrayMenu(const QString &title, QWidget *parent = nullptr,
+                                     MenuIndicatorType indicatorType = MenuIndicatorType::Check);
+
+    QSize sizeHint() const override;
+};
+
 // --- Acrylic menus ---
 class FQW_API AcrylicMenuActionListWidget : public MenuActionListWidget
 {
@@ -323,12 +332,27 @@ public:
     ~AcrylicMenuActionListWidget() override;
 
     AcrylicBrush *acrylicBrush() const;
+    // Where the acrylic shows, in the view's coordinates.
+    virtual QPainterPath clipPath() const;
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
+  protected:
+    // Paints the acrylic over the whole view, its top and bottom margins included (Python moves
+    // the margins into placeholder rows for that), then the view.
+    bool event(QEvent *event) override;
 
-private:
+  private:
     AcrylicBrush *m_acrylicBrush = nullptr;
+};
+
+// The completer's view: square corners on the side that touches the line edit.
+class FQW_API AcrylicCompleterMenuActionListWidget : public AcrylicMenuActionListWidget
+{
+    Q_OBJECT
+
+  public:
+    explicit AcrylicCompleterMenuActionListWidget(QWidget *parent = nullptr);
+
+    QPainterPath clipPath() const override;
 };
 
 class FQW_API AcrylicMenu : public RoundMenu
@@ -357,7 +381,9 @@ class FQW_API AcrylicSystemTrayMenu : public AcrylicMenu
 public:
     explicit AcrylicSystemTrayMenu(QWidget *parent = nullptr);
 
-    QSize sizeHint() const override;
+  protected:
+    // Python's: adjustPosition(), then the acrylic grabs what is behind the moved menu.
+    void showEvent(QShowEvent *event) override;
 };
 
 class FQW_API AcrylicCheckableSystemTrayMenu : public AcrylicCheckableMenu
@@ -366,6 +392,9 @@ class FQW_API AcrylicCheckableSystemTrayMenu : public AcrylicCheckableMenu
 
 public:
     explicit AcrylicCheckableSystemTrayMenu(QWidget *parent = nullptr);
+
+  protected:
+    void showEvent(QShowEvent *event) override;
 };
 
 // --- LabelContextMenu ---

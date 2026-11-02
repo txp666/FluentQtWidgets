@@ -4,7 +4,6 @@
 QFrame[fqw="NavigationPanel"][menu=true][fqwTheme="light"] {
     background-color: rgb(243, 243, 243);
     border: 1px solid rgb(229, 229, 229);
-    border-left: none;
     border-top-right-radius: 7px;
     border-bottom-right-radius: 7px;
 }
@@ -12,7 +11,6 @@ QFrame[fqw="NavigationPanel"][menu=true][fqwTheme="light"] {
 QFrame[fqw="NavigationPanel"][menu=true][fqwTheme="dark"] {
     background-color: rgb(32, 32, 32);
     border: 1px solid rgb(57, 57, 57);
-    border-left: none;
     border-top-right-radius: 7px;
     border-bottom-right-radius: 7px;
 }
@@ -20,7 +18,6 @@ QFrame[fqw="NavigationPanel"][menu=true][fqwTheme="dark"] {
 QFrame[fqw="NavigationPanel"][menu=false] {
     background-color: transparent;
     border: 1px solid transparent;
-    border-left: none;
     border-top-right-radius: 7px;
     border-bottom-right-radius: 7px;
 }
@@ -35,34 +32,6 @@ QWidget[fqw="NavigationBar"] {
     background: transparent;
 }
 
-QWidget[fqw="NavigationSpacer"][fqwTheme="light"] {
-    background-color: rgb(243, 243, 243);
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-}
-
-QWidget[fqw="NavigationSpacer"][fqwTheme="dark"] {
-    background-color: rgb(32, 32, 32);
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-}
-
 QWidget[fqw="NavigationScrollWidget"] {
     background: transparent;
-}
-
-QFrame[fqw="NavigationSeparator"][fqwTheme="light"] {
-    border: none;
-    background: transparent;
-    margin: 4px 8px;
-    max-height: 1px;
-    border-top: 1px solid #e5e5e5;
-}
-
-QFrame[fqw="NavigationSeparator"][fqwTheme="dark"] {
-    border: none;
-    background: transparent;
-    margin: 4px 8px;
-    max-height: 1px;
-    border-top: 1px solid #3d3d3d;
 }

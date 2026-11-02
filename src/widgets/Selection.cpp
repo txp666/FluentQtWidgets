@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Selection.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
@@ -38,7 +40,7 @@ void paintFocusVisual(QPainter *painter, const QRectF &rect, qreal radius)
     painter->restore();
 }
 
-// Parsed once per path; a QIcon made from the file on every paint parsed the SVG every time.
+// Parsed once per path; a QIcon made from the file on every paint would parse the SVG every time.
 QIcon cachedIcon(const QString &path)
 {
     static QHash<QString, QIcon> icons;
@@ -64,6 +66,7 @@ CheckBox::CheckBox(const QString &text, QWidget *parent) : QCheckBox(text, paren
 
 void CheckBox::init()
 {
+    setFont(Private::fluentFont(14));
     setCursor(Qt::PointingHandCursor);
     setAttribute(Qt::WA_MacShowFocusRect, false);
     FluentStyleSheet::setRole(this, QStringLiteral("CheckBox"));

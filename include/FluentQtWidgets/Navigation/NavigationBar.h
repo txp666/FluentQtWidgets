@@ -14,6 +14,8 @@ class QPaintEvent;
 class QMouseEvent;
 class QVBoxLayout;
 
+class QPropertyAnimation;
+
 namespace FluentQt {
 
 class ScrollArea;
@@ -23,6 +25,9 @@ class FQW_API NavigationBarPushButton : public NavigationWidget
     Q_OBJECT
     Q_PROPERTY(QString text READ text WRITE setText)
     Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
+    // Python's IconSlideAnimation: the icon slides 6 px down in 100 ms when the button is selected
+    // and back when it is not; it shows only while the selected text is hidden.
+    Q_PROPERTY(qreal iconOffset READ iconOffset WRITE setIconOffset)
 
   public:
     explicit NavigationBarPushButton(const QIcon &icon, const QString &text, bool selectable = true,
@@ -40,6 +45,9 @@ class FQW_API NavigationBarPushButton : public NavigationWidget
     void setSelectedIcon(const QIcon &icon);
     void setSelectedTextVisible(bool visible);
     void setSelectedColor(const QColor &light, const QColor &dark);
+    void setSelected(bool selected) override;
+    qreal iconOffset() const;
+    void setIconOffset(qreal offset);
 
   protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -54,6 +62,8 @@ class FQW_API NavigationBarPushButton : public NavigationWidget
     QColor m_lightSelectedColor;
     QColor m_darkSelectedColor;
     bool m_selectedTextVisible = true;
+    qreal m_iconOffset = 0;
+    QPropertyAnimation *m_iconAnimation = nullptr;
 };
 
 class FQW_API NavigationBar : public QWidget
@@ -63,8 +73,6 @@ class FQW_API NavigationBar : public QWidget
     Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
   public:
-    static constexpr int kBarWidth = 72;
-
     explicit NavigationBar(QWidget *parent = nullptr);
 
     NavigationBarPushButton *addItem(const QString &routeKey, const QIcon &icon, const QString &text,

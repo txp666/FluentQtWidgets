@@ -36,9 +36,7 @@ bool isDarkTheme()
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark;
 }
 
-// ==========================================
-// FlyoutAnimationManager hierarchy
-// ==========================================
+// --- FlyoutAnimationManager hierarchy ---
 
 class FlyoutAnimationManager : public QObject
 {
@@ -263,6 +261,15 @@ class DummyFlyoutAnimationManager : public FlyoutAnimationManager
 public:
     using FlyoutAnimationManager::FlyoutAnimationManager;
 
+    QPoint position(QWidget *target) const override
+    {
+        if (!m_flyout || !target) {
+            return QPoint();
+        }
+        const QMargins m = m_flyout->layout() ? m_flyout->layout()->contentsMargins() : QMargins();
+        return target->mapToGlobal(QPoint(-m.left(), -m_flyout->sizeHint().height() + m.bottom() - 8));
+    }
+
     void exec(const QPoint &pos) override
     {
         if (m_flyout) {
@@ -324,9 +331,7 @@ void grabAcrylicFlyoutBackground(Flyout *flyout, const QPoint &pos)
 
 } // namespace
 
-// ==========================================
-// FlyoutViewBase
-// ==========================================
+// --- FlyoutViewBase ---
 
 FlyoutViewBase::FlyoutViewBase(QWidget *parent) : QFrame(parent)
 {
@@ -340,9 +345,21 @@ void FlyoutViewBase::addWidget(QWidget *widget, int stretch, Qt::Alignment align
     Q_UNUSED(alignment)
 }
 
-// ==========================================
-// FlyoutView
-// ==========================================
+QColor FlyoutViewBase::backgroundColor() const { return isDarkTheme() ? QColor(40, 40, 40) : QColor(248, 248, 248); }
+
+QColor FlyoutViewBase::borderColor() const { return isDarkTheme() ? QColor(0, 0, 0, 45) : QColor(0, 0, 0, 17); }
+
+void FlyoutViewBase::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing);
+    painter.setBrush(backgroundColor());
+    painter.setPen(borderColor());
+    painter.drawRoundedRect(rect().adjusted(1, 1, -1, -1), 8, 8);
+}
+
+// --- FlyoutView ---
 
 FlyoutView::FlyoutView(QWidget *parent) : FlyoutViewBase(parent)
 {
@@ -421,6 +438,8 @@ void FlyoutView::initWidgets()
     m_contentLabel->setVisible(!content().isEmpty());
 
     m_iconWidget = new IconWidget(this);
+    m_iconWidget->setFixedSize(36, 54);
+    m_iconWidget->setIconSize(QSize(20, 20));
     m_iconWidget->hide();
 
     m_imageLabel = new ImageLabel(this);
@@ -443,7 +462,7 @@ void FlyoutView::initLayout()
     m_widgetLayout->setSpacing(0);
     m_vBoxLayout->setSpacing(0);
 
-    if (title().isEmpty() && content().isEmpty()) {
+    if (title().isEmpty() || content().isEmpty()) {
         m_iconWidget->setFixedHeight(36);
     }
 
@@ -458,7 +477,6 @@ void FlyoutView::initLayout()
     m_closeButton->setVisible(m_closable);
     m_viewLayout->addWidget(m_closeButton, 0, Qt::AlignRight | Qt::AlignTop);
 
-    // Adjust content margins
     QMargins margins(6, 5, 6, 5);
     margins.setLeft(20);
     if (!m_iconWidget->icon().isNull()) {
@@ -467,10 +485,8 @@ void FlyoutView::initLayout()
     margins.setRight(m_closable ? 6 : 20);
     m_viewLayout->setContentsMargins(margins);
 
-    // Add body layout
     m_widgetLayout->addLayout(m_bodyLayout);
 
-    // Add image
     adjustImage();
     m_imageLabel->setBorderRadius(8, 8, 0, 0);
     m_imageLabel->setHidden(m_imageLabel->isNull());
@@ -604,9 +620,7 @@ QVBoxLayout *FlyoutView::widgetLayout() const { return m_widgetLayout; }
 
 QVBoxLayout *FlyoutView::bodyLayout() const { return m_bodyLayout; }
 
-// ==========================================
-// AcrylicFlyoutViewBase
-// ==========================================
+// --- AcrylicFlyoutViewBase ---
 
 AcrylicFlyoutViewBase::AcrylicFlyoutViewBase(QWidget *parent)
     : FlyoutViewBase(parent)
@@ -641,11 +655,6 @@ void AcrylicFlyoutViewBase::updateAcrylicColor()
     }
 }
 
-QColor AcrylicFlyoutViewBase::acrylicBorderColor() const
-{
-    return isDarkTheme() ? QColor(QStringLiteral("#474747")) : QColor(QStringLiteral("#d8d8d8"));
-}
-
 void AcrylicFlyoutViewBase::drawAcrylic(QPainter *painter)
 {
     updateAcrylicColor();
@@ -660,13 +669,11 @@ void AcrylicFlyoutViewBase::paintEvent(QPaintEvent *event)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     drawAcrylic(&painter);
     painter.setBrush(Qt::NoBrush);
-    painter.setPen(acrylicBorderColor());
+    painter.setPen(borderColor());
     painter.drawRoundedRect(QRectF(rect()).adjusted(1, 1, -1, -1), 8, 8);
 }
 
-// ==========================================
-// AcrylicFlyoutView
-// ==========================================
+// --- AcrylicFlyoutView ---
 
 AcrylicFlyoutView::AcrylicFlyoutView(QWidget *parent)
     : FlyoutView(parent)
@@ -732,11 +739,6 @@ void AcrylicFlyoutView::updateAcrylicColor()
     }
 }
 
-QColor AcrylicFlyoutView::acrylicBorderColor() const
-{
-    return isDarkTheme() ? QColor(QStringLiteral("#474747")) : QColor(QStringLiteral("#d8d8d8"));
-}
-
 void AcrylicFlyoutView::drawAcrylic(QPainter *painter)
 {
     updateAcrylicColor();
@@ -751,13 +753,11 @@ void AcrylicFlyoutView::paintEvent(QPaintEvent *event)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     drawAcrylic(&painter);
     painter.setBrush(Qt::NoBrush);
-    painter.setPen(acrylicBorderColor());
+    painter.setPen(borderColor());
     painter.drawRoundedRect(QRectF(rect()).adjusted(1, 1, -1, -1), 8, 8);
 }
 
-// ==========================================
-// Flyout
-// ==========================================
+// --- Flyout ---
 
 Flyout::Flyout(QWidget *parent) : QFrame(parent)
 {
@@ -993,9 +993,7 @@ QPoint Flyout::calculatePosition(QWidget *target) const
                   globalTopLeft.y() + targetSize.height() + gap);
 }
 
-// ==========================================
-// AcrylicFlyout
-// ==========================================
+// --- AcrylicFlyout ---
 
 AcrylicFlyout::AcrylicFlyout(QWidget *parent) : Flyout(parent)
 {

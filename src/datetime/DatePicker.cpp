@@ -4,6 +4,7 @@
 
 #include <QtCore/QCalendar>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QEvent>
 #include <QtCore/QLocale>
 #include <QtCore/QPoint>
 #include <QtGui/QFontMetrics>
@@ -113,7 +114,6 @@ DatePicker::DatePicker(QWidget *parent, DateFormat format, bool isMonthTight)
     m_dayName = tr("day");
     m_defaultDigitFormatter = new DigitFormatter(this);
     m_defaultMonthFormatter = new MonthFormatter(this);
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     FluentStyleSheet::setRole(this, QStringLiteral("DatePicker"));
     rebuildColumns();
@@ -224,6 +224,26 @@ void DatePicker::setDayFormatter(PickerColumnFormatter *formatter)
     updateColumnDisplay();
 }
 
+bool DatePicker::event(QEvent *event)
+{
+    const bool result = QFrame::event(event);
+    // Python's picker is a QPushButton, whose style-sheet border is drawn over the columns. A
+    // QFrame turns that border into contents margins whenever it is polished, restyled or
+    // reparented, which would inset the columns and make the picker 2 px wider and taller than them.
+    switch (event->type()) {
+    case QEvent::Polish:
+    case QEvent::StyleChange:
+    case QEvent::ParentChange:
+        if (contentsMargins() != QMargins()) {
+            setContentsMargins(QMargins());
+        }
+        break;
+    default:
+        break;
+    }
+    return result;
+}
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void DatePicker::enterEvent(QEnterEvent *event)
 #else
@@ -250,7 +270,13 @@ void DatePicker::mouseReleaseEvent(QMouseEvent *event)
 {
     setColumnButtonProperty("pressed", false);
     QFrame::mouseReleaseEvent(event);
-    if (event->button() != Qt::LeftButton) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    const QPoint releasePos = event->position().toPoint();
+#else
+    const QPoint releasePos = event->pos();
+#endif
+    // Python opens the panel on clicked(), which a press dragged off the picker does not emit.
+    if (event->button() != Qt::LeftButton || !rect().contains(releasePos)) {
         return;
     }
     showPickerPanel();
@@ -430,6 +456,12 @@ void DatePicker::updateMonthColumnWidth()
 
 void DatePicker::setColumnButtonProperty(const char *name, bool value)
 {
+    // Python's picker is a QPushButton, so its own `:pressed` rule applies while the mouse is down.
+    // A QFrame has no pressed state; the frame carries the property its rule selects instead.
+    if (qstrcmp(name, "pressed") == 0) {
+        setProperty(name, value);
+        FluentStyleSheet::polish(this);
+    }
     for (PickerColumnButton *button : m_columns) {
         button->setProperty(name, value);
         FluentStyleSheet::polish(button);

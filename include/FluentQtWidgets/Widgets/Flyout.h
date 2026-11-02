@@ -5,11 +5,12 @@
 
 #include <QtCore/QPoint>
 #include <QtCore/QString>
+#include <QtGui/QColor>
 #include <QtGui/QIcon>
 #include <QtGui/QImage>
+#include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
-#include <QtGui/QPaintEvent>
 #include <QtGui/QPixmap>
 #include <QtWidgets/QFrame>
 
@@ -45,9 +46,14 @@ class FQW_API FlyoutViewBase : public QFrame
 public:
     explicit FlyoutViewBase(QWidget *parent = nullptr);
     virtual void addWidget(QWidget *widget, int stretch = 0, Qt::Alignment alignment = Qt::AlignLeft);
+    virtual QColor backgroundColor() const;
+    virtual QColor borderColor() const;
 
-signals:
+  signals:
     void closed();
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
 };
 
 class FQW_API FlyoutView : public FlyoutViewBase
@@ -122,7 +128,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
     void drawAcrylic(QPainter *painter);
-    QColor acrylicBorderColor() const;
     void updateAcrylicColor();
 
 private:
@@ -150,7 +155,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
     void drawAcrylic(QPainter *painter);
-    QColor acrylicBorderColor() const;
     void updateAcrylicColor();
 
 private:

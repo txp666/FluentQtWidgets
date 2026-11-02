@@ -1,9 +1,14 @@
 #include <FluentQtWidgets/Navigation/Pivot.h>
 
+#include "../core/FontUtils_p.h"
+
+#include "ScaleSlideAnimation_p.h"
+
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
-#include <QtCore/QPropertyAnimation>
+#include <QtCore/QVariantAnimation>
 #include <QtGui/QFont>
 #include <QtGui/QPainter>
 #include <QtGui/QResizeEvent>
@@ -20,9 +25,7 @@ PivotItem::PivotItem(QWidget *parent) : PushButton(parent)
     setCheckable(true);
     setFlat(true);
     setProperty("isSelected", false);
-    QFont itemFont = font();
-    itemFont.setPixelSize(18);
-    setFont(itemFont);
+    setFont(Private::fluentFont(18));
     FluentStyleSheet::setRole(this, QStringLiteral("PivotItem"));
 }
 
@@ -48,10 +51,24 @@ Pivot::Pivot(QWidget *parent) : QWidget(parent), m_indicatorGeometry(0, 0, 0, 0)
     m_buttonGroup = new QButtonGroup(this);
     m_buttonGroup->setExclusive(true);
 
-    m_slideAnimation = new QPropertyAnimation(this, "indicatorGeometry", this);
-    m_slideAnimation->setEasingCurve(QEasingCurve::OutQuad);
-    m_slideAnimation->setDuration(100);
-    connect(m_slideAnimation, &QPropertyAnimation::valueChanged, this, qOverload<>(&QWidget::update));
+    // Python's ScaleSlideAnimation: 600 ms of squash and stretch, its curves applied per phase.
+    m_slideAnimation = new QVariantAnimation(this);
+    m_slideAnimation->setStartValue(0.0);
+    m_slideAnimation->setEndValue(1.0);
+    m_slideAnimation->setDuration(Private::kScaleSlideDuration);
+    connect(m_slideAnimation, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
+        const qreal progress = value.toReal();
+        if (m_pointToPoint) {
+            const QPointF offset = (m_slideEnd.topLeft() - m_slideStart.topLeft()) * progress;
+            setIndicatorGeometry(m_slideStart.translated(offset).toRect());
+        } else {
+            setIndicatorGeometry(Private::scaleSlideGeometry(m_slideStart, m_slideEnd,
+                                                             qRound(progress * Private::kScaleSlideDuration),
+                                                             Qt::Horizontal)
+                                     .toRect());
+        }
+        update();
+    });
 
     FluentStyleSheet::setRole(this, QStringLiteral("Pivot"));
 }
@@ -79,10 +96,7 @@ PivotItem *Pivot::insertItem(int index, const QString &routeKey, const QString &
         emit itemClicked(routeKey);
     });
 
-    if (m_currentItem.isEmpty()) {
-        setCurrentItem(routeKey);
-    }
-
+    // As in Python, nothing is selected until setCurrentItem().
     return newItem;
 }
 
@@ -157,9 +171,16 @@ void Pivot::setCurrentItem(const QString &routeKey)
     if (m_slideAnimation) {
         const QRect targetGeometry = computeIndicatorGeometry();
         m_slideAnimation->stop();
-        m_slideAnimation->setStartValue(m_indicatorGeometry);
-        m_slideAnimation->setEndValue(targetGeometry);
-        m_slideAnimation->start();
+        // The squash and stretch keeps the start's length, so with nothing shown yet (Python
+        // would start from a 16x3 rect) the indicator goes straight to its place.
+        if (m_indicatorGeometry.isEmpty() || !isVisible()) {
+            setIndicatorGeometry(targetGeometry);
+            update();
+        } else {
+            m_slideStart = m_indicatorGeometry;
+            m_slideEnd = targetGeometry;
+            m_slideAnimation->start();
+        }
     }
 
     emit currentItemChanged(m_currentItem);
@@ -180,6 +201,14 @@ PivotItem *Pivot::createItem(const QString &routeKey, const QString &text)
 }
 
 QHBoxLayout *Pivot::layoutHandle() const { return m_layout; }
+
+// Python's PointToPointAnimation: 187 ms on a (0.55, 0.55, 0, 1) bezier.
+void Pivot::usePointToPointAnimation()
+{
+    m_pointToPoint = true;
+    m_slideAnimation->setDuration(187);
+    m_slideAnimation->setEasingCurve(Private::fluentBezierCurve(0.55, 0.55, 0, 1));
+}
 
 QRect Pivot::computeIndicatorGeometry() const
 {
@@ -215,7 +244,7 @@ void Pivot::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
 
-    painter.setBrush(ThemeManager::instance()->accentColor());
+    painter.setBrush(themeColor());
     painter.drawRoundedRect(m_indicatorGeometry, 1.5, 1.5);
 }
 

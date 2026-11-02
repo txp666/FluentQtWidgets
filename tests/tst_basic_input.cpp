@@ -1,80 +1,21 @@
 // Buttons, check boxes, radio buttons, switches and sliders.
 
 #include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
-#include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <functional>
-#include <QtCore/QBuffer>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
 #include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtCore/QVariantAnimation>
 #include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
-#include <QtGui/QStandardItem>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
 #include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QScrollArea>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -82,6 +23,20 @@
 #include <optional>
 
 using namespace FluentQt;
+
+// A 16 x 16 icon of one colour in a rounded square, the shape a drop icon has.
+static QIcon roundedIcon(const QColor &color)
+{
+    QPixmap pixmap(16, 16);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(color);
+    painter.setPen(Qt::NoPen);
+    painter.drawRoundedRect(QRectF(2, 2, 12, 12), 2, 2);
+    painter.end();
+    return QIcon(pixmap);
+}
 
 class BasicInputTest : public QObject
 {
@@ -132,11 +87,6 @@ class BasicInputTest : public QObject
                                               + primary.iconSize().width() + 32);
         QCOMPARE(primary.minimumSizeHint(), primary.sizeHint());
 
-        auto filledIcon = [](const QColor &color) {
-            QPixmap pixmap(16, 16);
-            pixmap.fill(color);
-            return QIcon(pixmap);
-        };
 
         FluentQt::PushButton dynamicButton(QStringLiteral("Dynamic"));
         QVERIFY(dynamicButton.metaObject()->indexOfProperty("isPressed") >= 0);
@@ -144,7 +94,7 @@ class BasicInputTest : public QObject
         QVERIFY(!dynamicButton.isPressed());
         QVERIFY(!dynamicButton.isHover());
         QCOMPARE(dynamicButton.property("hasIcon").toBool(), false);
-        dynamicButton.setIcon(filledIcon(Qt::red));
+        dynamicButton.setIcon(FqwTest::solidIcon(Qt::red));
         QCOMPARE(dynamicButton.property("hasIcon").toBool(), true);
         dynamicButton.setIcon(QIcon());
         QCOMPARE(dynamicButton.property("hasIcon").toBool(), false);
@@ -158,7 +108,7 @@ class BasicInputTest : public QObject
         QVERIFY(link.metaObject()->indexOfProperty("isPressed") >= 0);
         QVERIFY(link.metaObject()->indexOfProperty("isHover") >= 0);
         QCOMPARE(link.property("hasIcon").toBool(), false);
-        link.setIcon(filledIcon(Qt::green));
+        link.setIcon(FqwTest::solidIcon(Qt::green));
         QCOMPARE(link.property("hasIcon").toBool(), true);
         link.setIcon(QIcon());
         QCOMPARE(link.property("hasIcon").toBool(), false);
@@ -169,7 +119,7 @@ class BasicInputTest : public QObject
         QTest::mouseRelease(&stateLink, Qt::LeftButton);
         QVERIFY(!stateLink.isPressed());
 
-        FluentQt::ToolButton pressedTool(filledIcon(Qt::blue));
+        FluentQt::ToolButton pressedTool(FqwTest::solidIcon(Qt::blue));
         QVERIFY(pressedTool.metaObject()->indexOfProperty("isPressed") >= 0);
         QVERIFY(pressedTool.metaObject()->indexOfProperty("isHover") >= 0);
         QVERIFY(!pressedTool.isPressed());
@@ -181,7 +131,7 @@ class BasicInputTest : public QObject
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
         FluentQt::PrimaryPushButton tintedPrimary(QStringLiteral("Primary"));
-        tintedPrimary.setIcon(filledIcon(Qt::red));
+        tintedPrimary.setIcon(FqwTest::solidIcon(Qt::red));
         QCOMPARE(tintedPrimary.property("hasIcon").toBool(), true);
 
         // The icon keeps its own colour; the accent style tints only the text.
@@ -265,10 +215,212 @@ class BasicInputTest : public QObject
         QCOMPARE(hyperlink.url(), QUrl(QStringLiteral(FQW_REPOSITORY_URL)));
     }
 
+    // A style sheet's min-height sizes the content box, so the tool buttons' old
+    // `min-height: 32px` grew them to 45 px with padding and border, against 33 for a push
+    // button, and stretched the folder list's fixed 39x29 remove button too.
+    void toolButtonsAreAsTallAsPushButtons()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            auto *push = new DropDownPushButton(icon(FluentIcon::Mail), QStringLiteral("Email"), &window);
+            layout->addWidget(push, 0, Qt::AlignTop);
+            const QList<QToolButton *> tools = {
+                new ToolButton(icon(FluentIcon::Mail), &window),
+                new DropDownToolButton(icon(FluentIcon::Mail), &window),
+                new PrimaryDropDownToolButton(icon(FluentIcon::Mail), &window),
+                new TransparentToolButton(icon(FluentIcon::Mail), &window),
+                new TransparentDropDownToolButton(icon(FluentIcon::Mail), &window),
+                new ToggleToolButton(icon(FluentIcon::Mail), &window),
+            };
+            for (QToolButton *tool : tools) {
+                layout->addWidget(tool, 0, Qt::AlignTop);
+            }
+            auto *removeButton = new ToolButton(icon(FluentIcon::Close), &window);
+            FluentStyleSheet::setRole(removeButton, QStringLiteral("FolderRemoveButton"));
+            removeButton->setFixedSize(39, 29);
+            layout->addWidget(removeButton, 0, Qt::AlignTop);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            // As in Python: 32 px beside a 33 px push button, and 30 px for the borderless
+            // transparent ones. With another font, each is as tall as its own hint.
+            const bool measured = FqwTest::hasPythonMeasurementFont(push);
+            QCOMPARE(push->height(), measured ? 33 : push->sizeHint().height());
+            for (const QToolButton *tool : tools) {
+                const bool transparent = tool->property("fqw").toString().startsWith(QStringLiteral("Transparent"));
+                const int expected = measured ? (transparent ? 30 : 32) : tool->sizeHint().height();
+                QVERIFY2(tool->height() == expected,
+                         qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
+                                        .arg(tool->property("fqw").toString())
+                                        .arg(tool->height())
+                                        .arg(push->height())));
+            }
+            QCOMPARE(removeButton->size(), QSize(39, 29));
+        }
+    }
+
+    // Python pads the primary buttons and checked toggle buttons as their plain ToolButton or
+    // PushButton base; the primary rule's own `padding: 5px 12px 6px 12px` made a primary tool
+    // button 45 px wide against 38, cut a primary drop-down tool button's arrow room to 45 px
+    // against 60, and widened a toggle tool button when it was checked.
+    void primaryAndCheckedButtonsKeepTheirBasePadding()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            const QIcon mail = icon(FluentIcon::Mail);
+            const auto hint = [](QWidget *widget) {
+                widget->ensurePolished();
+                return widget->sizeHint();
+            };
+
+            ToolButton tool(mail);
+            PrimaryToolButton primaryTool(mail);
+            QCOMPARE(hint(&primaryTool), hint(&tool));
+
+            DropDownToolButton dropDown(mail);
+            PrimaryDropDownToolButton primaryDropDown(mail);
+            QCOMPARE(hint(&primaryDropDown), hint(&dropDown));
+
+            PushButton push(QStringLiteral("Button"));
+            PrimaryPushButton primaryPush(QStringLiteral("Button"));
+            QCOMPARE(hint(&primaryPush), hint(&push));
+
+            ToggleToolButton toggleTool(mail);
+            TransparentToggleToolButton transparentToggleTool(mail);
+            TogglePushButton togglePush(mail, QStringLiteral("Button"));
+            const QSize uncheckedToggleTool = hint(&toggleTool);
+            const QSize uncheckedTogglePush = hint(&togglePush);
+            for (QAbstractButton *button :
+                 {static_cast<QAbstractButton *>(&toggleTool), static_cast<QAbstractButton *>(&transparentToggleTool),
+                  static_cast<QAbstractButton *>(&togglePush)}) {
+                button->setChecked(true);
+                FluentStyleSheet::polish(button);
+            }
+            QCOMPARE(hint(&toggleTool), uncheckedToggleTool);
+            QCOMPARE(hint(&transparentToggleTool), hint(&tool));
+            QCOMPARE(hint(&togglePush), uncheckedTogglePush);
+        }
+    }
+
+    // Python fades a disabled drop-down button's arrow to 0.6 (light) or 0.43 (dark), not 0.36,
+    // and draws a disabled primary one white in both themes.
+    void disabledDropDownArrowsFadeLikePython()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            const bool dark = theme == Theme::Dark;
+            const QColor backdrop = dark ? QColor(32, 32, 32) : Qt::white;
+            const int arrowGray = dark ? 255 : 100;
+
+            DropDownToolButton button(icon(FluentIcon::Mail));
+            button.ensurePolished();
+            button.resize(button.sizeHint());
+            const QRect arrow(button.width() - 22, button.height() / 2 - 5, 10, 10);
+            const QPoint beside(arrow.left() - 3, button.height() / 2);
+
+            // The arrow's most covered pixel when enabled, and how much it covers.
+            const QImage enabled = FqwTest::render(&button, backdrop);
+            const int enabledBack = qGray(enabled.pixel(beside));
+            QPoint strongest;
+            int strongestDelta = 0;
+            for (int y = arrow.top(); y <= arrow.bottom(); ++y) {
+                for (int x = arrow.left(); x <= arrow.right(); ++x) {
+                    const int delta = qAbs(qGray(enabled.pixel(x, y)) - enabledBack);
+                    if (delta > strongestDelta) {
+                        strongestDelta = delta;
+                        strongest = QPoint(x, y);
+                    }
+                }
+            }
+            const qreal coverage = qreal(strongestDelta) / qAbs(arrowGray - enabledBack);
+            QVERIFY(coverage > 0.3);
+
+            button.setEnabled(false);
+            const QImage disabled = FqwTest::render(&button, backdrop);
+            const int disabledBack = qGray(disabled.pixel(beside));
+            const qreal opacity =
+                qAbs(qGray(disabled.pixel(strongest)) - disabledBack) / (coverage * qAbs(arrowGray - disabledBack));
+            QVERIFY2(qAbs(opacity - (dark ? 0.43 : 0.6)) < 0.08, qPrintable(QString::number(opacity)));
+
+            PrimaryDropDownToolButton primary(icon(FluentIcon::Mail));
+            primary.ensurePolished();
+            primary.resize(primary.sizeHint());
+            primary.setEnabled(false);
+            const QImage primaryImage = FqwTest::render(&primary, backdrop);
+            const int primaryBack = qGray(primaryImage.pixel(beside));
+            int brightest = 0;
+            for (int y = arrow.top(); y <= arrow.bottom(); ++y) {
+                for (int x = arrow.left(); x <= arrow.right(); ++x) {
+                    brightest = qMax(brightest, qGray(primaryImage.pixel(x, y)) - primaryBack);
+                }
+            }
+            QVERIFY2(brightest > 20, qPrintable(QString::number(brightest)));
+        }
+    }
+
+    // Python gives a disabled primary split button's main part a grey right edge, lighter than
+    // its disabled border, where the drop button meets it.
+    void disabledPrimarySplitButtonsKeepPythonDividerColour()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            const QColor divider = theme == Theme::Dark ? QColor(70, 70, 70) : QColor(195, 195, 195);
+            PrimarySplitPushButton pushSplit(QStringLiteral("Email"));
+            PrimarySplitToolButton toolSplit(icon(FluentIcon::Mail));
+            for (SplitWidgetBase *split :
+                 {static_cast<SplitWidgetBase *>(&pushSplit), static_cast<SplitWidgetBase *>(&toolSplit)}) {
+                split->setEnabled(false);
+                split->adjustSize();
+                QWidget *button = split->contentWidget();
+                const QImage image = button->grab().toImage();
+                const QColor edge = image.pixelColor(image.width() - 1, image.height() / 2);
+                QCOMPARE(edge.rgb(), divider.rgb());
+            }
+        }
+    }
+
+    // Python sets no minimum sizes on its buttons and combo boxes; the port's 32 px minimums made
+    // the borderless transparent and pill buttons 32 px tall against 30-31, and pinned the split
+    // drop button at 32 px wide against 31.
+    void buttonsHaveNoMinimumSizesBeyondPython()
+    {
+        const QIcon mail = icon(FluentIcon::Mail);
+        PushButton push(QStringLiteral("Button"));
+        TransparentPushButton transparentPush(QStringLiteral("Button"));
+        PillPushButton pillPush(QStringLiteral("Tag"));
+        ToolButton tool(mail);
+        TransparentToolButton transparentTool(mail);
+        PillToolButton pillTool(mail);
+        DropDownToolButton dropDown(mail);
+        PrimaryDropDownToolButton primaryDropDown(mail);
+        ComboBox combo;
+        ModelComboBox modelCombo;
+        for (QWidget *widget :
+             std::initializer_list<QWidget *>{&push, &transparentPush, &pillPush, &tool, &transparentTool, &pillTool,
+                                              &dropDown, &primaryDropDown, &combo, &modelCombo}) {
+            QVERIFY2(widget->minimumSize() == QSize(0, 0), qPrintable(QStringLiteral("%1 has a %2x%3 minimum")
+                                                                          .arg(widget->property("fqw").toString())
+                                                                          .arg(widget->minimumWidth())
+                                                                          .arg(widget->minimumHeight())));
+            widget->ensurePolished();
+        }
+        if (FqwTest::hasPythonMeasurementFont(&transparentPush)) {
+            QCOMPARE(transparentPush.sizeHint().height(), 31);
+            QCOMPARE(pillPush.sizeHint().height(), 31);
+            QCOMPARE(transparentTool.sizeHint(), QSize(36, 30));
+            QCOMPARE(pillTool.sizeHint(), QSize(36, 30));
+        }
+    }
+
     void pushButtonIconAndTextKeepPythonSpacing()
     {
         auto *manager = ThemeManager::instance();
-        const Theme previousTheme = manager->theme();
         manager->setTheme(Theme::Light);
 
         QPixmap pixmap(16, 16);
@@ -362,11 +514,9 @@ class BasicInputTest : public QObject
                  qPrintable(QStringLiteral("Checked toggle icon/text gap is %1 px, expected at least %2 px")
                                 .arg(checkedGap)
                                 .arg(qRound(4 * checkedScale))));
-
-        manager->setTheme(previousTheme);
     }
 
-    void proButtonVariantsExposeRolesAndSeverity()
+    void portOnlyButtonsExposeRolesAndSeverity()
     {
         HyperlinkToolButton hyperlink(icon(FluentIcon::GitHub), QStringLiteral("https://example.com"));
         QCOMPARE(hyperlink.property("fqw").toString(), QStringLiteral("HyperlinkToolButton"));
@@ -404,15 +554,11 @@ class BasicInputTest : public QObject
         OutlinedToolButton outlinedTool(icon(FluentIcon::Flag));
         QVERIFY(outlined.isCheckable());
         QVERIFY(outlinedTool.isCheckable());
-        QVERIFY(outlinedTool.minimumSize().width() >= 48);
-        QVERIFY(outlinedTool.minimumSize().height() >= 48);
         QCOMPARE(outlined.property("fqw").toString(), QStringLiteral("OutlinedPushButton"));
         QCOMPARE(outlinedTool.property("fqw").toString(), QStringLiteral("OutlinedToolButton"));
 
         RoundPushButton round(icon(FluentIcon::Tag), QStringLiteral("Round"));
         RoundToolButton roundTool(icon(FluentIcon::Basketball));
-        QVERIFY(roundTool.minimumSize().width() >= 48);
-        QVERIFY(roundTool.minimumSize().height() >= 48);
         QCOMPARE(round.property("fqw").toString(), QStringLiteral("RoundPushButton"));
         QCOMPARE(roundTool.property("fqw").toString(), QStringLiteral("RoundToolButton"));
 
@@ -438,28 +584,9 @@ class BasicInputTest : public QObject
 
         auto averageArrowGray = [](QWidget &widget, int minimumGray, int maximumGray) {
             widget.resize(160, 32);
-            widget.ensurePolished();
-
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-
-            const QImage image = pixmap.toImage();
+            const QImage image = FqwTest::render(widget);
             const QRect arrowRect(widget.width() - 22, widget.height() / 2 - 5, 10, 10);
-            int sampled = 0;
-            int graySum = 0;
-            for (int y = arrowRect.top(); y <= arrowRect.bottom(); ++y) {
-                for (int x = arrowRect.left(); x <= arrowRect.right(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    const int gray = qGray(color.rgb());
-                    if (color.alpha() > 0 && gray >= minimumGray && gray <= maximumGray) {
-                        ++sampled;
-                        graySum += gray;
-                    }
-                }
-            }
-
-            return sampled > 0 ? graySum / sampled : -1;
+            return FqwTest::averageGray(image, arrowRect, minimumGray, maximumGray);
         };
 
         FluentQt::DropDownPushButton button(QStringLiteral("Email"));
@@ -498,7 +625,7 @@ class BasicInputTest : public QObject
         verifyArrowAnimation(&animatedPrimaryTool);
     }
 
-    void dropDownButtonPopupUsesRoundMenuSizing()
+    void dropDownButtonMenuIsAtLeastButtonWideAndTriggers()
     {
         FluentQt::DropDownPushButton button(QStringLiteral("Actions"));
         button.resize(180, 32);
@@ -543,52 +670,61 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryToolButton.menu(), &menu);
     }
 
-    void splitButtonsExposePrimaryVariantsAndDropRoles()
+    void splitDropButtonsHavePythonsFixedSize()
+    {
+        FluentQt::SplitDropButton plainDrop;
+        QCOMPARE(plainDrop.property("fqw").toString(), QStringLiteral("SplitDropButton"));
+        plainDrop.ensurePolished();
+        QCOMPARE(plainDrop.sizeHint().width(), 31);
+        QVERIFY(plainDrop.maximumHeight() > plainDrop.minimumHeight());
+        QCOMPARE(plainDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+        QCOMPARE(plainDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
+        QCOMPARE(plainDrop.iconSize(), QSize(10, 10));
+        QCOMPARE(plainDrop.arrowOffset(), 0.0);
+        QVERIFY(!plainDrop.hasCustomDropIcon());
+
+        FluentQt::PrimarySplitDropButton primaryDrop;
+        QCOMPARE(primaryDrop.property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
+        primaryDrop.ensurePolished();
+        QCOMPARE(primaryDrop.sizeHint().width(), 31);
+        QVERIFY(primaryDrop.maximumHeight() > primaryDrop.minimumHeight());
+        QCOMPARE(primaryDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+        QCOMPARE(primaryDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
+    }
+
+    void splitWidgetBaseSwapsItsDropButtonAndContent()
+    {
+        FluentQt::SplitWidgetBase splitBase;
+        auto *replacementDrop = new QToolButton;
+        splitBase.setDropButton(replacementDrop);
+        QCOMPARE(splitBase.dropButton(), replacementDrop);
+        splitBase.setDropIcon(roundedIcon(QColor(1, 120, 200)));
+        splitBase.setDropIconSize(QSize(9, 9));
+        QCOMPARE(replacementDrop->iconSize(), QSize(9, 9));
+        QSignalSpy baseDropSpy(&splitBase, &FluentQt::SplitWidgetBase::dropDownClicked);
+        QTest::mouseClick(replacementDrop, Qt::LeftButton);
+        QCOMPARE(baseDropSpy.count(), 1);
+        auto *firstContent = new QLabel(QStringLiteral("First"));
+        auto *secondContent = new QLabel(QStringLiteral("Second"));
+        QPointer<QWidget> firstContentGuard(firstContent);
+        splitBase.setWidget(firstContent);
+        splitBase.setWidget(secondContent);
+        QCOMPARE(splitBase.contentWidget(), secondContent);
+        QVERIFY(firstContentGuard);
+        QVERIFY(firstContent->isHidden());
+        QCOMPARE(firstContent->parentWidget(), &splitBase);
+    }
+
+    void splitButtonsTintTheirDropArrowsAndIcons()
     {
         auto averageSplitArrowGray = [](QToolButton *button, int minimumGray, int maximumGray) {
-            button->ensurePolished();
-
-            QPixmap pixmap(button->size());
-            pixmap.fill(Qt::transparent);
-            button->render(&pixmap);
-
-            const QImage image = pixmap.toImage();
+            const QImage image = FqwTest::render(button);
             const QRect arrowRect((image.width() - 10) / 2, image.height() / 2 - 5, 10, 10);
-            int sampled = 0;
-            int graySum = 0;
-            for (int y = arrowRect.top(); y <= arrowRect.bottom(); ++y) {
-                for (int x = arrowRect.left(); x <= arrowRect.right(); ++x) {
-                    const QColor color = image.pixelColor(x, y);
-                    const int gray = qGray(color.rgb());
-                    if (color.alpha() > 0 && gray >= minimumGray && gray <= maximumGray) {
-                        ++sampled;
-                        graySum += gray;
-                    }
-                }
-            }
-            return sampled > 0 ? graySum / sampled : -1;
-        };
-
-        auto solidIcon = [](const QColor &color) {
-            QPixmap pixmap(16, 16);
-            pixmap.fill(Qt::transparent);
-            QPainter painter(&pixmap);
-            painter.setRenderHint(QPainter::Antialiasing);
-            painter.setBrush(color);
-            painter.setPen(Qt::NoPen);
-            painter.drawRoundedRect(QRectF(2, 2, 12, 12), 2, 2);
-            painter.end();
-            return QIcon(pixmap);
+            return FqwTest::averageGray(image, arrowRect, minimumGray, maximumGray);
         };
 
         auto countPixelsNear = [](QToolButton *button, const QColor &expected) {
-            button->ensurePolished();
-
-            QPixmap pixmap(button->size());
-            pixmap.fill(Qt::transparent);
-            button->render(&pixmap);
-
-            const QImage image = pixmap.toImage();
+            const QImage image = FqwTest::render(button);
             int matched = 0;
             for (int y = 0; y < image.height(); ++y) {
                 for (int x = 0; x < image.width(); ++x) {
@@ -614,48 +750,7 @@ class BasicInputTest : public QObject
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
 
-        FluentQt::SplitDropButton plainDrop;
-        QCOMPARE(plainDrop.property("fqw").toString(), QStringLiteral("SplitDropButton"));
-        QCOMPARE(plainDrop.minimumSize(), QSize(32, 32));
-        QCOMPARE(plainDrop.maximumWidth(), 32);
-        QVERIFY(plainDrop.maximumHeight() > plainDrop.minimumHeight());
-        QCOMPARE(plainDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-        QCOMPARE(plainDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
-        QCOMPARE(plainDrop.iconSize(), QSize(10, 10));
-        QCOMPARE(plainDrop.arrowOffset(), 0.0);
-        QVERIFY(!plainDrop.hasCustomDropIcon());
-
-        FluentQt::PrimarySplitDropButton primaryDrop;
-        QCOMPARE(primaryDrop.property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
-        QCOMPARE(primaryDrop.minimumSize(), QSize(32, 32));
-        QCOMPARE(primaryDrop.maximumWidth(), 32);
-        QVERIFY(primaryDrop.maximumHeight() > primaryDrop.minimumHeight());
-        QCOMPARE(primaryDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-        QCOMPARE(primaryDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
-        QVERIFY(qobject_cast<FluentQt::SplitDropButton *>(&primaryDrop) != nullptr);
-
-        FluentQt::SplitWidgetBase splitBase;
-        auto *replacementDrop = new QToolButton;
-        splitBase.setDropButton(replacementDrop);
-        QCOMPARE(splitBase.dropButton(), replacementDrop);
-        splitBase.setDropIcon(solidIcon(QColor(1, 120, 200)));
-        splitBase.setDropIconSize(QSize(9, 9));
-        QCOMPARE(replacementDrop->iconSize(), QSize(9, 9));
-        QSignalSpy baseDropSpy(&splitBase, &FluentQt::SplitWidgetBase::dropDownClicked);
-        QTest::mouseClick(replacementDrop, Qt::LeftButton);
-        QCOMPARE(baseDropSpy.count(), 1);
-        auto *firstContent = new QLabel(QStringLiteral("First"));
-        auto *secondContent = new QLabel(QStringLiteral("Second"));
-        QPointer<QWidget> firstContentGuard(firstContent);
-        splitBase.setWidget(firstContent);
-        splitBase.setWidget(secondContent);
-        QCOMPARE(splitBase.contentWidget(), secondContent);
-        QVERIFY(firstContentGuard);
-        QVERIFY(firstContent->isHidden());
-        QCOMPARE(firstContent->parentWidget(), &splitBase);
-
         FluentQt::SplitPushButton splitPush(QStringLiteral("Normal"));
-        QVERIFY(qobject_cast<FluentQt::SplitWidgetBase *>(&splitPush) != nullptr);
         QVERIFY(splitPush.metaObject()->indexOfProperty("icon") >= 0);
         QVERIFY(splitPush.metaObject()->indexOfProperty("iconSize") >= 0);
         QCOMPARE(splitPush.button()->objectName(), QStringLiteral("splitPushButton"));
@@ -663,10 +758,10 @@ class BasicInputTest : public QObject
         QCOMPARE(splitPush.dropButton()->property("fqw").toString(), QStringLiteral("SplitDropButton"));
         splitPush.ensurePolished();
         splitPush.adjustSize();
-        QCOMPARE(splitPush.dropButton()->height(), qMax(32, splitPush.button()->sizeHint().height()));
+        QCOMPARE(splitPush.dropButton()->height(), splitPush.button()->sizeHint().height());
         QCOMPARE(splitPush.dropButton()->height(), splitPush.button()->height());
-        QCOMPARE(splitPush.dropButton()->width(), 32);
-        splitPush.setIcon(solidIcon(QColor(16, 32, 48)));
+        QCOMPARE(splitPush.dropButton()->width(), 31);
+        splitPush.setIcon(roundedIcon(QColor(16, 32, 48)));
         splitPush.setIconSize(QSize(18, 18));
         QCOMPARE(splitPush.iconSize(), QSize(18, 18));
         QCOMPARE(splitPush.button()->iconSize(), QSize(18, 18));
@@ -674,7 +769,7 @@ class BasicInputTest : public QObject
         const int normalGray = averageSplitArrowGray(splitPush.dropButton(), 40, 180);
         QVERIFY(normalGray > 40);
         QVERIFY(normalGray <= 180);
-        splitPush.setDropIcon(solidIcon(QColor(220, 20, 60)));
+        splitPush.setDropIcon(roundedIcon(QColor(220, 20, 60)));
         splitPush.setDropIconSize(QSize(14, 14));
         QCOMPARE(splitPush.dropButton()->iconSize(), QSize(14, 14));
         auto *splitDropButton = qobject_cast<FluentQt::SplitDropButton *>(splitPush.dropButton());
@@ -683,7 +778,6 @@ class BasicInputTest : public QObject
         QVERIFY(countPixelsNear(splitPush.dropButton(), QColor(220, 20, 60)) > 40);
 
         FluentQt::PrimarySplitPushButton primaryPush(QStringLiteral("Primary"));
-        QVERIFY(qobject_cast<FluentQt::SplitWidgetBase *>(&primaryPush) != nullptr);
         QVERIFY(primaryPush.metaObject()->indexOfProperty("icon") >= 0);
         QVERIFY(primaryPush.metaObject()->indexOfProperty("iconSize") >= 0);
         QVERIFY(primaryPush.button() != nullptr);
@@ -692,10 +786,10 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryPush.dropButton()->property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
         primaryPush.ensurePolished();
         primaryPush.adjustSize();
-        QCOMPARE(primaryPush.dropButton()->height(), qMax(32, primaryPush.button()->sizeHint().height()));
+        QCOMPARE(primaryPush.dropButton()->height(), primaryPush.button()->sizeHint().height());
         QCOMPARE(primaryPush.dropButton()->height(), primaryPush.button()->height());
-        QCOMPARE(primaryPush.dropButton()->width(), 32);
-        primaryPush.setIcon(solidIcon(QColor(20, 80, 160)));
+        QCOMPARE(primaryPush.dropButton()->width(), 31);
+        primaryPush.setIcon(roundedIcon(QColor(20, 80, 160)));
         primaryPush.setIconSize(QSize(19, 19));
         QCOMPARE(primaryPush.iconSize(), QSize(19, 19));
         QCOMPARE(primaryPush.button()->iconSize(), QSize(19, 19));
@@ -703,7 +797,7 @@ class BasicInputTest : public QObject
         const int primaryGray = averageSplitArrowGray(primaryPush.dropButton(), 220, 255);
         QVERIFY(primaryGray > 170);
         QVERIFY(primaryGray > normalGray + 40);
-        primaryPush.setDropIcon(solidIcon(QColor(30, 144, 255)));
+        primaryPush.setDropIcon(roundedIcon(QColor(30, 144, 255)));
         primaryPush.setDropIconSize(QSize(12, 12));
         QCOMPARE(primaryPush.dropButton()->iconSize(), QSize(12, 12));
         QVERIFY(countPixelsNear(primaryPush.dropButton(), QColor(30, 144, 255)) > 25);
@@ -717,17 +811,22 @@ class BasicInputTest : public QObject
         QCOMPARE(primaryTool.dropButton()->property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
         primaryTool.ensurePolished();
         primaryTool.adjustSize();
-        QCOMPARE(primaryTool.dropButton()->height(), qMax(32, primaryTool.button()->sizeHint().height()));
+        QCOMPARE(primaryTool.dropButton()->height(), primaryTool.button()->sizeHint().height());
         QCOMPARE(primaryTool.dropButton()->height(), primaryTool.button()->height());
-        QCOMPARE(primaryTool.dropButton()->width(), 32);
+        QCOMPARE(primaryTool.dropButton()->width(), 31);
         primaryTool.setIconSize(QSize(17, 17));
         QCOMPARE(primaryTool.iconSize(), QSize(17, 17));
         QCOMPARE(primaryTool.button()->iconSize(), QSize(17, 17));
         QVERIFY(!primaryTool.icon().isNull());
-        primaryTool.setDropIcon(solidIcon(QColor(80, 200, 120)));
+        primaryTool.setDropIcon(roundedIcon(QColor(80, 200, 120)));
         primaryTool.setDropIconSize(QSize(11, 11));
         QCOMPARE(primaryTool.dropButton()->iconSize(), QSize(11, 11));
+    }
 
+    void splitButtonsOpenTheirFlyoutsBelowTheButton()
+    {
+        FluentQt::SplitPushButton splitPush(QStringLiteral("Normal"));
+        FluentQt::PrimarySplitPushButton primaryPush(QStringLiteral("Primary"));
         FluentQt::RoundMenu splitPushMenu(&splitPush);
         QAction *splitAction = splitPushMenu.addAction(QStringLiteral("Crazy Diamond"));
         QObject::connect(splitAction, &QAction::triggered, &splitPush,
@@ -798,10 +897,6 @@ class BasicInputTest : public QObject
         QCOMPARE(visibleMenu, &flyout);
         flyout.close();
 
-        FluentQt::SplitPushButton splitAlias(QStringLiteral("Alias"));
-        splitAlias.setFlyout(&flyout);
-        QCOMPARE(splitAlias.flyout(), &flyout);
-
         FluentQt::SplitToolButton splitToolAlias(FluentQt::icon(FluentQt::FluentIcon::Heart));
         QVERIFY(splitToolAlias.metaObject()->indexOfProperty("icon") >= 0);
         QVERIFY(splitToolAlias.metaObject()->indexOfProperty("iconSize") >= 0);
@@ -810,20 +905,14 @@ class BasicInputTest : public QObject
         splitToolAlias.ensurePolished();
         splitToolAlias.adjustSize();
         QCOMPARE(splitToolAlias.dropButton()->height(), splitToolAlias.button()->height());
-        QCOMPARE(splitToolAlias.dropButton()->width(), 32);
+        QCOMPARE(splitToolAlias.dropButton()->width(), 31);
         splitToolAlias.setIconSize(QSize(15, 15));
         QCOMPARE(splitToolAlias.iconSize(), QSize(15, 15));
         QCOMPARE(splitToolAlias.button()->iconSize(), QSize(15, 15));
         QVERIFY(!splitToolAlias.icon().isNull());
-        splitToolAlias.setDropIcon(solidIcon(QColor(255, 165, 0)));
+        splitToolAlias.setDropIcon(roundedIcon(QColor(255, 165, 0)));
         splitToolAlias.setDropIconSize(QSize(13, 13));
         QCOMPARE(splitToolAlias.dropButton()->iconSize(), QSize(13, 13));
-        splitToolAlias.setFlyout(&flyout);
-        QCOMPARE(splitToolAlias.flyout(), &flyout);
-
-        FluentQt::PrimarySplitToolButton primaryToolAlias(FluentQt::icon(FluentQt::FluentIcon::Heart));
-        primaryToolAlias.setFlyout(&flyout);
-        QCOMPARE(primaryToolAlias.flyout(), &flyout);
 
         FluentQt::RoundMenu splitToolMenu(&splitToolAlias);
         QAction *toolAction = splitToolMenu.addAction(QStringLiteral("Jump"));
@@ -845,17 +934,23 @@ class BasicInputTest : public QObject
         QCOMPARE(toolActionSpy.count(), 1);
     }
 
+    // Python sets the check box font in code (setFont(self)) and comments it out of check_box.qss,
+    // so setFont() works; a style sheet font overrides it.
+    void checkBoxTakesItsFontInCode()
+    {
+        FluentQt::CheckBox checkBox(QStringLiteral("Check"));
+        checkBox.ensurePolished();
+        QCOMPARE(checkBox.font().pixelSize(), 14);
+        QFont font = checkBox.font();
+        font.setPixelSize(20);
+        checkBox.setFont(font);
+        checkBox.ensurePolished();
+        QCOMPARE(checkBox.font().pixelSize(), 20);
+    }
+
     void checkBoxSelfPaintsFluentIndicatorAndText()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
-
-        auto render = [](QWidget &widget) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-            return pixmap.toImage();
-        };
 
         FluentQt::CheckBox checkBox(QStringLiteral("Fluent CheckBox"));
         QVERIFY(checkBox.metaObject()->indexOfProperty("lightCheckedColor") >= 0);
@@ -871,7 +966,7 @@ class BasicInputTest : public QObject
         checkBox.resize(160, 24);
         checkBox.setChecked(true);
 
-        QImage image = render(checkBox);
+        QImage image = FqwTest::render(checkBox);
         const QRect indicatorRect(1, 3, 18, 18);
         int accentPixels = 0;
         int whiteIconPixels = 0;
@@ -899,7 +994,7 @@ class BasicInputTest : public QObject
 
         checkBox.setTristate(true);
         checkBox.setCheckState(Qt::PartiallyChecked);
-        image = render(checkBox);
+        image = FqwTest::render(checkBox);
         whiteIconPixels = 0;
         for (int y = indicatorRect.top(); y <= indicatorRect.bottom(); ++y) {
             for (int x = indicatorRect.left(); x <= indicatorRect.right(); ++x) {
@@ -913,7 +1008,7 @@ class BasicInputTest : public QObject
 
         checkBox.setCheckState(Qt::Unchecked);
         checkBox.setTextColor(QColor(QStringLiteral("#cc1122")), QColor(QStringLiteral("#22cc11")));
-        image = render(checkBox);
+        image = FqwTest::render(checkBox);
         const QRect textRect(28, 0, image.width() - 28, image.height());
         int customTextPixels = 0;
         for (int y = textRect.top(); y <= textRect.bottom(); ++y) {
@@ -930,14 +1025,6 @@ class BasicInputTest : public QObject
     void radioButtonSelfPaintsFluentIndicatorAndText()
     {
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
-
-        auto render = [](QWidget &widget) {
-            widget.ensurePolished();
-            QPixmap pixmap(widget.size());
-            pixmap.fill(Qt::transparent);
-            widget.render(&pixmap);
-            return pixmap.toImage();
-        };
 
         FluentQt::RadioButton radio(QStringLiteral("Fluent RadioButton"));
         QVERIFY(radio.metaObject()->indexOfProperty("lightIndicatorColor") >= 0);
@@ -956,7 +1043,7 @@ class BasicInputTest : public QObject
         QCOMPARE(radio.darkIndicatorColor(), QColor(QStringLiteral("#22cc11")));
         radio.setTextColor(QColor(QStringLiteral("#3355cc")), QColor(QStringLiteral("#22cc11")));
 
-        const QImage image = render(radio);
+        const QImage image = FqwTest::render(radio);
         const QRect indicatorRect(1, 1, 21, 22);
         int customIndicatorPixels = 0;
         int customTextPixels = 0;
@@ -979,7 +1066,7 @@ class BasicInputTest : public QObject
         QVERIFY(customTextPixels > 0);
     }
 
-    void switchButtonExposesPythonParityApiAndThemeTextStyle()
+    void switchButtonTracksTextIndicatorAndColours()
     {
         FluentQt::SwitchButton button(QStringLiteral("Disabled"), nullptr, FluentQt::IndicatorPosition::Right);
         QCOMPARE(button.property("fqw").toString(), QStringLiteral("SwitchButton"));
@@ -1017,7 +1104,6 @@ class BasicInputTest : public QObject
 
         button.setOnText(QStringLiteral("Enabled"));
         button.setChecked(true);
-        QCOMPARE(button.isChecked(), true);
         QCOMPARE(button.text(), QStringLiteral("Enabled"));
 
         button.toggleChecked();
@@ -1031,11 +1117,7 @@ class BasicInputTest : public QObject
 
         FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
         auto sampleTrackColor = [indicator]() {
-            indicator->ensurePolished();
-            QPixmap pixmap(indicator->size());
-            pixmap.fill(Qt::transparent);
-            indicator->render(&pixmap);
-            return pixmap.toImage().pixelColor(32, indicator->height() / 2);
+            return FqwTest::render(indicator).pixelColor(32, indicator->height() / 2);
         };
         auto fuzzyCompareColor = [](const QColor &actual, const QColor &expected) {
             return qAbs(actual.red() - expected.red()) <= 2 && qAbs(actual.green() - expected.green()) <= 2 &&
@@ -1063,8 +1145,6 @@ class BasicInputTest : public QObject
 
         button.setSpacing(20);
         QCOMPARE(button.spacing(), 20);
-        button.setIndicatorPosition(FluentQt::IndicatorPosition::Left);
-        QCOMPARE(button.indicatorPosition(), FluentQt::IndicatorPosition::Left);
 
         auto *label = button.findChild<QLabel *>();
         QVERIFY(label != nullptr);
@@ -1100,7 +1180,140 @@ class BasicInputTest : public QObject
         QVERIFY(button.isChecked());
     }
 
-    void slidersTrackPythonParityGeometryAndClicking()
+    // Python applies no style sheet to Slider, which paints itself, so it is as tall as its 22 px
+    // handle; slider.qss's `min-height: 24px` made the port's 2 px taller.
+    void slidersAreAsThickAsTheirHandle()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            auto *horizontal = new Slider(Qt::Horizontal, &window);
+            auto *vertical = new Slider(Qt::Vertical, &window);
+            layout->addWidget(horizontal, 0, Qt::AlignTop);
+            layout->addWidget(vertical, 0, Qt::AlignLeft);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+            QCOMPARE(horizontal->height(), 22);
+            QCOMPARE(vertical->width(), 22);
+        }
+    }
+
+    // Python's Slider(parent) and ClickableSlider(parent) keep QSlider's vertical default.
+    void slidersDefaultToVerticalAsQSliderDoes()
+    {
+        const Slider slider;
+        QCOMPARE(slider.orientation(), Qt::Vertical);
+        const ClickableSlider clickable;
+        QCOMPARE(clickable.orientation(), Qt::Vertical);
+    }
+
+    // Python's ClickableSlider is a plain QSlider with no style sheet (slider.qss would make it 24 px
+    // thick), and its RangeSettingCard uses the self-painting Slider.
+    void clickableSliderIsPlainAndRangeCardUsesSlider()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *horizontal = new ClickableSlider(Qt::Horizontal, &window);
+        layout->addWidget(horizontal, 0, Qt::AlignTop);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(horizontal->styleSheet().isEmpty());
+        QCOMPARE(horizontal->minimumSize(), QSize(0, 0));
+
+        RangeSettingCard card(0, 100, 50, FluentIcon::Home, QStringLiteral("Title"));
+        QCOMPARE(card.slider()->metaObject(), &Slider::staticMetaObject);
+        QCOMPARE(card.slider()->orientation(), Qt::Horizontal);
+    }
+
+    // The port-only variants paint themselves but share the Fluent button box, so they line up
+    // with PushButton and ToolButton. Without their sheet they were 36 px tall and cut their own
+    // text short ("Fill..."), and the outlined and round tool buttons were 48x48.
+    void portOnlyButtonsShareTheFluentButtonBox()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QIcon mail = icon(FluentIcon::Mail);
+            auto *push = new PushButton(mail, QStringLiteral("Push"), &window);
+            auto *tool = new ToolButton(mail, &window);
+            const QList<QPushButton *> pushes = {
+                new FilledPushButton(mail, QStringLiteral("Filled"), &window),
+                new OutlinedPushButton(mail, QStringLiteral("Outlined"), &window),
+                new TextPushButton(mail, QStringLiteral("Text"), &window),
+                new LuminaPushButton(mail, QStringLiteral("Lumina"), &window),
+                new RoundPushButton(mail, QStringLiteral("Round"), &window),
+                new Chip(QStringLiteral("Chip"), &window),
+                new Tag(QStringLiteral("Tag"), &window),
+            };
+            const QList<QToolButton *> tools = {
+                new FilledToolButton(mail, &window),
+                new OutlinedToolButton(mail, &window),
+                new TextToolButton(mail, &window),
+                new HyperlinkToolButton(mail, QStringLiteral("https://example.com"), &window),
+            };
+            auto *round = new RoundToolButton(mail, &window);
+            for (QWidget *widget :
+                 {static_cast<QWidget *>(push), static_cast<QWidget *>(tool), static_cast<QWidget *>(round)}) {
+                layout->addWidget(widget, 0, Qt::AlignTop);
+            }
+            for (QPushButton *button : pushes) {
+                layout->addWidget(button, 0, Qt::AlignTop);
+            }
+            for (QToolButton *button : tools) {
+                layout->addWidget(button, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (const QPushButton *button : pushes) {
+                const QString name = QString::fromLatin1(button->metaObject()->className());
+                QVERIFY2(button->height() == push->height(), qPrintable(name));
+                QVERIFY2(button->width() >= button->fontMetrics().horizontalAdvance(button->text()) + 24,
+                         qPrintable(name));
+            }
+            for (const QToolButton *button : tools) {
+                QVERIFY2(button->size() == tool->size(), button->metaObject()->className());
+            }
+            QCOMPARE(round->size(), QSize(32, 32));
+        }
+    }
+
+    // As in Python, the slider sheet is public and styles any QSlider it is applied to: 24 px thick.
+    void sliderStyleSheetStylesAPlainQSlider()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *horizontal = new QSlider(Qt::Horizontal, &window);
+        auto *vertical = new QSlider(Qt::Vertical, &window);
+        FluentStyleSheet::apply(horizontal, FluentStyleSheetSource::Slider);
+        FluentStyleSheet::apply(vertical, FluentStyleSheetSource::Slider);
+        layout->addWidget(horizontal, 0, Qt::AlignTop);
+        layout->addWidget(vertical, 0, Qt::AlignTop);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCOMPARE(horizontal->height(), 24);
+        QCOMPARE(vertical->width(), 24);
+    }
+
+    // The hint's thickness is the style's, capped at the 22 px handle: Python's QSlider hint is 22
+    // in Qt 5's macOS style and 20 in Fusion at 100 DPI, but Qt 6's macOS style hints 25.
+    void sliderHintIsNoThickerThanItsHandle()
+    {
+        for (const Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
+            const Slider slider(orientation);
+            const QSlider plain(orientation);
+            if (orientation == Qt::Horizontal) {
+                QCOMPARE(slider.sizeHint().height(), qMin(plain.sizeHint().height(), 22));
+            } else {
+                QCOMPARE(slider.sizeHint().width(), qMin(plain.sizeHint().width(), 22));
+            }
+        }
+    }
+
+    void sliderHandleGeometryAndClickToValue()
     {
         FluentQt::Slider slider(Qt::Horizontal);
         slider.setRange(0, 100);

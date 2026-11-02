@@ -4,7 +4,6 @@ QFrame[fqw="TimePicker"] {
     border: 1px solid rgba(255, 255, 255, 0.053);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 5px;
-    min-height: 32px;
     outline: none;
 }
 
@@ -12,7 +11,7 @@ QFrame[fqw="TimePicker"]:hover {
     background: rgba(255, 255, 255, 0.0837);
 }
 
-QFrame[fqw="TimePicker"]:pressed {
+QFrame[fqw="TimePicker"][pressed="true"] {
     color: rgba(255, 255, 255, 0.786);
     background: rgba(255, 255, 255, 0.0326);
     border-top: 1px solid rgba(255, 255, 255, 0.053);
@@ -52,12 +51,12 @@ QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasBorder="false"] {
 }
 
 QFrame[fqw="TimePicker"] QPushButton#pickerButton[enter="true"]:enabled,
-QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasValue="true"] {
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasValue="true"]:enabled {
     color: rgba(255, 255, 255, 1);
 }
 
 QFrame[fqw="TimePicker"] QPushButton#pickerButton[pressed="true"] {
-    color: rgba(255, 255, 255, 0.537);
+    color: rgba(255, 255, 255, 0.786);
 }
 
 QFrame[fqw="TimePicker"] QPushButton#pickerButton[align="center"] {
@@ -78,28 +77,8 @@ QFrame[fqw="TimePickerPanel"] {
     border-radius: 7px;
 }
 
-QFrame[fqw="TimePickerPanel"] QFrame[pickerSeparator="true"] {
-    color: rgb(61, 61, 61);
+QWidget[fqw="SeparatorWidget"] {
     background-color: rgb(61, 61, 61);
-    max-width: 1px;
-    max-height: 1px;
-}
-
-QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"] {
-    background-color: transparent;
-    border: none;
-    border-radius: 5px;
-    min-height: 30px;
-    padding: 0px;
-    margin: 0px 2px;
-}
-
-QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"]:hover {
-    background-color: rgba(255, 255, 255, 9);
-}
-
-QFrame[fqw="TimePickerPanel"] QToolButton[pickerOperation="true"]:pressed {
-    background-color: rgba(255, 255, 255, 6);
 }
 
 QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"] {
@@ -127,4 +106,10 @@ QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:selected {
 
 QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:selected:active {
     background-color: rgba(255, 255, 255, 6);
+}
+
+QToolButton[fqw="ScrollButton"] {
+    background-color: rgb(44, 44, 44);
+    border: none;
+    border-radius: 7px;
 }

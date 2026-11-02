@@ -1,9 +1,12 @@
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 
+#include "ScaleSlideAnimation_p.h"
+
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
+#include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
-#include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 
@@ -36,7 +39,7 @@ class NavigationIndicator : public QWidget
         m_animation = new QVariantAnimation(this);
         m_animation->setStartValue(0.0);
         m_animation->setEndValue(1.0);
-        m_animation->setDuration(600);
+        m_animation->setDuration(Private::kScaleSlideDuration);
         m_animation->setEasingCurve(QEasingCurve::Linear);
         connect(m_animation, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
             setGeometry(animatedGeometry(value.toReal()).toRect());
@@ -69,7 +72,7 @@ class NavigationIndicator : public QWidget
         raise();
 
         m_animation->stop();
-        m_animation->setDuration(600);
+        m_animation->setDuration(Private::kScaleSlideDuration);
         m_animation->setStartValue(0.0);
         m_animation->setEndValue(1.0);
         m_animation->start();
@@ -95,7 +98,7 @@ class NavigationIndicator : public QWidget
         const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
         QColor color = dark ? m_darkColor : m_lightColor;
         if (!color.isValid()) {
-            color = ThemeManager::instance()->accentColor();
+            color = themeColor();
         }
         painter.setBrush(color);
         painter.drawRoundedRect(rect(), 1.5, 1.5);
@@ -104,36 +107,8 @@ class NavigationIndicator : public QWidget
   private:
     QRectF animatedGeometry(qreal progress) const
     {
-        progress = qBound(0.0, progress, 1.0);
-        const bool sameLevel = qAbs(m_startRect.x() - m_endRect.x()) < 1.0;
-        const qreal dimension = m_startRect.height();
-        const qreal distance = qAbs(m_endRect.y() - m_startRect.y());
-
-        if (dimension <= 0 || distance <= 0) {
-            return m_endRect;
-        }
-
-        if (!sameLevel) {
-            const bool nextBelow = m_endRect.y() > m_startRect.y();
-            const qreal eased = QEasingCurve(QEasingCurve::OutQuint).valueForProgress(progress);
-            const qreal height = dimension * eased;
-            const qreal top = nextBelow ? m_endRect.y() : m_endRect.y() + dimension - height;
-            return QRectF(m_endRect.x(), top, m_endRect.width(), height);
-        }
-
-        const qreal middleLength = distance + dimension;
-        const bool forward = m_endRect.y() > m_startRect.y();
-        if (progress <= 1.0 / 3.0) {
-            const qreal local = progress * 3.0;
-            const qreal height = dimension + distance * local;
-            const qreal top = forward ? m_startRect.y() : m_startRect.y() + (m_endRect.y() - m_startRect.y()) * local;
-            return QRectF(m_startRect.x(), top, m_startRect.width(), height);
-        }
-
-        const qreal local = (progress - 1.0 / 3.0) * 1.5;
-        const qreal height = middleLength + (dimension - middleLength) * local;
-        const qreal top = forward ? m_startRect.y() + (m_endRect.y() - m_startRect.y()) * local : m_endRect.y();
-        return QRectF(m_startRect.x(), top, m_startRect.width(), height);
+        return Private::scaleSlideGeometry(m_startRect, m_endRect, qRound(progress * Private::kScaleSlideDuration),
+                                           Qt::Vertical);
     }
 
     QVariantAnimation *m_animation = nullptr;
@@ -143,7 +118,49 @@ class NavigationIndicator : public QWidget
     QColor m_darkColor;
 };
 
-NavigationPanel::NavigationPanel(QWidget *parent) : QFrame(parent)
+namespace {
+
+// Python's NavigationSeparator: a 3 px line across the panel's full width, 48 px when compact
+// and 322 px when expanded, so that it runs to the panel's right edge.
+class NavigationSeparator : public QFrame
+{
+  public:
+    explicit NavigationSeparator(QWidget *parent) : QFrame(parent) { setCompacted(true); }
+
+    void setCompacted(bool compacted)
+    {
+        m_compacted = compacted;
+        setFixedSize(compacted ? 48 : m_expandWidth, 3);
+        update();
+    }
+
+    void setExpandWidth(int width)
+    {
+        m_expandWidth = width;
+        setCompacted(m_compacted);
+    }
+
+  protected:
+    void paintEvent(QPaintEvent *event) override
+    {
+        Q_UNUSED(event)
+
+        QPainter painter(this);
+        const int c = ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 255 : 0;
+        QPen pen(QColor(c, c, c, 15));
+        pen.setCosmetic(true);
+        painter.setPen(pen);
+        painter.drawLine(0, 1, width(), 1);
+    }
+
+  private:
+    int m_expandWidth = NavigationPanel::kExpandWidth;
+    bool m_compacted = true;
+};
+
+} // namespace
+
+NavigationPanel::NavigationPanel(QWidget *parent) : QFrame(parent), m_parent(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationPanel"));
@@ -225,6 +242,7 @@ NavigationWidget *NavigationPanel::insertWidget(int index, const QString &routeK
     }
 
     widget->setRouteKey(routeKey);
+    widget->setExpandWidth(m_expandWidth - 10);
     widget->setCompacted(m_displayMode == NavigationDisplayMode::Compact);
 
     NavigationItemEntry entry;
@@ -284,13 +302,13 @@ NavigationUserCard *NavigationPanel::addUserCard(const QString &routeKey, const 
     return qobject_cast<NavigationUserCard *>(addWidget(routeKey, card, position));
 }
 
-QFrame *NavigationPanel::addSeparator(NavigationItemPosition position)
+QFrame *NavigationPanel::addSeparator(NavigationItemPosition position) { return insertSeparator(-1, position); }
+
+QFrame *NavigationPanel::insertSeparator(int index, NavigationItemPosition position)
 {
-    auto *separator = new QFrame(this);
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Plain);
-    separator->setFixedHeight(9);
-    separator->setAttribute(Qt::WA_StyledBackground, true);
+    auto *separator = new NavigationSeparator(this);
+    separator->setExpandWidth(m_expandWidth);
+    separator->setCompacted(m_displayMode == NavigationDisplayMode::Compact);
     FluentStyleSheet::setRole(separator, QStringLiteral("NavigationSeparator"));
 
     QVBoxLayout *layout = m_scrollLayout;
@@ -300,7 +318,8 @@ QFrame *NavigationPanel::addSeparator(NavigationItemPosition position)
         layout = m_bottomLayout;
     }
 
-    layout->addWidget(separator, 0, Qt::AlignTop);
+    const int insertIndex = index < 0 ? layout->count() : qBound(0, index, layout->count());
+    layout->insertWidget(insertIndex, separator, 0, Qt::AlignTop);
     return separator;
 }
 
@@ -364,19 +383,53 @@ void NavigationPanel::setIndicatorAnimationEnabled(bool enabled)
     m_indicatorAnimationEnabled = enabled;
 }
 
+// Python sets NavigationWidget.EXPAND_WIDTH to width - 10, so every item (and separator) widens
+// with the panel; here each one of this panel's.
 void NavigationPanel::setExpandWidth(int width)
 {
-    if (width > kCompactWidth) {
-        m_expandWidth = width;
+    if (width <= 42) {
+        return;
+    }
+
+    m_expandWidth = width;
+    for (NavigationWidget *widget : findChildren<NavigationWidget *>()) {
+        widget->setExpandWidth(width - 10);
+    }
+    for (QFrame *frame : findChildren<QFrame *>()) {
+        if (auto *separator = dynamic_cast<NavigationSeparator *>(frame)) {
+            separator->setExpandWidth(width);
+        }
     }
 }
 
-void NavigationPanel::setMinimumExpandWidth(int width)
+bool NavigationPanel::isCollapsible() const { return m_collapsible; }
+
+// A panel that cannot collapse stays expanded in place; Python's setCollapsible().
+void NavigationPanel::setCollapsible(bool collapsible)
 {
-    if (width > kCompactWidth) {
-        m_minimumExpandWidth = width;
+    m_collapsible = collapsible;
+    if (!collapsible && m_displayMode != NavigationDisplayMode::Expand) {
+        expand(false);
     }
 }
+
+int NavigationPanel::layoutMinHeight() const
+{
+    const int th = m_topLayout->minimumSize().height();
+    const int bh = m_bottomLayout->minimumSize().height();
+    int sh = 0;
+    for (QFrame *frame : findChildren<QFrame *>()) {
+        if (dynamic_cast<NavigationSeparator *>(frame)) {
+            sh += frame->height();
+        }
+    }
+    const int spacing =
+        m_topLayout->count() * m_topLayout->spacing() + m_bottomLayout->count() * m_bottomLayout->spacing();
+    return 36 + th + bh + sh + spacing;
+}
+
+// Any width, as in Python: 0 lets the panel expand in place in a window of any size.
+void NavigationPanel::setMinimumExpandWidth(int width) { m_minimumExpandWidth = width; }
 
 void NavigationPanel::setMenuButtonVisible(bool visible)
 {
@@ -431,7 +484,7 @@ void NavigationPanel::setCurrentItem(const QString &routeKey)
     prevItem->setSelected(false);
     prevIndicatorItem->setSelected(false);
     newIndicatorItem->setAboutSelected(true);
-    m_indicator->setIndicatorColor(ThemeManager::instance()->accentColor(), ThemeManager::instance()->accentColor());
+    m_indicator->setIndicatorColor(QColor(), QColor());
     m_indicator->raise();
     m_indicator->startAnimation(startRect, endRect);
 }
@@ -482,12 +535,24 @@ void NavigationPanel::expand(bool animated)
     stopIndicatorAnimation();
 
     const int expandThreshold = m_minimumExpandWidth + m_expandWidth - kExpandWidth;
-    const bool useExpandMode = window() && window()->width() >= expandThreshold;
+    const bool useExpandMode = (window() && window()->width() >= expandThreshold) || !m_collapsible;
 
     setDisplayMode(useExpandMode ? NavigationDisplayMode::Expand : NavigationDisplayMode::Menu);
     setMenu(!useExpandMode);
     setItemsCompacted(false);
     m_expandAnimationExpanding = true;
+
+    // As a menu the panel overlays the content: it leaves its parent (a NavigationInterface,
+    // which keeps its compact width) for the window, as Python's does.
+    if (!useExpandMode) {
+        if (m_parent && !m_parent->isWindow() && parentWidget() == m_parent) {
+            const QPoint pos = m_parent->mapTo(m_parent->window(), QPoint(0, 0));
+            setParent(m_parent->window());
+            move(pos);
+        }
+        show();
+        raise();
+    }
 
     if (animated) {
         emit displayModeChanged(m_displayMode);
@@ -525,6 +590,7 @@ void NavigationPanel::collapse(bool animated)
         setMenu(false);
         setItemsCompacted(true);
         updatePanelWidth(kCompactWidth);
+        restoreParent();
         emit displayModeChanged(m_displayMode);
     }
 
@@ -547,6 +613,7 @@ void NavigationPanel::onExpandAnimationFinished()
         setMenu(false);
         setItemsCompacted(true);
         updatePanelWidth(kCompactWidth);
+        restoreParent();
         emit displayModeChanged(m_displayMode);
     } else {
         updatePanelWidth(m_expandWidth);
@@ -566,7 +633,7 @@ bool NavigationPanel::event(QEvent *event)
 }
 
 // The window filter (closing the menu on outside clicks, following resizes) has to move with the
-// panel; a panel created first and added to a window later was watching only itself.
+// panel; a panel created first and added to a window later would watch only itself.
 void NavigationPanel::followWindow()
 {
     QWidget *topLevel = window();
@@ -589,10 +656,21 @@ void NavigationPanel::retranslateUi()
                                                                             : tr("Close Navigation"));
 }
 
+void NavigationPanel::restoreParent()
+{
+    if (m_parent && !m_parent->isWindow() && parentWidget() != m_parent) {
+        const int panelHeight = height();
+        setParent(m_parent);
+        move(0, 0);
+        resize(width(), panelHeight);
+        show();
+    }
+}
+
 bool NavigationPanel::eventFilter(QObject *watched, QEvent *event)
 {
     auto *topLevel = qobject_cast<QWidget *>(watched);
-    if (!topLevel || topLevel != window()) {
+    if (!topLevel || topLevel != window() || !m_collapsible) {
         return QFrame::eventFilter(watched, event);
     }
 
@@ -720,6 +798,10 @@ void NavigationPanel::setItemsCompacted(bool compacted)
         }
 
         for (int i = 0; i < layout->count(); ++i) {
+            if (auto *separator = dynamic_cast<NavigationSeparator *>(layout->itemAt(i)->widget())) {
+                separator->setCompacted(compacted);
+                continue;
+            }
             auto *widget = qobject_cast<NavigationWidget *>(layout->itemAt(i)->widget());
             if (widget && !updated.contains(widget)) {
                 widget->setCompacted(compacted);

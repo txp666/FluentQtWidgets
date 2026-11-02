@@ -49,6 +49,7 @@ class FQW_API NavigationTreeWidget : public NavigationWidget
     bool isExpanded() const;
     qreal arrowAngle() const;
     QList<NavigationTreeWidget *> childItems() const;
+    QRectF indicatorRect() const override;
 
     void insertChild(int index, NavigationTreeWidget *child);
     void removeChild(NavigationTreeWidget *child);
@@ -57,10 +58,11 @@ class FQW_API NavigationTreeWidget : public NavigationWidget
     void setText(const QString &text);
     void setIcon(const QIcon &icon);
     void setCompacted(bool compacted) override;
-    void setExpanded(bool expanded);
+    void setExpanded(bool expanded, bool animated = false);
     void setArrowAngle(qreal angle);
 
   protected:
+    bool event(QEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     QSize sizeHint() const override;
@@ -72,11 +74,15 @@ class FQW_API NavigationTreeWidget : public NavigationWidget
     void updateFixedSize();
     void relayoutChildren();
     bool canDrawIndicator() const;
+    QMargins itemMargins() const;
+    bool isItemRowHovered() const;
+    void refreshRowHover();
 
     QIcon m_icon;
     QString m_text;
     bool m_expanded = false;
     qreal m_arrowAngle = 0.0;
+    bool m_rowHovered = false;
     NavigationTreeWidget *m_treeParent = nullptr;
     QList<NavigationTreeWidget *> m_children;
 

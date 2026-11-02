@@ -311,7 +311,7 @@ QWindow *FramelessWindowHelper::windowHandle() const
     return m_host->windowHandle();
 }
 
-// ---- Windows native event handler ----
+// --- Windows native event handler ---
 
 #if defined(Q_OS_WIN)
 bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void *message, qintptr *result)
@@ -450,7 +450,7 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
 }
 #endif
 
-// ---- Non-Windows event handlers ----
+// --- Non-Windows event handlers ---
 
 #if !defined(Q_OS_WIN)
 
@@ -466,7 +466,7 @@ void FramelessWindowHelper::handleMousePress(const QPoint &globalPos, Qt::MouseB
         return;
     }
 
-    // Wayland: only system-level move/resize works (manual setGeometry is not allowed)
+    // Wayland only lets the system move and resize windows; setGeometry() has no effect there.
     if (isWaylandPlatform()) {
         const FramelessArea area = hitTestFramelessArea(m_host->mapFromGlobal(globalPos));
         if (area == FramelessArea::Caption) {
@@ -481,7 +481,7 @@ void FramelessWindowHelper::handleMousePress(const QPoint &globalPos, Qt::MouseB
                 }
             }
         }
-        return; // No manual fallback on Wayland
+        return; // No manual fallback on Wayland.
     }
 
     const FramelessArea area = hitTestFramelessArea(m_host->mapFromGlobal(globalPos));
@@ -630,7 +630,6 @@ FramelessArea FramelessWindowHelper::hitTestFramelessArea(const QPoint &localPos
 
 void FramelessWindowHelper::handleWindowStateChange()
 {
-    // Reset interaction state on window state changes
     m_mousePressed = false;
     m_usingSystemMove = false;
     m_dragging = false;

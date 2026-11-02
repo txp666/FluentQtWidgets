@@ -1,5 +1,7 @@
 #include <FluentQtWidgets/Widgets/Label.h>
 
+#include "../core/FontUtils_p.h"
+
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Menu.h>
@@ -34,31 +36,24 @@ bool isRemoteImageUrl(const QUrl &url)
 
 } // namespace
 
-// FluentLabelBase
+// --- FluentLabelBase ---
 FluentLabelBase::FluentLabelBase(QWidget *parent) : QLabel(parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged,
-            this, &FluentLabelBase::updateTextColor);
 }
 
 FluentLabelBase::FluentLabelBase(const QString &text, QWidget *parent) : QLabel(text, parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged,
-            this, &FluentLabelBase::updateTextColor);
 }
 
 void FluentLabelBase::setFluentTextStyle(const QString &role, int pixelSize, QFont::Weight weight)
 {
-    QFont labelFont = font();
-    labelFont.setPixelSize(pixelSize);
-    labelFont.setWeight(weight);
-    setFont(labelFont);
+    setFont(Private::fluentFont(pixelSize, weight));
     FluentStyleSheet::setRole(this, role);
-    m_lightColor = QColor(32, 32, 32);
-    m_darkColor = QColor(243, 243, 243);
-    updateTextColor();
+    // The colours label.qss gives every role, as Python's, until setTextColor() replaces them.
+    m_lightColor = QColor(0, 0, 0);
+    m_darkColor = QColor(255, 255, 255);
 }
 
 QColor FluentLabelBase::lightColor() const { return m_lightColor; }
@@ -79,16 +74,19 @@ void FluentLabelBase::setTextColor(const QColor &light, const QColor &dark)
 {
     m_lightColor = light;
     m_darkColor = dark;
-    updateTextColor();
-}
 
-void FluentLabelBase::updateTextColor()
-{
-    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    QPalette pal = palette();
-    pal.setColor(QPalette::WindowText, dark ? m_darkColor : m_lightColor);
-    pal.setColor(QPalette::Text, dark ? m_darkColor : m_lightColor);
-    setPalette(pal);
+    // As in Python, a style sheet per theme: label.qss colours the label through the style sheet,
+    // which overrides any palette. The rule matches label.qss's selector, so coming later it wins.
+    const QString selector = QStringLiteral("QLabel[fqw=\"%1\"]").arg(property("fqw").toString());
+    const auto rule = [&selector](const QColor &color) {
+        return QStringLiteral("%1{color:rgba(%2, %3, %4, %5)}")
+            .arg(selector)
+            .arg(color.red())
+            .arg(color.green())
+            .arg(color.blue())
+            .arg(color.alpha());
+    };
+    FluentStyleSheet::setCustomStyleSheet(this, rule(light), rule(dark));
 }
 
 void FluentLabelBase::setPixelFontSize(int size)
@@ -126,7 +124,7 @@ void FluentLabelBase::contextMenuEvent(QContextMenuEvent *event)
     menu->exec(event->globalPos(), true, MenuAnimationType::FadeInDropDown);
 }
 
-// CaptionLabel
+// --- CaptionLabel ---
 CaptionLabel::CaptionLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("CaptionLabel"), 12);
@@ -137,14 +135,14 @@ CaptionLabel::CaptionLabel(const QString &text, QWidget *parent) : FluentLabelBa
     setFluentTextStyle(QStringLiteral("CaptionLabel"), 12);
 }
 
-// BodyLabel
+// --- BodyLabel ---
 BodyLabel::BodyLabel(QWidget *parent) : FluentLabelBase(parent) { setFluentTextStyle(QStringLiteral("BodyLabel"), 14); }
 BodyLabel::BodyLabel(const QString &text, QWidget *parent) : FluentLabelBase(text, parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
 }
 
-// StrongBodyLabel
+// --- StrongBodyLabel ---
 StrongBodyLabel::StrongBodyLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("StrongBodyLabel"), 14, QFont::DemiBold);
@@ -154,7 +152,7 @@ StrongBodyLabel::StrongBodyLabel(const QString &text, QWidget *parent) : FluentL
     setFluentTextStyle(QStringLiteral("StrongBodyLabel"), 14, QFont::DemiBold);
 }
 
-// SubtitleLabel
+// --- SubtitleLabel ---
 SubtitleLabel::SubtitleLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("SubtitleLabel"), 20, QFont::DemiBold);
@@ -164,7 +162,7 @@ SubtitleLabel::SubtitleLabel(const QString &text, QWidget *parent) : FluentLabel
     setFluentTextStyle(QStringLiteral("SubtitleLabel"), 20, QFont::DemiBold);
 }
 
-// TitleLabel
+// --- TitleLabel ---
 TitleLabel::TitleLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("TitleLabel"), 28, QFont::DemiBold);
@@ -174,7 +172,7 @@ TitleLabel::TitleLabel(const QString &text, QWidget *parent) : FluentLabelBase(t
     setFluentTextStyle(QStringLiteral("TitleLabel"), 28, QFont::DemiBold);
 }
 
-// LargeTitleLabel
+// --- LargeTitleLabel ---
 LargeTitleLabel::LargeTitleLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("LargeTitleLabel"), 40, QFont::DemiBold);
@@ -184,7 +182,7 @@ LargeTitleLabel::LargeTitleLabel(const QString &text, QWidget *parent) : FluentL
     setFluentTextStyle(QStringLiteral("LargeTitleLabel"), 40, QFont::DemiBold);
 }
 
-// DisplayLabel
+// --- DisplayLabel ---
 DisplayLabel::DisplayLabel(QWidget *parent) : FluentLabelBase(parent)
 {
     setFluentTextStyle(QStringLiteral("DisplayLabel"), 68, QFont::DemiBold);
@@ -194,7 +192,7 @@ DisplayLabel::DisplayLabel(const QString &text, QWidget *parent) : FluentLabelBa
     setFluentTextStyle(QStringLiteral("DisplayLabel"), 68, QFont::DemiBold);
 }
 
-// ImageLabel
+// --- ImageLabel ---
 ImageLabel::ImageLabel(QWidget *parent) : QLabel(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
@@ -401,7 +399,7 @@ void ImageLabel::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-// AvatarWidget
+// --- AvatarWidget ---
 AvatarWidget::AvatarWidget(QWidget *parent) : ImageLabel(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
@@ -447,10 +445,7 @@ void AvatarWidget::setRadius(int radius)
     m_radius = boundedRadius;
     setFixedSize(sizeHint());
 
-    QFont avatarFont = font();
-    avatarFont.setPixelSize(qMax(10, m_radius));
-    avatarFont.setWeight(QFont::DemiBold);
-    setFont(avatarFont);
+    setFont(Private::fluentFont(m_radius, QFont::Normal));
 
     updateGeometry();
     update();
@@ -630,7 +625,7 @@ void AvatarWidget::onMovieFrameChanged(int)
     update();
 }
 
-// PixmapLabel
+// --- PixmapLabel ---
 PixmapLabel::PixmapLabel(QWidget *parent) : QLabel(parent) {}
 
 QPixmap PixmapLabel::pixmap() const { return m_pixmap; }
@@ -654,14 +649,12 @@ void PixmapLabel::paintEvent(QPaintEvent *event)
     painter.drawPixmap(rect(), m_pixmap);
 }
 
-// HyperlinkLabel
+// --- HyperlinkLabel ---
 HyperlinkLabel::HyperlinkLabel(QWidget *parent) : QPushButton(parent)
 {
     setCursor(Qt::PointingHandCursor);
     setFlat(true);
-    QFont f = font();
-    f.setPixelSize(14);
-    setFont(f);
+    setFont(Private::fluentFont(14));
     FluentStyleSheet::setRole(this, QStringLiteral("HyperlinkLabel"));
     setProperty("underline", m_underlineVisible);
     connect(this, &QPushButton::clicked, this, &HyperlinkLabel::onLinkClicked);

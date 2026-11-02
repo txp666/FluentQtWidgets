@@ -1,15 +1,21 @@
 #include <FluentQtWidgets/Navigation/NavigationTreeWidget.h>
 
+#include "../core/FontUtils_p.h"
+
+#include <FluentQtWidgets/Color.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/Theme.h>
 
+#include <QtCore/QParallelAnimationGroup>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
+#include <QtCore/QVariantAnimation>
+#include <QtGui/QCursor>
 #include <QtGui/QFont>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
 #include <QtWidgets/QVBoxLayout>
 
@@ -27,7 +33,7 @@ void paintNavigationIcon(QPainter *painter, const QIcon &icon, const QRectF &tar
         return;
     }
 
-    // Keep Fluent SVG icons in the vector paint path.  Round-tripping them
+    // Keep Fluent SVG icons in the vector paint path. Round-tripping them
     // through QImage/QPixmap corrupts thin contours at fractional device
     // scales such as Windows 125% (DPR 1.25).
     painter->save();
@@ -57,7 +63,21 @@ bool NavigationWidget::isAboutSelected() const { return m_aboutSelected; }
 
 QRectF NavigationWidget::indicatorRect() const { return QRectF(0, 10, 3, 16); }
 
-QSize NavigationWidget::sizeHint() const { return QSize(m_compacted ? kCompactWidth : kExpandWidth, kItemHeight); }
+QSize NavigationWidget::sizeHint() const { return QSize(m_compacted ? kCompactWidth : m_expandWidth, kItemHeight); }
+
+int NavigationWidget::expandWidth() const { return m_expandWidth; }
+
+void NavigationWidget::setExpandWidth(int width)
+{
+    if (m_expandWidth == width) {
+        return;
+    }
+
+    m_expandWidth = width;
+    if (!m_compacted) {
+        setCompacted(false);
+    }
+}
 
 void NavigationWidget::setRouteKey(const QString &routeKey) { m_routeKey = routeKey; }
 
@@ -181,6 +201,7 @@ NavigationAvatarWidget::NavigationAvatarWidget(const QString &name, QWidget *par
     : NavigationWidget(false, parent), m_name(name)
 {
     setAttribute(Qt::WA_Hover, true);
+    setFont(Private::fluentFont(14));
     setCursor(Qt::PointingHandCursor);
     m_selectable = true;
 
@@ -248,7 +269,7 @@ void NavigationAvatarWidget::setAvatar(const QImage &avatar)
 void NavigationAvatarWidget::setCompacted(bool compacted)
 {
     m_compacted = compacted;
-    setFixedSize(compacted ? kCompactWidth : kExpandWidth, kItemHeight);
+    setFixedSize(compacted ? kCompactWidth : m_expandWidth, kItemHeight);
     updateAvatarGeometry();
     update();
 }
@@ -269,9 +290,8 @@ void NavigationAvatarWidget::paintEvent(QPaintEvent *event)
     if (!m_compacted && !m_name.isEmpty()) {
         painter.setPen(textColor());
         painter.setFont(font());
-        const QRect textRect(44, 0, width() - 52, height());
-        painter.drawText(textRect, Qt::AlignVCenter,
-                         painter.fontMetrics().elidedText(m_name, Qt::ElideRight, textRect.width()));
+        // Python's rect, unelided: a long name runs on and the widget's edge cuts it.
+        painter.drawText(QRect(44, 0, 255, 36), Qt::AlignVCenter, m_name);
     }
 }
 
@@ -287,6 +307,38 @@ void NavigationAvatarWidget::updateAvatarGeometry()
 NavigationUserCard::NavigationUserCard(QWidget *parent) : NavigationAvatarWidget(QString(), parent)
 {
     setFixedSize(kCompactWidth, kItemHeight);
+
+    m_animationGroup = new QParallelAnimationGroup(this);
+    m_radiusAnimation = new QPropertyAnimation(m_avatar, "radius", this);
+    m_radiusAnimation->setDuration(m_animationDuration);
+    m_radiusAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(m_radiusAnimation, &QPropertyAnimation::valueChanged, this, [this]() {
+        updateAvatarGeometry();
+        update();
+    });
+    m_opacityAnimation = new QPropertyAnimation(this, "textOpacity", this);
+    m_opacityAnimation->setDuration(m_animationDuration * 8 / 10);
+    m_opacityAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+    m_animationGroup->addAnimation(m_radiusAnimation);
+    m_animationGroup->addAnimation(m_opacityAnimation);
+    connect(m_animationGroup, &QParallelAnimationGroup::finished, this, qOverload<>(&QWidget::update));
+}
+
+int NavigationUserCard::animationDuration() const { return m_animationDuration; }
+
+void NavigationUserCard::setAnimationDuration(int duration)
+{
+    m_animationDuration = duration;
+    m_radiusAnimation->setDuration(duration);
+    m_opacityAnimation->setDuration(duration * 8 / 10);
+}
+
+qreal NavigationUserCard::textOpacity() const { return m_textOpacity; }
+
+void NavigationUserCard::setTextOpacity(qreal opacity)
+{
+    m_textOpacity = opacity;
+    update();
 }
 
 QString NavigationUserCard::title() const { return m_title; }
@@ -338,16 +390,28 @@ void NavigationUserCard::setAvatarBackgroundColor(const QColor &light, const QCo
 
 void NavigationUserCard::setCompacted(bool compacted)
 {
-    m_compacted = compacted;
-    if (compacted) {
-        m_avatar->setRadius(12);
-        setFixedSize(kCompactWidth, kItemHeight);
-    } else {
-        m_avatar->setRadius(32);
-        setFixedSize(kExpandWidth, 80);
+    if (compacted == m_compacted) {
+        if (!compacted) {
+            setFixedSize(m_expandWidth, 80); // a new expand width
+        }
+        return;
     }
+
+    m_compacted = compacted;
+    m_animationGroup->stop();
+    if (compacted) {
+        setFixedSize(kCompactWidth, kItemHeight);
+        m_radiusAnimation->setEndValue(12);
+        m_opacityAnimation->setEndValue(0.0);
+    } else {
+        setFixedSize(m_expandWidth, 80);
+        m_radiusAnimation->setEndValue(32);
+        m_opacityAnimation->setEndValue(1.0);
+    }
+    m_radiusAnimation->setStartValue(m_avatar->radius());
+    m_opacityAnimation->setStartValue(m_textOpacity);
     updateAvatarGeometry();
-    update();
+    m_animationGroup->start();
 }
 
 void NavigationUserCard::paintEvent(QPaintEvent *event)
@@ -363,29 +427,23 @@ void NavigationUserCard::paintEvent(QPaintEvent *event)
 
     drawHoverBackground(&painter);
 
-    if (m_compacted) {
+    if (m_compacted || m_textOpacity <= 0) {
         return;
     }
 
     const int textX = 16 + m_avatar->radius() * 2 + 12;
     const int textWidth = width() - textX - 16;
 
-    QFont titleFont = font();
-    titleFont.setPixelSize(m_titleFontSize);
-    titleFont.setBold(true);
-    painter.setFont(titleFont);
-    painter.setPen(textColor());
-    painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom,
-                     painter.fontMetrics().elidedText(m_title, Qt::ElideRight, textWidth));
+    // Python paints the card's texts in getFont(size), whatever the widget's own font.
+    painter.setFont(Private::fluentFont(m_titleFontSize, QFont::Bold));
+    painter.setPen(textColor(qRound(255 * m_textOpacity)));
+    painter.drawText(QRectF(textX, 0, textWidth, height() / 2.0 - 2.0), Qt::AlignLeft | Qt::AlignBottom, m_title);
 
     if (!m_subtitle.isEmpty()) {
-        QFont subtitleFont = font();
-        subtitleFont.setPixelSize(m_subtitleFontSize);
-        painter.setFont(subtitleFont);
-        painter.setPen(textColor(150));
+        painter.setFont(Private::fluentFont(m_subtitleFontSize));
+        painter.setPen(textColor(qRound(150 * m_textOpacity)));
         painter.drawText(QRectF(textX, height() / 2.0 + 2.0, textWidth, height() / 2.0 - 2.0),
-                         Qt::AlignLeft | Qt::AlignTop,
-                         painter.fontMetrics().elidedText(m_subtitle, Qt::ElideRight, textWidth));
+                         Qt::AlignLeft | Qt::AlignTop, m_subtitle);
     }
 }
 
@@ -401,11 +459,24 @@ void NavigationUserCard::updateAvatarGeometry()
 NavigationItemHeader::NavigationItemHeader(const QString &text, QWidget *parent)
     : NavigationWidget(false, parent), m_text(text)
 {
-    QFont headerFont = font();
-    headerFont.setPixelSize(12);
-    setFont(headerFont);
+    setFont(Private::fluentFont(12));
     setCursor(Qt::ArrowCursor);
-    setCompacted(true);
+
+    // As in Python, the header grows to 30 px or shrinks away over 150 ms, its text fading with it.
+    m_heightAnimation = new QVariantAnimation(this);
+    m_heightAnimation->setDuration(150);
+    m_heightAnimation->setEasingCurve(QEasingCurve::OutQuad);
+    connect(m_heightAnimation, &QVariantAnimation::valueChanged, this,
+            [this](const QVariant &value) { setFixedHeight(value.toInt()); });
+    connect(m_heightAnimation, &QVariantAnimation::finished, this, [this]() {
+        if (m_compacted) {
+            hide();
+        }
+    });
+
+    m_compacted = true;
+    setFixedSize(kCompactWidth, 0);
+    hide();
 }
 
 QString NavigationItemHeader::text() const { return m_text; }
@@ -419,8 +490,14 @@ void NavigationItemHeader::setText(const QString &text)
 void NavigationItemHeader::setCompacted(bool compacted)
 {
     m_compacted = compacted;
-    setFixedSize(compacted ? kCompactWidth : kExpandWidth, compacted ? 0 : 30);
-    setVisible(!compacted);
+    m_heightAnimation->stop();
+    setFixedWidth(compacted ? kCompactWidth : m_expandWidth);
+    if (!compacted) {
+        show();
+    }
+    m_heightAnimation->setStartValue(height());
+    m_heightAnimation->setEndValue(compacted ? 0 : 30);
+    m_heightAnimation->start();
     update();
 }
 
@@ -449,17 +526,19 @@ void NavigationItemHeader::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    painter.setOpacity(qMin(1.0, height() / 30.0));
     painter.setFont(font());
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     painter.setPen(dark ? QColor(160, 160, 160) : QColor(96, 96, 96));
-    painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter,
-                     painter.fontMetrics().elidedText(m_text, Qt::ElideRight, width() - 16));
+    painter.drawText(QRectF(16, 0, width() - 16, height()), Qt::AlignLeft | Qt::AlignVCenter, m_text);
 }
 
 NavigationToolButton::NavigationToolButton(const QIcon &icon, QWidget *parent)
     : NavigationWidget(false, parent), m_icon(icon)
 {
     setCursor(Qt::PointingHandCursor);
+    // Python's NavigationToolButton is a NavigationPushButton, which calls setFont(self).
+    setFont(Private::fluentFont(14));
     setFixedSize(kCompactWidth, kItemHeight);
 }
 
@@ -528,16 +607,17 @@ NavigationTreeWidget::NavigationTreeWidget(const QIcon &icon, const QString &tex
     : NavigationWidget(selectable, parent), m_icon(icon), m_text(text)
 {
     setCursor(Qt::PointingHandCursor);
+    // Python's NavigationPushButton: setFont(self), the Fluent families at 14 px.
+    setFont(Private::fluentFont(14));
     m_expandAnimation = new QPropertyAnimation(this, "geometry", this);
     m_expandAnimation->setEasingCurve(QEasingCurve::OutQuad);
-    m_expandAnimation->setDuration(150);
+    m_expandAnimation->setDuration(120);
     connect(m_expandAnimation, &QPropertyAnimation::valueChanged, this,
             [this](const QVariant &value) { setFixedSize(value.toRect().size()); });
     connect(m_expandAnimation, &QPropertyAnimation::finished, this, &NavigationTreeWidget::onExpandAnimationFinished);
 
     m_arrowAnimation = new QPropertyAnimation(this, "arrowAngle", this);
     m_arrowAnimation->setDuration(150);
-    m_arrowAnimation->setEasingCurve(QEasingCurve::OutQuad);
 
     updateFixedSize();
 }
@@ -594,6 +674,7 @@ void NavigationTreeWidget::setIcon(const QIcon &icon)
 void NavigationTreeWidget::setCompacted(bool compacted)
 {
     if (m_compacted == compacted) {
+        updateFixedSize(); // a new expand width
         return;
     }
 
@@ -605,7 +686,9 @@ void NavigationTreeWidget::setCompacted(bool compacted)
     update();
 }
 
-void NavigationTreeWidget::setExpanded(bool expanded)
+// As in Python, the arrow always turns, the children show or hide at once and only the height
+// may animate, clipping them while it grows.
+void NavigationTreeWidget::setExpanded(bool expanded, bool animated)
 {
     if (m_expanded == expanded) {
         return;
@@ -618,15 +701,17 @@ void NavigationTreeWidget::setExpanded(bool expanded)
     m_arrowAnimation->setEndValue(expanded ? 180.0 : 0.0);
     m_arrowAnimation->start();
 
-    m_expandAnimation->stop();
-    m_expandAnimation->setStartValue(geometry());
-    m_expandAnimation->setEndValue(QRect(geometry().topLeft(), sizeHint()));
-    m_expandAnimation->start();
+    for (NavigationTreeWidget *child : m_children) {
+        child->setVisible(expanded);
+    }
 
-    if (!expanded) {
-        for (NavigationTreeWidget *child : m_children) {
-            child->setVisible(false);
-        }
+    m_expandAnimation->stop();
+    if (animated) {
+        m_expandAnimation->setStartValue(geometry());
+        m_expandAnimation->setEndValue(QRect(geometry().topLeft(), sizeHint()));
+        m_expandAnimation->start();
+    } else {
+        relayoutChildren();
     }
 }
 
@@ -640,17 +725,7 @@ void NavigationTreeWidget::setArrowAngle(qreal angle)
     update();
 }
 
-void NavigationTreeWidget::onExpandAnimationFinished()
-{
-    if (m_expanded) {
-        for (NavigationTreeWidget *child : m_children) {
-            child->setVisible(true);
-        }
-    }
-
-    relayoutChildren();
-    updateFixedSize();
-}
+void NavigationTreeWidget::onExpandAnimationFinished() { relayoutChildren(); }
 
 void NavigationTreeWidget::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -659,16 +734,75 @@ void NavigationTreeWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_pressed = false;
+    update();
     // Only a release on the item's own row is a click; the rows below belong to its children.
     if (!QRect(0, 0, width(), kItemHeight).contains(event->pos())) {
-        update();
         return;
     }
-    if (!m_children.isEmpty() && !m_compacted) {
-        setExpanded(!m_expanded);
+
+    // As in Python: a click on an unselected, selectable parent opens it without closing it
+    // again, other clicks toggle it, and a click on the arrow only toggles, it selects nothing.
+    const bool clickArrow = !m_children.isEmpty() && QRectF(width() - 30, 8, 20, 20).contains(event->pos());
+    if (!m_compacted) {
+        if (m_selectable && !m_selected && !clickArrow) {
+            setExpanded(true, true);
+        } else {
+            setExpanded(!m_expanded, true);
+        }
     }
-    emit clicked(true);
+    if (!clickArrow || m_compacted) {
+        emit clicked(true);
+    }
 }
+
+bool NavigationTreeWidget::event(QEvent *event)
+{
+    const bool result = NavigationWidget::event(event);
+    switch (event->type()) {
+    case QEvent::Enter:
+    case QEvent::Leave:
+    case QEvent::HoverEnter:
+    case QEvent::HoverMove:
+    case QEvent::HoverLeave:
+        // The widget holds its children, so the pointer can be inside it but over a child row;
+        // entering or leaving a child changes whether the parent's own row is hovered.
+        refreshRowHover();
+        if (m_treeParent) {
+            m_treeParent->refreshRowHover();
+        }
+        break;
+    default:
+        break;
+    }
+    return result;
+}
+
+void NavigationTreeWidget::refreshRowHover()
+{
+    if (m_rowHovered != isItemRowHovered()) {
+        m_rowHovered = !m_rowHovered;
+        update();
+    }
+}
+
+// Python's check: the pointer is over the item's own row, not over one of its children.
+bool NavigationTreeWidget::isItemRowHovered() const
+{
+    return m_hovered && QRect(mapToGlobal(QPoint(0, 0)), QSize(width(), kItemHeight)).contains(QCursor::pos());
+}
+
+// Python indents a child by 28 px per level inside a full-width row, and keeps 20 px on the
+// right of a parent for its arrow.
+QMargins NavigationTreeWidget::itemMargins() const
+{
+    int depth = 0;
+    for (NavigationTreeWidget *parent = m_treeParent; parent; parent = parent->m_treeParent) {
+        ++depth;
+    }
+    return QMargins(depth * 28, 0, m_children.isEmpty() ? 0 : 20, 0);
+}
+
+QRectF NavigationTreeWidget::indicatorRect() const { return QRectF(itemMargins().left(), 10, 3, 16); }
 
 void NavigationTreeWidget::paintEvent(QPaintEvent *event)
 {
@@ -686,33 +820,35 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         painter.setOpacity(0.7);
     }
 
+    // Backgrounds cover the item's own row only, never the rows of its children.
+    const QRect row(0, 0, width(), kItemHeight);
+    const QMargins margins = itemMargins();
+    const bool rowHovered = isItemRowHovered();
     const bool drawIndicator = canDrawIndicator();
     if (drawIndicator) {
         painter.setPen(Qt::NoPen);
-        painter.setBrush(QColor(base, base, base, m_hovered ? 10 : 6));
-        painter.drawRoundedRect(rect(), 5, 5);
+        painter.setBrush(QColor(base, base, base, rowHovered ? 6 : 10));
+        painter.drawRoundedRect(row, 5, 5);
 
-        painter.setBrush(ThemeManager::instance()->accentColor());
+        painter.setBrush(themeColor());
         painter.drawRoundedRect(indicatorRect(), 1.5, 1.5);
-    } else if (m_hovered || m_aboutSelected) {
+    } else if ((rowHovered || m_aboutSelected) && isEnabled()) {
         painter.setPen(Qt::NoPen);
         painter.setBrush(QColor(base, base, base, m_aboutSelected ? 6 : 10));
-        painter.drawRoundedRect(rect(), 5, 5);
+        painter.drawRoundedRect(row, 5, 5);
     }
 
-    const int iconLeft = m_compacted ? 11 : 11;
     if (!m_icon.isNull()) {
-        paintNavigationIcon(&painter, m_icon, QRectF(iconLeft, 10, 16, 16),
+        paintNavigationIcon(&painter, m_icon, QRectF(11.5 + margins.left(), 10, 16, 16),
                             isEnabled() ? QIcon::Normal : QIcon::Disabled);
     }
 
     if (!m_compacted && !m_text.isEmpty()) {
         painter.setPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
-        const int textLeft = m_icon.isNull() ? 16 : 44;
-        const int arrowReserve = m_children.isEmpty() ? 8 : 28;
-        const QRect textRect(textLeft, 0, width() - textLeft - arrowReserve, kItemHeight);
-        painter.drawText(textRect, Qt::AlignVCenter,
-                         painter.fontMetrics().elidedText(m_text, Qt::ElideRight, textRect.width()));
+        const int textLeft = (m_icon.isNull() ? 16 : 44) + margins.left();
+        // Python's rect, unelided: a long text runs on and the widget's edge cuts it.
+        const QRectF textRect(textLeft, 0, width() - 13 - textLeft - margins.right(), kItemHeight);
+        painter.drawText(textRect, Qt::AlignVCenter, m_text);
     }
 
     if (!m_compacted && !m_children.isEmpty()) {
@@ -722,7 +858,12 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         const QIcon arrowIcon =
             dark ? FluentQt::icon(FluentIcon::ArrowDown, Theme::Dark)
                  : FluentQt::icon(FluentIcon::ArrowDown, Theme::Light, QColor(QStringLiteral("#646464")));
-        arrowIcon.paint(&painter, QRect(-5, -5, 10, 10));
+        // Python renders the arrow into a 9.6 px square.
+        const QRectF arrowRect(-5, -5, 9.6, 9.6);
+        const qreal dpr = painter.device()->devicePixelRatioF();
+        QPixmap arrow = arrowIcon.pixmap(QSize(10, 10) * dpr);
+        arrow.setDevicePixelRatio(dpr);
+        painter.drawPixmap(arrowRect, arrow, QRectF(QPointF(0, 0), QSizeF(arrow.size())));
         painter.restore();
     }
 }
@@ -735,19 +876,19 @@ QSize NavigationTreeWidget::sizeHint() const
             height += child->sizeHint().height() + 4;
         }
     }
-    return QSize(m_compacted ? kCompactWidth : kExpandWidth, height);
+    return QSize(m_compacted ? kCompactWidth : m_expandWidth, height);
 }
 
 void NavigationTreeWidget::updateFixedSize()
 {
-    setFixedSize(m_compacted ? kCompactWidth : kExpandWidth, sizeHint().height());
+    setFixedSize(m_compacted ? kCompactWidth : m_expandWidth, sizeHint().height());
 }
 
 void NavigationTreeWidget::relayoutChildren()
 {
     int y = kItemHeight + 4;
     for (NavigationTreeWidget *child : m_children) {
-        child->move(8, y);
+        child->move(0, y);
         y += child->height() + 4;
     }
     updateFixedSize();

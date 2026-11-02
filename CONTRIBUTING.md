@@ -1,69 +1,77 @@
 # Contributing
 
-FluentQtWidgets is a C++/Qt Widgets port of [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets). Contributions must treat the Python implementation as the reference for public behavior, visual spacing, Gallery content, resources, and translations.
+FluentQtWidgets is a C++/Qt Widgets port of [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets)
+1.11.3. The Python implementation is the reference for public behaviour, looks, sizes, Gallery content, resources
+and translations; the [porting guide](docs/porting-guide.md) explains how the port maps it.
 
 ## Development Setup
 
-Use CMake and a Qt 6 kit. On macOS/Linux use the `ninja-debug` configure preset and `debug` build/test preset:
+Use CMake and a Qt 6 kit. On macOS and Linux:
 
-```powershell
+```bash
 cmake --preset ninja-debug
 cmake --build --preset debug --parallel
 ctest --preset debug --output-on-failure
 ```
 
-On Windows MinGW, make the matching Qt kit, MinGW compiler, and Ninja visible first, then use:
+On Windows, see [Quick start](docs/quick-start.md#windows) for the `mingw-debug` preset and Qt kit setup.
 
-```powershell
-cmake --preset mingw-debug
-cmake --build --preset mingw-debug --parallel
-ctest --preset mingw-debug --output-on-failure
-```
+[tests/README.md](tests/README.md) describes the test suites and where a new test goes.
 
 ## Code Style
 
-- C++17
-- Qt parent ownership for widgets and QObject trees
-- Public headers under `include/FluentQtWidgets`
-- Implementation under matching `src` folders
-- Keep examples consuming only public headers
-- Re-polish widgets after changing dynamic QSS properties
-- Prefer Python-compatible behavior over legacy C++ compatibility branches
+- C++17, with Qt parent ownership for widgets and `QObject` trees
+- Public headers under `include/FluentQtWidgets`, implementation under the matching `src` folders
+- Examples use only the public headers
+- Unpolish and polish a widget after changing a property its style sheet selects on
+- Follow the Python behaviour rather than keeping older C++ behaviour around
 
-Run clang-format before sending a change:
+Format the lines you change with clang-format; the repository's `.clang-format` holds the style:
 
-```powershell
-$files = Get-ChildItem include,src,examples,tests -Recurse -Include *.h,*.cpp
-clang-format -i $files.FullName
+```bash
+git clang-format
 ```
 
 ## Adding A Control
 
-1. Add the public header.
-2. Add the implementation source.
-3. Register it in `CMakeLists.txt`.
-4. Include it from `FluentQtWidgets.h` if it is public.
-5. Port or map the Python reference QSS for light and dark themes.
-6. Add a standalone example when the Python reference has one.
-7. Add or update the Gallery example.
-8. Add focused QtTest coverage for low-level behavior when the control owns painting, popup geometry, resource lookup, or model state.
-9. Update `docs/api-roadmap.md`, `docs/controls-basic.md`, or the relevant guide.
+1. Add the public header and the implementation, and list both in `CMakeLists.txt`.
+2. Include the header from `FluentQtWidgets.h` if it is public.
+3. Port the Python style sheet rules for the light and dark themes, selecting on the widget's `fqw` role.
+4. Add a standalone example when the Python reference has one, and update the Gallery page.
+5. Add QtTest coverage when the control owns painting, popup geometry, resource lookup or model state.
+6. If the control exists in Python, add it to the size parity test (see below).
+7. Update [Controls](docs/controls.md) and `CHANGELOG.md`.
+
+## Checking A Change Against Python
+
+- Run the Python Gallery or example beside the C++ one and compare states, spacing and animations.
+- `tst_python_parity` compares every shared widget's size, size hint and minimum and maximum size with
+  measurements of the Python original, so a change that makes a widget a different size from Python fails it.
+  [tools/parity/README.md](tools/parity/README.md) explains how to read a failure, how to record a difference that
+  has a Qt, C++ or platform reason, and how to measure a new widget.
+- `python3 scripts/verify_example_parity.py` checks that every Python example has a C++ counterpart (it needs a
+  `PyQt-Fluent-Widgets/` checkout at the repository root).
 
 ## Resources
 
-Only add assets with clear licensing. Resources copied from PyQt-Fluent-Widgets must retain the upstream GPL-compatible licensing record in `THIRD_PARTY_NOTICES.md`. Do not import demo music, photos, fonts, or third-party screenshots without a license note.
+Only add assets with clear licensing. Resources copied from PyQt-Fluent-Widgets keep the upstream GPL licensing
+recorded in `THIRD_PARTY_NOTICES.md`. Do not import demo music, photos, fonts or third-party screenshots without a
+licence note.
+
+The README screenshots and the Gallery tour GIF are rendered by `tools/screenshots`
+([README](tools/screenshots/README.md)); render them again there when a change alters what they show.
 
 ## Validation Checklist
 
-- Builds on at least one Qt 6 kit
-- Public headers compile from a consumer target
-- Gallery still runs
-- New QSS has light and dark coverage
-- Documentation is updated
-- Python parity is checked for the touched demo or Gallery page
-- `ctest --test-dir build --output-on-failure` passes when tests are enabled
-- Release metadata is consistent in `CMakeLists.txt`, `include/FluentQtWidgets/Version.h`, `vcpkg.json`, and the release docs
+- Builds on at least one Qt 6 kit, and the tests pass (`ctest --preset debug --output-on-failure`)
+- The Gallery still runs
+- New style sheet rules cover the light and dark themes
+- The change matches Python (see above)
+- Documentation and `CHANGELOG.md` are updated
+- For a release: the version agrees in `CMakeLists.txt`, `include/FluentQtWidgets/Version.h`, `vcpkg.json` and the
+  [release docs](docs/release.md)
 
 ## Conduct
 
-Keep discussion technical, specific, and respectful. Issues and patches include reproduction steps, expected Python reference behavior, actual C++ behavior, platform details, and screenshots when visual parity is involved.
+Keep discussion technical, specific and respectful. Issues and patches include reproduction steps, the Python
+reference behaviour, the actual C++ behaviour, platform details, and screenshots when the look is involved.

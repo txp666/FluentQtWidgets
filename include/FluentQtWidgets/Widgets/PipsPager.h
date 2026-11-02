@@ -105,6 +105,7 @@ class FQW_API PipsPager : public QWidget
     void updateScrollButtonVisibility();
     void updateLayoutDirection();
     void updatePipContainerOffset();
+    void updateFixedSize();
     int visibleStartIndex() const;
     int visibleStartIndex(int index) const;
     QString displayModeName(PipsScrollButtonDisplayMode mode) const;
@@ -115,6 +116,8 @@ class FQW_API PipsPager : public QWidget
     int m_currentIndex = -1;
     qreal m_pipScrollOffset = 0.0;
     bool m_hovered = false;
+    // Python fixes the length on setPageNumber() and setVisibleNumber() (its adjustSize()), not before.
+    bool m_lengthFixed = false;
     PipsScrollButtonDisplayMode m_previousButtonDisplayMode = PipsScrollButtonDisplayMode::Never;
     PipsScrollButtonDisplayMode m_nextButtonDisplayMode = PipsScrollButtonDisplayMode::Never;
     QBoxLayout *m_layout = nullptr;
