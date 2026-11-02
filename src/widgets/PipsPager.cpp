@@ -344,7 +344,9 @@ void PipsPager::init()
     m_scrollAnimation->setEasingCurve(QEasingCurve::OutCubic);
 
     m_layout->addWidget(m_previousButton, 0, Qt::AlignCenter);
-    m_layout->addWidget(m_pipContainer, 0, Qt::AlignCenter);
+    // With fewer pages than visible pips, Python keeps the pips at the start and the next button at
+    // the far end.
+    m_layout->addWidget(m_pipContainer, 1, Qt::AlignLeft | Qt::AlignTop);
     m_layout->addWidget(m_nextButton, 0, Qt::AlignCenter);
 
     FluentStyleSheet::setRole(this, QStringLiteral("PipsPager"));

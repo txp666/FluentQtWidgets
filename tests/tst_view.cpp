@@ -1162,6 +1162,42 @@ class ViewTest : public QObject
         QCOMPARE(titleColor(hiddenCard), QColor(Qt::black));
     }
 
+    // Python's pager keeps its five-pip size with fewer pages, its pips start 15 px in and its
+    // next button sits at the far end. The port centred the pips and put the button right after.
+    void pagerWithFewPagesKeepsButtonsAtTheEnds()
+    {
+        for (const Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
+            QWidget host;
+            auto *hostLayout = new QVBoxLayout(&host);
+            auto *pagerPointer = new PipsPager(orientation);
+            hostLayout->addWidget(pagerPointer, 0, Qt::AlignLeft | Qt::AlignTop);
+            PipsPager &pager = *pagerPointer;
+            pager.setPageNumber(3);
+            pager.setPreviousButtonDisplayMode(PipsScrollButtonDisplayMode::Always);
+            pager.setNextButtonDisplayMode(PipsScrollButtonDisplayMode::Always);
+            pager.setCurrentIndex(1);
+            host.resize(300, 300);
+            host.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&host));
+            const bool horizontal = orientation == Qt::Horizontal;
+            QCOMPARE(pager.size(), horizontal ? QSize(90, 12) : QSize(12, 90));
+
+            QList<QRect> buttons;
+            for (QAbstractButton *button : pager.findChildren<QAbstractButton *>()) {
+                if (button->isVisible()) {
+                    buttons.append(QRect(button->mapTo(&pager, QPoint(0, 0)), button->size()));
+                }
+            }
+            const auto along = [horizontal](const QRect &rect) { return horizontal ? rect.x() : rect.y(); };
+            std::sort(buttons.begin(), buttons.end(),
+                      [&](const QRect &a, const QRect &b) { return along(a) < along(b); });
+            QCOMPARE(buttons.size(), 5);
+            QCOMPARE(along(buttons.at(0)), 0);
+            QCOMPARE(along(buttons.at(1)), 15);
+            QCOMPARE(along(buttons.at(4)), 78);
+        }
+    }
+
     void pagerTracksCurrentPageAndButtons()
     {
         FluentQt::PipsPager pager;
