@@ -17,6 +17,7 @@ class QEnterEvent;
 class QMouseEvent;
 class QPainter;
 class QPaintEvent;
+class QVariantAnimation;
 
 namespace FluentQt {
 
@@ -165,6 +166,7 @@ class FQW_API NavigationItemHeader : public NavigationWidget
     void paintEvent(QPaintEvent *event) override;
 
   private:
+    QVariantAnimation *m_heightAnimation = nullptr;
     QString m_text;
 };
 

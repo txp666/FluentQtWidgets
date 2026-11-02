@@ -5,6 +5,7 @@
 
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
+#include <QtCore/QVariantAnimation>
 #include <QtGui/QCursor>
 #include <QtGui/QFont>
 #include <QtGui/QImage>
@@ -406,7 +407,22 @@ NavigationItemHeader::NavigationItemHeader(const QString &text, QWidget *parent)
     headerFont.setPixelSize(12);
     setFont(headerFont);
     setCursor(Qt::ArrowCursor);
-    setCompacted(true);
+
+    // As in Python, the header grows to 30 px or shrinks away over 150 ms, its text fading with it.
+    m_heightAnimation = new QVariantAnimation(this);
+    m_heightAnimation->setDuration(150);
+    m_heightAnimation->setEasingCurve(QEasingCurve::OutQuad);
+    connect(m_heightAnimation, &QVariantAnimation::valueChanged, this,
+            [this](const QVariant &value) { setFixedHeight(value.toInt()); });
+    connect(m_heightAnimation, &QVariantAnimation::finished, this, [this]() {
+        if (m_compacted) {
+            hide();
+        }
+    });
+
+    m_compacted = true;
+    setFixedSize(kCompactWidth, 0);
+    hide();
 }
 
 QString NavigationItemHeader::text() const { return m_text; }
@@ -420,8 +436,14 @@ void NavigationItemHeader::setText(const QString &text)
 void NavigationItemHeader::setCompacted(bool compacted)
 {
     m_compacted = compacted;
-    setFixedSize(compacted ? kCompactWidth : kExpandWidth, compacted ? 0 : 30);
-    setVisible(!compacted);
+    m_heightAnimation->stop();
+    setFixedWidth(compacted ? kCompactWidth : kExpandWidth);
+    if (!compacted) {
+        show();
+    }
+    m_heightAnimation->setStartValue(height());
+    m_heightAnimation->setEndValue(compacted ? 0 : 30);
+    m_heightAnimation->start();
     update();
 }
 
@@ -450,6 +472,7 @@ void NavigationItemHeader::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    painter.setOpacity(qMin(1.0, height() / 30.0));
     painter.setFont(font());
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     painter.setPen(dark ? QColor(160, 160, 160) : QColor(96, 96, 96));

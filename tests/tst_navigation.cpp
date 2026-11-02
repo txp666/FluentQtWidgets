@@ -194,9 +194,11 @@ class NavigationTest : public QObject
         QVERIFY(header->isCompacted());
         QCOMPARE(header->height(), 0);
 
+        // As in Python, the header's height animates even when the panel does not.
         navigation.navigationPanel()->expand(false);
         QVERIFY(!header->isCompacted());
-        QCOMPARE(header->height(), 30);
+        QVERIFY(header->height() < 30);
+        QTRY_COMPARE(header->height(), 30);
 
         auto *avatar = new FluentQt::NavigationAvatarWidget(QStringLiteral("zhiyiYo"));
         QCOMPARE(navigation.addWidget(QStringLiteral("avatar"), avatar, FluentQt::NavigationItemPosition::Bottom),
@@ -214,7 +216,8 @@ class NavigationTest : public QObject
 
         navigation.navigationPanel()->collapse(false);
         QVERIFY(header->isCompacted());
-        QCOMPARE(header->height(), 0);
+        QTRY_COMPARE(header->height(), 0);
+        QTRY_VERIFY(header->isHidden());
         QCOMPARE(userCard->size(), QSize(40, 36));
     }
 
