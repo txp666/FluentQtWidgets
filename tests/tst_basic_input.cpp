@@ -1253,6 +1253,28 @@ class BasicInputTest : public QObject
         QVERIFY(button.isChecked());
     }
 
+    // Python applies no style sheet to Slider, which paints itself, so it is as tall as its 22 px
+    // handle; slider.qss's `min-height: 24px` made the port's 2 px taller.
+    void slidersAreAsThickAsTheirHandle()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            auto *horizontal = new Slider(Qt::Horizontal, &window);
+            auto *vertical = new Slider(Qt::Vertical, &window);
+            layout->addWidget(horizontal, 0, Qt::AlignTop);
+            layout->addWidget(vertical, 0, Qt::AlignLeft);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+            QCOMPARE(horizontal->height(), 22);
+            QCOMPARE(vertical->width(), 22);
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void slidersTrackPythonParityGeometryAndClicking()
     {
         FluentQt::Slider slider(Qt::Horizontal);
