@@ -389,6 +389,58 @@ class MaterialTest : public QObject
         QCOMPARE(trayMenu.sizeHint(), menu.sizeHint());
     }
 
+    // Python's AcrylicToolTip swaps the container for an AcrylicToolTipContainer: the plain tool
+    // tip's transparent style (border rgba(0, 0, 0, 0.06)) over a blurred capture of the screen.
+    void acrylicToolTipUsesAnAcrylicContainer()
+    {
+        QWidget window;
+        window.resize(300, 200);
+        FluentQt::ToolTip plain(QStringLiteral("Hello tooltip"), &window);
+        FluentQt::AcrylicToolTip tip(QStringLiteral("Hello tooltip"), &window);
+        FluentQt::AcrylicToolTipContainer *container = tip.acrylicContainer();
+        QVERIFY(container != nullptr);
+        QCOMPARE(tip.container(), container);
+        QCOMPARE(container->parentWidget(), &tip);
+        QCOMPARE(container->objectName(), QStringLiteral("container"));
+        QCOMPARE(container->property("transparent").toBool(), true);
+        QCOMPARE(tip.label()->parentWidget(), container);
+        QCOMPARE(container->graphicsEffect(), tip.shadowEffect());
+        QCOMPARE(tip.size(), plain.size());
+        QCOMPARE(container->acrylicBrush()->blurRadius(), 30);
+
+        QPainterPath clip;
+        clip.addRoundedRect(QRectF(container->rect().adjusted(1, 1, -1, -1)), 3, 3);
+        QCOMPARE(container->acrylicClipPath(), clip);
+
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(false);
+        container->setGraphicsEffect(nullptr);
+        QImage rendered(container->size(), QImage::Format_ARGB32);
+        rendered.fill(Qt::transparent);
+        container->render(&rendered);
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(true);
+        // The border is Python's faint dark line, not a light one.
+        const QColor border = rendered.pixelColor(0, container->height() / 2);
+        QVERIFY2(border.alpha() < 40 && border.red() < 60, qPrintable(border.name(QColor::HexArgb)));
+        // Inside it, the acrylic tint.
+        const QColor inside = rendered.pixelColor(container->width() / 2, container->height() / 2);
+        QCOMPARE(inside.alpha(), 255);
+        QVERIFY(inside.red() > 230);
+    }
+
+    void acrylicToolTipCapturesTheScreenWhenShown()
+    {
+        QWidget window;
+        window.resize(300, 200);
+        FluentQt::AcrylicToolTip tip(QStringLiteral("Hello tooltip"), &window);
+        QVERIFY(tip.acrylicContainer()->acrylicBrush()->originalImage().isNull());
+        tip.show();
+        const QImage captured = tip.acrylicContainer()->acrylicBrush()->originalImage();
+        if (!FluentQt::AcrylicBrush::isScreenCaptureAvailable() || captured.isNull()) {
+            QSKIP("This platform gives no screen capture");
+        }
+        QCOMPARE(captured.size() / captured.devicePixelRatio(), tip.container()->size());
+    }
+
   private:
     struct PaintCounter : QWidget
     {

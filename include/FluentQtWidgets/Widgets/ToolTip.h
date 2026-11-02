@@ -20,9 +20,12 @@ class QPropertyAnimation;
 class QShowEvent;
 class QStyleOptionViewItem;
 class QAbstractItemView;
+class QPainterPath;
 class QWidget;
 
 namespace FluentQt {
+
+class AcrylicBrush;
 
 enum class ToolTipPosition
 {
@@ -68,6 +71,9 @@ class FQW_API ToolTip : public QFrame
                              int durationMs = 1000);
 
   protected:
+    // Takes `container` as the frame around the label, like overriding Python's _createContainer().
+    ToolTip(QFrame *container, QWidget *parent);
+
     void showEvent(QShowEvent *event) override;
     void hideEvent(QHideEvent *event) override;
 
@@ -119,6 +125,25 @@ class FQW_API ToolTipFilter : public QObject
     bool m_pointerInside = false;
 };
 
+// The tool tip's frame, painted with a blurred capture of the screen behind it.
+class FQW_API AcrylicToolTipContainer : public QFrame
+{
+    Q_OBJECT
+
+  public:
+    explicit AcrylicToolTipContainer(QWidget *parent = nullptr);
+    ~AcrylicToolTipContainer() override;
+
+    AcrylicBrush *acrylicBrush() const;
+    QPainterPath acrylicClipPath() const;
+
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+
+  private:
+    AcrylicBrush *m_acrylicBrush = nullptr;
+};
+
 class FQW_API AcrylicToolTip : public ToolTip
 {
     Q_OBJECT
@@ -126,6 +151,12 @@ class FQW_API AcrylicToolTip : public ToolTip
   public:
     explicit AcrylicToolTip(QWidget *parent = nullptr);
     explicit AcrylicToolTip(const QString &text, QWidget *parent = nullptr);
+
+    AcrylicToolTipContainer *acrylicContainer() const;
+
+  protected:
+    // Captures the screen behind the container, as Python's does.
+    void showEvent(QShowEvent *event) override;
 };
 
 class FQW_API AcrylicToolTipFilter : public ToolTipFilter

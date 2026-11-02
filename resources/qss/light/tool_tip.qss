@@ -26,9 +26,13 @@ QFrame[fqw="AcrylicToolTip"] {
 }
 
 QFrame[fqw="AcrylicToolTip"] QFrame#container {
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.72);
+    background: rgb(249, 249, 249);
+}
+
+QFrame[fqw="AcrylicToolTip"] QFrame#container[transparent="true"] {
+    background: transparent;
 }
 
 QFrame[fqw="AcrylicToolTip"] QLabel#contentLabel {
