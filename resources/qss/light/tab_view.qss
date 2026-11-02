@@ -1,49 +1,9 @@
 QWidget[fqw="TabWidget"],
 QWidget[fqw="TabBar"] {
+    border: none;
     background: transparent;
 }
 
-QPushButton[fqw="TabItem"] {
-    padding: 5px 32px 5px 12px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
-    text-align: left;
-}
-
-QPushButton[fqw="TabItem"]:hover {
-    background: #f3f3f3;
-}
-
-QPushButton[fqw="TabItem"]:checked,
-QPushButton[fqw="TabItem"][selected="true"] {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-bottom: 2px solid @accentColor;
-}
-
-QPushButton[fqw="TabItem"]:disabled {
-    color: #a0a0a0;
-}
-
-QToolButton[fqw="TabCloseButton"] {
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
-}
-
-QToolButton[fqw="TabCloseButton"]:hover {
-    background: #e9e9e9;
-}
-
-QToolButton[fqw="TabAddButton"] {
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
-}
-
-QToolButton[fqw="TabAddButton"]:hover {
-    background: #f3f3f3;
+QWidget[fqw="TabBar"] QWidget#view {
+    background-color: transparent;
 }

@@ -22,6 +22,8 @@ class QEnterEvent;
 class QGraphicsDropShadowEffect;
 class QHBoxLayout;
 class QMouseEvent;
+class QPaintEvent;
+class QPainter;
 class QPropertyAnimation;
 class QResizeEvent;
 class QScrollArea;
@@ -82,11 +84,18 @@ class FQW_API TabItem : public QPushButton
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+    QSize sizeHint() const override;
 
   private:
     void init();
     void updateCloseButtonVisibility();
     void updateShadowVisibility();
+    void drawSelectedBackground(QPainter *painter);
+    void drawNotSelectedBackground(QPainter *painter);
+    void drawText(QPainter *painter);
+
+    static constexpr int kBorderRadius = 5;
 
     QString m_routeKey;
     bool m_selected = false;
@@ -172,6 +181,7 @@ class FQW_API TabBar : public QWidget
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     bool isOwnTabDrag(const QDropEvent *event) const;
 
   private:

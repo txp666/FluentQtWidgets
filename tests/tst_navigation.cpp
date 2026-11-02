@@ -870,9 +870,9 @@ class NavigationTest : public QObject
         QVERIFY(!tools.contains(QStringLiteral("second")));
     }
 
-    // The Python sizes: 36 px tabs in a 46 px bar. A style sheet's min-height sizes the content
-    // box, so the old `min-height: 34px` with padding and border made tabs 47 px and the bar 77,
-    // and the minimum sizes on the close and add buttons grew them by their borders.
+    // The Python sizes: 36 px tabs in a 46 px bar, and Python's 32x24 TabToolButton for closing
+    // and adding tabs. A style sheet's min-height sizes the content box, so the old
+    // `min-height: 34px` with padding and border made tabs 47 px and the bar 77.
     void tabBarKeepsThePythonSizes()
     {
         auto *manager = ThemeManager::instance();
@@ -887,9 +887,47 @@ class NavigationTest : public QObject
             QCOMPARE(bar.height(), 46);
             for (int index = 0; index < bar.count(); ++index) {
                 QCOMPARE(bar.tabItem(index)->height(), 36);
-                QCOMPARE(bar.tabItem(index)->closeButton()->size(), QSize(24, 24));
+                QCOMPARE(bar.tabItem(index)->closeButton()->size(), QSize(32, 24));
+                QCOMPARE(bar.tabItem(index)->font().pixelSize(), 12);
             }
-            QCOMPARE(bar.addButton()->size(), QSize(32, 28));
+            QCOMPARE(bar.addButton()->size(), QSize(32, 24));
+        }
+        manager->setTheme(previousTheme);
+    }
+
+    // Python paints its tabs: the selected one is a 249/40 grey card with a grey bottom edge and
+    // no accent line, the strip behind them is transparent, and the add button follows the last
+    // tab instead of sitting at the far end of the bar.
+    void tabBarPaintsAndPlacesTabsAsPython()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            TabBar bar;
+            bar.resize(800, 46);
+            bar.addTab(QStringLiteral("home"), QString());
+            bar.addTab(QStringLiteral("settings"), QString());
+            bar.setCurrentIndex(0);
+            bar.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&bar));
+
+            TabItem *selected = bar.tabItem(0);
+            QCOMPARE(selected->width(), 240);
+            const QPoint addPos = bar.addButton()->mapTo(&bar, QPoint());
+            QCOMPARE(addPos.x(), 5 + 2 * 240 + 5 + 3);
+
+            QImage image(bar.size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            bar.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            const QPoint origin = selected->mapTo(&bar, QPoint());
+            const QColor card = image.pixelColor(origin + QPoint(60, 18));
+            const int grey = theme == Theme::Dark ? 40 : 249;
+            QVERIFY2(qAbs(card.red() - grey) <= 2 && qAbs(card.blue() - grey) <= 2, qPrintable(card.name()));
+            const QColor bottom = image.pixelColor(origin + QPoint(60, selected->height() - 1));
+            QVERIFY2(qAbs(bottom.red() - bottom.blue()) <= 2 && qAbs(bottom.green() - bottom.blue()) <= 2,
+                     qPrintable(bottom.name()));
+            QCOMPARE(image.pixelColor(780, 23).alpha(), 0);
         }
         manager->setTheme(previousTheme);
     }

@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
+#include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 
@@ -16,7 +17,10 @@
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QDragMoveEvent>
 #include <QtGui/QDropEvent>
+#include <QtGui/QLinearGradient>
 #include <QtGui/QMouseEvent>
+#include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsDropShadowEffect>
@@ -50,6 +54,32 @@ QString generatedRouteKey() { return QUuid::createUuid().toString(QUuid::Without
 
 const char *kTabMimeType = "application/x-fluent-tab-index";
 constexpr int kTabMinimumWidth = 64;
+
+bool isDarkTheme() { return ThemeManager::instance()->effectiveTheme() == Theme::Dark; }
+
+// Python's TabToolButton: a 32x24 transparent tool button whose icon is #484848, or #eaeaea in the
+// dark theme.
+class TabToolButton : public TransparentToolButton
+{
+  public:
+    TabToolButton(FluentIcon fluentIcon, QWidget *parent) : TransparentToolButton(parent), m_fluentIcon(fluentIcon)
+    {
+        setFixedSize(32, 24);
+        setIconSize(QSize(12, 12));
+        updateIcon();
+        connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this]() { updateIcon(); });
+    }
+
+  private:
+    void updateIcon()
+    {
+        const bool dark = isDarkTheme();
+        setIcon(FluentQt::icon(m_fluentIcon, dark ? Theme::Dark : Theme::Light,
+                               QColor(dark ? QStringLiteral("#eaeaea") : QStringLiteral("#484848"))));
+    }
+
+    FluentIcon m_fluentIcon;
+};
 } // namespace
 
 TabItem::TabItem(QWidget *parent) : QPushButton(parent) { init(); }
@@ -87,7 +117,10 @@ void TabItem::setSelected(bool selected)
     if (m_selected) {
         raise();
     }
-    FluentStyleSheet::polish(this);
+    update();
+    if (parentWidget()) {
+        parentWidget()->update(); // the separators beside the tab
+    }
 }
 
 void TabItem::setCloseButtonDisplayMode(TabCloseButtonDisplayMode mode)
@@ -134,6 +167,9 @@ void TabItem::enterEvent(QEvent *event)
     m_hovered = true;
     updateCloseButtonVisibility();
     QPushButton::enterEvent(event);
+    if (parentWidget()) {
+        parentWidget()->update();
+    }
 }
 
 void TabItem::leaveEvent(QEvent *event)
@@ -141,6 +177,9 @@ void TabItem::leaveEvent(QEvent *event)
     m_hovered = false;
     updateCloseButtonVisibility();
     QPushButton::leaveEvent(event);
+    if (parentWidget()) {
+        parentWidget()->update();
+    }
 }
 
 void TabItem::mousePressEvent(QMouseEvent *event)
@@ -204,6 +243,122 @@ void TabItem::resizeEvent(QResizeEvent *event)
     }
 }
 
+QSize TabItem::sizeHint() const { return QSize(maximumWidth(), 36); }
+
+// Python paints the tab itself: a raised card when selected, a faint fill on hover or press,
+// the icon and text dimmed when not selected, and text that fades out where it does not fit.
+void TabItem::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing);
+
+    if (m_selected) {
+        drawSelectedBackground(&painter);
+    } else {
+        drawNotSelectedBackground(&painter);
+    }
+
+    if (!m_selected) {
+        painter.setOpacity(isDarkTheme() ? 0.79 : 0.61);
+    }
+    icon().paint(&painter, QRect(10, 10, 16, 16));
+
+    drawText(&painter);
+}
+
+void TabItem::drawSelectedBackground(QPainter *painter)
+{
+    const qreal w = width();
+    const qreal h = height();
+    const qreal r = kBorderRadius;
+    const qreal d = 2 * r;
+    const bool dark = isDarkTheme();
+
+    QPainterPath path;
+    path.arcMoveTo(1, h - d - 1, d, d, 225);
+    path.arcTo(1, h - d - 1, d, d, 225, -45);
+    path.lineTo(1, r);
+    path.arcTo(1, 1, d, d, -180, -90);
+    path.lineTo(w - r, 1);
+    path.arcTo(w - d - 1, 1, d, d, 90, -90);
+    path.lineTo(w - 1, h - r);
+    path.arcTo(w - d - 1, h - d - 1, d, d, 0, -45);
+
+    QColor topBorderColor(0, 0, 0, 20);
+    if (dark) {
+        if (isDown()) {
+            topBorderColor = QColor(255, 255, 255, 18);
+        } else if (m_hovered) {
+            topBorderColor = QColor(255, 255, 255, 13);
+        }
+    } else {
+        topBorderColor = QColor(0, 0, 0, 16);
+    }
+    painter->strokePath(path, topBorderColor);
+
+    path = QPainterPath();
+    path.arcMoveTo(1, h - d - 1, d, d, 225);
+    path.arcTo(1, h - d - 1, d, d, 225, 45);
+    path.lineTo(w - r - 1, h - 1);
+    path.arcTo(w - d - 1, h - d - 1, d, d, 270, 45);
+    painter->strokePath(path, dark ? topBorderColor : QColor(0, 0, 0, 63));
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(dark ? QColor(40, 40, 40) : QColor(249, 249, 249));
+    painter->drawRoundedRect(QRectF(rect().adjusted(1, 1, -1, -1)), r, r);
+}
+
+void TabItem::drawNotSelectedBackground(QPainter *painter)
+{
+    if (!(isDown() || m_hovered)) {
+        return;
+    }
+
+    const bool dark = isDarkTheme();
+    QColor color;
+    if (isDown()) {
+        color = dark ? QColor(255, 255, 255, 12) : QColor(0, 0, 0, 7);
+    } else {
+        color = dark ? QColor(255, 255, 255, 15) : QColor(0, 0, 0, 10);
+    }
+    painter->setBrush(color);
+    painter->setPen(Qt::NoPen);
+    painter->drawRoundedRect(QRectF(rect().adjusted(1, 1, -1, -1)), kBorderRadius, kBorderRadius);
+}
+
+void TabItem::drawText(QPainter *painter)
+{
+    const int textWidth = fontMetrics().horizontalAdvance(text());
+    const bool closeVisible = m_closeButton && m_closeButton->isVisibleTo(this);
+
+    QRectF textRect;
+    if (icon().isNull()) {
+        textRect = QRectF(10, 0, width() - (closeVisible ? 47 : 20), height());
+    } else {
+        textRect = QRectF(33, 0, width() - (closeVisible ? 70 : 45), height());
+    }
+
+    const QColor color = isDarkTheme() ? QColor(Qt::white) : QColor(Qt::black);
+    const qreal rectWidth = textRect.width();
+    QPen pen;
+    if (textWidth > rectWidth) {
+        QLinearGradient gradient(textRect.x(), 0, textWidth + textRect.x(), 0);
+        gradient.setColorAt(0, color);
+        gradient.setColorAt(qMax(0.0, (rectWidth - 10) / textWidth), color);
+        gradient.setColorAt(qMax(0.0, rectWidth / textWidth), Qt::transparent);
+        gradient.setColorAt(1, Qt::transparent);
+        pen.setBrush(QBrush(gradient));
+    } else {
+        pen.setColor(color);
+    }
+
+    painter->setPen(pen);
+    painter->setFont(font());
+    painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());
+}
+
 void TabItem::init()
 {
     setCheckable(true);
@@ -211,6 +366,9 @@ void TabItem::init()
     setFixedHeight(36);
     setMinimumWidth(64);
     setMaximumWidth(240);
+    QFont tabFont = font();
+    tabFont.setPixelSize(12);
+    setFont(tabFont);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setProperty("selected", false);
     setProperty("closeButtonDisplayMode", closeButtonModeName(m_closeButtonDisplayMode));
@@ -222,8 +380,7 @@ void TabItem::init()
 
     m_slideAnimation = new QPropertyAnimation(this, "pos", this);
 
-    m_closeButton = new TransparentToolButton(FluentQt::icon(FluentIcon::Close), this);
-    m_closeButton->setFixedSize(24, 24);
+    m_closeButton = new TabToolButton(FluentIcon::Close, this);
     m_closeButton->setIconSize(QSize(10, 10));
     m_closeButton->setToolTip(tr("Close"));
     connect(m_closeButton, &QToolButton::clicked, this, &TabItem::closed);
@@ -231,7 +388,6 @@ void TabItem::init()
     installEventFilter(new ToolTipFilter(this, 1000));
 
     FluentStyleSheet::setRole(this, QStringLiteral("TabItem"));
-    FluentStyleSheet::setRole(m_closeButton, QStringLiteral("TabCloseButton"));
     updateCloseButtonVisibility();
     updateShadowVisibility();
 }
@@ -625,36 +781,66 @@ void TabBar::init()
 
     m_scrollArea = new QScrollArea(this);
     m_scrollArea->setFrameShape(QFrame::NoFrame);
+    m_scrollArea->viewport()->setAutoFillBackground(false);
     m_scrollArea->setWidgetResizable(true);
     m_scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(m_scrollArea->horizontalScrollBar(), &QScrollBar::valueChanged, this,
             [this]() { updateOverflowButtons(); });
 
+    // As in Python, the add button scrolls with the tabs and follows the last one.
     m_tabStrip = new QWidget(m_scrollArea);
     m_tabStrip->setObjectName(QStringLiteral("view"));
-    m_itemLayout = new QHBoxLayout(m_tabStrip);
+    m_tabStrip->installEventFilter(this);
+    auto *stripLayout = new QHBoxLayout(m_tabStrip);
+    stripLayout->setContentsMargins(0, 0, 0, 0);
+    stripLayout->setSpacing(0);
+    stripLayout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    m_itemLayout = new QHBoxLayout();
     m_itemLayout->setContentsMargins(5, 5, 5, 5);
     m_itemLayout->setSpacing(0);
     m_itemLayout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    stripLayout->addLayout(m_itemLayout);
+    stripLayout->addSpacing(3);
     m_scrollArea->setWidget(m_tabStrip);
 
-    m_addButton = new TransparentToolButton(FluentQt::icon(FluentIcon::Add), this);
-    m_addButton->setFixedSize(32, 28);
-    m_addButton->setIconSize(QSize(12, 12));
+    m_addButton = new TabToolButton(FluentIcon::Add, m_tabStrip);
     m_addButton->setToolTip(tr("New tab"));
     connect(m_addButton, &QToolButton::clicked, this, &TabBar::tabAddRequested);
+    stripLayout->addWidget(m_addButton, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    stripLayout->addStretch(1);
 
     m_layout->addWidget(m_scrollArea, 1);
-    m_layout->addSpacing(3);
-    m_layout->addWidget(m_addButton, 0, Qt::AlignVCenter);
 
     FluentStyleSheet::setRole(this, QStringLiteral("TabBar"));
-    FluentStyleSheet::setRole(m_addButton, QStringLiteral("TabAddButton"));
     updateOverflowButtons();
 }
 
 QWidget *TabBar::tabStripWidget() const { return m_tabStrip; }
+
+// Python's separators: a 16 px line after each tab, except beside a hovered or selected one.
+bool TabBar::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_tabStrip && event->type() == QEvent::Paint) {
+        QPainter painter(m_tabStrip);
+        painter.setRenderHints(QPainter::Antialiasing);
+        painter.setPen(isDarkTheme() ? QColor(255, 255, 255, 21) : QColor(0, 0, 0, 15));
+        const auto highlighted = [](const TabItem *item) { return item->underMouse() || item->isSelected(); };
+        for (int i = 0; i < m_items.size(); ++i) {
+            const TabItem *item = m_items.at(i);
+            bool canDraw = !highlighted(item);
+            if (i < m_items.size() - 1 && highlighted(m_items.at(i + 1))) {
+                canDraw = false;
+            }
+            if (canDraw) {
+                const int x = item->geometry().right();
+                const int y = m_tabStrip->height() / 2 - 8;
+                painter.drawLine(x, y, x, y + 16);
+            }
+        }
+    }
+    return QWidget::eventFilter(watched, event);
+}
 
 void TabBar::moveTab(int from, int to)
 {
@@ -693,15 +879,19 @@ void TabBar::updateOverflowButtons()
     }
 
     m_tabStrip->adjustSize();
+    // Tabs shrink to their minimum before the strip scrolls; the add button and its 3 px gap follow.
     int totalWidth = 0;
     for (TabItem *item : std::as_const(m_items)) {
-        totalWidth += qMax(item->minimumWidth(), item->sizeHint().width()) + m_itemLayout->spacing();
+        totalWidth += item->minimumWidth() + m_itemLayout->spacing();
     }
     if (!m_items.isEmpty()) {
         totalWidth -= m_itemLayout->spacing();
     }
     const QMargins margins = m_itemLayout->contentsMargins();
-    totalWidth += margins.left() + margins.right();
+    totalWidth += margins.left() + margins.right() + 3;
+    if (m_addButton && !m_addButton->isHidden()) {
+        totalWidth += m_addButton->width();
+    }
     m_tabStrip->setMinimumWidth(totalWidth);
 
     updateGeometry();
