@@ -1269,21 +1269,28 @@ class DateTimeTest : public QObject
 
     // A picker panel selects its value before it is shown. The column's viewport then still had
     // a child widget's default 100x30 size, so the value was scrolled to the top, not the middle.
-    void cycleListWidgetCentresAValueSelectedBeforeShow()
+    void pickerPanelCentresAValueSelectedBeforeShow()
     {
-        QWidget parent;
         QStringList hours;
         for (int hour = 0; hour < 24; ++hour) {
             hours.append(QString::number(hour));
         }
-        auto *column = new FluentQt::CycleListWidget(hours, QSize(120, 37), Qt::AlignCenter, &parent);
-        column->setSelectedItem(QStringLiteral("10"));
-        const int row = column->currentCycleIndex();
-        QCOMPARE(column->currentItem()->text(), QStringLiteral("10"));
-        // Some styles (Windows) only size the scroll range when the column is shown.
-        parent.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&parent));
-        QTRY_VERIFY(qAbs(column->verticalScrollBar()->value() - 37 * (row - column->visibleNumber() / 2)) <= 1);
+        for (const QString &role : {QStringLiteral("TimePickerPanel"), QStringLiteral("DatePickerPanel")}) {
+            FluentQt::PickerPanel panel;
+            panel.setAttribute(Qt::WA_DeleteOnClose, false);
+            panel.setPanelRole(role);
+            panel.setViewRole(role);
+            panel.addColumn(hours, 80);
+            panel.setColumnValue(0, QStringLiteral("10"));
+            FluentQt::CycleListWidget *column = panel.listWidgets().first();
+            QCOMPARE(column->currentItem()->text(), QStringLiteral("10"));
+            panel.show();
+            const auto offCentre = [column] {
+                return column->visualItemRect(column->currentItem()).center().y()
+                       - column->viewport()->rect().center().y();
+            };
+            QTRY_VERIFY2(qAbs(offCentre()) <= 1, qPrintable(role + QStringLiteral(": %1 px").arg(offCentre())));
+        }
     }
 
   private:
