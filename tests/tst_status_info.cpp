@@ -1,6 +1,5 @@
 // Info bars, info badges, state tooltips, tooltips and progress indicators.
 
-#include <algorithm>
 #include <FluentQtWidgets/ConfigItem.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
@@ -34,7 +33,6 @@
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/FluentWindow.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
-#include <functional>
 #include <QtCore/QBuffer>
 #include <QtCore/QEasingCurve>
 #include <QtCore/QFile>
@@ -73,6 +71,7 @@
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QListView>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStackedWidget>
@@ -80,6 +79,8 @@
 #include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <algorithm>
+#include <functional>
 
 #include "TestSupport.h"
 
@@ -688,6 +689,34 @@ class StatusInfoTest : public QObject
             QCOMPARE(pixel.rgb(), background.rgb());
         }
         manager->setTheme(previousTheme);
+    }
+
+    // Python's item view tooltip goes through the same screen clamp as every other tooltip, so
+    // the tip of a first-row item at the top of the screen stays on the screen. The port placed
+    // it above the item with no clamp, partly off the screen.
+    void itemViewToolTipStaysOnScreen()
+    {
+        const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+        QStandardItemModel model(3, 1);
+        model.setItem(0, 0, new QStandardItem(QStringLiteral("First")));
+        model.item(0, 0)->setToolTip(QStringLiteral("First row tooltip"));
+        QListView view;
+        view.setModel(&model);
+        view.resize(200, 120);
+        view.move(available.topLeft());
+        view.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+        ItemViewToolTipDelegate delegate(&view, 0, ItemViewToolTipType::List);
+        const QModelIndex index = model.index(0, 0);
+        const QPoint itemCenter = view.visualRect(index).center();
+        QHelpEvent help(QEvent::ToolTip, itemCenter, view.viewport()->mapToGlobal(itemCenter));
+        QVERIFY(delegate.helpEvent(&help, &view, QStyleOptionViewItem(), index));
+        ToolTip *tip = nullptr;
+        QTRY_VERIFY((tip = view.findChild<ToolTip *>()) && tip->isVisible());
+        QVERIFY2(tip->y() >= available.top(),
+                 qPrintable(QStringLiteral("tooltip at y=%1, screen top %2").arg(tip->y()).arg(available.top())));
+        tip->hide();
     }
 
     void toolTipShowTextCleansUpAfterItself()

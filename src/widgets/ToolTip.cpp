@@ -456,7 +456,17 @@ QPoint ItemViewToolTipDelegate::calculatePosition(QAbstractItemView *view, const
         }
     }
 
-    return QPoint(x, y);
+    // Keep the tooltip on the screen, as ToolTip::calculatePosition() does.
+    QScreen *screen = QGuiApplication::screenAt(topLeft);
+    if (!screen) {
+        screen = QGuiApplication::primaryScreen();
+    }
+    if (!screen || !m_toolTip) {
+        return QPoint(x, y);
+    }
+    const QRect rect = screen->availableGeometry();
+    return QPoint(qBound(rect.left(), x, rect.right() - m_toolTip->width() - 4),
+                  qBound(rect.top(), y, rect.bottom() - m_toolTip->height() - 4));
 }
 
 } // namespace FluentQt
