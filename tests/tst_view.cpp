@@ -254,6 +254,40 @@ class ViewTest : public QObject
         }
     }
 
+    // Python's delegates paint items in getFont(13), 13 px, unless the item has its own font. The
+    // port used the view's font, which is 12 px on Windows (9 pt) and a point size elsewhere.
+    void itemDelegatesUseThePythonFont()
+    {
+        ListWidget list;
+        list.addItem(QStringLiteral("plain"));
+        TableWidget table;
+        table.setRowCount(1);
+        table.setColumnCount(1);
+        table.setItem(0, 0, new QTableWidgetItem(QStringLiteral("plain")));
+        TreeWidget tree;
+        new QTreeWidgetItem(&tree, QStringList{QStringLiteral("plain")});
+
+        const QList<std::pair<QAbstractItemView *, QModelIndex>> views{
+            {&list, list.model()->index(0, 0)},
+            {&table, table.model()->index(0, 0)},
+            {&tree, tree.model()->index(0, 0)},
+        };
+        for (const auto &[view, index] : views) {
+            auto *delegate = qobject_cast<TableItemDelegate *>(view->itemDelegate());
+            QVERIFY(delegate);
+            QStyleOptionViewItem option;
+            delegate->initStyleOption(&option, index);
+            QCOMPARE(option.font.pixelSize(), 13);
+
+            QFont own;
+            own.setPixelSize(20);
+            view->model()->setData(index, own, Qt::FontRole);
+            QStyleOptionViewItem ownOption;
+            delegate->initStyleOption(&ownOption, index);
+            QCOMPARE(ownOption.font.pixelSize(), 20);
+        }
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

@@ -1,5 +1,8 @@
 #include <FluentQtWidgets/Views/ItemViews.h>
 
+#include "../core/FontUtils_p.h"
+
+#include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/LineEdit.h>
@@ -39,6 +42,16 @@ QString checkBoxIconPath(Qt::CheckState state)
     const QString color = dark ? QStringLiteral("black") : QStringLiteral("white");
     const QString name = state == Qt::PartiallyChecked ? QStringLiteral("PartialAccept") : QStringLiteral("Accept");
     return QStringLiteral(":/qfluentwidgets/images/check_box/%1_%2.svg").arg(name, color);
+}
+
+// The item font of the Python delegates, getFont(13): the Fluent families at 13 px, whatever the
+// view's own font.
+QFont itemFont()
+{
+    QFont font;
+    font.setFamilies(Private::resolvedFontFamilies(FluentConfig::instance()->fontFamilies()));
+    font.setPixelSize(13);
+    return font;
 }
 
 void updateDelegateParent(QObject *delegate)
@@ -252,21 +265,17 @@ void TableItemDelegate::initStyleOption(QStyleOptionViewItem *option, const QMod
 {
     QStyledItemDelegate::initStyleOption(option, index);
 
-    // Use font role if available
     const QVariant fontData = index.data(Qt::FontRole);
-    if (fontData.canConvert<QFont>()) {
-        option->font = fontData.value<QFont>();
-    }
+    option->font = fontData.canConvert<QFont>() ? fontData.value<QFont>() : itemFont();
 
-    // Text color: white in dark, black in light
+    // Text color: white in dark, black in light, unless the item has its own
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    const QColor textColor = dark ? Qt::white : Qt::black;
+    QColor textColor = dark ? Qt::white : Qt::black;
     const QVariant textBrush = index.data(Qt::ForegroundRole);
     if (textBrush.canConvert<QBrush>()) {
-        option->palette.setColor(QPalette::Text, textBrush.value<QBrush>().color());
-    } else {
-        option->palette.setColor(QPalette::Text, textColor);
+        textColor = textBrush.value<QBrush>().color();
     }
+    option->palette.setColor(QPalette::Text, textColor);
     option->palette.setColor(QPalette::HighlightedText, textColor);
 }
 
