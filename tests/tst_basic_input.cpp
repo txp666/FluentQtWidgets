@@ -308,6 +308,52 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python pads the primary buttons and checked toggle buttons as their plain ToolButton or
+    // PushButton base; the primary rule's own `padding: 5px 12px 6px 12px` made a primary tool
+    // button 45 px wide against 38, cut a primary drop-down tool button's arrow room to 45 px
+    // against 60, and widened a toggle tool button when it was checked.
+    void primaryAndCheckedButtonsKeepTheirBasePadding()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            const QIcon mail = icon(FluentIcon::Mail);
+            const auto hint = [](QWidget *widget) {
+                widget->ensurePolished();
+                return widget->sizeHint();
+            };
+
+            ToolButton tool(mail);
+            PrimaryToolButton primaryTool(mail);
+            QCOMPARE(hint(&primaryTool), hint(&tool));
+
+            DropDownToolButton dropDown(mail);
+            PrimaryDropDownToolButton primaryDropDown(mail);
+            QCOMPARE(hint(&primaryDropDown), hint(&dropDown));
+
+            PushButton push(QStringLiteral("Button"));
+            PrimaryPushButton primaryPush(QStringLiteral("Button"));
+            QCOMPARE(hint(&primaryPush), hint(&push));
+
+            ToggleToolButton toggleTool(mail);
+            TransparentToggleToolButton transparentToggleTool(mail);
+            TogglePushButton togglePush(mail, QStringLiteral("Button"));
+            const QSize uncheckedToggleTool = hint(&toggleTool);
+            const QSize uncheckedTogglePush = hint(&togglePush);
+            for (QAbstractButton *button :
+                 {static_cast<QAbstractButton *>(&toggleTool), static_cast<QAbstractButton *>(&transparentToggleTool),
+                  static_cast<QAbstractButton *>(&togglePush)}) {
+                button->setChecked(true);
+                FluentStyleSheet::polish(button);
+            }
+            QCOMPARE(hint(&toggleTool), uncheckedToggleTool);
+            QCOMPARE(hint(&transparentToggleTool), hint(&tool));
+            QCOMPARE(hint(&togglePush), uncheckedTogglePush);
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void pushButtonIconAndTextKeepPythonSpacing()
     {
         auto *manager = ThemeManager::instance();

@@ -30,6 +30,7 @@ QToolButton[fqw="TransparentToolButton"],
 QToolButton[fqw="TransparentDropDownToolButton"],
 QToolButton[fqw="TransparentToggleToolButton"],
 QToolButton[fqw="PillToolButton"],
+QToolButton[fqw="PrimaryToolButton"],
 QToolButton[fqw="FolderRemoveButton"] {
     padding: 5px 9px 6px 8px;
 }
@@ -39,6 +40,7 @@ QPushButton[fqw="PushButton"][isPlaceholderText="true"] {
 }
 
 QPushButton[fqw="PushButton"][hasIcon="false"],
+QPushButton[fqw="PrimaryPushButton"][hasIcon="false"],
 QPushButton[fqw="TogglePushButton"][hasIcon="false"],
 QPushButton[fqw="TransparentPushButton"][hasIcon="false"],
 QPushButton[fqw="TransparentTogglePushButton"][hasIcon="false"],
@@ -150,7 +152,6 @@ QToolButton[fqw="CommandButton"]:checked {
     border: 1px solid --ThemeColorLight1;
     border-bottom: 1px solid --ThemeColorDark1;
     border-radius: 5px;
-    padding: 5px 12px 6px 12px;
     outline: none;
 }
 
@@ -197,17 +198,6 @@ QToolButton[fqw="CommandButton"]:checked:disabled {
     color: rgba(255, 255, 255, 0.9);
     background-color: rgb(205, 205, 205);
     border: 1px solid rgb(205, 205, 205);
-}
-
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:hover,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:pressed,
-QPushButton[fqw="TogglePushButton"][hasIcon="true"]:checked:disabled,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:hover,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:pressed,
-QPushButton[fqw="TransparentTogglePushButton"][hasIcon="true"]:checked:disabled {
-    padding: 5px 12px 6px 36px;
 }
 
 QToolButton[fqw="SplitDropButton"],
