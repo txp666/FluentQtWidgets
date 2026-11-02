@@ -72,8 +72,6 @@ class FQW_API InfoBadge : public QLabel
     QColor lightBackgroundColor() const;
     QColor darkBackgroundColor() const;
     InfoBadgeManager *manager() const;
-    QSize sizeHint() const override;
-    QSize minimumSizeHint() const override;
     void setCount(int count);
     void setCustomBackgroundColor(const QColor &lightBackground, const QColor &darkBackground = QColor());
 
@@ -181,7 +179,6 @@ class FQW_API IconInfoBadge : public InfoBadge
 
     QIcon icon() const;
     QSize iconSize() const;
-    QSize sizeHint() const override;
 
   public slots:
     void setIcon(const QIcon &icon);

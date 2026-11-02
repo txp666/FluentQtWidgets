@@ -36,7 +36,6 @@ QString badgeText(int count)
 
 InfoBadge::InfoBadge(QWidget *parent) : QLabel(parent)
 {
-    setAlignment(Qt::AlignCenter);
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -192,18 +191,6 @@ void InfoBadge::paintEvent(QPaintEvent *event)
     painter.setFont(font());
     painter.setPen(palette().color(QPalette::WindowText));
     painter.drawText(rect(), Qt::AlignCenter, text());
-}
-
-QSize InfoBadge::sizeHint() const
-{
-    const QSize labelSize = QLabel::sizeHint();
-    return QSize(qMax(labelSize.width(), labelSize.height()), labelSize.height());
-}
-
-QSize InfoBadge::minimumSizeHint() const
-{
-    const QSize labelSize = QLabel::minimumSizeHint();
-    return QSize(qMax(labelSize.width(), labelSize.height()), labelSize.height());
 }
 
 QColor InfoBadge::backgroundColor() const
@@ -424,8 +411,6 @@ IconInfoBadge *IconInfoBadge::custom(FluentIcon icon, const QColor &lightBackgro
 QIcon IconInfoBadge::icon() const { return m_icon; }
 
 QSize IconInfoBadge::iconSize() const { return m_iconSize; }
-
-QSize IconInfoBadge::sizeHint() const { return QSize(16, 16); }
 
 void IconInfoBadge::setIcon(const QIcon &icon)
 {

@@ -248,9 +248,27 @@ class StatusInfoTest : public QObject
         FluentQt::InfoBadge textBadge(QStringLiteral("3"));
         QCOMPARE(textBadge.level(), FluentQt::InfoLevel::Attention);
 
-        FluentQt::InfoBadge singleDigitBadge(QStringLiteral("1"));
-        QVERIFY(singleDigitBadge.sizeHint().width() >= singleDigitBadge.sizeHint().height());
-        QVERIFY(singleDigitBadge.minimumSizeHint().width() >= singleDigitBadge.minimumSizeHint().height());
+        // Python's badges are plain QLabels in size: info_badge.qss's padding, the default (left)
+        // alignment and no size hint of their own. Its InfoBadge selector matches the dot and icon
+        // badges too, so they get the same padding.
+        for (const QString &text : {QString(), QStringLiteral("1"), QStringLiteral("88")}) {
+            FluentQt::InfoBadge badge(text);
+            QLabel reference(text);
+            reference.setFont(badge.font());
+            badge.ensurePolished();
+            reference.setStyleSheet(QStringLiteral("QLabel { padding: 1px 3px 1px 3px; }"));
+            QCOMPARE(badge.sizeHint(), reference.sizeHint());
+        }
+        FluentQt::InfoBadge emptyBadge;
+        FluentQt::DotInfoBadge dotBadge;
+        FluentQt::IconInfoBadge emptyIconBadge;
+        for (QWidget *badge : {static_cast<QWidget *>(&emptyBadge), static_cast<QWidget *>(&dotBadge),
+                               static_cast<QWidget *>(&emptyIconBadge)}) {
+            badge->ensurePolished();
+        }
+        QCOMPARE(dotBadge.sizeHint().height(), emptyBadge.sizeHint().height());
+        // QLabel expands its hint to the fixed 16x16.
+        QCOMPARE(emptyIconBadge.sizeHint().height(), qMax(emptyBadge.sizeHint().height(), 16));
 
         auto *infoBadge = FluentQt::InfoBadge::info(120);
         QCOMPARE(infoBadge->text(), QStringLiteral("120"));
