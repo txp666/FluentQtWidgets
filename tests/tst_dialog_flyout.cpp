@@ -768,6 +768,47 @@ class DialogFlyoutTest : public QObject
                               << QRect(154, 104, 294, 232) << QRect(394, 360, 183, 42);
     }
 
+    // Python's mask widget has no object name, so folder_list_dialog.qss's QWidget rule gives the
+    // FolderListDialog mask a 1 px border (rgb(200, 200, 200), rgb(53, 53, 53) dark) and its
+    // QWidget#windowMask rule never applies; a MessageBox's mask has no border. The port's mask
+    // always had `border: none`.
+    void maskDialogsDrawPythonsMaskBorder_data()
+    {
+        QTest::addColumn<bool>("dark");
+        QTest::addColumn<QColor>("border");
+        QTest::newRow("light") << false << QColor(200, 200, 200);
+        QTest::newRow("dark") << true << QColor(53, 53, 53);
+    }
+
+    void maskDialogsDrawPythonsMaskBorder()
+    {
+        QFETCH(bool, dark);
+        QFETCH(QColor, border);
+        FluentQt::ThemeManager::instance()->setTheme(dark ? FluentQt::Theme::Dark : FluentQt::Theme::Light);
+
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+
+        FluentQt::FolderListDialog folders(QStringList{QStringLiteral("/tmp")}, QStringLiteral("Title"),
+                                           QStringLiteral("Content"), &parent);
+        folders.show();
+        QTRY_VERIFY(folders.isVisible());
+        const QImage folderMask = folders.windowMask()->grab().toImage();
+        QCOMPARE(QColor(folderMask.pixel(0, 0)), border);
+        QCOMPARE(QColor(folderMask.pixel(folderMask.width() - 1, folderMask.height() - 1)), border);
+        QVERIFY(QColor(folderMask.pixel(5, 5)) != border);
+        folders.hide();
+
+        FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Content"), &parent);
+        box.show();
+        QTRY_VERIFY(box.isVisible());
+        const QImage boxMask = box.windowMask()->grab().toImage();
+        QCOMPARE(boxMask.pixel(0, 0), boxMask.pixel(5, 5));
+        box.hide();
+    }
+
     void folderListDialogMatchesPythonLayout()
     {
         QFETCH(bool, dark);

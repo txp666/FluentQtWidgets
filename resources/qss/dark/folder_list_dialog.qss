@@ -3,11 +3,6 @@ QWidget {
     border: 1px solid rgb(53, 53, 53);
 }
 
-QWidget#windowMask {
-    background-color: rgba(0, 0, 0, 0.6);
-    border: none;
-}
-
 QLabel {
     border: none;
     color: white;

@@ -534,7 +534,9 @@ void MaskDialogBase::updateMaskStyle()
     if (!m_windowMask) {
         return;
     }
-    m_windowMask->setStyleSheet(QStringLiteral("background: rgba(%1, %2, %3, %4); border: none;")
+    // Only the background, as Python's setMaskColor(): a dialog's own sheet may still give the mask a
+    // border, as folder_list_dialog.qss's QWidget rule does in Python.
+    m_windowMask->setStyleSheet(QStringLiteral("background: rgba(%1, %2, %3, %4);")
                                     .arg(m_maskColor.red())
                                     .arg(m_maskColor.green())
                                     .arg(m_maskColor.blue())
