@@ -5,7 +5,7 @@ QDialog[fqw="MessageBoxPopup"] {
 
 QFrame[fqw="Dialog"] {
     background: rgb(43, 43, 43);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
     border-radius: 7px;
 }
 
@@ -38,7 +38,7 @@ QFrame[fqw="Dialog"] QLabel#windowTitleLabel {
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
     padding: 6px;
-    font-size: 12px;
+    font: 12px --FontFamilies;
 }
 
 QFrame[fqw="Dialog"] QLabel#titleLabel,
@@ -53,6 +53,8 @@ QFrame[fqw="MessageBox"] QLabel#titleLabel {
 QFrame[fqw="Dialog"] QLabel#contentLabel,
 QFrame[fqw="MessageBox"] QLabel#contentLabel {
     background: transparent;
+    font: 14px --FontFamilies;
+    padding: 0;
     color: white;
     border: none;
     selection-background-color: --ThemeColorPrimary;

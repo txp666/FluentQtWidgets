@@ -62,11 +62,13 @@ class FQW_API Dialog : public QDialog
 
   protected:
     void showEvent(QShowEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
     virtual bool validate() const;
 
   private:
     void installFadeInAnimation();
     void addButtonStretchOnce();
+    void adjustDialogSize();
 
   protected:
     QFrame *m_view = nullptr;

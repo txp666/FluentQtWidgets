@@ -16,6 +16,7 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QPen>
 #include <QtGui/QResizeEvent>
 #include <QtGui/QShowEvent>
 #include <QtWidgets/QFrame>
@@ -47,6 +48,9 @@ bool overlaysAsChild(QWidget *target)
     return target && QGuiApplication::platformName().startsWith(QLatin1String("wayland"));
 }
 
+// qfluentwidgets resizes its Dialog to 240 x 192; the layout's minimum size only ever grows it.
+constexpr QSize kDialogMinimumSize(240, 192);
+
 int messageWrapCharacterCount(QWidget *dialog, QLabel *titleLabel)
 {
     if (!dialog) {
@@ -76,11 +80,9 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
     setWindowOpacity(0.0);
 
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(12, 8, 12, 20);
-    layout->setSizeConstraint(QLayout::SetMinimumSize);
-    layout->setSpacing(12);
-
+    // The view stands in for qfluentwidgets' frameless window. A native window gets its shadow and
+    // frame from the system; here the margins around the view hold the whole of the view's shadow
+    // and the 1 px frame paintEvent() draws, so neither is cropped.
     m_view = new QFrame(this);
     FluentStyleSheet::setRole(m_view, QStringLiteral("Dialog"));
     auto *shadow = new QGraphicsDropShadowEffect(m_view);
@@ -88,6 +90,14 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     shadow->setOffset(0, 8);
     shadow->setColor(QColor(0, 0, 0, 30));
     m_view->setGraphicsEffect(shadow);
+
+    const QRect viewRect(0, 0, 100, 100);
+    const QRect shadowRect = shadow->boundingRectFor(viewRect).toAlignedRect().adjusted(-1, -1, 1, 1);
+    auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(viewRect.left() - shadowRect.left(), viewRect.top() - shadowRect.top(),
+                               shadowRect.right() - viewRect.right(), shadowRect.bottom() - viewRect.bottom());
+    layout->setSizeConstraint(QLayout::SetMinimumSize);
+    layout->setSpacing(0);
     layout->addWidget(m_view);
 
     m_vBoxLayout = new QVBoxLayout(m_view);
@@ -145,12 +155,41 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     });
 }
 
+void Dialog::adjustDialogSize()
+{
+    if (!layout() || !m_view) {
+        return;
+    }
+    // Activating the layouts makes the view's minimum size that of its content, like the
+    // SetMinimumSize constraint does for qfluentwidgets' window.
+    m_vBoxLayout->activate();
+    layout()->activate();
+    const QMargins margins = layout()->contentsMargins();
+    const QSize viewSize = m_view->minimumSize().expandedTo(kDialogMinimumSize);
+    resize(viewSize.grownBy(margins).expandedTo(minimumSize()));
+}
+
+void Dialog::paintEvent(QPaintEvent *event)
+{
+    QDialog::paintEvent(event);
+    if (!m_view || !m_view->isVisible()) {
+        return;
+    }
+
+    QPainter painter(this);
+    const QRectF viewRect(m_view->geometry());
+    // The window frame sits just outside the view, as a native frame does, so the view keeps
+    // qfluentwidgets' window size and its children their offsets.
+    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(QPen(dark ? QColor(255, 255, 255, 26) : QColor(0, 0, 0, 36), 1));
+    painter.drawRoundedRect(viewRect.adjusted(-0.5, -0.5, 0.5, 0.5), 7.5, 7.5);
+}
+
 void Dialog::showEvent(QShowEvent *event)
 {
-    if (layout()) {
-        layout()->activate();
-    }
-    adjustSize();
+    adjustDialogSize();
     if (QWidget *parentWindow = parentWidget() ? parentWidget()->window() : nullptr) {
         const QPoint targetCenter = parentWindow->frameGeometry().center();
         const QPoint dialogCenter = m_view ? m_view->geometry().center() : rect().center();

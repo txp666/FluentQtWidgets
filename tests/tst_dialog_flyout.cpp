@@ -292,7 +292,6 @@ class DialogFlyoutTest : public QObject
             QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
                            "automatically wrap like this."),
             &dialogParent);
-        galleryDialog.widget()->setFixedSize(240, 192);
         QVERIFY(!galleryDialog.contentLabel()->wordWrap());
         QVERIFY(!galleryDialog.contentLabel()->text().contains(QLatin1Char('\n')));
         galleryDialog.show();
@@ -302,6 +301,98 @@ class DialogFlyoutTest : public QObject
         QVERIFY(qAbs(viewCenter.x() - parentCenter.x()) <= 2);
         QVERIFY(qAbs(viewCenter.y() - parentCenter.y()) <= 2);
         galleryDialog.close();
+    }
+
+    void dialogFitsItsContentInsideItsWindowLikePython()
+    {
+        // The Gallery pinned the view to 240 x 192, taking qfluentwidgets' resize(240, 192) of the
+        // window for a fixed view size: the content needed more, so the view stuck out of the window
+        // and its button row was cut off. Python's 240 x 192 is only a floor the layout grows past.
+        QWidget parent;
+        parent.resize(1000, 640);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        if (parent.width() < 1000) {
+            QSKIP("The screen is too narrow for a 1000-pixel-wide window");
+        }
+
+        const QString galleryTitle = QStringLiteral("This is a frameless message dialog");
+        const QString galleryContent =
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this.");
+        struct Case
+        {
+            QString title;
+            QString content;
+        };
+        const QList<Case> cases = {
+            {galleryTitle, galleryContent},
+            {QStringLiteral("这是一个无边框对话框"),
+             QStringLiteral("如果消息框的内容特别长，它会像这样自动换行。\n第二行\n第三行")},
+            {QStringLiteral("T"), QStringLiteral("M")},
+        };
+
+        int pythonSizesCompared = 0;
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+            for (const Case &c : cases) {
+                FluentQt::Dialog dialog(c.title, c.content, &parent);
+                dialog.show();
+                QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+                const QString where = QStringLiteral("%1 / %2").arg(dark ? "dark" : "light", c.title);
+                const QByteArray whereText = where.toUtf8();
+
+                // The view, its shadow and the frame around it fit in the window.
+                const QRect view = dialog.widget()->geometry();
+                const QRect shadow =
+                    dialog.widget()->graphicsEffect()->boundingRectFor(view).toAlignedRect().adjusted(-1, -1, 1, 1);
+                QVERIFY2(dialog.rect().contains(shadow), whereText.constData());
+                QVERIFY2(view.width() >= 240 && view.height() >= 192, whereText.constData());
+
+                // Every part of the dialog lies inside the view, the button row at its foot.
+                for (QWidget *part :
+                     {static_cast<QWidget *>(dialog.windowTitleLabel()), static_cast<QWidget *>(dialog.titleLabel()),
+                      static_cast<QWidget *>(dialog.contentLabel()), static_cast<QWidget *>(dialog.buttonGroup())}) {
+                    QVERIFY2(dialog.widget()->rect().contains(part->geometry()), whereText.constData());
+                    if (qobject_cast<QLabel *>(part)) {
+                        QVERIFY2(part->height() >= part->minimumSizeHint().height(), whereText.constData());
+                    }
+                }
+                for (QWidget *button :
+                     {static_cast<QWidget *>(dialog.yesButton()), static_cast<QWidget *>(dialog.cancelButton())}) {
+                    QVERIFY2(dialog.buttonGroup()->rect().contains(button->geometry()), whereText.constData());
+                }
+                QCOMPARE(dialog.buttonGroup()->height(), 81);
+                QCOMPARE(dialog.buttonGroup()->geometry().bottom(), view.height() - 1);
+                QCOMPARE(dialog.buttonGroup()->width(), view.width());
+
+                // Python's offsets: the title bar at the top edge, the texts 24 px in.
+                QCOMPARE(dialog.windowTitleLabel()->geometry().topLeft(), QPoint(0, 0));
+                QCOMPARE(dialog.windowTitleLabel()->width(), view.width());
+                QCOMPARE(dialog.titleLabel()->geometry().left(), 24);
+                QCOMPARE(dialog.titleLabel()->geometry().top(), dialog.windowTitleLabel()->height() + 24);
+                QCOMPARE(dialog.yesButton()->geometry().left(), 24);
+                QCOMPARE(dialog.cancelButton()->geometry().right(), view.width() - 1 - 24);
+
+                // Measured natively from qfluentwidgets 1.11.3 on macOS (a 29 px title bar, 20 px
+                // text lines); text widths need Python's font, so only there.
+                const QSize pythonSize = c.title == QLatin1String("T") ? QSize(240, 218)
+                                         : c.title == galleryTitle     ? QSize(770, 218)
+                                                                       : QSize(356, 258);
+                if (c.title == QLatin1String("T")) {
+                    // qfluentwidgets' 240 px floor holds; the height is the content's.
+                    QCOMPARE(view.size(), pythonSize);
+                } else if (QFontInfo(dialog.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
+                    QCOMPARE(dialog.windowTitleLabel()->height(), 29);
+                    QCOMPARE(view.size(), pythonSize);
+                    ++pythonSizesCompared;
+                }
+                dialog.close();
+            }
+        }
+        if (pythonSizesCompared == 0) {
+            qInfo("Python's text-dependent sizes were not compared: PingFang SC is not the dialog font here");
+        }
     }
 
     void dialogFadeInDropsOpacityEffectBeforeButtonHover()

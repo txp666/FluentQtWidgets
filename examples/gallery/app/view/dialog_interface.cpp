@@ -35,7 +35,6 @@ QWidget *GalleryWindow::createDialogPage()
                          "automatically wrap like this."),
                       page->window());
         dialog.setContentCopyable(true);
-        dialog.widget()->setFixedSize(240, 192);
         dialog.exec();
     });
     page->addExampleCard(tx("DialogInterface", "A frameless message box"), dialogBtn, dialogSource);
