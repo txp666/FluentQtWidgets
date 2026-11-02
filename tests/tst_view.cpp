@@ -333,6 +333,22 @@ class ViewTest : public QObject
         QCOMPARE(textOffset(0), textOffset(1));
     }
 
+    // A Python list's rows start at its top edge; the port kept 2 px viewport margins above and
+    // below them.
+    void listRowsReachTheViewEdges()
+    {
+        ListWidget list;
+        ListView view;
+        for (QAbstractItemView *widget :
+             {static_cast<QAbstractItemView *>(&list), static_cast<QAbstractItemView *>(&view)}) {
+            widget->resize(300, 200);
+            widget->show();
+            QVERIFY(QTest::qWaitForWindowExposed(widget));
+            QCOMPARE(widget->viewport()->geometry().top(), 0);
+            QCOMPARE(widget->viewport()->height(), widget->height());
+        }
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

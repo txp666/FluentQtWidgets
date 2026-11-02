@@ -669,7 +669,6 @@ void ListView::init()
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initListLikeView(this, m_delegate, QStringLiteral("ListView"));
 
-    setViewportMargins(0, 2, 0, 2);
     setAlternatingRowColors(false);
     setProperty("isBorderVisible", false);
 }
@@ -681,11 +680,9 @@ bool ListView::isBorderVisible() const { return property("isBorderVisible").toBo
 void ListView::setBorderVisible(bool visible)
 {
     setBorderProperty(this, visible);
-    if (visible) {
-        setViewportMargins(0, 3, 0, 3);
-    } else {
-        setViewportMargins(0, 2, 0, 2);
-    }
+    // Python lists have no border option; keep rows off the rounded border's corners.
+    const int margin = visible ? 3 : 0;
+    setViewportMargins(0, margin, 0, margin);
 }
 
 void ListView::setBorderRadius(int radius) { applyBorderRadius(this, QStringLiteral("QListView"), radius); }
@@ -762,7 +759,6 @@ void ListWidget::init()
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initListLikeView(this, m_delegate, QStringLiteral("ListWidget"));
 
-    setViewportMargins(0, 2, 0, 2);
     setAlternatingRowColors(false);
     setProperty("isBorderVisible", false);
 }
@@ -774,11 +770,9 @@ bool ListWidget::isBorderVisible() const { return property("isBorderVisible").to
 void ListWidget::setBorderVisible(bool visible)
 {
     setBorderProperty(this, visible);
-    if (visible) {
-        setViewportMargins(0, 3, 0, 3);
-    } else {
-        setViewportMargins(0, 2, 0, 2);
-    }
+    // Python lists have no border option; keep rows off the rounded border's corners.
+    const int margin = visible ? 3 : 0;
+    setViewportMargins(0, margin, 0, margin);
 }
 
 void ListWidget::setBorderRadius(int radius) { applyBorderRadius(this, QStringLiteral("QListView"), radius); }
@@ -862,7 +856,6 @@ void TableView::init()
     m_delegate = new TableItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTableLikeView(this, m_delegate, QStringLiteral("TableView"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 void TableView::updateSelectedRows() { viewport()->update(); }
@@ -946,7 +939,6 @@ void TableWidget::init()
     m_delegate = new TableItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTableLikeView(this, m_delegate, QStringLiteral("TableWidget"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 void TableWidget::updateSelectedRows() { viewport()->update(); }
@@ -1029,7 +1021,6 @@ void TreeView::init()
     m_delegate = new TreeItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTreeLikeView(this, m_delegate, QStringLiteral("TreeView"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 TreeWidget::TreeWidget(QWidget *parent) : QTreeWidget(parent) { init(); }
@@ -1112,7 +1103,6 @@ void TreeWidget::init()
     m_delegate = new TreeItemDelegate(this);
     m_scrollDelegate = new SmoothScrollDelegate(this);
     initTreeLikeView(this, m_delegate, QStringLiteral("TreeWidget"));
-    setViewportMargins(0, 2, 0, 2);
 }
 
 } // namespace FluentQt
