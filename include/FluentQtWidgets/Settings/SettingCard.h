@@ -34,13 +34,13 @@ class QWheelEvent;
 
 namespace FluentQt {
 
-class ClickableSlider;
 class ComboBox;
 class HyperlinkButton;
 class IconWidget;
 class ExpandLayout;
 class RadioButton;
 class ScrollArea;
+class Slider;
 class SwitchButton;
 
 class FQW_API SettingCard : public QFrame
@@ -232,7 +232,7 @@ class FQW_API RangeSettingCard : public SettingCard
     RangeSettingCard(int minimum, int maximum, int value, FluentIcon icon, const QString &title,
                      const QString &content = QString(), QWidget *parent = nullptr);
 
-    ClickableSlider *slider() const;
+    Slider *slider() const;
     QLabel *valueLabel() const;
     int value() const;
     int minimum() const;
@@ -248,7 +248,7 @@ class FQW_API RangeSettingCard : public SettingCard
   private:
     void updateValueLabel(int value);
 
-    ClickableSlider *m_slider = nullptr;
+    Slider *m_slider = nullptr;
     QLabel *m_valueLabel = nullptr;
 };
 

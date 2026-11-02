@@ -1,7 +1,6 @@
 #include <FluentQtWidgets/Widgets/Slider.h>
 
 #include <FluentQtWidgets/Color.h>
-#include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
 #include <QtGui/QMouseEvent>
@@ -329,15 +328,10 @@ void Slider::resizeEvent(QResizeEvent *event)
 // ClickableSlider
 // ============================================================================
 
-ClickableSlider::ClickableSlider(QWidget *parent) : QSlider(parent)
-{
-    FluentStyleSheet::setRole(this, QStringLiteral("ClickableSlider"));
-}
+// As Python's, a plain QSlider: vertical by default, and no style sheet of its own.
+ClickableSlider::ClickableSlider(QWidget *parent) : QSlider(parent) {}
 
-ClickableSlider::ClickableSlider(Qt::Orientation orientation, QWidget *parent) : QSlider(orientation, parent)
-{
-    FluentStyleSheet::setRole(this, QStringLiteral("ClickableSlider"));
-}
+ClickableSlider::ClickableSlider(Qt::Orientation orientation, QWidget *parent) : QSlider(orientation, parent) {}
 
 void ClickableSlider::mousePressEvent(QMouseEvent *event)
 {

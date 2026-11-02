@@ -1363,6 +1363,24 @@ class BasicInputTest : public QObject
         QCOMPARE(clickable.orientation(), Qt::Vertical);
     }
 
+    // Python's ClickableSlider is a plain QSlider with no style sheet (slider.qss would make it 24 px
+    // thick), and its RangeSettingCard uses the self-painting Slider.
+    void clickableSliderIsPlainAndRangeCardUsesSlider()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *horizontal = new ClickableSlider(Qt::Horizontal, &window);
+        layout->addWidget(horizontal, 0, Qt::AlignTop);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QVERIFY(horizontal->styleSheet().isEmpty());
+        QCOMPARE(horizontal->minimumSize(), QSize(0, 0));
+
+        RangeSettingCard card(0, 100, 50, FluentIcon::Home, QStringLiteral("Title"));
+        QCOMPARE(card.slider()->metaObject(), &Slider::staticMetaObject);
+        QCOMPARE(card.slider()->orientation(), Qt::Horizontal);
+    }
+
     // The hint's thickness is the style's, capped at the 22 px handle: Python's QSlider hint is 22
     // in Qt 5's macOS style and 20 in Fusion at 100 DPI, but Qt 6's macOS style hints 25.
     void sliderHintIsNoThickerThanItsHandle()

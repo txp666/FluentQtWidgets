@@ -527,7 +527,7 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, const QI
     m_valueLabel = new QLabel(this);
     m_valueLabel->setObjectName(QStringLiteral("valueLabel"));
 
-    m_slider = new ClickableSlider(Qt::Horizontal, this);
+    m_slider = new Slider(Qt::Horizontal, this);
     m_slider->setMinimumWidth(268);
     m_slider->setRange(minimum, maximum);
     m_slider->setValue(value);
@@ -537,7 +537,7 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, const QI
     actionLayout()->addWidget(m_valueLabel, 0, Qt::AlignRight);
     actionLayout()->addWidget(m_slider, 0, Qt::AlignRight);
 
-    connect(m_slider, &ClickableSlider::valueChanged, this, [this](int sliderValue) {
+    connect(m_slider, &Slider::valueChanged, this, [this](int sliderValue) {
         updateValueLabel(sliderValue);
         emit valueChanged(sliderValue);
     });
@@ -551,7 +551,7 @@ RangeSettingCard::RangeSettingCard(int minimum, int maximum, int value, FluentIc
 {
 }
 
-ClickableSlider *RangeSettingCard::slider() const { return m_slider; }
+Slider *RangeSettingCard::slider() const { return m_slider; }
 
 QLabel *RangeSettingCard::valueLabel() const { return m_valueLabel; }
 
