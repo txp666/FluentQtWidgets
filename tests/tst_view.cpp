@@ -297,6 +297,42 @@ class ViewTest : public QObject
         QCOMPARE(view.selectionMode(), QAbstractItemView::ExtendedSelection);
     }
 
+    // The item's QSS padding places the text as in Python: as far into the first column as into the
+    // others. The port pushed the first column's text 10 px further right.
+    void firstColumnTextKeepsTheItemPadding()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TableWidget table;
+        table.verticalHeader()->hide();
+        table.setRowCount(2);
+        table.setColumnCount(3);
+        for (int row = 0; row < 2; ++row) {
+            for (int column = 0; column < 3; ++column) {
+                table.setItem(row, column, new QTableWidgetItem(QStringLiteral("MMMM")));
+            }
+        }
+        table.resize(400, 200);
+        table.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&table));
+
+        const QImage image = table.viewport()->grab().toImage();
+        const qreal ratio = image.devicePixelRatio();
+        auto textOffset = [&](int column) {
+            const QRect cell = table.visualItemRect(table.item(1, column));
+            for (int x = qRound(cell.left() * ratio); x < qRound(cell.right() * ratio); ++x) {
+                for (int y = qRound((cell.top() + 4) * ratio); y < qRound((cell.bottom() - 4) * ratio); ++y) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (color.alpha() > 200 && color.lightness() < 120) {
+                        return qRound(x / ratio) - cell.left();
+                    }
+                }
+            }
+            return -1;
+        };
+        QVERIFY(textOffset(1) > 0);
+        QCOMPARE(textOffset(0), textOffset(1));
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

@@ -381,11 +381,6 @@ void TableItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     // indicator above remain the only selection visuals.
     itemOption.palette.setColor(QPalette::Highlight, Qt::transparent);
     itemOption.palette.setColor(QPalette::HighlightedText, itemOption.palette.color(QPalette::Text));
-    if (index.column() == 0) {
-        // Reserve space for the Fluent selection indicator so it never
-        // overlaps the first column's text.
-        itemOption.rect.adjust(10, 0, 0, 0);
-    }
     QStyledItemDelegate::paint(painter, itemOption, index);
 }
 
