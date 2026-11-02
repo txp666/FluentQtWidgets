@@ -208,7 +208,13 @@ void TimePicker::mouseReleaseEvent(QMouseEvent *event)
 {
     setColumnButtonProperty("pressed", false);
     QFrame::mouseReleaseEvent(event);
-    if (event->button() != Qt::LeftButton) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    const QPoint releasePos = event->position().toPoint();
+#else
+    const QPoint releasePos = event->pos();
+#endif
+    // Python opens the panel on clicked(), which a press dragged off the picker does not emit.
+    if (event->button() != Qt::LeftButton || !rect().contains(releasePos)) {
         return;
     }
     showPickerPanel();

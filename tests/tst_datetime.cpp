@@ -225,6 +225,28 @@ class DateTimeTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python's pickers open their panel on clicked(); pressing one and releasing off it does not.
+    void pickersIgnoreAReleaseOutsideThem()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *datePicker = new FluentQt::DatePicker(&window);
+        auto *timePicker = new FluentQt::TimePicker(&window);
+        layout->addWidget(datePicker);
+        layout->addWidget(timePicker);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        for (QFrame *picker : {static_cast<QFrame *>(datePicker), static_cast<QFrame *>(timePicker)}) {
+            QTest::mousePress(picker, Qt::LeftButton, Qt::NoModifier, QPoint(10, 10));
+            QTest::mouseRelease(picker, Qt::LeftButton, Qt::NoModifier, QPoint(10, picker->height() + 20));
+            QCoreApplication::processEvents();
+            QVERIFY(picker->findChildren<FluentQt::PickerPanel *>().isEmpty());
+            QVERIFY(!FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel")));
+            QVERIFY(!FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel")));
+        }
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;
