@@ -5,11 +5,12 @@
 
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
+#include <QtGui/QCursor>
 #include <QtGui/QFont>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
 #include <QtWidgets/QVBoxLayout>
 
@@ -530,14 +531,13 @@ NavigationTreeWidget::NavigationTreeWidget(const QIcon &icon, const QString &tex
     setCursor(Qt::PointingHandCursor);
     m_expandAnimation = new QPropertyAnimation(this, "geometry", this);
     m_expandAnimation->setEasingCurve(QEasingCurve::OutQuad);
-    m_expandAnimation->setDuration(150);
+    m_expandAnimation->setDuration(120);
     connect(m_expandAnimation, &QPropertyAnimation::valueChanged, this,
             [this](const QVariant &value) { setFixedSize(value.toRect().size()); });
     connect(m_expandAnimation, &QPropertyAnimation::finished, this, &NavigationTreeWidget::onExpandAnimationFinished);
 
     m_arrowAnimation = new QPropertyAnimation(this, "arrowAngle", this);
     m_arrowAnimation->setDuration(150);
-    m_arrowAnimation->setEasingCurve(QEasingCurve::OutQuad);
 
     updateFixedSize();
 }
@@ -605,7 +605,9 @@ void NavigationTreeWidget::setCompacted(bool compacted)
     update();
 }
 
-void NavigationTreeWidget::setExpanded(bool expanded)
+// As in Python, the arrow always turns, the children show or hide at once and only the height
+// may animate, clipping them while it grows.
+void NavigationTreeWidget::setExpanded(bool expanded, bool animated)
 {
     if (m_expanded == expanded) {
         return;
@@ -618,15 +620,17 @@ void NavigationTreeWidget::setExpanded(bool expanded)
     m_arrowAnimation->setEndValue(expanded ? 180.0 : 0.0);
     m_arrowAnimation->start();
 
-    m_expandAnimation->stop();
-    m_expandAnimation->setStartValue(geometry());
-    m_expandAnimation->setEndValue(QRect(geometry().topLeft(), sizeHint()));
-    m_expandAnimation->start();
+    for (NavigationTreeWidget *child : m_children) {
+        child->setVisible(expanded);
+    }
 
-    if (!expanded) {
-        for (NavigationTreeWidget *child : m_children) {
-            child->setVisible(false);
-        }
+    m_expandAnimation->stop();
+    if (animated) {
+        m_expandAnimation->setStartValue(geometry());
+        m_expandAnimation->setEndValue(QRect(geometry().topLeft(), sizeHint()));
+        m_expandAnimation->start();
+    } else {
+        relayoutChildren();
     }
 }
 
@@ -640,17 +644,7 @@ void NavigationTreeWidget::setArrowAngle(qreal angle)
     update();
 }
 
-void NavigationTreeWidget::onExpandAnimationFinished()
-{
-    if (m_expanded) {
-        for (NavigationTreeWidget *child : m_children) {
-            child->setVisible(true);
-        }
-    }
-
-    relayoutChildren();
-    updateFixedSize();
-}
+void NavigationTreeWidget::onExpandAnimationFinished() { relayoutChildren(); }
 
 void NavigationTreeWidget::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -659,16 +653,75 @@ void NavigationTreeWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 
     m_pressed = false;
+    update();
     // Only a release on the item's own row is a click; the rows below belong to its children.
     if (!QRect(0, 0, width(), kItemHeight).contains(event->pos())) {
-        update();
         return;
     }
-    if (!m_children.isEmpty() && !m_compacted) {
-        setExpanded(!m_expanded);
+
+    // As in Python: a click on an unselected, selectable parent opens it without closing it
+    // again, other clicks toggle it, and a click on the arrow only toggles, it selects nothing.
+    const bool clickArrow = !m_children.isEmpty() && QRectF(width() - 30, 8, 20, 20).contains(event->pos());
+    if (!m_compacted) {
+        if (m_selectable && !m_selected && !clickArrow) {
+            setExpanded(true, true);
+        } else {
+            setExpanded(!m_expanded, true);
+        }
     }
-    emit clicked(true);
+    if (!clickArrow || m_compacted) {
+        emit clicked(true);
+    }
 }
+
+bool NavigationTreeWidget::event(QEvent *event)
+{
+    const bool result = NavigationWidget::event(event);
+    switch (event->type()) {
+    case QEvent::Enter:
+    case QEvent::Leave:
+    case QEvent::HoverEnter:
+    case QEvent::HoverMove:
+    case QEvent::HoverLeave:
+        // The widget holds its children, so the pointer can be inside it but over a child row;
+        // entering or leaving a child changes whether the parent's own row is hovered.
+        refreshRowHover();
+        if (m_treeParent) {
+            m_treeParent->refreshRowHover();
+        }
+        break;
+    default:
+        break;
+    }
+    return result;
+}
+
+void NavigationTreeWidget::refreshRowHover()
+{
+    if (m_rowHovered != isItemRowHovered()) {
+        m_rowHovered = !m_rowHovered;
+        update();
+    }
+}
+
+// Python's check: the pointer is over the item's own row, not over one of its children.
+bool NavigationTreeWidget::isItemRowHovered() const
+{
+    return m_hovered && QRect(mapToGlobal(QPoint(0, 0)), QSize(width(), kItemHeight)).contains(QCursor::pos());
+}
+
+// Python indents a child by 28 px per level inside a full-width row, and keeps 20 px on the
+// right of a parent for its arrow.
+QMargins NavigationTreeWidget::itemMargins() const
+{
+    int depth = 0;
+    for (NavigationTreeWidget *parent = m_treeParent; parent; parent = parent->m_treeParent) {
+        ++depth;
+    }
+    return QMargins(depth * 28, 0, m_children.isEmpty() ? 0 : 20, 0);
+}
+
+QRectF NavigationTreeWidget::indicatorRect() const { return QRectF(itemMargins().left(), 10, 3, 16); }
 
 void NavigationTreeWidget::paintEvent(QPaintEvent *event)
 {
@@ -686,31 +739,33 @@ void NavigationTreeWidget::paintEvent(QPaintEvent *event)
         painter.setOpacity(0.7);
     }
 
+    // Backgrounds cover the item's own row only, never the rows of its children.
+    const QRect row(0, 0, width(), kItemHeight);
+    const QMargins margins = itemMargins();
+    const bool rowHovered = isItemRowHovered();
     const bool drawIndicator = canDrawIndicator();
     if (drawIndicator) {
         painter.setPen(Qt::NoPen);
-        painter.setBrush(QColor(base, base, base, m_hovered ? 10 : 6));
-        painter.drawRoundedRect(rect(), 5, 5);
+        painter.setBrush(QColor(base, base, base, rowHovered ? 6 : 10));
+        painter.drawRoundedRect(row, 5, 5);
 
         painter.setBrush(ThemeManager::instance()->accentColor());
         painter.drawRoundedRect(indicatorRect(), 1.5, 1.5);
-    } else if (m_hovered || m_aboutSelected) {
+    } else if ((rowHovered || m_aboutSelected) && isEnabled()) {
         painter.setPen(Qt::NoPen);
         painter.setBrush(QColor(base, base, base, m_aboutSelected ? 6 : 10));
-        painter.drawRoundedRect(rect(), 5, 5);
+        painter.drawRoundedRect(row, 5, 5);
     }
 
-    const int iconLeft = m_compacted ? 11 : 11;
     if (!m_icon.isNull()) {
-        paintNavigationIcon(&painter, m_icon, QRectF(iconLeft, 10, 16, 16),
+        paintNavigationIcon(&painter, m_icon, QRectF(11.5 + margins.left(), 10, 16, 16),
                             isEnabled() ? QIcon::Normal : QIcon::Disabled);
     }
 
     if (!m_compacted && !m_text.isEmpty()) {
         painter.setPen(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
-        const int textLeft = m_icon.isNull() ? 16 : 44;
-        const int arrowReserve = m_children.isEmpty() ? 8 : 28;
-        const QRect textRect(textLeft, 0, width() - textLeft - arrowReserve, kItemHeight);
+        const int textLeft = (m_icon.isNull() ? 16 : 44) + margins.left();
+        const QRect textRect(textLeft, 0, width() - 13 - textLeft - margins.right(), kItemHeight);
         painter.drawText(textRect, Qt::AlignVCenter,
                          painter.fontMetrics().elidedText(m_text, Qt::ElideRight, textRect.width()));
     }
@@ -747,7 +802,7 @@ void NavigationTreeWidget::relayoutChildren()
 {
     int y = kItemHeight + 4;
     for (NavigationTreeWidget *child : m_children) {
-        child->move(8, y);
+        child->move(0, y);
         y += child->height() + 4;
     }
     updateFixedSize();

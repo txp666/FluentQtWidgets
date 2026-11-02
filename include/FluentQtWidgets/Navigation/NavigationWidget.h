@@ -40,7 +40,7 @@ class FQW_API NavigationWidget : public QWidget
     bool isCompacted() const;
     bool isSelected() const;
     bool isAboutSelected() const;
-    QRectF indicatorRect() const;
+    virtual QRectF indicatorRect() const;
     QSize sizeHint() const override;
 
   public slots:

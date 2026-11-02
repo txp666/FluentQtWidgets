@@ -516,6 +516,86 @@ class NavigationTest : public QObject
         QTRY_VERIFY(root.arrowAngle() < 10.0);
     }
 
+    // Python indents a child by 28 px per level inside a full-width row; the port moved the
+    // child 8 px right instead, so its row stuck out of the panel and its icon sat too far left.
+    void navigationTreeChildrenAreIndentedInsideFullWidthRows()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Light);
+
+        FluentQt::NavigationTreeWidget root(FluentQt::icon(FluentQt::FluentIcon::Folder), QStringLiteral("Folder"));
+        auto *child =
+            new FluentQt::NavigationTreeWidget(FluentQt::icon(FluentQt::FluentIcon::Music), QStringLiteral("Child"));
+        root.insertChild(-1, child);
+        root.setCompacted(false);
+        root.setExpanded(true);
+
+        QCOMPARE(child->x(), 0);
+        QCOMPARE(child->width(), root.width());
+        QCOMPARE(root.indicatorRect(), QRectF(0, 10, 3, 16));
+        QCOMPARE(child->indicatorRect(), QRectF(28, 10, 3, 16));
+
+        child->setSelected(true);
+        QImage image(child->size(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        child->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        const QColor accent = theme->accentColor();
+        const QColor indicator = image.pixelColor(29, 18);
+        QVERIFY(qAbs(indicator.red() - accent.red()) < 8 && qAbs(indicator.green() - accent.green()) < 8);
+        QVERIFY(image.pixelColor(1, 18).alpha() < 40);
+
+        theme->setTheme(previousTheme);
+    }
+
+    // An expanded parent holds its children, so the pointer stays "in" it over a child; the port
+    // then filled the whole block, children included. Python only lights the parent's own row.
+    void navigationTreeParentHoverCoversOnlyItsOwnRow()
+    {
+        FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Folder"));
+        auto *child = new FluentQt::NavigationTreeWidget(QIcon(), QStringLiteral("Child"));
+        root.insertChild(-1, child);
+        root.setCompacted(false);
+        root.setExpanded(true);
+
+        // Hidden, so the window system adds no enter or leave events of its own.
+        const auto rowAlpha = [&root]() {
+            QImage image(root.size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            root.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            return image.pixelColor(150, 18).alpha();
+        };
+
+        // Qt sends the parent no Leave when the pointer moves on into a child.
+        const QPoint overRow = root.mapToGlobal(QPoint(150, 18));
+        QEnterEvent enter(QPointF(150, 18), QPointF(150, 18), QPointF(overRow));
+        QCursor::setPos(overRow);
+        QApplication::sendEvent(&root, &enter);
+        QVERIFY(rowAlpha() > 0);
+        QCursor::setPos(child->mapToGlobal(QPoint(150, 18)));
+        QApplication::sendEvent(child, &enter);
+        QCOMPARE(rowAlpha(), 0);
+    }
+
+    // As in Python: a click on an unselected, selectable parent opens it and never closes it, and
+    // a click on the arrow toggles it without selecting the item.
+    void navigationTreeParentClicksFollowPython()
+    {
+        FluentQt::NavigationTreeWidget root(QIcon(), QStringLiteral("Folder"));
+        root.insertChild(-1, new FluentQt::NavigationTreeWidget(QIcon(), QStringLiteral("Child")));
+        root.setCompacted(false);
+        root.setExpanded(true);
+        QSignalSpy clickedSpy(&root, &FluentQt::NavigationWidget::clicked);
+
+        QTest::mouseClick(&root, Qt::LeftButton, Qt::NoModifier, QPoint(60, 18));
+        QVERIFY(root.isExpanded());
+        QCOMPARE(clickedSpy.count(), 1);
+
+        QTest::mouseClick(&root, Qt::LeftButton, Qt::NoModifier, QPoint(root.width() - 20, 18));
+        QVERIFY(!root.isExpanded());
+        QCOMPARE(clickedSpy.count(), 1);
+    }
+
     void navigationBarTracksItemsAndCommands()
     {
         FluentQt::NavigationBar bar;
