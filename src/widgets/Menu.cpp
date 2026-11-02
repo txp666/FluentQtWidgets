@@ -17,15 +17,16 @@
 #include <QtGui/QActionEvent>
 #include <QtGui/QClipboard>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QGuiApplication>
+#include <QtGui/QCursor>
 #include <QtGui/QFontMetricsF>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QHideEvent>
 #include <QtGui/QKeySequence>
+#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QScreen>
 #include <QtGui/QShowEvent>
-#include <QtGui/QHideEvent>
-#include <QtGui/QMouseEvent>
 #include <QtGui/QTextLayout>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/QEnterEvent>
@@ -1482,6 +1483,22 @@ void RoundMenu::showEvent(QShowEvent *event)
     QMenu::showEvent(event);
 }
 
+void RoundMenu::adjustPosition()
+{
+    const QMargins m = layout()->contentsMargins();
+    const QRect rect = screenGeometryAt(QCursor::pos());
+    const QSize hint = layout()->sizeHint();
+    const int w = hint.width() + 5;
+    const int h = hint.height();
+
+    const int x = qMin(this->x() - m.left(), rect.right() - w);
+    int y = this->y();
+    if (y > rect.bottom() - h) {
+        y = this->y() - h + m.bottom();
+    }
+    move(x, y);
+}
+
 void RoundMenu::hideEvent(QHideEvent *event)
 {
     if (m_isHideBySystem && m_isSubMenu) {
@@ -1724,10 +1741,25 @@ AcrylicSystemTrayMenu::AcrylicSystemTrayMenu(QWidget *parent) : AcrylicMenu(pare
     FluentStyleSheet::setRole(this, QStringLiteral("AcrylicSystemTrayMenu"));
 }
 
+void AcrylicSystemTrayMenu::showEvent(QShowEvent *event)
+{
+    AcrylicMenu::showEvent(event);
+    adjustPosition();
+    if (auto *acrylicView = qobject_cast<AcrylicMenuActionListWidget *>(view())) {
+        acrylicView->acrylicBrush()->grabImage(QRect(pos(), layout()->sizeHint()));
+    }
+}
+
 AcrylicCheckableSystemTrayMenu::AcrylicCheckableSystemTrayMenu(QWidget *parent)
     : AcrylicCheckableMenu(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("AcrylicCheckableSystemTrayMenu"));
+}
+
+void AcrylicCheckableSystemTrayMenu::showEvent(QShowEvent *event)
+{
+    AcrylicCheckableMenu::showEvent(event);
+    adjustPosition();
 }
 
 // ==========================================

@@ -4,9 +4,11 @@
 #include <QtCore/QPointer>
 #include <QtCore/QTimer>
 #include <QtGui/QAction>
+#include <QtGui/QCursor>
 #include <QtGui/QImage>
 #include <QtGui/QScreen>
 #include <QtTest/QtTest>
+#include <QtWidgets/QLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -159,6 +161,32 @@ class MenuTest : public QObject
             QTest::qWait(400);
             QCOMPARE(menu.pos(), QPoint(anchor.x() - margins.left(), endY));
             menu.close();
+        }
+    }
+
+    // Python's acrylic tray menus call adjustPosition() when shown: a menu opened by the tray icon
+    // near the screen's bottom right corner moves inside the screen. The port left it where Qt put it.
+    void acrylicTrayMenusMoveInsideTheScreenWhenShown()
+    {
+        FluentQt::AcrylicSystemTrayMenu tray;
+        FluentQt::AcrylicCheckableSystemTrayMenu checkableTray;
+        for (FluentQt::RoundMenu *menu : std::initializer_list<FluentQt::RoundMenu *>{&tray, &checkableTray}) {
+            menu->addAction(QStringLiteral("Open"));
+            menu->addAction(QStringLiteral("Settings"));
+            menu->addAction(QStringLiteral("Quit"));
+            QScreen *screen = QGuiApplication::screenAt(QCursor::pos());
+            if (!screen) {
+                screen = QGuiApplication::primaryScreen();
+            }
+            const QRect available = screen->availableGeometry();
+            const QSize hint = menu->layout()->sizeHint();
+            menu->adjustSize();
+            menu->move(available.right() - 10, available.bottom() - 10);
+            menu->show();
+            QVERIFY(QTest::qWaitForWindowExposed(menu));
+            QCOMPARE(menu->x(), available.right() - (hint.width() + 5));
+            QCOMPARE(menu->y(), available.bottom() - 10 - hint.height() + menu->layout()->contentsMargins().bottom());
+            menu->hide();
         }
     }
 

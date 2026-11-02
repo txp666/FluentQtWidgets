@@ -222,6 +222,9 @@ public:
     void adjustContentSize(const QPoint &pos = QPoint(),
                            MenuAnimationType animationType = MenuAnimationType::None);
     void setShadowEffect(int blurRadius = 30, int offsetX = 0, int offsetY = 8);
+    // Python's adjustPosition(): keeps the shown menu inside the screen under the cursor, moving it
+    // left of the right edge and above its position when it would pass the bottom edge.
+    void adjustPosition();
 
     void setDefaultAction(QAction *action);
 
@@ -384,6 +387,10 @@ class FQW_API AcrylicSystemTrayMenu : public AcrylicMenu
 
 public:
     explicit AcrylicSystemTrayMenu(QWidget *parent = nullptr);
+
+  protected:
+    // Python's: adjustPosition(), then the acrylic grabs what is behind the moved menu.
+    void showEvent(QShowEvent *event) override;
 };
 
 class FQW_API AcrylicCheckableSystemTrayMenu : public AcrylicCheckableMenu
@@ -392,6 +399,9 @@ class FQW_API AcrylicCheckableSystemTrayMenu : public AcrylicCheckableMenu
 
 public:
     explicit AcrylicCheckableSystemTrayMenu(QWidget *parent = nullptr);
+
+  protected:
+    void showEvent(QShowEvent *event) override;
 };
 
 // --- LabelContextMenu ---
