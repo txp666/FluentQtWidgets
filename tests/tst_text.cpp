@@ -270,7 +270,7 @@ class TextTest : public QObject
         QVERIFY(!label.font().underline());
     }
 
-    // Python colours its labels black in light and white in dark theme.
+    // Python colours its labels black in light and white in dark theme, the caption too.
     void labelsUsePythonDefaultTextColours()
     {
         auto *manager = ThemeManager::instance();
@@ -278,7 +278,8 @@ class TextTest : public QObject
             manager->setTheme(theme);
             QWidget window;
             auto *layout = new QHBoxLayout(&window);
-            const QList<FluentLabelBase *> labels = {new BodyLabel(QStringLiteral("Body"), &window),
+            const QList<FluentLabelBase *> labels = {new CaptionLabel(QStringLiteral("Caption"), &window),
+                                                     new BodyLabel(QStringLiteral("Body"), &window),
                                                      new StrongBodyLabel(QStringLiteral("Strong"), &window),
                                                      new SubtitleLabel(QStringLiteral("Subtitle"), &window),
                                                      new TitleLabel(QStringLiteral("Title"), &window),

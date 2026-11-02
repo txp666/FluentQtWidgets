@@ -1,8 +1,4 @@
-QLabel[fqw="CaptionLabel"] {
-    color: rgba(255, 255, 255, 0.6063);
-    background: transparent;
-}
-
+QLabel[fqw="CaptionLabel"],
 QLabel[fqw="BodyLabel"],
 QLabel[fqw="StrongBodyLabel"],
 QLabel[fqw="SubtitleLabel"],

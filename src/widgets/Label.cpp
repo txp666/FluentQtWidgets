@@ -52,11 +52,9 @@ void FluentLabelBase::setFluentTextStyle(const QString &role, int pixelSize, QFo
     labelFont.setWeight(weight);
     setFont(labelFont);
     FluentStyleSheet::setRole(this, role);
-    // The colours label.qss gives the role, until setTextColor() replaces them. Python's labels are
-    // black and white; the caption keeps a softer grey here, which the setting cards rely on.
-    const bool caption = role == QLatin1String("CaptionLabel");
-    m_lightColor = QColor(0, 0, 0, caption ? 154 : 255);
-    m_darkColor = QColor(255, 255, 255, caption ? 154 : 255);
+    // The colours label.qss gives every role, as Python's, until setTextColor() replaces them.
+    m_lightColor = QColor(0, 0, 0);
+    m_darkColor = QColor(255, 255, 255);
 }
 
 QColor FluentLabelBase::lightColor() const { return m_lightColor; }
