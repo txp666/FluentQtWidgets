@@ -128,7 +128,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
     void drawAcrylic(QPainter *painter);
-    QColor acrylicBorderColor() const;
     void updateAcrylicColor();
 
 private:
@@ -156,7 +155,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
     void drawAcrylic(QPainter *painter);
-    QColor acrylicBorderColor() const;
     void updateAcrylicColor();
 
 private:

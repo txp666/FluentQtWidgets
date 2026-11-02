@@ -441,6 +441,34 @@ class MaterialTest : public QObject
         QCOMPARE(captured.size() / captured.devicePixelRatio(), tip.container()->size());
     }
 
+    // Python's acrylic flyout views draw FlyoutViewBase::borderColor() around the acrylic.
+    void acrylicFlyoutViewsDrawTheFlyoutBorderColor()
+    {
+        struct RedBorderView : FluentQt::AcrylicFlyoutViewBase
+        {
+            QColor borderColor() const override { return Qt::red; }
+        };
+        struct RedBorderFlyoutView : FluentQt::AcrylicFlyoutView
+        {
+            using FluentQt::AcrylicFlyoutView::AcrylicFlyoutView;
+            QColor borderColor() const override { return Qt::red; }
+        };
+
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(false);
+        RedBorderView base;
+        base.resize(120, 80);
+        RedBorderFlyoutView view(QStringLiteral("Acrylic"), QStringLiteral("Material"));
+        view.resize(view.sizeHint());
+        for (QWidget *widget : {static_cast<QWidget *>(&base), static_cast<QWidget *>(&view)}) {
+            QImage rendered(widget->size(), QImage::Format_ARGB32);
+            rendered.fill(Qt::transparent);
+            widget->render(&rendered, QPoint(), QRegion(), QWidget::DrawWindowBackground);
+            const QColor border = rendered.pixelColor(widget->width() / 2, 1);
+            QVERIFY2(border.red() > 200 && border.green() < 200, qPrintable(border.name(QColor::HexArgb)));
+        }
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(true);
+    }
+
   private:
     struct PaintCounter : QWidget
     {

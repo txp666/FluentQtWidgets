@@ -666,11 +666,6 @@ void AcrylicFlyoutViewBase::updateAcrylicColor()
     }
 }
 
-QColor AcrylicFlyoutViewBase::acrylicBorderColor() const
-{
-    return isDarkTheme() ? QColor(QStringLiteral("#474747")) : QColor(QStringLiteral("#d8d8d8"));
-}
-
 void AcrylicFlyoutViewBase::drawAcrylic(QPainter *painter)
 {
     updateAcrylicColor();
@@ -685,7 +680,7 @@ void AcrylicFlyoutViewBase::paintEvent(QPaintEvent *event)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     drawAcrylic(&painter);
     painter.setBrush(Qt::NoBrush);
-    painter.setPen(acrylicBorderColor());
+    painter.setPen(borderColor());
     painter.drawRoundedRect(QRectF(rect()).adjusted(1, 1, -1, -1), 8, 8);
 }
 
@@ -757,11 +752,6 @@ void AcrylicFlyoutView::updateAcrylicColor()
     }
 }
 
-QColor AcrylicFlyoutView::acrylicBorderColor() const
-{
-    return isDarkTheme() ? QColor(QStringLiteral("#474747")) : QColor(QStringLiteral("#d8d8d8"));
-}
-
 void AcrylicFlyoutView::drawAcrylic(QPainter *painter)
 {
     updateAcrylicColor();
@@ -776,7 +766,7 @@ void AcrylicFlyoutView::paintEvent(QPaintEvent *event)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     drawAcrylic(&painter);
     painter.setBrush(Qt::NoBrush);
-    painter.setPen(acrylicBorderColor());
+    painter.setPen(borderColor());
     painter.drawRoundedRect(QRectF(rect()).adjusted(1, 1, -1, -1), 8, 8);
 }
 
