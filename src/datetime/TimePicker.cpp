@@ -427,6 +427,12 @@ void TimePicker::updateColumnDisplay()
 
 void TimePicker::setColumnButtonProperty(const char *name, bool value)
 {
+    // Python's picker is a QPushButton, so its own `:pressed` rule applies while the mouse is down.
+    // A QFrame has no pressed state; the frame carries the property its rule selects instead.
+    if (qstrcmp(name, "pressed") == 0) {
+        setProperty(name, value);
+        FluentStyleSheet::polish(this);
+    }
     for (PickerColumnButton *button : m_visibleColumns) {
         button->setProperty(name, value);
         FluentStyleSheet::polish(button);

@@ -149,6 +149,82 @@ class DateTimeTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python styles both pickers as PickerBase: the same border, a pressed background while the
+    // mouse is down, and value text that turns grey when disabled. The port's DatePicker had its
+    // own border colours, `:pressed` never matched a QFrame, and the column colours drifted.
+    void dateAndTimePickersUsePythonColours()
+    {
+        const auto render = [](QWidget *widget) {
+            QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::black);
+            widget->render(&image, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
+            return image;
+        };
+
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        manager->setTheme(FluentQt::Theme::Light);
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *datePicker = new FluentQt::DatePicker(&window);
+        auto *timePicker = new FluentQt::TimePicker(&window);
+        layout->addWidget(datePicker);
+        layout->addWidget(timePicker);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+        QList<QImage> releasedImages;
+        for (QFrame *picker : {static_cast<QFrame *>(datePicker), static_cast<QFrame *>(timePicker)}) {
+            const QString name = QString::fromLatin1(picker->metaObject()->className());
+            const QPoint probe(picker->width() - 5, picker->height() / 2);
+            const QImage released = render(picker);
+            releasedImages.append(released);
+            QTest::mousePress(picker, Qt::LeftButton, Qt::NoModifier, probe);
+            QVERIFY(picker->property("pressed").toBool());
+            const QImage pressed = render(picker);
+            QVERIFY2(pressed.pixelColor(probe).red() < released.pixelColor(probe).red() - 40, qPrintable(name));
+            QCOMPARE(picker->size(), released.size());
+            // Undo the press by hand: a release would open the panel.
+            for (QWidget *widget : QList<QWidget *>{picker} + pickerButtonWidgets(picker)) {
+                widget->setProperty("pressed", false);
+                FluentQt::FluentStyleSheet::polish(widget);
+            }
+
+            const QList<QPushButton *> columns = pickerButtons(picker);
+            QVERIFY(!columns.isEmpty());
+            QPushButton *column = columns.first();
+            const auto darkestText = [column]() {
+                QImage image(column->size(), QImage::Format_ARGB32_Premultiplied);
+                image.fill(Qt::white);
+                column->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+                int darkest = 255;
+                for (int y = 0; y < image.height(); ++y) {
+                    for (int x = 0; x < image.width() - 2; ++x) {
+                        darkest = qMin(darkest, image.pixelColor(x, y).red());
+                    }
+                }
+                return darkest;
+            };
+            column->setProperty("enter", true);
+            FluentQt::FluentStyleSheet::polish(column);
+            // rgba(0, 0, 0, 0.896) text over white, not black.
+            QVERIFY2(qAbs(darkestText() - 27) <= 6, qPrintable(name));
+            column->setProperty("enter", false);
+            column->setProperty("hasValue", true);
+            picker->setEnabled(false);
+            FluentQt::FluentStyleSheet::polish(column);
+            // A disabled picker shows its value in rgba(0, 0, 0, 0.36), not black.
+            QVERIFY2(qAbs(darkestText() - 163) <= 6, qPrintable(name));
+            picker->setEnabled(true);
+        }
+        // Same frame rule: the right end of both pickers (background, top and bottom border) matches.
+        for (int y = 0; y < 30; ++y) {
+            QCOMPARE(releasedImages.at(0).pixelColor(releasedImages.at(0).width() - 5, y),
+                     releasedImages.at(1).pixelColor(releasedImages.at(1).width() - 5, y));
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void calendarPickerTracksDateAndReset()
     {
         FluentQt::CalendarPicker picker;
@@ -964,6 +1040,15 @@ class DateTimeTest : public QObject
             }
         }
         return buttons;
+    }
+
+    static QList<QWidget *> pickerButtonWidgets(QWidget *picker)
+    {
+        QList<QWidget *> widgets;
+        for (QPushButton *button : pickerButtons(picker)) {
+            widgets.append(button);
+        }
+        return widgets;
     }
 
     static void verifyPickerOperationButtons(QWidget *panelView, bool resetVisible)

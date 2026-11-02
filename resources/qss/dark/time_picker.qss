@@ -11,7 +11,7 @@ QFrame[fqw="TimePicker"]:hover {
     background: rgba(255, 255, 255, 0.0837);
 }
 
-QFrame[fqw="TimePicker"]:pressed {
+QFrame[fqw="TimePicker"][pressed="true"] {
     color: rgba(255, 255, 255, 0.786);
     background: rgba(255, 255, 255, 0.0326);
     border-top: 1px solid rgba(255, 255, 255, 0.053);
@@ -51,12 +51,12 @@ QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasBorder="false"] {
 }
 
 QFrame[fqw="TimePicker"] QPushButton#pickerButton[enter="true"]:enabled,
-QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasValue="true"] {
+QFrame[fqw="TimePicker"] QPushButton#pickerButton[hasValue="true"]:enabled {
     color: rgba(255, 255, 255, 1);
 }
 
 QFrame[fqw="TimePicker"] QPushButton#pickerButton[pressed="true"] {
-    color: rgba(255, 255, 255, 0.537);
+    color: rgba(255, 255, 255, 0.786);
 }
 
 QFrame[fqw="TimePicker"] QPushButton#pickerButton[align="center"] {
