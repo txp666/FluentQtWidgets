@@ -358,6 +358,71 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python fades a disabled drop-down button's arrow to 0.6 (light) or 0.43 (dark), not 0.36,
+    // and draws a disabled primary one white in both themes.
+    void disabledDropDownArrowsFadeLikePython()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        const auto render = [](QWidget *button, const QColor &backdrop) {
+            QImage image(button->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(backdrop);
+            button->render(&image);
+            return image;
+        };
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            const bool dark = theme == Theme::Dark;
+            const QColor backdrop = dark ? QColor(32, 32, 32) : Qt::white;
+            const int arrowGray = dark ? 255 : 100;
+
+            DropDownToolButton button(icon(FluentIcon::Mail));
+            button.ensurePolished();
+            button.resize(button.sizeHint());
+            const QRect arrow(button.width() - 22, button.height() / 2 - 5, 10, 10);
+            const QPoint beside(arrow.left() - 3, button.height() / 2);
+
+            // The arrow's most covered pixel when enabled, and how much it covers.
+            const QImage enabled = render(&button, backdrop);
+            const int enabledBack = qGray(enabled.pixel(beside));
+            QPoint strongest;
+            int strongestDelta = 0;
+            for (int y = arrow.top(); y <= arrow.bottom(); ++y) {
+                for (int x = arrow.left(); x <= arrow.right(); ++x) {
+                    const int delta = qAbs(qGray(enabled.pixel(x, y)) - enabledBack);
+                    if (delta > strongestDelta) {
+                        strongestDelta = delta;
+                        strongest = QPoint(x, y);
+                    }
+                }
+            }
+            const qreal coverage = qreal(strongestDelta) / qAbs(arrowGray - enabledBack);
+            QVERIFY(coverage > 0.3);
+
+            button.setEnabled(false);
+            const QImage disabled = render(&button, backdrop);
+            const int disabledBack = qGray(disabled.pixel(beside));
+            const qreal opacity =
+                qAbs(qGray(disabled.pixel(strongest)) - disabledBack) / (coverage * qAbs(arrowGray - disabledBack));
+            QVERIFY2(qAbs(opacity - (dark ? 0.43 : 0.6)) < 0.08, qPrintable(QString::number(opacity)));
+
+            PrimaryDropDownToolButton primary(icon(FluentIcon::Mail));
+            primary.ensurePolished();
+            primary.resize(primary.sizeHint());
+            primary.setEnabled(false);
+            const QImage primaryImage = render(&primary, backdrop);
+            const int primaryBack = qGray(primaryImage.pixel(beside));
+            int brightest = 0;
+            for (int y = arrow.top(); y <= arrow.bottom(); ++y) {
+                for (int x = arrow.left(); x <= arrow.right(); ++x) {
+                    brightest = qMax(brightest, qGray(primaryImage.pixel(x, y)) - primaryBack);
+                }
+            }
+            QVERIFY2(brightest > 20, qPrintable(QString::number(brightest)));
+        }
+        manager->setTheme(previousTheme);
+    }
+
     // Python gives a disabled primary split button's main part a grey right edge, lighter than
     // its disabled border, where the drop button meets it.
     void disabledPrimarySplitButtonsKeepPythonDividerColour()

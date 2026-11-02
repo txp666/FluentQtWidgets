@@ -350,7 +350,7 @@ void paintTextButtonBackground(QPainter *painter, const QWidget *button)
     paintRoundedButtonFrame(painter, button->rect().adjusted(0, 0, -1, -1), background, Qt::transparent, 5);
 }
 
-void paintDropDownArrow(QPainter *painter, const QRectF &rect, bool primary)
+void paintDropDownArrow(QPainter *painter, const QRectF &rect, bool primary, bool enabled)
 {
     if (!painter) {
         return;
@@ -359,12 +359,32 @@ void paintDropDownArrow(QPainter *painter, const QRectF &rect, bool primary)
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
     QIcon arrowIcon;
     if (primary) {
-        arrowIcon = icon(FluentIcon::ArrowDown, dark ? Theme::Light : Theme::Dark);
+        // White on the accent colour, black on the dark theme's light accent; white on the grey
+        // of a disabled button in both themes.
+        arrowIcon = icon(FluentIcon::ArrowDown, enabled && dark ? Theme::Light : Theme::Dark);
     } else {
         arrowIcon = dark ? icon(FluentIcon::ArrowDown, Theme::Dark)
                          : icon(FluentIcon::ArrowDown, Theme::Light, QColor(QStringLiteral("#646464")));
     }
     arrowIcon.paint(painter, rect.toRect());
+}
+
+// Python's DropDownButtonBase.paintEvent: the arrow 22 px from the right edge, faded when the
+// button is disabled, hovered or pressed, and still while disabled.
+void paintDropDownButtonArrow(QWidget *button, int arrowOffset, bool hover, bool pressed, bool primary)
+{
+    QPainter painter(button);
+    painter.setRenderHint(QPainter::Antialiasing);
+    const bool enabled = button->isEnabled();
+    if (!enabled) {
+        painter.setOpacity(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 0.43 : 0.6);
+    } else if (hover) {
+        painter.setOpacity(0.8);
+    } else if (pressed) {
+        painter.setOpacity(0.7);
+    }
+    const int arrowY = button->height() / 2 - 5 + (enabled ? arrowOffset : 0);
+    paintDropDownArrow(&painter, QRectF(button->width() - 22, arrowY, 10, 10), primary, enabled);
 }
 
 void setSplitDropIcon(QToolButton *button, const QIcon &icon)
@@ -741,17 +761,7 @@ RoundMenu *DropDownPushButton::dropDownMenu() const { return menu(); }
 void DropDownPushButton::paintEvent(QPaintEvent *event)
 {
     PushButton::paintEvent(event);
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    if (!isEnabled()) {
-        painter.setOpacity(0.36);
-    } else if (m_isHover) {
-        painter.setOpacity(0.8);
-    } else if (m_isPressed) {
-        painter.setOpacity(0.7);
-    }
-    const int arrowY = height() / 2 - 5 + m_arrowOffset;
-    paintDropDownArrow(&painter, QRectF(width() - 22, arrowY, 10, 10), false);
+    paintDropDownButtonArrow(this, m_arrowOffset, m_isHover, m_isPressed, false);
 }
 
 void DropDownPushButton::mousePressEvent(QMouseEvent *event)
@@ -837,17 +847,7 @@ RoundMenu *PrimaryDropDownPushButton::dropDownMenu() const { return menu(); }
 void PrimaryDropDownPushButton::paintEvent(QPaintEvent *event)
 {
     PrimaryPushButton::paintEvent(event);
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    if (!isEnabled()) {
-        painter.setOpacity(0.36);
-    } else if (m_isHover) {
-        painter.setOpacity(0.8);
-    } else if (m_isPressed) {
-        painter.setOpacity(0.7);
-    }
-    const int arrowY = height() / 2 - 5 + m_arrowOffset;
-    paintDropDownArrow(&painter, QRectF(width() - 22, arrowY, 10, 10), true);
+    paintDropDownButtonArrow(this, m_arrowOffset, m_isHover, m_isPressed, true);
 }
 
 void PrimaryDropDownPushButton::mousePressEvent(QMouseEvent *event)
@@ -1142,17 +1142,7 @@ RoundMenu *DropDownToolButton::dropDownMenu() const { return menu(); }
 void DropDownToolButton::paintEvent(QPaintEvent *event)
 {
     ToolButton::paintEvent(event);
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    if (!isEnabled()) {
-        painter.setOpacity(0.36);
-    } else if (m_isHover) {
-        painter.setOpacity(0.8);
-    } else if (m_isPressed) {
-        painter.setOpacity(0.7);
-    }
-    const int arrowY = height() / 2 - 5 + m_arrowOffset;
-    paintDropDownArrow(&painter, QRectF(width() - 22, arrowY, 10, 10), false);
+    paintDropDownButtonArrow(this, m_arrowOffset, m_isHover, m_isPressed, false);
 }
 
 void DropDownToolButton::drawIcon(QPainter *painter, const QRectF &rect)
@@ -1248,17 +1238,7 @@ RoundMenu *PrimaryDropDownToolButton::dropDownMenu() const { return menu(); }
 void PrimaryDropDownToolButton::paintEvent(QPaintEvent *event)
 {
     PrimaryToolButton::paintEvent(event);
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    if (!isEnabled()) {
-        painter.setOpacity(0.36);
-    } else if (m_isHover) {
-        painter.setOpacity(0.8);
-    } else if (m_isPressed) {
-        painter.setOpacity(0.7);
-    }
-    const int arrowY = height() / 2 - 5 + m_arrowOffset;
-    paintDropDownArrow(&painter, QRectF(width() - 22, arrowY, 10, 10), true);
+    paintDropDownButtonArrow(this, m_arrowOffset, m_isHover, m_isPressed, true);
 }
 
 void PrimaryDropDownToolButton::drawIcon(QPainter *painter, const QRectF &rect)
@@ -2321,8 +2301,8 @@ void SplitDropButton::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    if (!isEnabled()) {
-        painter.setOpacity(0.36);
+    if (!isEnabled() && !isPrimaryDropButton()) {
+        painter.setOpacity(ThemeManager::instance()->effectiveTheme() == Theme::Dark ? 0.43 : 0.36);
     } else if (isDown()) {
         painter.setOpacity(pressedOpacity());
     } else if (underMouse()) {
@@ -2339,8 +2319,14 @@ void SplitDropButton::paintEvent(QPaintEvent *event)
         return;
     }
 
-    const QRectF arrowRect((width() - 10) / 2.0, height() / 2.0 - 5 + m_arrowOffset, 10, 10);
-    paintDropDownArrow(&painter, arrowRect, isPrimaryDropButton());
+    // Python draws the plain drop button's arrow as its tool-button icon, black or white, not in
+    // the #646464 grey of the drop-down buttons.
+    const QRectF arrowRect((width() - 10) / 2.0, height() / 2.0 - 5 + (isEnabled() ? m_arrowOffset : 0.0), 10, 10);
+    if (isPrimaryDropButton()) {
+        paintDropDownArrow(&painter, arrowRect, true, isEnabled());
+    } else {
+        FluentQt::icon(FluentIcon::ArrowDown).paint(&painter, arrowRect.toRect());
+    }
 }
 
 bool SplitDropButton::isPrimaryDropButton() const { return false; }
