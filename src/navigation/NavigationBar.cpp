@@ -90,10 +90,6 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
 
     const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    if (m_pressed) {
-        painter.setOpacity(0.7);
-    }
-
     if (m_selected) {
         painter.setBrush(dark ? QColor(255, 255, 255, 42) : QColor(Qt::white));
         painter.drawRoundedRect(rect(), 5, 5);
@@ -104,6 +100,15 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
         const int base = dark ? 255 : 0;
         painter.setBrush(QColor(base, base, base, m_hovered ? 9 : 6));
         painter.drawRoundedRect(rect(), 5, 5);
+    }
+
+    // As in Python, an unselected item's icon and text are dimmed unless it is hovered and not
+    // pressed, and a disabled item's more so.
+    if ((m_pressed || !m_hovered) && !m_selected) {
+        painter.setOpacity(0.6);
+    }
+    if (!isEnabled()) {
+        painter.setOpacity(0.4);
     }
 
     QIcon paintIcon = (m_selected && !m_selectedIcon.isNull()) ? m_selectedIcon : m_icon;
@@ -119,7 +124,6 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
         return;
     }
 
-    painter.setOpacity(isEnabled() ? 1.0 : 0.4);
     painter.setPen(m_selected ? selectedColor() : textColor());
     painter.setFont(font());
     painter.drawText(QRect(0, 32, width(), 26), Qt::AlignCenter,

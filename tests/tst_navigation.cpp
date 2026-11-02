@@ -765,6 +765,43 @@ class NavigationTest : public QObject
         QCOMPARE(bar.currentRouteKey(), QStringLiteral("home"));
     }
 
+    // Python dims an unselected bar item's icon and text to 0.6 unless the pointer is on it; the
+    // port drew them at full strength.
+    void navigationBarDimsUnselectedItemsAsInPython()
+    {
+        auto *theme = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = theme->theme();
+        theme->setTheme(FluentQt::Theme::Light);
+        FluentQt::NavigationBar bar;
+        auto *home =
+            bar.addItem(QStringLiteral("home"), FluentQt::icon(FluentQt::FluentIcon::Home, FluentQt::Theme::Light),
+                        QStringLiteral("Home"));
+        auto *help =
+            bar.addItem(QStringLiteral("help"), FluentQt::icon(FluentQt::FluentIcon::Help, FluentQt::Theme::Light),
+                        QStringLiteral("Help"));
+        bar.setCurrentItem(QStringLiteral("home"));
+
+        const auto strongestAlpha = [](QWidget *item) {
+            QImage image(item->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            item->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            int strongest = 0;
+            for (int y = 13; y < 33; ++y) {
+                for (int x = 22; x < 42; ++x) {
+                    const QColor pixel = image.pixelColor(x, y);
+                    if (pixel.red() < 100) {
+                        strongest = qMax(strongest, pixel.alpha());
+                    }
+                }
+            }
+            return strongest;
+        };
+        QVERIFY(strongestAlpha(help) <= 160);
+        QVERIFY(strongestAlpha(help) > 0);
+        Q_UNUSED(home)
+        theme->setTheme(previousTheme);
+    }
+
     void navigationHistoryRemoveCollapsesDuplicates()
     {
         QStackedWidget stack;
