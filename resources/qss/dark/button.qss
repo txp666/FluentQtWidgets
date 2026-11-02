@@ -31,6 +31,8 @@ QToolButton[fqw="TransparentDropDownToolButton"],
 QToolButton[fqw="TransparentToggleToolButton"],
 QToolButton[fqw="PillToolButton"],
 QToolButton[fqw="PrimaryToolButton"],
+QToolButton[fqw="SplitDropButton"],
+QToolButton[fqw="PrimarySplitDropButton"],
 QToolButton[fqw="FolderRemoveButton"] {
     padding: 5px 9px 6px 8px;
 }
@@ -208,7 +210,6 @@ QToolButton[fqw="CommandButton"]:checked:disabled {
 
 QToolButton[fqw="SplitDropButton"],
 QToolButton[fqw="PrimarySplitDropButton"] {
-    padding: 0;
     border-left: none;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;

@@ -296,8 +296,12 @@ class BasicInputTest : public QObject
             window.show();
             QVERIFY(QTest::qWaitForWindowExposed(&window));
 
+            // As in Python: 32 px beside a 33 px push button, and 30 px for the borderless
+            // transparent ones.
+            QCOMPARE(push->height(), 33);
             for (const QToolButton *tool : tools) {
-                QVERIFY2(tool->height() >= 32 && qAbs(tool->height() - push->height()) <= 1,
+                const bool transparent = tool->property("fqw").toString().startsWith(QStringLiteral("Transparent"));
+                QVERIFY2(tool->height() == (transparent ? 30 : 32),
                          qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
                                         .arg(tool->property("fqw").toString())
                                         .arg(tool->height())
@@ -352,6 +356,42 @@ class BasicInputTest : public QObject
             QCOMPARE(hint(&togglePush), uncheckedTogglePush);
         }
         manager->setTheme(previousTheme);
+    }
+
+    // Python sets no minimum sizes on its buttons and combo boxes; the port's 32 px minimums made
+    // the borderless transparent and pill buttons 32 px tall against 30-31, and pinned the split
+    // drop button at 32 px wide against 31.
+    void buttonsHaveNoMinimumSizesBeyondPython()
+    {
+        const QIcon mail = icon(FluentIcon::Mail);
+        PushButton push(QStringLiteral("Button"));
+        TransparentPushButton transparentPush(QStringLiteral("Button"));
+        PillPushButton pillPush(QStringLiteral("Tag"));
+        ToolButton tool(mail);
+        TransparentToolButton transparentTool(mail);
+        PillToolButton pillTool(mail);
+        DropDownToolButton dropDown(mail);
+        PrimaryDropDownToolButton primaryDropDown(mail);
+        ComboBox combo;
+        ModelComboBox modelCombo;
+        for (QWidget *widget :
+             std::initializer_list<QWidget *>{&push, &transparentPush, &pillPush, &tool, &transparentTool, &pillTool,
+                                              &dropDown, &primaryDropDown, &combo, &modelCombo}) {
+            QVERIFY2(widget->minimumSize() == QSize(0, 0), qPrintable(QStringLiteral("%1 has a %2x%3 minimum")
+                                                                          .arg(widget->property("fqw").toString())
+                                                                          .arg(widget->minimumWidth())
+                                                                          .arg(widget->minimumHeight())));
+            widget->ensurePolished();
+        }
+        QCOMPARE(transparentPush.sizeHint().height(), 31);
+        QCOMPARE(pillPush.sizeHint().height(), 31);
+        QCOMPARE(transparentTool.sizeHint(), QSize(36, 30));
+        QCOMPARE(pillTool.sizeHint(), QSize(36, 30));
+
+        SplitToolButton split(mail);
+        split.adjustSize();
+        QCOMPARE(split.dropButton()->width(), 31);
+        QCOMPARE(split.dropButton()->height(), split.button()->height());
     }
 
     void pushButtonIconAndTextKeepPythonSpacing()
@@ -705,8 +745,8 @@ class BasicInputTest : public QObject
 
         FluentQt::SplitDropButton plainDrop;
         QCOMPARE(plainDrop.property("fqw").toString(), QStringLiteral("SplitDropButton"));
-        QCOMPARE(plainDrop.minimumSize(), QSize(32, 32));
-        QCOMPARE(plainDrop.maximumWidth(), 32);
+        plainDrop.ensurePolished();
+        QCOMPARE(plainDrop.sizeHint().width(), 31);
         QVERIFY(plainDrop.maximumHeight() > plainDrop.minimumHeight());
         QCOMPARE(plainDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
         QCOMPARE(plainDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
@@ -716,8 +756,8 @@ class BasicInputTest : public QObject
 
         FluentQt::PrimarySplitDropButton primaryDrop;
         QCOMPARE(primaryDrop.property("fqw").toString(), QStringLiteral("PrimarySplitDropButton"));
-        QCOMPARE(primaryDrop.minimumSize(), QSize(32, 32));
-        QCOMPARE(primaryDrop.maximumWidth(), 32);
+        primaryDrop.ensurePolished();
+        QCOMPARE(primaryDrop.sizeHint().width(), 31);
         QVERIFY(primaryDrop.maximumHeight() > primaryDrop.minimumHeight());
         QCOMPARE(primaryDrop.sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
         QCOMPARE(primaryDrop.sizePolicy().verticalPolicy(), QSizePolicy::Fixed);
@@ -754,7 +794,7 @@ class BasicInputTest : public QObject
         splitPush.adjustSize();
         QCOMPARE(splitPush.dropButton()->height(), qMax(32, splitPush.button()->sizeHint().height()));
         QCOMPARE(splitPush.dropButton()->height(), splitPush.button()->height());
-        QCOMPARE(splitPush.dropButton()->width(), 32);
+        QCOMPARE(splitPush.dropButton()->width(), 31);
         splitPush.setIcon(solidIcon(QColor(16, 32, 48)));
         splitPush.setIconSize(QSize(18, 18));
         QCOMPARE(splitPush.iconSize(), QSize(18, 18));
@@ -783,7 +823,7 @@ class BasicInputTest : public QObject
         primaryPush.adjustSize();
         QCOMPARE(primaryPush.dropButton()->height(), qMax(32, primaryPush.button()->sizeHint().height()));
         QCOMPARE(primaryPush.dropButton()->height(), primaryPush.button()->height());
-        QCOMPARE(primaryPush.dropButton()->width(), 32);
+        QCOMPARE(primaryPush.dropButton()->width(), 31);
         primaryPush.setIcon(solidIcon(QColor(20, 80, 160)));
         primaryPush.setIconSize(QSize(19, 19));
         QCOMPARE(primaryPush.iconSize(), QSize(19, 19));
@@ -808,7 +848,7 @@ class BasicInputTest : public QObject
         primaryTool.adjustSize();
         QCOMPARE(primaryTool.dropButton()->height(), qMax(32, primaryTool.button()->sizeHint().height()));
         QCOMPARE(primaryTool.dropButton()->height(), primaryTool.button()->height());
-        QCOMPARE(primaryTool.dropButton()->width(), 32);
+        QCOMPARE(primaryTool.dropButton()->width(), 31);
         primaryTool.setIconSize(QSize(17, 17));
         QCOMPARE(primaryTool.iconSize(), QSize(17, 17));
         QCOMPARE(primaryTool.button()->iconSize(), QSize(17, 17));
@@ -899,7 +939,7 @@ class BasicInputTest : public QObject
         splitToolAlias.ensurePolished();
         splitToolAlias.adjustSize();
         QCOMPARE(splitToolAlias.dropButton()->height(), splitToolAlias.button()->height());
-        QCOMPARE(splitToolAlias.dropButton()->width(), 32);
+        QCOMPARE(splitToolAlias.dropButton()->width(), 31);
         splitToolAlias.setIconSize(QSize(15, 15));
         QCOMPARE(splitToolAlias.iconSize(), QSize(15, 15));
         QCOMPARE(splitToolAlias.button()->iconSize(), QSize(15, 15));

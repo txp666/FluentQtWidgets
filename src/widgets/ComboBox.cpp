@@ -185,7 +185,6 @@ ComboBox::ComboBox(QWidget *parent)
     : QPushButton(parent)
     , m_arrowAni(new ArrowAnimation(this))
 {
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     FluentStyleSheet::setRole(this, QStringLiteral("ComboBox"));
 
@@ -1166,7 +1165,6 @@ ModelComboBox::ModelComboBox(QWidget *parent)
     : QPushButton(parent)
     , m_arrowAni(new ArrowAnimation(this))
 {
-    setMinimumHeight(32);
     setCursor(Qt::PointingHandCursor);
     FluentStyleSheet::setRole(this, QStringLiteral("ModelComboBox"));
     setModel(new QStandardItemModel(this));

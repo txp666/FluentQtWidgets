@@ -476,7 +476,7 @@ QSize PushButton::sizeHint() const
     if (!m_storedIcon.isNull()) {
         width += iconSz.width() + 8;
     }
-    const int height = qMax(32, qMax(hint.height(), iconSz.height() + 12));
+    const int height = qMax(hint.height(), iconSz.height() + 12);
     return hint.expandedTo(QSize(width, height));
 }
 
@@ -488,7 +488,6 @@ QSize PushButton::minimumSizeHint() const
 void PushButton::initFluentButton(const QString &role)
 {
     setCursor(Qt::PointingHandCursor);
-    setMinimumHeight(32);
     setIconSize(QSize(16, 16));
     QFont buttonFont = font();
     buttonFont.setPixelSize(14);
@@ -928,7 +927,6 @@ bool ToolButton::event(QEvent *event)
 void ToolButton::initFluentToolButton(const QString &role)
 {
     setCursor(Qt::PointingHandCursor);
-    setMinimumSize(QSize(32, 32));
     setIconSize(QSize(16, 16));
     QFont buttonFont = font();
     buttonFont.setPixelSize(14);
@@ -1122,14 +1120,12 @@ TransparentToggleToolButton::TransparentToggleToolButton(const QString &iconPath
 DropDownToolButton::DropDownToolButton(QWidget *parent) : ToolButton(parent)
 {
     initFluentToolButton(QStringLiteral("DropDownToolButton"));
-    setMinimumWidth(56);
     m_arrowAnimation = new QPropertyAnimation(this, "arrowOffset", this);
 }
 
 DropDownToolButton::DropDownToolButton(const QIcon &icon, QWidget *parent) : ToolButton(icon, parent)
 {
     initFluentToolButton(QStringLiteral("DropDownToolButton"));
-    setMinimumWidth(56);
     m_arrowAnimation = new QPropertyAnimation(this, "arrowOffset", this);
 }
 
@@ -1230,14 +1226,12 @@ TransparentDropDownToolButton::TransparentDropDownToolButton(const QString &icon
 PrimaryDropDownToolButton::PrimaryDropDownToolButton(QWidget *parent) : PrimaryToolButton(parent)
 {
     initFluentToolButton(QStringLiteral("PrimaryDropDownToolButton"));
-    setMinimumWidth(56);
     m_arrowAnimation = new QPropertyAnimation(this, "arrowOffset", this);
 }
 
 PrimaryDropDownToolButton::PrimaryDropDownToolButton(const QIcon &icon, QWidget *parent) : PrimaryToolButton(icon, parent)
 {
     initFluentToolButton(QStringLiteral("PrimaryDropDownToolButton"));
-    setMinimumWidth(56);
     m_arrowAnimation = new QPropertyAnimation(this, "arrowOffset", this);
 }
 
@@ -2266,8 +2260,6 @@ SplitDropButton::SplitDropButton(QWidget *parent) : ToolButton(parent)
     setIcon(QIcon());
     setIconSize(QSize(10, 10));
     setCursor(Qt::PointingHandCursor);
-    setFixedWidth(32);
-    setMinimumHeight(32);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     m_arrowAnimation = new QPropertyAnimation(this, "arrowOffset", this);
@@ -2376,9 +2368,6 @@ void SplitDropButton::animateArrow(qreal endValue, int duration, QEasingCurve::T
 PrimarySplitDropButton::PrimarySplitDropButton(QWidget *parent) : SplitDropButton(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("PrimarySplitDropButton"));
-    setFixedWidth(32);
-    setMinimumHeight(32);
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 bool PrimarySplitDropButton::isPrimaryDropButton() const { return true; }
@@ -2500,17 +2489,14 @@ void SplitWidgetBase::syncDropButtonSize()
         return;
     }
 
-    int height = 32;
-    if (m_contentWidget) {
-        m_contentWidget->ensurePolished();
-        height = qMax(height, m_contentWidget->sizeHint().height());
-        height = qMax(height, m_contentWidget->minimumHeight());
-        m_contentWidget->setFixedHeight(height);
+    // Python lets the drop button expand to the height of the button beside it.
+    if (!m_contentWidget) {
+        return;
     }
 
-    if (qobject_cast<SplitDropButton *>(m_dropButton)) {
-        m_dropButton->setFixedWidth(32);
-    }
+    m_contentWidget->ensurePolished();
+    const int height = qMax(m_contentWidget->sizeHint().height(), m_contentWidget->minimumHeight());
+    m_contentWidget->setFixedHeight(height);
     m_dropButton->setFixedHeight(height);
 }
 
