@@ -38,15 +38,11 @@ bool isRemoteImageUrl(const QUrl &url)
 FluentLabelBase::FluentLabelBase(QWidget *parent) : QLabel(parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged,
-            this, &FluentLabelBase::updateTextColor);
 }
 
 FluentLabelBase::FluentLabelBase(const QString &text, QWidget *parent) : QLabel(text, parent)
 {
     setFluentTextStyle(QStringLiteral("BodyLabel"), 14);
-    connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged,
-            this, &FluentLabelBase::updateTextColor);
 }
 
 void FluentLabelBase::setFluentTextStyle(const QString &role, int pixelSize, QFont::Weight weight)
@@ -58,7 +54,6 @@ void FluentLabelBase::setFluentTextStyle(const QString &role, int pixelSize, QFo
     FluentStyleSheet::setRole(this, role);
     m_lightColor = QColor(32, 32, 32);
     m_darkColor = QColor(243, 243, 243);
-    updateTextColor();
 }
 
 QColor FluentLabelBase::lightColor() const { return m_lightColor; }
@@ -79,16 +74,19 @@ void FluentLabelBase::setTextColor(const QColor &light, const QColor &dark)
 {
     m_lightColor = light;
     m_darkColor = dark;
-    updateTextColor();
-}
 
-void FluentLabelBase::updateTextColor()
-{
-    const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-    QPalette pal = palette();
-    pal.setColor(QPalette::WindowText, dark ? m_darkColor : m_lightColor);
-    pal.setColor(QPalette::Text, dark ? m_darkColor : m_lightColor);
-    setPalette(pal);
+    // As in Python, a style sheet per theme: label.qss colours the label through the style sheet,
+    // which overrides any palette. The rule matches label.qss's selector, so coming later it wins.
+    const QString selector = QStringLiteral("QLabel[fqw=\"%1\"]").arg(property("fqw").toString());
+    const auto rule = [&selector](const QColor &color) {
+        return QStringLiteral("%1{color:rgba(%2, %3, %4, %5)}")
+            .arg(selector)
+            .arg(color.red())
+            .arg(color.green())
+            .arg(color.blue())
+            .arg(color.alpha());
+    };
+    FluentStyleSheet::setCustomStyleSheet(this, rule(light), rule(dark));
 }
 
 void FluentLabelBase::setPixelFontSize(int size)

@@ -262,6 +262,53 @@ class TextTest : public QObject
         QVERIFY(!label.font().underline());
     }
 
+    // setTextColor() has to beat label.qss, which colours the label through its style sheet: set
+    // through the palette, the colour was lost on polish and never painted.
+    void labelTextColorWinsOverStyleSheet()
+    {
+        auto countPixels = [](QWidget &widget, const QColor &target) {
+            const QImage image = widget.grab().toImage();
+            int count = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (qAbs(color.red() - target.red()) < 40 && qAbs(color.green() - target.green()) < 40 &&
+                        qAbs(color.blue() - target.blue()) < 40) {
+                        ++count;
+                    }
+                }
+            }
+            return count;
+        };
+
+        auto *manager = ThemeManager::instance();
+        manager->setTheme(Theme::Light);
+        const QColor light(220, 0, 0);
+        const QColor dark(0, 0, 220);
+
+        BodyLabel before(QStringLiteral("MMMM"));
+        before.setTextColor(light, dark);
+        before.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&before));
+        BodyLabel after(QStringLiteral("MMMM"));
+        after.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&after));
+        after.setTextColor(light, dark);
+
+        for (BodyLabel *label : {&before, &after}) {
+            QCOMPARE(label->palette().color(QPalette::WindowText), light);
+            QVERIFY(countPixels(*label, light) > 0);
+        }
+
+        manager->setTheme(Theme::Dark);
+        QCoreApplication::processEvents();
+        for (BodyLabel *label : {&before, &after}) {
+            QCOMPARE(label->palette().color(QPalette::WindowText), dark);
+            QVERIFY(countPixels(*label, dark) > 0);
+            QCOMPARE(countPixels(*label, light), 0);
+        }
+    }
+
     void plainLabelLeavesContextMenuToParent()
     {
         QWidget parent;
