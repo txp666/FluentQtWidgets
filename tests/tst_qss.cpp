@@ -46,17 +46,20 @@ class QssTest : public QObject
                           {QStringLiteral("QTextEdit[fqw=\"TextEdit\"],"), QStringLiteral("font: 14px --FontFamilies;"),
                            QStringLiteral("padding: 2px 3px 2px 8px;"), QStringLiteral("#lineEditButton"),
                            QStringLiteral("#lineEditButton:hover"), QStringLiteral("#lineEditButton:pressed"),
-                           QStringLiteral("QLineEdit[fqw=\"LineEdit\"]:disabled")});
+                           QStringLiteral("QLineEdit[fqw=\"LineEdit\"]:disabled"),
+                           // Python's editable combo boxes are line edits, styled by line_edit.qss.
+                           QStringLiteral("QLineEdit[fqw=\"EditableComboBox\"]:disabled"),
+                           QStringLiteral("QLineEdit[fqw=\"AcrylicEditableComboBox\"]:hover"),
+                           QStringLiteral("QLineEdit[fqw=\"EditableModelComboBox\"],")});
         addStyleSheetRows("line edit focus", QStringLiteral("line_edit.qss"), {QStringLiteral("dark")},
                           {QStringLiteral("selection-color: black;"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"][transparent=\"true\"]:focus"),
                            QStringLiteral("QLineEdit[fqw=\"LineEdit\"][transparent=\"false\"]:focus")});
-        addStyleSheetRows("combo box", QStringLiteral("combo_box.qss"), kBothThemes,
-                          {QStringLiteral("QPushButton[fqw=\"ComboBox\"]"),
-                           QStringLiteral("QPushButton[fqw=\"ModelComboBox\"]"),
-                           QStringLiteral("QLineEdit[fqw=\"EditableComboBox\"]"),
-                           QStringLiteral("QLineEdit[fqw=\"EditableModelComboBox\"]"),
-                           QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("[isPlaceholderText=\"true\"]")});
+        addStyleSheetRows(
+            "combo box", QStringLiteral("combo_box.qss"), kBothThemes,
+            {QStringLiteral("QPushButton[fqw=\"ComboBox\"]"), QStringLiteral("QPushButton[fqw=\"ModelComboBox\"]"),
+             QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("[isPlaceholderText=\"true\"]")},
+            {QStringLiteral("QLineEdit")});
         addStyleSheetRows("calendar picker", QStringLiteral("calendar_picker.qss"), kBothThemes,
                           {QStringLiteral("QFrame[fqw=\"CalendarView\"]"),
                            QStringLiteral("QPushButton[calendarTitle=\"true\"]"),
@@ -149,9 +152,10 @@ class QssTest : public QObject
             QTest::newRow(role) << QString::fromLatin1(role) << static_cast<int>(source);
         };
         addRow("ComboBox", FluentStyleSheetSource::ComboBox);
-        addRow("EditableComboBox", FluentStyleSheetSource::ComboBox);
+        addRow("EditableComboBox", FluentStyleSheetSource::LineEdit);
+        addRow("AcrylicEditableComboBox", FluentStyleSheetSource::LineEdit);
         addRow("ModelComboBox", FluentStyleSheetSource::ComboBox);
-        addRow("EditableModelComboBox", FluentStyleSheetSource::ComboBox);
+        addRow("EditableModelComboBox", FluentStyleSheetSource::LineEdit);
         addRow("ComboBoxMenu", FluentStyleSheetSource::Menu);
         addRow("CalendarView", FluentStyleSheetSource::CalendarPicker);
         addRow("FastCalendarView", FluentStyleSheetSource::CalendarPicker);
