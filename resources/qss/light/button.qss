@@ -237,6 +237,16 @@ QToolButton[fqw="PrimarySplitDropButton"]:pressed {
     border-bottom: 1px solid --ThemeColorDark1;
 }
 
+#splitPushButton:disabled,
+#splitToolButton:disabled {
+    border-right: 1px solid transparent;
+}
+
+#primarySplitPushButton:disabled,
+#primarySplitToolButton:disabled {
+    border-right: 1px solid rgb(195, 195, 195);
+}
+
 QPushButton[fqw="HyperlinkButton"] {
     padding: 6px 12px 6px 12px;
     color: @accentColor;

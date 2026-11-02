@@ -358,6 +358,30 @@ class BasicInputTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python gives a disabled primary split button's main part a grey right edge, lighter than
+    // its disabled border, where the drop button meets it.
+    void disabledPrimarySplitButtonsKeepPythonDividerColour()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            const QColor divider = theme == Theme::Dark ? QColor(70, 70, 70) : QColor(195, 195, 195);
+            PrimarySplitPushButton pushSplit(QStringLiteral("Email"));
+            PrimarySplitToolButton toolSplit(icon(FluentIcon::Mail));
+            for (SplitWidgetBase *split :
+                 {static_cast<SplitWidgetBase *>(&pushSplit), static_cast<SplitWidgetBase *>(&toolSplit)}) {
+                split->setEnabled(false);
+                split->adjustSize();
+                QWidget *button = split->contentWidget();
+                const QImage image = button->grab().toImage();
+                const QColor edge = image.pixelColor(image.width() - 1, image.height() / 2);
+                QCOMPARE(edge.rgb(), divider.rgb());
+            }
+        }
+        manager->setTheme(previousTheme);
+    }
+
     // Python sets no minimum sizes on its buttons and combo boxes; the port's 32 px minimums made
     // the borderless transparent and pill buttons 32 px tall against 30-31, and pinned the split
     // drop button at 32 px wide against 31.
