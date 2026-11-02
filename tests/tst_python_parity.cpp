@@ -116,45 +116,34 @@ const std::vector<Expectation> kIntended = {
     {"CommandBar/default", "size.w size.h", "Python's minimumSizeHint() is its more-actions button's size, and that button is never resized until first shown, so it is QWidget's default 100x30 (measured: 100x30 before, 40x34 once shown); the port's button is fixed at its 40x34 hint"},
     {"CommandBar/items", "size.w", "Python's minimumSizeHint() is its more-actions button's size, and that button is never resized until first shown, so it is QWidget's default 100x30 (measured: 100x30 before, 40x34 once shown); the port's button is fixed at its 40x34 hint"},
     {"CommandBarView/default", "size.w size.h sizeHint.w sizeHint.h minimumSize.w minimumSize.h", "Python's minimumSizeHint() is its more-actions button's size, and that button is never resized until first shown, so it is QWidget's default 100x30 (measured: 100x30 before, 40x34 once shown); the port's button is fixed at its 40x34 hint"},
+    // Structure or design differences, each with what was measured or what it would take.
+    {"ColorPickerButton/default", "sizeHint.w sizeHint.h", "fixed at 96x32 in both, so the hint is unused; Python's is a plain QToolButton's (24x23), which Qt 6 makes 30x29 (qtBaseline), and the port's role sheet (Python styles it from the card's sheet) trims it to 27x27"},
+    {"FlipView/default", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (qtBaseline); both fix the minimum at the 480x270 item size, which the port also hints"},
+    {"HorizontalFlipView/default", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (qtBaseline); both fix the minimum at the 480x270 item size, which the port also hints"},
+    {"VerticalFlipView/default", "sizeHint.w sizeHint.h", "a QWidget here, not a QListWidget: Python's hint is QListWidget's generic 256x192 (qtBaseline); both fix the minimum at the 480x270 item size, which the port also hints"},
+    {"ScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "the port's scroll areas are borderless and transparent by default (setFrameShape(NoFrame) and scroll_bar.qss), where Python keeps QScrollArea's 1 px frame and callers remove it with enableTransparentBackground() or a sheet; NavigationBar, NavigationPanel, ColorDialog, FolderListDialog and the gallery rely on the default, so changing it is the owner's call"},
+    {"SmoothScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "the port's scroll areas are borderless and transparent by default (setFrameShape(NoFrame) and scroll_bar.qss), where Python keeps QScrollArea's 1 px frame and callers remove it with enableTransparentBackground() or a sheet; NavigationBar, NavigationPanel, ColorDialog, FolderListDialog and the gallery rely on the default, so changing it is the owner's call"},
+    {"SingleDirectionScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "the port's scroll areas are borderless and transparent by default (setFrameShape(NoFrame) and scroll_bar.qss), where Python keeps QScrollArea's 1 px frame and callers remove it with enableTransparentBackground() or a sheet; NavigationBar, NavigationPanel, ColorDialog, FolderListDialog and the gallery rely on the default, so changing it is the owner's call"},
+    {"TabBar/default", "sizeHint.w sizeHint.h", "a QWidget holding a QScrollArea, where Python's TabBar is the scroll area itself, so the hint is the inner scroll area's within the bar's layout; the fixed 46 px height and the laid-out size match"},
+    {"TabBar/items", "sizeHint.h", "a QWidget holding a QScrollArea, where Python's TabBar is the scroll area itself, so the hint is the inner scroll area's within the bar's layout; the fixed 46 px height and the laid-out size match"},
+    {"BreadcrumbBar/items", "size.w size.h sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "the port lays out item widgets with separate chevrons; Python paints 20 px items with in-item chevrons and fixes the height at 20: a rewrite, left to the owner"},
+    {"NavigationBar/default", "size.w minimumSize.w maximumSize.w", "fixed 72 px (64 px buttons plus 4 px margins) for MSFluentWindow; Python's bar is free and takes its window layout's width; Python's MSFluentWindow could not be measured (it crashes offscreen), so left to the owner"},
+    {"NavigationInterface/default", "sizeHint.w sizeHint.h minimumSize.w maximumSize.w", "the port's NavigationInterface also holds the page stack (Python's is the panel alone, fixed at 48 when collapsed), so its width is the window's; its 48 px navigation spacer is fixed as Python's widget is"},
+    {"NavigationUserCard/default", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
+    {"NavigationToolButton/icon", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
+    {"NavigationBarPushButton/icon+text", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
+    {"NavigationItemHeader/text", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
+    {"NavigationAvatarWidget/text", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
+    {"OptionsSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed (121x70 vs 122x70) and expanded (173 px tall in both) match"},
+    {"CustomColorSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "27 px narrower collapsed, 247 vs 244 px expanded: its content differs with the port's CustomColorSettingCard API, which the owner is deciding"},
+    {"ExpandGroupSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed and expanded (both 95x70, no groups) match"},
+    {"SimpleExpandGroupSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed and expanded (both 95x70, no groups) match"},
     // clang-format on
 };
 
 // Differences that look like port bugs, not fixed yet. Expected to fail (QEXPECT_FAIL, Continue): when
 // a fix makes the metric match, the row reports XPASS and fails, and the entry must go.
 const std::vector<Expectation> kPending = {
-    // clang-format off
-    // Buttons
-    {"ColorPickerButton/default", "sizeHint.w sizeHint.h", "hint 27x27, Python 24x23 (both fixed in size)"},
-    // Selection
-    // Combo boxes
-    // Labels and images
-    // Status and info
-    // Paging, scrolling, views
-    {"FlipView/default", "sizeHint.w sizeHint.h", "hint 480x270, Python QListWidget's 256x192"},
-    {"HorizontalFlipView/default", "sizeHint.w sizeHint.h", "hint 480x270, Python QListWidget's 256x192"},
-    {"VerticalFlipView/default", "sizeHint.w sizeHint.h", "hint 480x270, Python QListWidget's 256x192"},
-    {"ScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
-    {"SmoothScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
-    {"SingleDirectionScrollArea/default", "size.w size.h sizeHint.w sizeHint.h", "240x160 without the frame (setFrameShape NoFrame); Python keeps QScrollArea's 242x162"},
-    // Cards
-    // Navigation
-    {"TabBar/default", "sizeHint.w sizeHint.h", "hint 93x93, Python 45x24; the size matches"},
-    {"TabBar/items", "sizeHint.h", "hint 93 px tall, Python 46; the fixed 46 px height matches"},
-    {"BreadcrumbBar/items", "size.w size.h sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "hint 149x32 and free height; Python has no hint and fixes the height at 20"},
-    {"NavigationBar/default", "size.w minimumSize.w maximumSize.w", "fixed 72 px wide, Python free (93)"},
-    {"NavigationInterface/default", "sizeHint.w sizeHint.h minimumSize.w maximumSize.w", "free width, Python fixed at 48 when collapsed; hint 49x1, Python none"},
-    {"NavigationUserCard/default", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
-    {"NavigationToolButton/icon", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
-    {"NavigationBarPushButton/icon+text", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
-    {"NavigationItemHeader/text", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
-    {"NavigationAvatarWidget/text", "sizeHint.w sizeHint.h", "has a hint, Python none (fixed size matches)"},
-    // Flyout contents
-    // Setting cards
-    {"OptionsSettingCard/icon+text", "sizeHint.h", "hint 105 px tall, Python 208 (collapsed size matches)"},
-    {"CustomColorSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "27 px narrower, hint 179 px tall vs 353 (collapsed height matches)"},
-    {"ExpandGroupSettingCard/icon+text", "sizeHint.h", "hint 20 px tall, Python 3 (collapsed size matches)"},
-    {"SimpleExpandGroupSettingCard/icon+text", "sizeHint.h", "hint 20 px tall, Python 3 (collapsed size matches)"},
-    // clang-format on
 };
 
 // Plain Qt classes whose size hint Qt 6 changed (qtBaseline). Not a table of the port's differences: a
