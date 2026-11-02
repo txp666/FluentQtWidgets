@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 Every widget was compared with PyQt-Fluent-Widgets 1.11.3, the reference the port follows, and the differences were fixed. A new test now keeps the sizes in line.
 
