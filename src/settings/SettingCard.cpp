@@ -1219,9 +1219,9 @@ GroupWidget::GroupWidget(const QIcon &icon, const QString &title, const QString 
     m_iconWidget = new IconWidget(icon, this);
     m_iconWidget->setFixedSize(16, 16);
 
-    m_titleLabel = new BodyLabel(title, this);
+    m_titleLabel = new QLabel(title, this);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
-    m_contentLabel = new CaptionLabel(content, this);
+    m_contentLabel = new QLabel(content, this);
     m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
     m_contentLabel->setVisible(!content.isEmpty());
 
@@ -1428,7 +1428,7 @@ int SimpleExpandGroupSettingCard::expandedContentHeight() const
 OptionsSettingCard::OptionsSettingCard(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)
     : ExpandSettingCard(icon, title, content, parent)
 {
-    m_choiceLabel = new CaptionLabel(this);
+    m_choiceLabel = new QLabel(this);
     m_choiceLabel->setObjectName(QStringLiteral("titleLabel"));
     addWidget(m_choiceLabel);
 
@@ -1540,7 +1540,7 @@ FolderItem::FolderItem(const QString &path, QWidget *parent) : QWidget(parent)
     layout->setSpacing(0);
     layout->setAlignment(Qt::AlignVCenter);
 
-    m_pathLabel = new BodyLabel(this);
+    m_pathLabel = new QLabel(this);
     m_pathLabel->setObjectName(QStringLiteral("titleLabel"));
     m_pathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
@@ -1725,7 +1725,7 @@ CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const
 {
     m_customColorEnabled = m_customColor != m_defaultColor;
 
-    m_choiceLabel = new CaptionLabel(this);
+    m_choiceLabel = new QLabel(this);
     m_choiceLabel->setObjectName(QStringLiteral("titleLabel"));
     addWidget(m_choiceLabel);
 
@@ -1749,7 +1749,7 @@ CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const
     auto *customRow = new QWidget(view());
     auto *customLayout = new QHBoxLayout(customRow);
     customLayout->setContentsMargins(48, 18, 44, 18);
-    auto *customLabel = new BodyLabel(tr("Custom color"), customRow);
+    auto *customLabel = new QLabel(tr("Custom color"), customRow);
     customLabel->setObjectName(QStringLiteral("titleLabel"));
     customLayout->addWidget(customLabel, 0, Qt::AlignLeft | Qt::AlignVCenter);
     customLayout->addStretch(1);

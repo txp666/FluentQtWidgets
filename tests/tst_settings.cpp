@@ -324,6 +324,42 @@ class SettingsTest : public QObject
         }
     }
 
+    // Python's expandable cards use plain QLabels that expand_setting_card.qss sets to 14 px black
+    // (white) for titles and 11 px rgb(96, 96, 96) (rgb(208, 208, 208)) for descriptions. The port's
+    // Body/CaptionLabels kept their own colours: the choice label was translucent grey, the others
+    // #1f1f1f.
+    void expandCardLabelsTakePythonColours()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            const QColor title = theme == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
+            const QColor content = theme == Theme::Dark ? QColor(208, 208, 208) : QColor(96, 96, 96);
+            QWidget window;
+            auto *layout = new QVBoxLayout(&window);
+            auto *options = new OptionsSettingCard(QStringList{QStringLiteral("X")}, QVariantList{1}, FluentIcon::Home,
+                                                   QStringLiteral("Title"));
+            auto *folders = new FolderListSettingCard({QStringLiteral("/tmp/a")}, FluentIcon::Folder,
+                                                      QStringLiteral("Title"));
+            auto *group = new ExpandGroupSettingCard(FluentIcon::Home, QStringLiteral("Title"));
+            GroupWidget *row = group->addGroup(FluentIcon::Home, QStringLiteral("Row"), QStringLiteral("Detail"),
+                                               new QWidget);
+            layout->addWidget(options);
+            layout->addWidget(folders);
+            layout->addWidget(group);
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            const QList<QLabel *> titles = {options->choiceLabel(), folders->folderItems().first()->pathLabel(),
+                                            row->titleLabel()};
+            for (QLabel *label : titles) {
+                QCOMPARE(label->font().pixelSize(), 14);
+                QCOMPARE(label->palette().color(QPalette::WindowText), title);
+            }
+            QCOMPARE(row->contentLabel()->font().pixelSize(), 11);
+            QCOMPARE(row->contentLabel()->palette().color(QPalette::WindowText), content);
+        }
+    }
+
     void optionsCardUnknownValueUnchecksOptions()
     {
         OptionsSettingCard card({QStringLiteral("A"), QStringLiteral("B")}, {1, 2}, FluentIcon::Setting,
