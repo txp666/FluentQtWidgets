@@ -594,7 +594,6 @@ ComboBoxSettingCard::ComboBoxSettingCard(const QIcon &icon, const QString &title
     : SettingCard(icon, title, content, parent)
 {
     m_comboBox = new ComboBox(this);
-    m_comboBox->setMinimumWidth(160);
     actionLayout()->addWidget(m_comboBox, 0, Qt::AlignRight);
 
     connect(m_comboBox, &ComboBox::currentIndexChanged, this,
