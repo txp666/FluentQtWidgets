@@ -147,7 +147,6 @@ class FQW_API ProgressRing : public ProgressBar
     explicit ProgressRing(QWidget *parent = nullptr, bool useAni = true);
 
     int strokeWidth() const;
-    QSize sizeHint() const override;
 
   public slots:
     void setStrokeWidth(int width);

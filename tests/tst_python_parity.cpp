@@ -119,7 +119,6 @@ const std::vector<Expectation> kPending = {
     // Combo boxes
     // Labels and images
     // Status and info
-    {"ProgressRing/default", "sizeHint.w sizeHint.h", "hint 100x100, Python QProgressBar's 95x28 (fixed size matches)"},
     // Paging, scrolling, views
     {"PipsPager/default", "size.w sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "90 px long where Python keeps QListWidget's 256x192 hint; Python fixes the 12 px thickness"},
     {"HorizontalPipsPager/default", "size.w sizeHint.w sizeHint.h minimumSize.h maximumSize.h", "90 px long where Python keeps QListWidget's 256x192 hint; Python fixes the 12 px thickness"},

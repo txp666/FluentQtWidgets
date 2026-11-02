@@ -72,6 +72,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListView>
+#include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStackedWidget>
@@ -819,7 +820,11 @@ class StatusInfoTest : public QObject
         FluentQt::ProgressRing ring(nullptr, false);
         QCOMPARE(ring.property("fqw").toString(), QStringLiteral("ProgressRing"));
         QCOMPARE(ring.size(), QSize(100, 100));
-        QCOMPARE(ring.sizeHint(), QSize(100, 100));
+        // Python fixes the size but keeps QProgressBar's hint.
+        QProgressBar plainBar;
+        plainBar.setFont(ring.font());
+        plainBar.setTextVisible(false);
+        QCOMPARE(ring.sizeHint(), plainBar.sizeHint());
         QCOMPARE(ring.strokeWidth(), 6);
         QCOMPARE(ring.useAni(), false);
         ring.setProperty("lightBarColor", QColor(QStringLiteral("#112233")));

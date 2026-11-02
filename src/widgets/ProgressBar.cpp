@@ -429,8 +429,6 @@ ProgressRing::ProgressRing(QWidget *parent, bool useAni) : ProgressBar(parent, u
 
 int ProgressRing::strokeWidth() const { return m_strokeWidth; }
 
-QSize ProgressRing::sizeHint() const { return QSize(100, 100); }
-
 void ProgressRing::setStrokeWidth(int width)
 {
     if (m_strokeWidth == width) {
