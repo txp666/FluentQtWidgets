@@ -126,7 +126,6 @@ void initTableLikeView(QTableView *view, TableItemDelegate *delegate, const QStr
     view->setMouseTracking(true);
     view->setAlternatingRowColors(true);
     view->setSelectionBehavior(QAbstractItemView::SelectRows);
-    view->setSelectionMode(QAbstractItemView::SingleSelection);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setItemDelegate(delegate);
     view->setProperty("isBorderVisible", false);

@@ -288,6 +288,15 @@ class ViewTest : public QObject
         }
     }
 
+    // A Python table selects rows with Qt's default extended selection; the port limited it to one.
+    void tablesKeepExtendedSelection()
+    {
+        TableWidget table;
+        TableView view;
+        QCOMPARE(table.selectionMode(), QAbstractItemView::ExtendedSelection);
+        QCOMPARE(view.selectionMode(), QAbstractItemView::ExtendedSelection);
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();
