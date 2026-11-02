@@ -96,10 +96,7 @@ PivotItem *Pivot::insertItem(int index, const QString &routeKey, const QString &
         emit itemClicked(routeKey);
     });
 
-    if (m_currentItem.isEmpty()) {
-        setCurrentItem(routeKey);
-    }
-
+    // As in Python, nothing is selected until setCurrentItem().
     return newItem;
 }
 

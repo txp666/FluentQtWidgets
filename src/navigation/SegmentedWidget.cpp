@@ -131,12 +131,8 @@ TransparentToggleToolButton *SegmentedToggleToolWidget::insertItem(int index, co
         emit itemClicked(routeKey);
     });
 
-    if (m_currentItem.isEmpty()) {
-        setCurrentItem(routeKey);
-    } else {
-        updateCheckedButton();
-    }
-
+    // As in Python, nothing is selected until setCurrentItem().
+    updateCheckedButton();
     return button;
 }
 

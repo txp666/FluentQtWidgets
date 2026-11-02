@@ -596,6 +596,7 @@ class NavigationTest : public QObject
         FluentQt::Pivot pivot;
         pivot.addItem(QStringLiteral("first"), QStringLiteral("First"));
         pivot.addItem(QStringLiteral("second"), QStringLiteral("Second"));
+        pivot.setCurrentItem(QStringLiteral("first"));
         pivot.show();
         QVERIFY(QTest::qWaitForWindowExposed(&pivot));
         const QRect start = pivot.indicatorGeometry();
@@ -762,7 +763,9 @@ class NavigationTest : public QObject
         QVERIFY(pivot.addItem(QStringLiteral("home"), QStringLiteral("Home")) != nullptr);
         QVERIFY(pivot.addItem(QStringLiteral("settings"), QStringLiteral("Settings")) != nullptr);
         QVERIFY(pivot.contains(QStringLiteral("home")));
-        QCOMPARE(pivot.currentItem(), QStringLiteral("home"));
+        // As in Python, adding items selects none of them.
+        QCOMPARE(pivot.currentItem(), QString());
+        QVERIFY(!pivot.item(QStringLiteral("home"))->isChecked());
 
         pivot.setCurrentItem(QStringLiteral("settings"));
         QCOMPARE(pivot.currentItem(), QStringLiteral("settings"));
@@ -978,7 +981,10 @@ class NavigationTest : public QObject
         QCOMPARE(first->size(), QSize(50, 32));
         QCOMPARE(second->size(), QSize(50, 32));
         QCOMPARE(tools.routeKeys(), QList<QString>({QStringLiteral("first"), QStringLiteral("second")}));
-        QCOMPARE(tools.currentItem(), QStringLiteral("first"));
+        // As in Python, adding items selects none of them.
+        QCOMPARE(tools.currentItem(), QString());
+        QVERIFY(!first->isChecked());
+        tools.setCurrentItem(QStringLiteral("first"));
         QVERIFY(first->isChecked());
         QTRY_COMPARE(tools.selectionGeometry(), first->geometry());
 
