@@ -214,8 +214,13 @@ void AcrylicBrush::setNoiseOpacity(qreal opacity)
     }
 }
 
+// The acrylic widgets set their colours and clip path on every paint (Python assigns the brush's
+// attributes there), so an unchanged value must not schedule another paint.
 void AcrylicBrush::setClipPath(const QPainterPath &path)
 {
+    if (m_clipPath == path) {
+        return;
+    }
     m_clipPath = path;
     if (m_device) {
         m_device->update();

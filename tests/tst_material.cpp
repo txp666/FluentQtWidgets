@@ -289,7 +289,41 @@ class MaterialTest : public QObject
         QVERIFY(!brush.setImage(QStringLiteral("__missing_acrylic_brush__.png")));
     }
 
+    // The acrylic widgets hand the brush their clip path and colours on every paint, as Python
+    // assigns them there; that must not schedule yet another paint.
+    void acrylicBrushSettersDoNotRepaintWhenUnchanged()
+    {
+        PaintCounter device;
+        device.resize(40, 30);
+        FluentQt::AcrylicBrush brush(&device, 2);
+        device.brush = &brush;
+        device.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&device));
+        QTest::qWait(50);
+        const int paints = device.paints;
+        QTest::qWait(150);
+        QVERIFY2(device.paints - paints <= 1, qPrintable(QStringLiteral("%1 more paints").arg(device.paints - paints)));
+    }
+
   private:
+    struct PaintCounter : QWidget
+    {
+        FluentQt::AcrylicBrush *brush = nullptr;
+        int paints = 0;
+
+      protected:
+        void paintEvent(QPaintEvent *) override
+        {
+            ++paints;
+            QPainterPath path;
+            path.addRoundedRect(QRectF(rect()).adjusted(1, 1, -1, -1), 8, 8);
+            brush->setClipPath(path);
+            brush->setTintColor(QColor(255, 255, 255, 180));
+            QPainter painter(this);
+            brush->paint(&painter);
+        }
+    };
+
     static QImage lcgImage(int width, int height)
     {
         QImage image(width, height, QImage::Format_RGB888);
