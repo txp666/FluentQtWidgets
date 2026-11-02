@@ -104,7 +104,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     m_textLayout->setSpacing(12);
     m_vBoxLayout->addLayout(m_textLayout, 1);
 
-    m_titleLabel = new SubtitleLabel(m_view);
+    m_titleLabel = new QLabel(m_view);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
     m_textLayout->addWidget(m_titleLabel, 0, Qt::AlignTop);
 
@@ -627,7 +627,7 @@ MessageBox::MessageBox(const QString &title, const QString &message, QWidget *pa
     FluentStyleSheet::setRole(this, QStringLiteral("MessageBoxPopup"));
     setCenterWidgetRole(QStringLiteral("MessageBox"));
 
-    m_titleLabel = new SubtitleLabel(m_widget);
+    m_titleLabel = new QLabel(m_widget);
     m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
     m_viewLayout->insertWidget(0, m_titleLabel, 0, Qt::AlignTop);
 

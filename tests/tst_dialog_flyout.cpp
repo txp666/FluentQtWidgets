@@ -950,6 +950,42 @@ class DialogFlyoutTest : public QObject
         delete tip;
     }
 
+    void dialogTitlesAndMessageBoxFrameMatchPython()
+    {
+        // qfluentwidgets styles the title as a plain QLabel at 20 px regular weight, and draws the
+        // message box's centre widget with a 10 px radius, an rgb(144, 144, 142) / rgb(58, 58, 58)
+        // border and a white / rgb(43, 43, 43) face.
+        QWidget parent;
+        parent.resize(800, 600);
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+
+            FluentQt::Dialog dialog(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+            dialog.ensurePolished();
+            dialog.titleLabel()->ensurePolished();
+            QCOMPARE(dialog.titleLabel()->font().pixelSize(), 20);
+            QCOMPARE(dialog.titleLabel()->font().weight(), QFont::Normal);
+
+            FluentQt::MessageBox box(QStringLiteral("Title"), QStringLiteral("Message"), &parent);
+            box.ensurePolished();
+            box.titleLabel()->ensurePolished();
+            QCOMPARE(box.titleLabel()->font().pixelSize(), 20);
+            QCOMPARE(box.titleLabel()->font().weight(), QFont::Normal);
+            QCOMPARE(box.titleLabel()->palette().windowText().color(), dark ? QColor(Qt::white) : QColor(Qt::black));
+
+            QImage frame(box.widget()->size(), QImage::Format_ARGB32_Premultiplied);
+            frame.fill(Qt::transparent);
+            box.widget()->render(&frame, QPoint(), QRegion(), QWidget::DrawChildren);
+            const int midY = box.titleLabel()->geometry().center().y();
+            const QColor border = dark ? QColor(58, 58, 58) : QColor(144, 144, 142);
+            const QColor face = dark ? QColor(43, 43, 43) : QColor(255, 255, 255);
+            QCOMPARE(QColor(frame.pixel(0, midY)), border);
+            QCOMPARE(QColor(frame.pixel(3, midY)), face);
+            // A 10 px radius leaves the pixel two in from the corner outside the frame; 7 px would not.
+            QVERIFY(qAlpha(frame.pixel(2, 2)) < 32);
+        }
+    }
+
   private:
     std::optional<FqwTest::GlobalState> m_globalState;
 };

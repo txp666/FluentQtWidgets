@@ -3,19 +3,32 @@ QDialog[fqw="MessageBoxPopup"] {
     background: transparent;
 }
 
-QFrame[fqw="Dialog"],
-QFrame[fqw="MessageBox"] {
+QFrame[fqw="Dialog"] {
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.14);
     border-radius: 7px;
+}
+
+QFrame[fqw="MessageBox"] {
+    background: #ffffff;
+    border: 1px solid rgb(144, 144, 142);
+    border-radius: 10px;
 }
 
 QFrame[fqw="Dialog"] QFrame#buttonGroup,
 QFrame[fqw="MessageBox"] QFrame#buttonGroup {
     background: rgb(243, 243, 243);
     border-top: 1px solid rgb(229, 229, 229);
+}
+
+QFrame[fqw="Dialog"] QFrame#buttonGroup {
     border-bottom-left-radius: 7px;
     border-bottom-right-radius: 7px;
+}
+
+QFrame[fqw="MessageBox"] QFrame#buttonGroup {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 QFrame[fqw="Dialog"] QLabel#windowTitleLabel {
@@ -33,6 +46,8 @@ QFrame[fqw="MessageBox"] QLabel#titleLabel {
     background: transparent;
     color: black;
     border: none;
+    font: 20px --FontFamilies;
+    padding: 0;
 }
 
 QFrame[fqw="Dialog"] QLabel#contentLabel,
