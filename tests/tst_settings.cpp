@@ -376,6 +376,7 @@ class SettingsTest : public QObject
         FolderListSettingCard card({QStringLiteral("/tmp/music")}, FluentIcon::Folder,
                                    QStringLiteral("Local music library"),
                                    QStringLiteral("The music app will scan folders in the list."));
+        card.resize(600, card.height());
         card.show();
         QVERIFY(QTest::qWaitForWindowExposed(&card));
 
@@ -385,6 +386,9 @@ class SettingsTest : public QObject
         QCOMPARE(card.addFolderButton()->parentWidget(), card.card());
         QVERIFY(card.actionLayout()->indexOf(card.addFolderButton()) >= 0);
         QCOMPARE(card.viewLayout()->indexOf(card.addFolderButton()), -1);
+        // Python leaves the button at its size hint; the port forced 128 px.
+        QCOMPARE(card.addFolderButton()->minimumWidth(), 0);
+        QCOMPARE(card.addFolderButton()->width(), card.addFolderButton()->sizeHint().width());
 
         QCOMPARE(card.folderItems().size(), 1);
         QCOMPARE(card.folderItems().first()->height(), 53);

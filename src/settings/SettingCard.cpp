@@ -1585,7 +1585,6 @@ FolderListSettingCard::FolderListSettingCard(const QStringList &folders, const Q
     : ExpandSettingCard(icon, title, content, parent), m_dialogDirectory(dialogDirectory)
 {
     m_addFolderButton = new PushButton(FluentQt::icon(FluentIcon::FolderAdd), tr("Add folder"), this);
-    m_addFolderButton->setMinimumWidth(128);
     addWidget(m_addFolderButton);
 
     if (viewLayout()) {
