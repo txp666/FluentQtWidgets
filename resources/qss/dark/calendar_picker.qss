@@ -5,7 +5,6 @@ QPushButton[fqw="CalendarPicker"] {
     border-radius: 5px;
     color: rgba(255, 255, 255, 0.6063);
     font: 14px --FontFamilies;
-    min-height: 32px;
     padding: 5px 32px 6px 12px;
     outline: none;
     text-align: left;

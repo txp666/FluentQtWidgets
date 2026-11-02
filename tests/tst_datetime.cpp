@@ -5,6 +5,7 @@
 #include <QtGui/QWheelEvent>
 #include <QtTest/QtTest>
 #include <QtWidgets/QFrame>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLayout>
@@ -75,6 +76,37 @@ class DateTimeTest : public QObject
     {
         FqwTest::drainDeferredDeletes();
         m_globalState.reset();
+    }
+
+    // A style sheet's min-height sizes the content box, so the picker's old `min-height: 32px`
+    // grew it to 45 px with padding and border, against 33 for a push button beside it.
+    void calendarPickersAreAsTallAsPushButtons()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        for (const FluentQt::Theme theme : {FluentQt::Theme::Light, FluentQt::Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            auto *push = new FluentQt::PushButton(QStringLiteral("Button"), &window);
+            auto *picker = new FluentQt::CalendarPicker(&window);
+            auto *fastPicker = new FluentQt::FastCalendarPicker(&window);
+            for (QWidget *widget : {static_cast<QWidget *>(push), static_cast<QWidget *>(picker),
+                                    static_cast<QWidget *>(fastPicker)}) {
+                layout->addWidget(widget, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (const QWidget *widget : {static_cast<QWidget *>(picker), static_cast<QWidget *>(fastPicker)}) {
+                QVERIFY2(widget->height() >= 32 && qAbs(widget->height() - push->height()) <= 1,
+                         qPrintable(QStringLiteral("%1 is %2 px tall, the push button %3 px")
+                                        .arg(QString::fromLatin1(widget->metaObject()->className()))
+                                        .arg(widget->height())
+                                        .arg(push->height())));
+            }
+        }
+        manager->setTheme(previousTheme);
     }
 
     void calendarPickerTracksDateAndReset()
