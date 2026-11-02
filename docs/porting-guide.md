@@ -1,113 +1,67 @@
 # Python to C++ Porting Guide
 
-## Scope
+FluentQtWidgets ports PyQt-Fluent-Widgets (`qfluentwidgets` 1.11.3) to C++/Qt Widgets. The Python library is the
+reference for behaviour, looks, sizes, examples, resources, Gallery pages and translations. This guide is for
+moving code from the Python library to the port, and for contributors who port or fix a widget.
 
-The reference package exports `common`, `components`, `window`, and a separate `multimedia` package. The C++ port migrates by dependency order, not directory order.
+## Names
 
-## Priority Map
+| Python | C++ |
+| --- | --- |
+| `from qfluentwidgets import PushButton` | `#include <FluentQtWidgets/FluentQtWidgets.h>`, `FluentQt::PushButton` |
+| `setTheme(Theme.DARK)` | `FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Dark)` |
+| `setThemeColor("#0078d4")` | `FluentQt::ThemeManager::instance()->setAccentColor(QColor("#0078d4"))` |
+| `themeColor()` | `FluentQt::themeColor()` |
+| `FluentIcon.HOME` | `FluentQt::FluentIcon::Home`; `FluentQt::icon(FluentIcon::Home)` for a `QIcon` |
+| `FluentStyleSheet.BUTTON.apply(w)` | `FluentQt::FluentStyleSheet::apply(w, FluentQt::FluentStyleSheetSource::Button)` |
+| `setCustomStyleSheet(w, light, dark)` | `FluentQt::FluentStyleSheet::setCustomStyleSheet(w, light, dark)` |
+| `qconfig`, `QConfig` | `FluentQt::FluentConfig`, `ConfigItem` and its subclasses |
+| an attribute, `w.hBoxLayout` | an accessor, `w->hBoxLayout()` |
+| enum members, `FlyoutAnimationType.SLIDE_LEFT` | `enum class` members, `FluentQt::FlyoutAnimationType::SlideLeft` |
 
-| Python API | C++ API | Status |
-| --- | --- | --- |
-| `Theme` | `FluentQt::Theme` | First milestone |
-| `setTheme`, `themeColor` | `FluentQt::ThemeManager` | First milestone |
-| `FluentStyleSheet` | `FluentQt::FluentStyleSheet` | First milestone |
-| `FluentIcon` | `FluentQt::FluentIcon` | Resource-backed themed SVG icons |
-| `PushButton`, `PrimaryPushButton` | same class names in `FluentQt` | First milestone |
-| `ToolButton` | `FluentQt::ToolButton` | First milestone |
-| `PillPushButton`, `PillToolButton` | same class names in `FluentQt` | First milestone |
-| `HyperlinkButton` | `FluentQt::HyperlinkButton` | First milestone |
-| `SplitPushButton`, `SplitToolButton` | same class names in `FluentQt` | First milestone |
-| `PrimaryDropDownPushButton`, `PrimaryDropDownToolButton` | same class names in `FluentQt` | First milestone |
-| `TransparentDropDownPushButton`, `TransparentDropDownToolButton` | same class names in `FluentQt` | First milestone |
-| `TogglePushButton`, `ToggleToolButton` | same class names in `FluentQt` | First milestone |
-| `TransparentTogglePushButton`, `TransparentToggleToolButton` | same class names in `FluentQt` | First milestone |
-| `CheckBox`, `RadioButton` | same class names in `FluentQt` | First milestone |
-| `LineEdit`, `SearchLineEdit`, `PasswordLineEdit` | same class names in `FluentQt` | First milestone, ClearButton / Completer / error state |
-| `ComboBox`, `EditableComboBox` | same class names in `FluentQt` | Item-list popup with Fluent styling and `dropMenu()` access |
-| `ModelComboBox`, `EditableModelComboBox` | same class names in `FluentQt` | Model-backed popup list with Fluent styling and `dropMenu()` access |
-| `Slider`, `ClickableSlider` | same class names in `FluentQt` | First milestone, custom paint + HollowHandleStyle |
-| `SpinBox`, `DoubleSpinBox`, `CompactSpinBox` | same class names in `FluentQt` | First milestone, dual-mode + error state |
-| `DateEdit`, `DateTimeEdit`, `TimeEdit` | same class names in `FluentQt` | Fluent picker panels |
-| `SwitchButton` | `FluentQt::SwitchButton` | First milestone, text label / IndicatorPosition |
-| `CardWidget`, `ElevatedCardWidget`, `CardGroupWidget` | same class names in `FluentQt` | First milestone, background animation / shadow |
-| `HyperlinkLabel`, `PixmapLabel` | same class names in `FluentQt` | First milestone, textColor / multi-radius |
-| `InfoBar` | `FluentQt::InfoBar` | First milestone, InfoBarManager / 7 positions / slide-in animation |
-| `StateToolTip` | `FluentQt::StateToolTip` | First milestone, loading spinner / fade-out animation |
-| `ProgressBar`, `IndeterminateProgressBar` | same class names in `FluentQt` | First milestone, value animation / pause / error |
-| `ProgressRing`, `IndeterminateProgressRing` | same class names in `FluentQt` | First milestone, value animation / pause / error |
-| `RoundMenu`, `CheckableMenu`, `LabelContextMenu` | same class names in `FluentQt` | First milestone, QListWidget-backed / sub-menu / checkable indicators / label copy menu |
-| `Flyout`, `FlyoutView` | same class names in `FluentQt` | First milestone, SLIDE_LEFT/RIGHT animation |
-| `TeachingTip` | `FluentQt::TeachingTip` | First milestone, 12 tail positions / fade animation |
-| `Dialog`, `MessageBox` | same class names in `FluentQt` | Rounded Fluent popup, fade-in animation |
-| `ColorDialog`, `HuePanel`, `BrightnessSlider`, `ColorCard` | same class names in `FluentQt` | Fluent color dialog with hex/RGB/opacity editing, no native `QColorDialog` |
-| `FluentTitleBar` | `FluentQt::FluentTitleBar` | First milestone |
-| `SplashScreen` | `FluentQt::SplashScreen` | First milestone, fade-in/out animation |
-| `NavigationPanel` | `FluentQt::NavigationPanel` | First milestone, QPropertyAnimation expand/collapse |
-| `NavigationTreeWidget` | `FluentQt::NavigationTreeWidget` | First milestone, QPropertyAnimation expand/collapse |
-| `Pivot` | `FluentQt::Pivot` | First milestone, QPropertyAnimation indicator slide |
-| `PickerColumnButton`, `PickerPanel`, `CalendarView`, `CalendarPicker`, `DatePicker`, `TimePicker` | same class names in `FluentQt` | Rounded Fluent popup, fade-in animation, shared list-column picker foundation |
-| `NavigationInterface` | `FluentQt::NavigationInterface` | First milestone |
-| `FluentWindow.addSubInterface()` | `FluentQt::FluentWindow::addSubInterface()` | Route-key MVP |
-| `FluentWindow` | `FluentQt::FluentWindow` | First milestone |
-| `FolderListSettingCard` | `FluentQt::FolderListSettingCard` | QStringList model with Fluent folder picker |
-| `CustomColorSettingCard` | `FluentQt::CustomColorSettingCard` | Default/custom color switching with Fluent color dialog |
+Classes keep their Python names and constructor arguments; Python keyword arguments become positional ones in the
+same order. A few classes and methods exist only in the port, such as the `Filled*`, `Outlined*`, `Text*`, `Round*`
+and `LuminaPushButton` buttons, `Chip`, `Tag`, `AdaptiveFlowLayout`, the charts, and `RoundMenu::execAndWait()`.
+[Controls](controls.md) marks them.
 
-## Key Differences
+## Differences that follow from C++ and Qt
 
-- Python multiple inheritance mixins become composition or small C++ base classes.
-- Python dynamic QSS class selectors become dynamic properties or exact C++ class names.
-- Every runtime property used by QSS must be followed by polish/unpolish.
-- Button icons follow the Python `_icon` storage model. Fluent button classes keep the Qt base-class icon empty
-  and paint the stored icon themselves, including wrapper classes such as split buttons that forward through a base
-  `QPushButton*` or `QToolButton*`.
-- Button spacing follows Python QSS constants across normal, transparent, primary, toggle, drop-down, and split
-  variants. Do not add C++ compatibility padding that conflicts with Python text/icon/arrow positions.
-- Popup list views that rely on Python class-name QSS, such as `MenuActionListWidget`, use an explicit `fqw` role in
-  C++ so rounded corners, padding, and indicator spacing are applied reliably.
-- `ExpandSettingCard` ports keep the Python `QScrollArea + HeaderSettingCard + view/space/border widgets`
-  structure. Adding action widgets goes through the header card, while expandable content goes through `viewLayout()`.
-  The C++ animation changes the visible content height and keeps the internal scroll position at zero to avoid
-  overlapping content during nested scroll-area layout changes. For a resizable outer `QScrollArea`, configure the
-  application's content layout with `QLayout::SetMinAndMaxSize` so the outer scroll range follows changing card
-  heights. This parent-layout constraint remains the application's responsibility.
-- QObject ownership follows Qt parent-child ownership. Avoid raw owning pointers without parents.
-- Python resource paths stay under `:/qfluentwidgets` unless all QSS and icon paths are migrated together.
+- Python mixins become small C++ base classes or composition.
+- Python style sheets select some widgets by class name. The port's classes live in the `FluentQt` namespace, so a
+  bare class name never matches; widgets set an `fqw` role property instead, and the rules select on it.
+- After changing a property that a style sheet selects on, unpolish and polish the widget.
+- Buttons keep their icon themselves and paint it, as Python's `_icon` does; the Qt base-class icon stays empty so
+  the platform style cannot draw a second one.
+- `ComboBox` is a `QPushButton` with a `RoundMenu`, as in Python. `PipsPager` and `FlipView` are `QWidget`s, not
+  `QListWidget`s, so `currentIndex()` is a plain integer.
+- `RoundMenu::exec()` returns at once, as in Python; use `execAndWait()` where C++ code expects `QMenu::exec()`.
+- Ownership follows Qt's parent-child model: give every widget a parent or a layout.
+- Resources keep the `:/qfluentwidgets` prefix and the Python file layout.
 - Gallery route keys keep the Python object names (`basicInputInterface`, `dateTimeInterface`,
-  `navigationViewInterface`, and so on). Do not add parallel C++-style aliases unless the Python gallery also exposes
-  them.
-- Style-sheet ownership follows the Python package layout. For example, `RadioButton` is styled from `button.qss`
-  through the `RadioButton` role instead of a separate `radio_button.qss` resource.
+  `navigationViewInterface`, ...), and the Gallery starts as Python's does: splash screen, pages and navigation,
+  then the splash closes.
 
-## Parity Checks
+## Checking a change against Python
 
-Run these checks before treating a porting pass as complete:
+Compare with the Python original, not with the port's earlier behaviour: when they differ, Python wins unless Qt,
+C++ or the platform gives a reason. Run the Python Gallery or example beside the C++ one.
 
-```bash
-python3 scripts/verify_example_parity.py
-cmake --preset ninja-debug -DFQW_BUILD_TESTS=ON
-cmake --build build/debug --parallel
-ctest --test-dir build/debug --output-on-failure
-ctest --test-dir build/debug --output-on-failure -R tst_basic_input
-```
+- **Sizes.** `tst_python_parity` compares the size, size hint and minimum and maximum size of every widget the port
+  shares with qfluentwidgets 1.11.3 with measurements taken from Python. A widget that changes size fails it. See
+  [tools/parity/README.md](../tools/parity/README.md) to read a failure, record a deliberate difference, or measure
+  a new widget.
+- **Examples.** `python3 scripts/verify_example_parity.py` checks that every Python example directory has a C++
+  counterpart. It reads a `PyQt-Fluent-Widgets/` checkout at the repository root, which git ignores.
+- **Behaviour.** Add a regression test to the suite of the widget's area; [tests/README.md](../tests/README.md)
+  describes the suites.
 
-`verify_example_parity.py` compares the C++ example directory set with `PyQt-Fluent-Widgets/examples`. The CTest suite
-has one test per area of the Gallery (`tst_basic_input`, `tst_combo_box`, `tst_text`, `tst_navigation`,
-`tst_window`, ...), plus `tst_gallery_pages` and `tst_gallery_translation` for the Gallery itself. `tst_basic_input`
-guards the Python-style button icon paint path; `tst_combo_box` the combo popup role and delegate setup;
-`tst_settings` the `FolderListSettingCard` expandable structure.
+## Resources
 
-Gallery parity is checked against the Python pages after every broad UI pass. The current gallery keeps the
-Python startup sequence: show the splash first, construct pages/navigation, then finish the splash. Menus, Flyout,
-TeachingTip, Dialog, InfoBar, settings cards, and translated page text are treated as Python-owned behavior; remove
-old C++ behavior when it conflicts.
+Copy a missing Gallery or widget resource from PyQt-Fluent-Widgets when the Python behaviour uses it, with its qrc
+entry and, for icons, both the black and the white file. Don't add a C++-only resource where a Python one exists.
+Large binary assets need a licence check first.
 
-## Resource Rules
+## Licence
 
-Missing gallery or component resources are copied from `PyQt-Fluent-Widgets` when they are part of the Python
-reference behavior, with the matching qrc entry and themed black/white icon pair. Do not introduce alternate C++
-resources for a control when the Python asset exists. Large binary assets still need an explicit license check before
-being added.
-
-## License Rule
-
-A line-by-line translation from the GPL Python implementation is a derivative work. Keep GPL-compatible licensing unless the code and resources are rebuilt clean-room.
+A line-by-line translation of the GPL Python implementation is a derivative work. The port stays under a
+GPL-compatible licence unless code and resources are rewritten clean-room.

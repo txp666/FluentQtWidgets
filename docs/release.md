@@ -49,7 +49,7 @@ It uploads one Gallery archive per platform:
 - `FluentQtWidgetsGallery-windows-latest-vX.Y.Z.zip`
 - `FluentQtWidgetsGallery-macos-15-vX.Y.Z.tar.gz`
 
-Each archive includes the Gallery output, `LICENSE`, `CHANGELOG.md`, and `THIRD_PARTY_NOTICES.md`. Windows archives include the deployed runtime directory produced by `windeployqt`.
+Each archive includes the Gallery output, `README.md`, `README_EN.md`, `LICENSE`, `CHANGELOG.md`, and `THIRD_PARTY_NOTICES.md`. Windows archives include the deployed runtime directory produced by `windeployqt`.
 
 ## Gallery OTA
 
@@ -59,7 +59,7 @@ Gallery uses the default update channel:
 https://github.com/txp666/FluentQtWidgets/releases/latest
 ```
 
-The update checker compares the current CMake project version with the latest GitHub Release tag. A newer tag is reported as an available update. The release assets are the downloadable OTA payloads.
+The update checker reads the latest release from the GitHub API and compares its tag with the CMake project version. When the tag is newer, the Gallery shows an info bar with a link to the release page, where the archives above can be downloaded. Users check from the settings page, or at start-up when automatic update checks are on.
 
 ## Verification
 
@@ -72,7 +72,7 @@ ctest --preset debug --output-on-failure
 python3 scripts/verify_example_parity.py
 ```
 
-`scripts/verify_example_parity.py` confirms that every Python reference example directory has a C++ counterpart. C++-only examples are allowed when they demonstrate Qt/C++ specific APIs or composed controls.
+`scripts/verify_example_parity.py` confirms that every Python reference example directory has a C++ counterpart; it needs a `PyQt-Fluent-Widgets/` checkout at the repository root. C++-only examples are allowed when they demonstrate Qt/C++ specific APIs or composed controls.
 
 On Windows MinGW, use the matching preset instead:
 

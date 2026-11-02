@@ -26,11 +26,12 @@ base classes, and widgets attached to another widget.
 
 ## Regenerating the Python data
 
-Use the Python with PyQt5 5.15 and qfluentwidgets 1.11.3 (on the owner's machine, the PyQt-UI-Designer venv).
-Run it from outside the venv, from the repository root:
+You need a Python environment with PyQt5 5.15 and qfluentwidgets 1.11.3 (for example a virtual environment with
+`pip install PyQt5==5.15.* PyQt-Fluent-Widgets==1.11.3`). From the repository root, run the script with that
+environment's interpreter, in isolated mode so nothing from the current directory is imported:
 
 ```
-/Users/txp/git/GitHub/PyQt-UI-Designer/.venv/bin/python -I tools/parity/measure_python.py
+<venv>/bin/python -I tools/parity/measure_python.py
 ```
 
 It sets the platform itself and writes `tests/data/python_sizes.json` (sorted keys, so two runs on one machine
