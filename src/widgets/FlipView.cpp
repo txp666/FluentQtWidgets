@@ -1,5 +1,6 @@
 #include <FluentQtWidgets/Widgets/FlipView.h>
 
+#include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 
@@ -237,6 +238,8 @@ void FlipView::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
     updateCursorForPosition(event->pos());
+    update(previousButtonRect());
+    update(nextButtonRect());
 }
 
 void FlipView::mousePressEvent(QMouseEvent *event)
@@ -362,36 +365,16 @@ void FlipView::paintButton(QPainter *painter, const QRect &rect, bool nextButton
     painter->setBrush(dark ? QColor(44, 44, 44, 245) : QColor(252, 252, 252, 217));
     painter->drawRoundedRect(rect, 4, 4);
 
-    painter->setOpacity(opacity * (dark ? (pressed ? 0.773 : 0.541) : (pressed ? 0.616 : 0.45)));
-    painter->setBrush(dark ? QColor(255, 255, 255) : QColor(0, 0, 0));
-    QPainterPath arrow;
-    if (isHorizontal()) {
-        const int size = pressed ? 6 : 8;
-        const QPoint center = rect.center();
-        if (nextButton) {
-            arrow.moveTo(center.x() - size / 3.0, center.y() - size / 2.0);
-            arrow.lineTo(center.x() + size / 3.0, center.y());
-            arrow.lineTo(center.x() - size / 3.0, center.y() + size / 2.0);
-        } else {
-            arrow.moveTo(center.x() + size / 3.0, center.y() - size / 2.0);
-            arrow.lineTo(center.x() - size / 3.0, center.y());
-            arrow.lineTo(center.x() + size / 3.0, center.y() + size / 2.0);
-        }
-    } else {
-        const int size = pressed ? 6 : 8;
-        const QPoint center = rect.center();
-        if (nextButton) {
-            arrow.moveTo(center.x() - size / 2.0, center.y() - size / 3.0);
-            arrow.lineTo(center.x(), center.y() + size / 3.0);
-            arrow.lineTo(center.x() + size / 2.0, center.y() - size / 3.0);
-        } else {
-            arrow.moveTo(center.x() - size / 2.0, center.y() + size / 3.0);
-            arrow.lineTo(center.x(), center.y() - size / 3.0);
-            arrow.lineTo(center.x() + size / 2.0, center.y() + size / 3.0);
-        }
-    }
-    arrow.closeSubpath();
-    painter->drawPath(arrow);
+    // As Python's ScrollButton: the CareSolid icon, brighter under the mouse or pressed, 8 px and
+    // 6 px while pressed.
+    const bool active = pressed || (m_hovered && rect.contains(m_mousePos));
+    painter->setOpacity(opacity * (dark ? (active ? 0.773 : 0.541) : (active ? 0.616 : 0.45)));
+    const FluentIcon icon = isHorizontal() ? (nextButton ? FluentIcon::CareRightSolid : FluentIcon::CareLeftSolid)
+                                           : (nextButton ? FluentIcon::CareDownSolid : FluentIcon::CareUpSolid);
+    const qreal size = pressed ? 6 : 8;
+    const QRectF iconRect(rect.x() + (rect.width() - size) / 2, rect.y() + (rect.height() - size) / 2, size, size);
+    FluentQt::icon(icon, dark ? Theme::Dark : Theme::Light, dark ? QColor(255, 255, 255) : QColor(0, 0, 0))
+        .paint(painter, iconRect.toRect());
     painter->restore();
 }
 
@@ -451,6 +434,7 @@ void FlipView::updateButtonOpacityForCurrentIndex(bool animated)
 
 void FlipView::updateCursorForPosition(const QPoint &pos)
 {
+    m_mousePos = pos;
     const bool canUsePrevious = m_hovered && m_currentIndex > 0 && previousButtonRect().contains(pos);
     const bool canUseNext = m_hovered && m_currentIndex >= 0 && m_currentIndex < m_images.size() - 1 &&
                             nextButtonRect().contains(pos);

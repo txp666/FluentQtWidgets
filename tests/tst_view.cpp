@@ -1198,6 +1198,45 @@ class ViewTest : public QObject
         }
     }
 
+    // Python's flip view buttons draw their arrow brighter under the mouse, not only when pressed.
+    void flipViewArrowBrightensUnderTheMouse()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        FlipView view;
+        QImage white(480, 270, QImage::Format_ARGB32);
+        white.fill(Qt::white);
+        view.addImages(QList<QImage>{white, white});
+        view.resize(480, 270);
+        view.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+
+        const QRect next(view.width() - 18, view.height() / 2 - 19, 16, 38);
+        auto darkestArrowPixel = [&](const QPoint &mouse) -> int {
+            QEnterEvent enter(mouse, view.mapToGlobal(mouse), view.mapToGlobal(mouse));
+            QApplication::sendEvent(&view, &enter);
+            QMouseEvent move(QEvent::MouseMove, mouse, view.mapToGlobal(mouse), Qt::NoButton, Qt::NoButton,
+                             Qt::NoModifier);
+            QApplication::sendEvent(&view, &move);
+            if (!QTest::qWaitFor([&] { return view.nextButtonOpacity() == 1.0; })) {
+                return -1;
+            }
+            QImage image(view.size(), QImage::Format_ARGB32);
+            image.fill(Qt::white);
+            view.render(&image);
+            int darkest = 255;
+            for (int y = next.top(); y <= next.bottom(); ++y) {
+                for (int x = next.left(); x <= next.right(); ++x) {
+                    darkest = qMin(darkest, image.pixelColor(x, y).lightness());
+                }
+            }
+            return darkest;
+        };
+        const int away = darkestArrowPixel(QPoint(100, 135));
+        const int over = darkestArrowPixel(next.center());
+        QVERIFY(over >= 0 && away >= 0);
+        QVERIFY2(over + 20 < away, qPrintable(QStringLiteral("over=%1 away=%2").arg(over).arg(away)));
+    }
+
     void pagerTracksCurrentPageAndButtons()
     {
         FluentQt::PipsPager pager;

@@ -105,6 +105,7 @@ class FQW_API FlipView : public QWidget
     QVector<QImage> m_images;
     int m_currentIndex = -1;
     bool m_hovered = false;
+    QPoint m_mousePos;
     bool m_previousPressed = false;
     bool m_nextPressed = false;
     bool m_isScrolling = false;
