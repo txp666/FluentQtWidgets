@@ -958,6 +958,23 @@ class DateTimeTest : public QObject
         panel.hide();
     }
 
+    // Python's reset buttons show FluentIcon.CANCEL; the port used Remove (picker panel) and
+    // Close (calendar views).
+    void resetButtonsShowTheCancelIcon()
+    {
+        const QImage cancel = FluentQt::icon(FluentQt::FluentIcon::Cancel).pixmap(16, 16).toImage();
+        FluentQt::PickerPanel panel;
+        QCOMPARE(panel.resetButton()->icon().pixmap(16, 16).toImage(), cancel);
+        FluentQt::CalendarView view(nullptr, false);
+        QCOMPARE(view.resetButton()->icon().pixmap(16, 16).toImage(), cancel);
+        FluentQt::FastCalendarView fastView;
+        const auto fastResetButtons = fastView.findChildren<QToolButton *>(QStringLiteral("resetButton"));
+        QCOMPARE(fastResetButtons.size(), 3);
+        for (QToolButton *button : fastResetButtons) {
+            QCOMPARE(button->property("navigationIcon").toString(), QStringLiteral("Cancel"));
+        }
+    }
+
     // Python paints the separators between the columns and above the buttons; the port's rule
     // selected QFrame, but SeparatorWidget is a plain QWidget without a styled background.
     void pickerPanelsDrawTheirSeparators()

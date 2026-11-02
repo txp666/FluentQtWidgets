@@ -67,7 +67,7 @@ CalendarView::CalendarView(QWidget *parent, bool popup)
         }
     });
 
-    m_resetButton = createNavigationButton(FluentQt::icon(FluentIcon::Close), QStringLiteral("resetButton"));
+    m_resetButton = createNavigationButton(FluentQt::icon(FluentIcon::Cancel), QStringLiteral("resetButton"));
     m_upButton = createNavigationButton(FluentQt::icon(FluentIcon::CareUpSolid), QStringLiteral("upButton"));
     m_downButton = createNavigationButton(FluentQt::icon(FluentIcon::CareDownSolid), QStringLiteral("downButton"));
     connect(m_resetButton, &QToolButton::clicked, this, &CalendarView::reset);
@@ -732,7 +732,7 @@ QFrame *FastCalendarView::createPage(const QString &objectName, QPushButton **ti
         return button;
     };
 
-    *resetButton = createNavButton(FluentIcon::Close, QStringLiteral("resetButton"));
+    *resetButton = createNavButton(FluentIcon::Cancel, QStringLiteral("resetButton"));
     *upButton = createNavButton(FluentIcon::CareUpSolid, QStringLiteral("upButton"));
     *downButton = createNavButton(FluentIcon::CareDownSolid, QStringLiteral("downButton"));
 
