@@ -532,6 +532,20 @@ class StatusInfoTest : public QObject
         QCOMPARE(QApplication::focusWidget(), edit);
     }
 
+    // Python's tooltip label does not wrap: a long tooltip is one wide line. The port wrapped
+    // it, so a 100-character tip came out half as wide and two lines tall.
+    void toolTipKeepsLongTextOnOneLine()
+    {
+        ToolTip tip(QStringLiteral("Hi"));
+        const int oneLineHeight = tip.sizeHint().height();
+        const QString longText = QStringLiteral("This is a fairly long tooltip text that goes on and on and on and "
+                                                "on and on for a while to check wrapping");
+        tip.setText(longText);
+        QVERIFY(!tip.label()->wordWrap());
+        QCOMPARE(tip.height(), oneLineHeight);
+        QVERIFY(tip.width() > tip.label()->fontMetrics().horizontalAdvance(longText));
+    }
+
     void toolTipShowTextCleansUpAfterItself()
     {
         QWidget target;

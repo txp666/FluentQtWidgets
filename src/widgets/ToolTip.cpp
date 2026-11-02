@@ -43,7 +43,6 @@ ToolTip::ToolTip(QWidget *parent) : QFrame(parent)
 
     m_label = new QLabel(m_container);
     m_label->setObjectName(QStringLiteral("contentLabel"));
-    m_label->setWordWrap(true);
     m_containerLayout->addWidget(m_label);
 
     m_shadowEffect = new QGraphicsDropShadowEffect(this);
