@@ -407,6 +407,33 @@ class ViewTest : public QObject
         }
     }
 
+    // A selected tree row is one rounded fill across its columns, as in Python. The port filled the
+    // whole row width for every column, so a two-column row was covered twice.
+    void treeRowFillsEachColumnOnce()
+    {
+        ThemeManager::instance()->setTheme(Theme::Light);
+        TreeWidget tree;
+        tree.setColumnCount(2);
+        tree.setHeaderHidden(true);
+        auto *item = new QTreeWidgetItem(&tree, QStringList{QStringLiteral("a"), QStringLiteral("b")});
+        new QTreeWidgetItem(&tree, QStringList{QStringLiteral("c"), QStringLiteral("d")});
+        tree.resize(400, 200);
+        tree.setColumnWidth(0, 200);
+        tree.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&tree));
+        tree.setCurrentItem(item);
+        QTest::mouseMove(tree.viewport(), QPoint(300, 150));
+
+        const QRect row = tree.visualItemRect(item);
+        const QImage image = tree.viewport()->grab().toImage();
+        const qreal ratio = image.devicePixelRatio();
+        for (const int x : {190, 210, 370}) {
+            const QColor color = image.pixelColor(qRound(x * ratio), qRound(row.center().y() * ratio));
+            QVERIFY2(qAbs(color.alpha() - 9) <= 1,
+                     qPrintable(QStringLiteral("x=%1 alpha=%2").arg(x).arg(color.alpha())));
+        }
+    }
+
     void treeHoverDoesNotBleedAcrossParents()
     {
         const FluentQt::Theme previousTheme = FluentQt::ThemeManager::instance()->theme();

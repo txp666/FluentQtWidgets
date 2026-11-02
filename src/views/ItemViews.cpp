@@ -8,16 +8,17 @@
 #include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/SmoothScrollDelegate.h>
 
+#include <QtCore/QEvent>
 #include <QtCore/QItemSelectionModel>
 #include <QtCore/QMargins>
 #include <QtCore/QVariant>
-#include <QtCore/QEvent>
 #include <QtGui/QBrush>
 #include <QtGui/QHelpEvent>
 #include <QtGui/QIcon>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QPalette>
 #include <QtWidgets/QAbstractItemView>
 #include <QtWidgets/QHeaderView>
@@ -549,11 +550,42 @@ bool TreeItemDelegate::isIndexHovered(const QModelIndex &index) const { return m
 void TreeItemDelegate::drawBackground(QPainter *painter, const QStyleOptionViewItem &option,
                                       const QModelIndex &index) const
 {
-    Q_UNUSED(index)
-
+    // One rounded row across the columns: the first column rounds the left end, the last the right.
     const auto *view = qobject_cast<const QTreeView *>(parent());
-    const int width = view ? view->width() : option.rect.width();
-    painter->drawRoundedRect(QRect(4, option.rect.y() + 2, width - 8, option.rect.height() - 4), 4, 4);
+    const int column = index.column();
+    const int lastColumn = view && view->header() ? view->header()->count() - 1 : column;
+    constexpr qreal radius = 4.0;
+
+    QRectF rect(option.rect);
+    rect.setTop(option.rect.y() + 2);
+    rect.setHeight(option.rect.height() - 4);
+    if (column == 0) {
+        rect.setX(4);
+    }
+
+    QPainterPath path;
+    if (column == 0 && column == lastColumn) {
+        path.addRoundedRect(rect, radius, radius);
+    } else if (column == 0) {
+        path.moveTo(rect.right(), rect.top());
+        path.lineTo(rect.right(), rect.bottom());
+        path.lineTo(rect.x() + radius, rect.bottom());
+        path.arcTo(rect.x(), rect.bottom() - 2 * radius, 2 * radius, 2 * radius, 270, -90);
+        path.lineTo(rect.x(), rect.top() + radius);
+        path.arcTo(rect.x(), rect.top(), 2 * radius, 2 * radius, 180, -90);
+        path.closeSubpath();
+    } else if (column == lastColumn) {
+        path.moveTo(rect.x(), rect.top());
+        path.lineTo(rect.right() - radius, rect.top());
+        path.arcTo(rect.right() - 2 * radius, rect.top(), 2 * radius, 2 * radius, 90, -90);
+        path.lineTo(rect.right(), rect.bottom() - radius);
+        path.arcTo(rect.right() - 2 * radius, rect.bottom() - 2 * radius, 2 * radius, 2 * radius, 0, -90);
+        path.lineTo(rect.x(), rect.bottom());
+        path.closeSubpath();
+    } else {
+        path.addRect(rect);
+    }
+    painter->drawPath(path);
 }
 
 void TreeItemDelegate::drawIndicator(QPainter *painter, const QStyleOptionViewItem &option,
