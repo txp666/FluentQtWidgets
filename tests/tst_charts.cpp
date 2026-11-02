@@ -121,10 +121,31 @@ class ChartsTest : public QObject
         QTest::mouseClick(&plot, Qt::LeftButton, Qt::NoModifier, QPoint(166, 36));
         QVERIFY(!plot.isSeriesVisible(0));
 
-        QTest::mouseClick(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
-        FluentQt::CheckableMenu *contextMenu = nullptr;
-        QTRY_VERIFY((contextMenu = FqwTest::findVisibleTopLevel<FluentQt::CheckableMenu>()) != nullptr);
+        auto openContextMenu = [&plot]() -> FluentQt::CheckableMenu * {
+            QTest::mouseClick(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
+            FluentQt::CheckableMenu *menu = nullptr;
+            if (!QTest::qWaitFor([&menu]() {
+                    return (menu = FqwTest::findVisibleTopLevel<FluentQt::CheckableMenu>()) != nullptr;
+                })) {
+                return nullptr;
+            }
+            return menu;
+        };
+        auto findAction = [](FluentQt::RoundMenu *menu, const QString &text) -> QAction * {
+            for (QAction *action : menu->menuActions()) {
+                if (action->text() == text) {
+                    return action;
+                }
+            }
+            return nullptr;
+        };
+
+        // Every action closes the menu, however it is triggered, as clicking a RoundMenu item does.
+        QPointer<FluentQt::CheckableMenu> contextMenu = openContextMenu();
+        QVERIFY(contextMenu);
         QVERIFY(contextMenu->menuActions().size() >= 9);
+        QVERIFY(findAction(contextMenu, QStringLiteral("Export CSV")) != nullptr);
+        QVERIFY(findAction(contextMenu, QStringLiteral("Export image")) != nullptr);
         FluentQt::CheckableMenu *maximumPointsMenu = nullptr;
         const auto childMenus = contextMenu->findChildren<FluentQt::CheckableMenu *>();
         for (FluentQt::CheckableMenu *menu : childMenus) {
@@ -134,72 +155,56 @@ class ChartsTest : public QObject
             }
         }
         QVERIFY(maximumPointsMenu != nullptr);
-        QAction *tenThousandPoints = nullptr;
-        QAction *exportCsvAction = nullptr;
-        QAction *exportImageAction = nullptr;
-        for (QAction *action : contextMenu->menuActions()) {
-            if (action->text() == QStringLiteral("Export CSV")) {
-                exportCsvAction = action;
-            } else if (action->text() == QStringLiteral("Export image")) {
-                exportImageAction = action;
-            }
-        }
-        QVERIFY(exportCsvAction != nullptr);
-        QVERIFY(exportImageAction != nullptr);
-        for (QAction *action : maximumPointsMenu->menuActions()) {
-            if (action->text() == QStringLiteral("10000")) {
-                tenThousandPoints = action;
-                break;
-            }
-        }
+        QAction *tenThousandPoints = findAction(maximumPointsMenu, QStringLiteral("10000"));
         QVERIFY(tenThousandPoints != nullptr);
         tenThousandPoints->trigger();
         QCOMPARE(plot.maximumVisiblePoints(), 10000);
         QCOMPARE(plot.visibleSpan(), 9999.0);
+        QTRY_VERIFY(!contextMenu);
+
         plot.setXRange(1.0, 2.0);
         plot.setYRange(6.0, 7.0);
+        contextMenu = openContextMenu();
+        QVERIFY(contextMenu);
         contextMenu->menuActions().constFirst()->trigger();
         QVERIFY(plot.autoScroll());
         QVERIFY(plot.autoYRange());
         QCOMPARE(plot.maximumVisiblePoints(), 10000);
         QCOMPARE(plot.visibleSpan(), 9999.0);
+        QTRY_VERIFY(!contextMenu);
         plot.appendPoint(memorySeries, 10.0, 9.0);
         QVERIFY(plot.autoScroll());
 
         QTemporaryDir exportDir;
         QVERIFY(exportDir.isValid());
         FluentQt::FluentConfig::instance()->setDownloadFolder(exportDir.path());
-        auto acceptSaveDialog = []() {
-            QTimer::singleShot(0, qApp, []() {
-                auto *dialog = FqwTest::findVisibleTopLevel<QFileDialog>();
-                QVERIFY(dialog != nullptr);
-                static_cast<QDialog *>(dialog)->done(QDialog::Accepted);
+        // The save dialog opens once the menu is closed: accept it whenever it shows up.
+        QPointer<FluentQt::CheckableMenu> menuWhenDialogShown;
+        auto exportWith = [&](const QString &actionText) {
+            contextMenu = openContextMenu();
+            QVERIFY(contextMenu);
+            QAction *action = findAction(contextMenu, actionText);
+            QVERIFY(action != nullptr);
+            QPointer<FluentQt::CheckableMenu> menu = contextMenu;
+            menuWhenDialogShown = nullptr;
+            auto *timer = new QTimer(qApp);
+            timer->setInterval(10);
+            connect(timer, &QTimer::timeout, qApp, [timer, menu, &menuWhenDialogShown]() {
+                if (auto *dialog = FqwTest::findVisibleTopLevel<QFileDialog>()) {
+                    timer->deleteLater();
+                    timer->stop();
+                    menuWhenDialogShown = menu && menu->isVisible() ? menu : nullptr;
+                    static_cast<QDialog *>(dialog)->done(QDialog::Accepted);
+                }
             });
+            timer->start();
+            action->trigger();
+            QVERIFY(!menuWhenDialogShown);
+            QTRY_VERIFY(!contextMenu);
         };
 
-        QPointer<FluentQt::CheckableMenu> csvMenu(contextMenu);
-        acceptSaveDialog();
-        exportCsvAction->trigger();
-
-        if (csvMenu && csvMenu->isVisible()) {
-            csvMenu->close();
-            QTRY_VERIFY(!csvMenu || !csvMenu->isVisible());
-        }
-
-        contextMenu = nullptr;
-        QTest::mouseClick(&plot, Qt::RightButton, Qt::NoModifier, QPoint(220, 140));
-        QTRY_VERIFY((contextMenu = FqwTest::findVisibleTopLevel<FluentQt::CheckableMenu>()) != nullptr);
-        exportImageAction = nullptr;
-        for (QAction *action : contextMenu->menuActions()) {
-            if (action->text() == QStringLiteral("Export image")) {
-                exportImageAction = action;
-                break;
-            }
-        }
-        QVERIFY(exportImageAction != nullptr);
-        QPointer<FluentQt::CheckableMenu> imageMenu(contextMenu);
-        acceptSaveDialog();
-        exportImageAction->trigger();
+        exportWith(QStringLiteral("Export CSV"));
+        exportWith(QStringLiteral("Export image"));
 
         const QStringList csvFiles = QDir(exportDir.path()).entryList(QStringList{QStringLiteral("*.csv")});
         const QStringList pngFiles = QDir(exportDir.path()).entryList(QStringList{QStringLiteral("*.png")});
@@ -212,11 +217,6 @@ class ChartsTest : public QObject
         QVERIFY(csv.contains("2;3;7\n"));
         QVERIFY(csv.contains("3;4;8\n"));
         QVERIFY(csv.contains("10;;9\n"));
-
-        if (imageMenu && imageMenu->isVisible()) {
-            imageMenu->close();
-            QTRY_VERIFY(!imageMenu || !imageMenu->isVisible());
-        }
 
         plot.setXRange(0.0, 4.0);
         plot.setYRange(4.0, 10.0);

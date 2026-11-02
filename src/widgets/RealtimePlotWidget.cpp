@@ -979,6 +979,13 @@ void RealtimePlotWidget::showContextMenu(const QPoint &globalPosition)
     QAction *exportCsvAction = menu->addAction(tr("Export CSV"));
     QAction *exportImageAction = menu->addAction(tr("Export image"));
 
+    // Clicking a RoundMenu item closes the menu before the action runs; triggering an action any
+    // other way (a shortcut, code) closes it too, so that no export dialog opens over it.
+    const QList<QAction *> menuActions = menu->menuActions() + maximumPointsMenu->menuActions();
+    for (QAction *action : menuActions) {
+        connect(action, &QAction::triggered, menu, &QWidget::close);
+    }
+
     connect(viewAllAction, &QAction::triggered, this, &RealtimePlotWidget::showAllData);
     connect(autoRangeAction, &QAction::triggered, this, &RealtimePlotWidget::resetView);
     connect(autoScrollAction, &QAction::triggered, this,
