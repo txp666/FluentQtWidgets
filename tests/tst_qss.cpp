@@ -221,6 +221,30 @@ class QssTest : public QObject
         }
     }
 
+    // Python's sheets colour hyperlinks, radio indicators, checked command buttons, focused text
+    // edits, selections and the calendar's today/selected items with --ThemeColorPrimary (lightened
+    // in dark mode: #009faa becomes #29f1ff), not the raw accent colour.
+    void accentedRulesUseThePrimaryThemeColor()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            for (const FluentStyleSheetSource source :
+                 {FluentStyleSheetSource::LineEdit, FluentStyleSheetSource::SpinBox, FluentStyleSheetSource::ComboBox,
+                  FluentStyleSheetSource::CalendarPicker}) {
+                const QString qss = FluentStyleSheet::loadSource(source, theme);
+                QVERIFY(!qss.contains(QStringLiteral("@accentColor")));
+            }
+            const QString buttons = FluentStyleSheet::loadSource(FluentStyleSheetSource::Button, theme);
+            for (const char *selector :
+                 {"QPushButton[fqw=\"HyperlinkButton\"] {", "QPushButton[fqw=\"HyperlinkButton\"]:hover {",
+                  "QToolButton[fqw=\"CommandButton\"]:checked {"}) {
+                const int start = buttons.indexOf(QLatin1String(selector));
+                QVERIFY2(start >= 0, selector);
+                const QString rule = buttons.mid(start, buttons.indexOf(QLatin1Char('}'), start) - start);
+                QVERIFY2(rule.contains(QStringLiteral("--ThemeColorPrimary")), selector);
+            }
+        }
+    }
+
     void navigationLightQssPinsTextColor()
     {
         const QString qss = FluentStyleSheet::loadSource(FluentStyleSheetSource::Pivot, Theme::Light);
