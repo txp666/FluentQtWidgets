@@ -644,6 +644,17 @@ void CommandBar::clear()
     relayoutWidgets();
 }
 
+// Python's setFont() passes the font on to the command buttons, which set their own.
+void CommandBar::changeEvent(QEvent *event)
+{
+    QFrame::changeEvent(event);
+    if (event->type() == QEvent::FontChange) {
+        for (CommandButton *button : commandButtons()) {
+            button->setFont(font());
+        }
+    }
+}
+
 void CommandBar::resizeEvent(QResizeEvent *event)
 {
     QFrame::resizeEvent(event);
@@ -1037,6 +1048,16 @@ void CommandBarView::resizeToSuitableWidth()
         m_commandBar->resizeToSuitableWidth();
     }
     setFixedWidth(suitableWidth());
+}
+
+// Python's CommandBarView::setFont() sets the bar's font, and so its buttons'. Only a font set on
+// the view itself: one it inherits does not replace the bar's own 12 px.
+void CommandBarView::changeEvent(QEvent *event)
+{
+    FlyoutViewBase::changeEvent(event);
+    if (event->type() == QEvent::FontChange && m_commandBar && testAttribute(Qt::WA_SetFont)) {
+        m_commandBar->setFont(font());
+    }
 }
 
 void CommandBarView::paintEvent(QPaintEvent *)

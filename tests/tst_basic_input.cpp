@@ -1381,6 +1381,29 @@ class BasicInputTest : public QObject
         QVERIFY(view->maximumHeight() > 46);
     }
 
+    // Python's CommandBar.setFont() passes the font on to the command buttons, and
+    // CommandBarView.setFont() to its bar.
+    void commandBarPassesItsFontToTheButtons()
+    {
+        CommandBar *bar = new CommandBar;
+        QScopedPointer<CommandBar> owner(bar);
+        bar->addAction(FluentIcon::Mail, QStringLiteral("Mail"));
+        CommandBarView *view = new CommandBarView;
+        QScopedPointer<CommandBarView> viewOwner(view);
+        QFont font = bar->font();
+        font.setPixelSize(17);
+        bar->setFont(font);
+        for (CommandButton *button : bar->commandButtons()) {
+            QCOMPARE(button->font().pixelSize(), 17);
+        }
+        view->addAction(new QAction(QStringLiteral("Copy"), view));
+        view->setFont(font);
+        QCOMPARE(view->commandBar()->font().pixelSize(), 17);
+        for (CommandButton *button : view->commandBar()->commandButtons()) {
+            QCOMPARE(button->font().pixelSize(), 17);
+        }
+    }
+
     // Python's Slider(parent) and ClickableSlider(parent) keep QSlider's vertical default.
     void slidersDefaultToVerticalAsQSliderDoes()
     {

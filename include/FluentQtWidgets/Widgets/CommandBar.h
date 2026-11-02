@@ -158,6 +158,7 @@ class FQW_API CommandBar : public QFrame
     QSize minimumSizeHint() const override;
 
   protected:
+    void changeEvent(QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void showEvent(QShowEvent *event) override;
     virtual CommandButton *createButtonForAction(QAction *action);
@@ -254,6 +255,7 @@ class FQW_API CommandBarView : public FlyoutViewBase
     void resizeToSuitableWidth();
 
   protected:
+    void changeEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
   private:
