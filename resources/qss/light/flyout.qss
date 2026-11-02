@@ -6,13 +6,25 @@ QFrame[fqw="AcrylicFlyout"] {
 
 QFrame[fqw="FlyoutView"],
 QFrame[fqw="FlyoutViewBase"] {
-    border: 1px solid #d8d8d8;
-    border-radius: 8px;
-    background: #ffffff;
+    border: none;
+    background: transparent;
 }
 
 QFrame[fqw="AcrylicFlyoutView"],
 QFrame[fqw="AcrylicFlyoutViewBase"] {
     border: none;
     background: transparent;
+}
+
+QLabel#titleLabel {
+    font: 14px --FontFamilies;
+    font-weight: bold;
+    color: black;
+    background-color: transparent;
+}
+
+QLabel#contentLabel {
+    font: 14px --FontFamilies;
+    color: black;
+    background-color: transparent;
 }

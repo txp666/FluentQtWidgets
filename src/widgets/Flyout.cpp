@@ -340,6 +340,20 @@ void FlyoutViewBase::addWidget(QWidget *widget, int stretch, Qt::Alignment align
     Q_UNUSED(alignment)
 }
 
+QColor FlyoutViewBase::backgroundColor() const { return isDarkTheme() ? QColor(40, 40, 40) : QColor(248, 248, 248); }
+
+QColor FlyoutViewBase::borderColor() const { return isDarkTheme() ? QColor(0, 0, 0, 45) : QColor(0, 0, 0, 17); }
+
+void FlyoutViewBase::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing);
+    painter.setBrush(backgroundColor());
+    painter.setPen(borderColor());
+    painter.drawRoundedRect(rect().adjusted(1, 1, -1, -1), 8, 8);
+}
+
 // ==========================================
 // FlyoutView
 // ==========================================
@@ -421,6 +435,8 @@ void FlyoutView::initWidgets()
     m_contentLabel->setVisible(!content().isEmpty());
 
     m_iconWidget = new IconWidget(this);
+    m_iconWidget->setFixedSize(36, 54);
+    m_iconWidget->setIconSize(QSize(20, 20));
     m_iconWidget->hide();
 
     m_imageLabel = new ImageLabel(this);
@@ -443,7 +459,7 @@ void FlyoutView::initLayout()
     m_widgetLayout->setSpacing(0);
     m_vBoxLayout->setSpacing(0);
 
-    if (title().isEmpty() && content().isEmpty()) {
+    if (title().isEmpty() || content().isEmpty()) {
         m_iconWidget->setFixedHeight(36);
     }
 

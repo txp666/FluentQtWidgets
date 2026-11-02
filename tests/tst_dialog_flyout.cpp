@@ -717,6 +717,46 @@ class DialogFlyoutTest : public QObject
         QVERIFY(view.isVisible());
     }
 
+    void flyoutViewMatchesPythonLooks()
+    {
+        // qfluentwidgets paints the view itself: a 248 / 40 grey face and an rgba(0, 0, 0, 17 / 45)
+        // pen on a rounded rect inset by 1 px. Its title is 14 px bold and its content 14 px, from
+        // the teaching tip style sheet, and its icon sits in a 36 x 54 box (36 x 36 when the
+        // title or the content is missing), as in a teaching tip.
+        QPixmap pixmap(300, 150);
+        pixmap.fill(Qt::red);
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+            FlyoutView view(QStringLiteral("Title"), QStringLiteral("Content"),
+                            FluentQt::icon(FluentQt::FluentIcon::Info), pixmap, true);
+            view.ensurePolished();
+            view.titleLabel()->ensurePolished();
+            view.contentLabel()->ensurePolished();
+            QCOMPARE(view.titleLabel()->font().pixelSize(), 14);
+            QCOMPARE(view.titleLabel()->font().weight(), QFont::Bold);
+            QCOMPARE(view.contentLabel()->font().pixelSize(), 14);
+            QCOMPARE(view.contentLabel()->font().weight(), QFont::Normal);
+            QCOMPARE(view.iconWidget()->size(), QSize(36, 54));
+            QCOMPARE(view.iconWidget()->iconSize(), QSize(20, 20));
+
+            view.adjustSize();
+            QCOMPARE(view.imageLabel()->pos(), QPoint(1, 1));
+            QImage face(view.size(), QImage::Format_ARGB32_Premultiplied);
+            face.fill(Qt::transparent);
+            view.render(&face, QPoint(), QRegion(), QWidget::DrawWindowBackground);
+            const QColor expected = dark ? QColor(40, 40, 40) : QColor(248, 248, 248);
+            QCOMPARE(QColor(face.pixel(view.width() / 2, view.height() - 4)), expected);
+            // Only the antialiased edge of the inset pen reaches the outer row.
+            QVERIFY(qAlpha(face.pixel(view.width() / 2, 0)) < 32);
+            QCOMPARE(view.backgroundColor(), expected);
+            QCOMPARE(view.borderColor(), dark ? QColor(0, 0, 0, 45) : QColor(0, 0, 0, 17));
+        }
+
+        FlyoutView titleOnly(QStringLiteral("Title"), QString(), FluentQt::icon(FluentQt::FluentIcon::Info), QPixmap(),
+                             false);
+        QCOMPARE(titleOnly.iconWidget()->size(), QSize(36, 36));
+    }
+
     void flyoutReusesItsAnimationManager()
     {
         QWidget target;
