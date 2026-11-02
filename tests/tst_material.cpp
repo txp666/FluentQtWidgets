@@ -305,6 +305,90 @@ class MaterialTest : public QObject
         QVERIFY2(device.paints - paints <= 1, qPrintable(QStringLiteral("%1 more paints").arg(device.paints - paints)));
     }
 
+    // Python's acrylic menu views move the 6 px top and bottom margins into placeholder rows so that
+    // the acrylic covers them; the views come out as tall as the plain ones (the completer's is 4 px
+    // taller: 6 px placeholders where CompleterMenu has a 2 px top margin).
+    void acrylicMenuViewsAreAsTallAsPythons()
+    {
+        auto addActions = [](FluentQt::RoundMenu &menu) {
+            for (const char *text : {"Copy", "Paste", "Select all"}) {
+                menu.addAction(new QAction(QString::fromLatin1(text), &menu));
+            }
+        };
+        FluentQt::RoundMenu plainMenu;
+        FluentQt::AcrylicMenu acrylicMenu;
+        addActions(plainMenu);
+        addActions(acrylicMenu);
+        QCOMPARE(acrylicMenu.view()->height(), plainMenu.view()->height());
+        QCOMPARE(acrylicMenu.layout()->sizeHint().height(), plainMenu.layout()->sizeHint().height());
+
+        FluentQt::AcrylicCheckableMenu acrylicCheckableMenu;
+        addActions(acrylicCheckableMenu);
+        QCOMPARE(acrylicCheckableMenu.view()->height(), plainMenu.view()->height());
+
+        QWidget host;
+        FluentQt::ComboBoxMenu plainComboMenu(&host);
+        FluentQt::AcrylicComboBoxMenu acrylicComboMenu(&host);
+        addActions(plainComboMenu);
+        addActions(acrylicComboMenu);
+        QVERIFY(qobject_cast<FluentQt::AcrylicComboMenuActionListWidget *>(acrylicComboMenu.view()));
+        QCOMPARE(acrylicComboMenu.view()->height(), plainComboMenu.view()->height());
+
+        FluentQt::LineEdit lineEdit;
+        FluentQt::CompleterMenu plainCompleter(&lineEdit);
+        FluentQt::AcrylicCompleterMenu acrylicCompleter(&lineEdit);
+        const QStringList items{QStringLiteral("apple"), QStringLiteral("banana"), QStringLiteral("cherry")};
+        plainCompleter.setItems(items);
+        acrylicCompleter.setItems(items);
+        QVERIFY(qobject_cast<FluentQt::AcrylicCompleterMenuActionListWidget *>(acrylicCompleter.view()));
+        QCOMPARE(acrylicCompleter.view()->height(), plainCompleter.view()->height() + 4);
+        QCOMPARE(acrylicCompleter.view()->objectName(), QStringLiteral("completerListWidget"));
+    }
+
+    // The acrylic covers the margins too, inside Python's clip paths: the menu's rounded rect, and
+    // the completer's with square corners on the side that touches the line edit.
+    void acrylicMenuViewsPaintAcrossTheirMargins()
+    {
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(false);
+        FluentQt::AcrylicMenu menu;
+        menu.addAction(new QAction(QStringLiteral("Copy"), &menu));
+        auto *view = static_cast<FluentQt::AcrylicMenuActionListWidget *>(menu.view());
+        QPainterPath expected;
+        expected.addRoundedRect(QRectF(view->rect()).adjusted(0, 0, -2.5, -2.5), 8, 8);
+        QCOMPARE(view->clipPath(), expected);
+
+        QImage rendered(view->size(), QImage::Format_ARGB32_Premultiplied);
+        rendered.fill(Qt::transparent);
+        view->render(&rendered);
+        // Inside the 6 px top margin, below the 1 px border.
+        QCOMPARE(qAlpha(rendered.pixel(view->width() / 2, 4)), 255);
+        QCOMPARE(qAlpha(rendered.pixel(view->width() / 2, view->height() - 6)), 255);
+
+        FluentQt::LineEdit lineEdit;
+        FluentQt::AcrylicCompleterMenu completer(&lineEdit);
+        completer.setItems({QStringLiteral("apple")});
+        auto *completerView = static_cast<FluentQt::AcrylicMenuActionListWidget *>(completer.view());
+        const int w = completerView->width();
+        const int h = completerView->height();
+        completerView->setProperty("dropDown", true);
+        QVERIFY(completerView->clipPath().contains(QPointF(1.5, 1.5)));
+        QVERIFY(!completerView->clipPath().contains(QPointF(1.5, h - 2.0)));
+        completerView->setProperty("dropDown", false);
+        QVERIFY(!completerView->clipPath().contains(QPointF(1.5, 1.5)));
+        QVERIFY(completerView->clipPath().contains(QPointF(w - 2.0, h - 2.0)));
+        FluentQt::AcrylicBrush::setScreenCaptureEnabled(true);
+    }
+
+    // Python's AcrylicSystemTrayMenu is an AcrylicMenu: it has no SystemTrayMenu size hint.
+    void acrylicSystemTrayMenuSizesLikeAnAcrylicMenu()
+    {
+        FluentQt::AcrylicSystemTrayMenu trayMenu;
+        FluentQt::AcrylicMenu menu;
+        trayMenu.addAction(new QAction(QStringLiteral("Show"), &trayMenu));
+        menu.addAction(new QAction(QStringLiteral("Show"), &menu));
+        QCOMPARE(trayMenu.sizeHint(), menu.sizeHint());
+    }
+
   private:
     struct PaintCounter : QWidget
     {

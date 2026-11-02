@@ -456,6 +456,15 @@ class FQW_API EditableModelComboBox : public LineEdit
     QPointer<ComboBoxMenu> m_dropMenu;
 };
 
+// The combo box menu's view: a 2 px top margin, like ComboBoxMenu's.
+class FQW_API AcrylicComboMenuActionListWidget : public AcrylicMenuActionListWidget
+{
+    Q_OBJECT
+
+  public:
+    explicit AcrylicComboMenuActionListWidget(QWidget *parent = nullptr);
+};
+
 class FQW_API AcrylicComboBoxMenu : public ComboBoxMenu
 {
     Q_OBJECT

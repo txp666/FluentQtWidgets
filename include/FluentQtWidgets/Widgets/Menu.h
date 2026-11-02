@@ -7,8 +7,9 @@
 #include <QtCore/QList>
 #include <QtCore/QMargins>
 #include <QtCore/QPoint>
-#include <QtWidgets/QMenu>
+#include <QtGui/QPainterPath>
 #include <QtWidgets/QListWidget>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QStyledItemDelegate>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -335,12 +336,27 @@ public:
     ~AcrylicMenuActionListWidget() override;
 
     AcrylicBrush *acrylicBrush() const;
+    // Where the acrylic shows, in the view's coordinates.
+    virtual QPainterPath clipPath() const;
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
+  protected:
+    // Paints the acrylic over the whole view, its top and bottom margins included (Python moves
+    // the margins into placeholder rows for that), then the view.
+    bool event(QEvent *event) override;
 
-private:
+  private:
     AcrylicBrush *m_acrylicBrush = nullptr;
+};
+
+// The completer's view: square corners on the side that touches the line edit.
+class FQW_API AcrylicCompleterMenuActionListWidget : public AcrylicMenuActionListWidget
+{
+    Q_OBJECT
+
+  public:
+    explicit AcrylicCompleterMenuActionListWidget(QWidget *parent = nullptr);
+
+    QPainterPath clipPath() const override;
 };
 
 class FQW_API AcrylicMenu : public RoundMenu
@@ -368,8 +384,6 @@ class FQW_API AcrylicSystemTrayMenu : public AcrylicMenu
 
 public:
     explicit AcrylicSystemTrayMenu(QWidget *parent = nullptr);
-
-    QSize sizeHint() const override;
 };
 
 class FQW_API AcrylicCheckableSystemTrayMenu : public AcrylicCheckableMenu

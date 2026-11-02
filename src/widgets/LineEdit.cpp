@@ -864,7 +864,8 @@ AcrylicLineEditMenu::AcrylicLineEditMenu(QLineEdit *parent) : LineEditMenu(paren
 
 AcrylicCompleterMenu::AcrylicCompleterMenu(LineEdit *lineEdit) : CompleterMenu(lineEdit)
 {
-    setMenuView(new AcrylicMenuActionListWidget(this));
+    // Python's placeholder rows are 6 px at both ends, where CompleterMenu has a 2 px top margin.
+    setMenuView(new AcrylicCompleterMenuActionListWidget(this));
     view()->setObjectName(QStringLiteral("completerListWidget"));
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);

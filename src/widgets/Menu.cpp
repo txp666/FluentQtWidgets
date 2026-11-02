@@ -1620,10 +1620,8 @@ QSize CheckableSystemTrayMenu::sizeHint() const
 // ==========================================
 
 AcrylicMenuActionListWidget::AcrylicMenuActionListWidget(QWidget *parent)
-    : MenuActionListWidget(parent)
-    , m_acrylicBrush(new AcrylicBrush(viewport(), 35))
+    : MenuActionListWidget(parent), m_acrylicBrush(new AcrylicBrush(this, 35))
 {
-    setViewportMargins(0, 0, 0, 0);
     setProperty("transparent", true);
     FluentStyleSheet::polish(this);
 }
@@ -1636,21 +1634,47 @@ AcrylicMenuActionListWidget::~AcrylicMenuActionListWidget()
 
 AcrylicBrush *AcrylicMenuActionListWidget::acrylicBrush() const { return m_acrylicBrush; }
 
-void AcrylicMenuActionListWidget::paintEvent(QPaintEvent *event)
+QPainterPath AcrylicMenuActionListWidget::clipPath() const
 {
-    {
-        QPainter painter(viewport());
-        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    QPainterPath path;
+    path.addRoundedRect(QRectF(rect()).adjusted(0, 0, -2.5, -2.5), 8, 8);
+    return path;
+}
 
-        QPainterPath path;
-        path.addRoundedRect(QRectF(rect()).adjusted(1, 1, -2.5, -2.5), 8, 8);
-        m_acrylicBrush->setClipPath(path);
+bool AcrylicMenuActionListWidget::event(QEvent *event)
+{
+    // A scroll area paints its own frame here; paintEvent() only paints the viewport. Python paints
+    // on its viewport, which has no margins and so sits at the frame's contents rect.
+    if (event->type() == QEvent::Paint) {
+        QPainter painter(this);
+        painter.translate(contentsRect().topLeft());
+        m_acrylicBrush->setClipPath(clipPath());
         m_acrylicBrush->setTintColor(acrylicTintColor());
         m_acrylicBrush->setLuminosityColor(acrylicLuminosityColor());
         m_acrylicBrush->paint(&painter);
     }
+    return MenuActionListWidget::event(event);
+}
 
-    MenuActionListWidget::paintEvent(event);
+AcrylicCompleterMenuActionListWidget::AcrylicCompleterMenuActionListWidget(QWidget *parent)
+    : AcrylicMenuActionListWidget(parent)
+{
+}
+
+QPainterPath AcrylicCompleterMenuActionListWidget::clipPath() const
+{
+    QPainterPath path;
+    path.setFillRule(Qt::WindingFill);
+    path.addRoundedRect(QRectF(rect()).adjusted(1, 1, -2.5, -2.5), 8, 8);
+
+    if (property("dropDown").toBool()) {
+        path.addRect(1, 1, 11, 11);
+        path.addRect(width() - 12, 1, 11, 11);
+    } else {
+        path.addRect(1, height() - 11, 11, 11);
+        path.addRect(width() - 12, height() - 11, 11, 11);
+    }
+    return path;
 }
 
 AcrylicMenu::AcrylicMenu(QWidget *parent) : RoundMenu(parent)
@@ -1698,13 +1722,6 @@ AcrylicCheckableMenu::AcrylicCheckableMenu(const QString &title, QWidget *parent
 AcrylicSystemTrayMenu::AcrylicSystemTrayMenu(QWidget *parent) : AcrylicMenu(parent)
 {
     FluentStyleSheet::setRole(this, QStringLiteral("AcrylicSystemTrayMenu"));
-}
-
-QSize AcrylicSystemTrayMenu::sizeHint() const
-{
-    const QMargins m = layout()->contentsMargins();
-    const QSize s = layout()->sizeHint();
-    return QSize(s.width() - m.right() + 5, s.height() - m.bottom());
 }
 
 AcrylicCheckableSystemTrayMenu::AcrylicCheckableSystemTrayMenu(QWidget *parent)

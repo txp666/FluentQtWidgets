@@ -674,11 +674,15 @@ QAction *ComboBoxMenu::exec(const QPoint &pos, bool animated, MenuAnimationType 
     return RoundMenu::exec(pos, animated, animationType);
 }
 
+AcrylicComboMenuActionListWidget::AcrylicComboMenuActionListWidget(QWidget *parent)
+    : AcrylicMenuActionListWidget(parent)
+{
+    setViewportPadding(0, 2, 0, 6);
+}
+
 AcrylicComboBoxMenu::AcrylicComboBoxMenu(QWidget *parent) : ComboBoxMenu(parent)
 {
-    auto *listWidget = new AcrylicMenuActionListWidget(this);
-    listWidget->setViewportPadding(0, 2, 0, 6);
-    setMenuView(listWidget);
+    setMenuView(new AcrylicComboMenuActionListWidget(this));
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     showVerticalOverlayScrollBar(view());
     view()->setItemDelegate(new IndicatorMenuItemDelegate(view()));
