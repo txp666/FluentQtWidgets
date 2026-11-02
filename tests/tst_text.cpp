@@ -609,6 +609,34 @@ class TextTest : public QObject
         QCOMPARE(indexSpy.takeFirst().at(0).toModelIndex().row(), 1);
     }
 
+    // As in Python, keys typed while the completer menu is open go to the line edit and to the
+    // list, so the arrow keys move through the completions.
+    void completerMenuArrowKeysMoveThroughCompletions()
+    {
+        FluentQt::LineEdit lineEdit;
+        lineEdit.setText(QStringLiteral("a"));
+
+        QStandardItemModel model;
+        model.appendRow(new QStandardItem(QStringLiteral("Alpha")));
+        model.appendRow(new QStandardItem(QStringLiteral("Beta")));
+
+        FluentQt::CompleterMenu menu(&lineEdit);
+        QVERIFY(menu.setCompletion(&model));
+        menu.view()->setCurrentRow(0);
+
+        QKeyEvent down(QEvent::KeyPress, Qt::Key_Down, Qt::NoModifier);
+        QApplication::sendEvent(&menu, &down);
+        QCOMPARE(menu.view()->currentRow(), 1);
+
+        QKeyEvent up(QEvent::KeyPress, Qt::Key_Up, Qt::NoModifier);
+        QApplication::sendEvent(&menu, &up);
+        QCOMPARE(menu.view()->currentRow(), 0);
+
+        QKeyEvent letter(QEvent::KeyPress, Qt::Key_L, Qt::NoModifier, QStringLiteral("l"));
+        QApplication::sendEvent(&menu, &letter);
+        QCOMPARE(lineEdit.text(), QStringLiteral("al"));
+    }
+
     void deletedCompleterIsNotUsed()
     {
         LineEdit edit;

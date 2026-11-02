@@ -677,6 +677,9 @@ bool CompleterMenu::eventFilter(QObject *obj, QEvent *event)
 
     auto *keyEvent = static_cast<QKeyEvent *>(event);
     QApplication::sendEvent(m_lineEdit, keyEvent);
+    // The list takes the arrow keys, as in Python. Called directly, not sent: a key the list
+    // ignores would otherwise propagate to this menu and back into this filter.
+    static_cast<QObject *>(view())->event(keyEvent);
 
     if (keyEvent->key() == Qt::Key_Escape) {
         close();
