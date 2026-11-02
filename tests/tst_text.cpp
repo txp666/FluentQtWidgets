@@ -561,6 +561,9 @@ class TextTest : public QObject
         FluentQt::LineEditMenu readOnlyMenu(&readOnlyLineEdit);
         readOnlyMenu.createActions();
         QCOMPARE(actionTexts(readOnlyMenu), QStringList({QStringLiteral("Copy"), QStringLiteral("Select all")}));
+        // As in Python, every action but "Select all" has an icon.
+        QVERIFY(!readOnlyMenu.actions().constFirst()->icon().isNull());
+        QVERIFY(readOnlyMenu.actions().constLast()->icon().isNull());
 
         FluentQt::TextEdit textEdit;
         textEdit.setPlainText(QStringLiteral("hello world"));
@@ -574,6 +577,7 @@ class TextTest : public QObject
         QCOMPARE(actionTexts(textMenu),
                  QStringList({QStringLiteral("Cut"), QStringLiteral("Copy"), QStringLiteral("Cancel"),
                               QStringLiteral("Select all")}));
+        QVERIFY(textMenu.actions().constLast()->icon().isNull());
 
         FluentQt::PlainTextEdit plainTextEdit;
         plainTextEdit.setPlainText(QStringLiteral("plain"));

@@ -28,14 +28,20 @@ namespace FluentQt {
 
 namespace {
 
-QAction *addMenuAction(RoundMenu *menu, FluentIcon iconType, const QString &text, const QKeySequence &shortcut,
+QAction *addMenuAction(RoundMenu *menu, const QIcon &icon, const QString &text, const QKeySequence &shortcut,
                        const QObject *receiver, const std::function<void()> &slot, bool enabled = true)
 {
-    QAction *action = menu->addAction(FluentQt::icon(iconType), text);
+    QAction *action = menu->addAction(icon, text);
     action->setShortcut(shortcut);
     action->setEnabled(enabled);
     QObject::connect(action, &QAction::triggered, receiver, slot);
     return action;
+}
+
+QAction *addMenuAction(RoundMenu *menu, FluentIcon iconType, const QString &text, const QKeySequence &shortcut,
+                       const QObject *receiver, const std::function<void()> &slot, bool enabled = true)
+{
+    return addMenuAction(menu, FluentQt::icon(iconType), text, shortcut, receiver, slot, enabled);
 }
 
 // Draws the focus underline along the bottom of the whole editor, as Python's EditLayer does. It
@@ -788,7 +794,8 @@ void LineEditMenu::createActions()
                       [this]() { m_editor->undo(); });
     };
     auto addSelectAll = [this]() {
-        addMenuAction(this, FluentIcon::Accept, tr("Select all"), QKeySequence::SelectAll, this,
+        // Python's "Select all" has no icon.
+        addMenuAction(this, QIcon(), tr("Select all"), QKeySequence::SelectAll, this,
                       [this]() { m_editor->selectAll(); });
     };
 
@@ -952,8 +959,8 @@ void TextEditMenu::createActions()
         addMenuAction(this, FluentIcon::Cancel, tr("Cancel"), QKeySequence::Undo, this, [this]() { undo(); });
     };
     auto addSelectAll = [this]() {
-        addMenuAction(this, FluentIcon::Accept, tr("Select all"), QKeySequence::SelectAll, this,
-                      [this]() { selectAll(); });
+        // Python's "Select all" has no icon.
+        addMenuAction(this, QIcon(), tr("Select all"), QKeySequence::SelectAll, this, [this]() { selectAll(); });
     };
 
     if (pasteAvailable) {
