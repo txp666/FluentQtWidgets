@@ -735,10 +735,8 @@ class DateTimeTest : public QObject
         QVERIFY(shortList.downButton() != nullptr);
         QVERIFY(shortList.verticalSmoothScrollBar() != nullptr);
         QCOMPARE(shortList.verticalSmoothScrollBar()->isForceHidden(), true);
-        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::Up);
-        QCOMPARE(shortList.downButton()->fluentIcon(), FluentQt::FluentIcon::ArrowDown);
-        QCOMPARE(shortList.upButton()->property("pickerOperation").toBool(), true);
-        QCOMPARE(shortList.downButton()->property("pickerOperation").toBool(), true);
+        QCOMPARE(shortList.upButton()->fluentIcon(), FluentQt::FluentIcon::CareUpSolid);
+        QCOMPARE(shortList.downButton()->fluentIcon(), FluentQt::FluentIcon::CareDownSolid);
         QVERIFY(shortList.upButton()->metaObject()->indexOfProperty("isPressed") >= 0);
         QVERIFY(shortList.upButton()->metaObject()->indexOfProperty("fluentIcon") >= 0);
 
@@ -787,6 +785,30 @@ class DateTimeTest : public QObject
         QCOMPARE(cycleList.currentCycleIndex(), 10);
         QTest::keyClick(&cycleList, Qt::Key_Down);
         QCOMPARE(cycleList.currentCycleIndex(), 11);
+    }
+
+    // Python's column scroll buttons are solid carets on an opaque rounded plate that hides the
+    // item under them; the port drew Up/ArrowDown glyphs on a transparent button.
+    void cycleListScrollButtonsHideTheItemUnderThem()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        const FluentQt::Theme previousTheme = manager->theme();
+        const QList<QPair<FluentQt::Theme, QColor>> cases = {{FluentQt::Theme::Light, QColor(249, 249, 249)},
+                                                             {FluentQt::Theme::Dark, QColor(44, 44, 44)}};
+        for (const auto &[theme, plate] : cases) {
+            manager->setTheme(theme);
+            FluentQt::PickerPanel panel;
+            panel.addColumn(QStringList{QStringLiteral("8"), QStringLiteral("9"), QStringLiteral("10")}, 80);
+            panel.adjustSize();
+            FluentQt::ScrollButton *button = panel.listWidgets().first()->upButton();
+            QCOMPARE(button->fluentIcon(), FluentQt::FluentIcon::CareUpSolid);
+            button->show();
+            QImage image(button->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            button->render(&image);
+            QCOMPARE(image.pixelColor(10, button->height() / 2), plate);
+        }
+        manager->setTheme(previousTheme);
     }
 
     // A picker panel selects its value before it is shown. The column's viewport then still had

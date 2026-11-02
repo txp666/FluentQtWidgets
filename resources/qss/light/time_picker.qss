@@ -130,3 +130,9 @@ QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:selected {
 QFrame[fqw="TimePickerPanel"] QListWidget[cycleColumn="true"]::item:selected:active {
     background-color: rgba(0, 0, 0, 6);
 }
+
+QToolButton[fqw="ScrollButton"] {
+    background-color: rgb(249, 249, 249);
+    border: none;
+    border-radius: 7px;
+}

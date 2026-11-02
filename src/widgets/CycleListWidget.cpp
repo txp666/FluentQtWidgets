@@ -29,7 +29,6 @@ QColor scrollIconColor()
 ScrollButton::ScrollButton(FluentIcon icon, QWidget *parent) : QToolButton(parent), m_icon(icon)
 {
     setIcon(QIcon());
-    setProperty("pickerOperation", true);
     FluentStyleSheet::setRole(this, QStringLiteral("ScrollButton"));
     installEventFilter(this);
 }
@@ -85,8 +84,8 @@ CycleListWidget::CycleListWidget(const QStringList &items, const QSize &itemSize
                                  QWidget *parent)
     : QListWidget(parent), m_itemSize(itemSize), m_alignment(alignment)
 {
-    m_upButton = new ScrollButton(FluentIcon::Up, this);
-    m_downButton = new ScrollButton(FluentIcon::ArrowDown, this);
+    m_upButton = new ScrollButton(FluentIcon::CareUpSolid, this);
+    m_downButton = new ScrollButton(FluentIcon::CareDownSolid, this);
     m_verticalSmoothScrollBar = new SmoothScrollBar(Qt::Vertical, this);
     m_lastScrollTime.start();
 
