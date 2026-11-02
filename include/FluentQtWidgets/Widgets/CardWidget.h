@@ -2,6 +2,7 @@
 
 #include <FluentQtWidgets/Global.h>
 
+#include <QtCore/QPointer>
 #include <QtCore/QSize>
 #include <QtGui/QColor>
 #include <QtGui/QIcon>
@@ -118,8 +119,11 @@ protected:
 
 private:
     void startElevateAnimation(const QPoint &start, const QPoint &end);
+    void fadeShadow(bool hover);
 
-    QGraphicsDropShadowEffect *m_shadowEffect = nullptr;
+    QPointer<QGraphicsDropShadowEffect> m_shadowEffect;
+    QPropertyAnimation *m_shadowAni = nullptr;
+    bool m_shadowHover = false;
     QPropertyAnimation *m_elevateAni = nullptr;
     QPoint m_originalPos;
 };

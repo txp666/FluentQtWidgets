@@ -543,12 +543,12 @@ class ViewTest : public QObject
         QVERIFY(centerAlpha(card) > 150);
         QTRY_COMPARE(centerAlpha(card), 64);
 
-        // Without its shadow effect, which render() would draw in place of the card.
         ElevatedCardWidget elevated;
-        elevated.setGraphicsEffect(nullptr);
         elevated.resize(100, 60);
         QCOMPARE(centerAlpha(elevated), 170);
         enter(elevated);
+        // Without the hover shadow, which render() would draw in place of the hidden card.
+        elevated.setGraphicsEffect(nullptr);
         QTRY_COMPARE(centerAlpha(elevated), 255);
 
         SimpleCardWidget simple;
@@ -566,6 +566,29 @@ class ViewTest : public QObject
         QTest::mousePress(&dark, Qt::LeftButton, Qt::NoModifier, QPoint(50, 30));
         QTRY_COMPARE(centerAlpha(dark), 8);
         QTest::mouseRelease(&dark, Qt::LeftButton, Qt::NoModifier, QPoint(50, 30));
+    }
+
+    // Python's ElevatedCardWidget has no shadow at rest: under the mouse a 38 px blurred shadow
+    // fades in to alpha 20 in 150 ms, and once it has faded out again the effect is removed. The
+    // port's shadow was always there.
+    void elevatedCardShadowShowsOnlyUnderTheMouse()
+    {
+        ElevatedCardWidget card;
+        card.resize(100, 60);
+        QCOMPARE(card.graphicsEffect(), nullptr);
+
+        QEnterEvent enter(QPointF(10, 10), QPointF(10, 10), QPointF(10, 10));
+        QApplication::sendEvent(&card, &enter);
+        auto *shadow = qobject_cast<QGraphicsDropShadowEffect *>(card.graphicsEffect());
+        QVERIFY(shadow);
+        QCOMPARE(shadow->blurRadius(), 38.0);
+        QCOMPARE(shadow->offset(), QPointF(0, 5));
+        QVERIFY(shadow->color().alpha() < 20);
+        QTRY_COMPARE(shadow->color(), QColor(0, 0, 0, 20));
+
+        QEvent leave(QEvent::Leave);
+        QApplication::sendEvent(&card, &leave);
+        QTRY_COMPARE(card.graphicsEffect(), nullptr);
     }
 
     void treeHoverDoesNotBleedAcrossParents()

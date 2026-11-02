@@ -292,11 +292,16 @@ QColor SimpleCardWidget::pressedBackgroundColor() const { return normalBackgroun
 
 ElevatedCardWidget::ElevatedCardWidget(QWidget *parent) : SimpleCardWidget(parent)
 {
-    m_shadowEffect = new QGraphicsDropShadowEffect(this);
-    m_shadowEffect->setOffset(0, 5);
-    m_shadowEffect->setBlurRadius(38);
-    m_shadowEffect->setColor(QColor(0, 0, 0, 20));
-    setGraphicsEffect(m_shadowEffect);
+    // As Python's DropShadowAnimation: the shadow fades in under the mouse and is removed once it
+    // has faded out.
+    m_shadowAni = new QPropertyAnimation(this);
+    m_shadowAni->setPropertyName("color");
+    m_shadowAni->setDuration(150);
+    connect(m_shadowAni, &QPropertyAnimation::finished, this, [this] {
+        if (!m_shadowHover && m_shadowEffect && graphicsEffect() == m_shadowEffect) {
+            setGraphicsEffect(nullptr);
+        }
+    });
 
     m_elevateAni = new QPropertyAnimation(this, "pos", this);
     m_elevateAni->setDuration(100);
@@ -311,6 +316,7 @@ void ElevatedCardWidget::enterEvent(QEvent *event)
 #endif
 {
     SimpleCardWidget::enterEvent(event);
+    fadeShadow(true);
 
     if (m_elevateAni->state() != QPropertyAnimation::Running) {
         m_originalPos = pos();
@@ -322,12 +328,14 @@ void ElevatedCardWidget::enterEvent(QEvent *event)
 void ElevatedCardWidget::leaveEvent(QEvent *event)
 {
     SimpleCardWidget::leaveEvent(event);
+    fadeShadow(false);
     startElevateAnimation(pos(), m_originalPos);
 }
 
 void ElevatedCardWidget::mousePressEvent(QMouseEvent *event)
 {
     SimpleCardWidget::mousePressEvent(event);
+    fadeShadow(false);
     startElevateAnimation(pos(), m_originalPos);
 }
 
@@ -340,6 +348,27 @@ void ElevatedCardWidget::moveEvent(QMoveEvent *event)
     if (m_elevateAni->state() != QPropertyAnimation::Running) {
         m_originalPos = pos();
     }
+}
+
+void ElevatedCardWidget::fadeShadow(bool hover)
+{
+    m_shadowHover = hover;
+    if (!m_shadowEffect || graphicsEffect() != m_shadowEffect) {
+        if (!hover) {
+            return;
+        }
+        m_shadowEffect = new QGraphicsDropShadowEffect(this);
+        m_shadowEffect->setOffset(0, 5);
+        m_shadowEffect->setBlurRadius(38);
+        m_shadowEffect->setColor(QColor(0, 0, 0, 0));
+        setGraphicsEffect(m_shadowEffect);
+    }
+
+    m_shadowAni->stop();
+    m_shadowAni->setTargetObject(m_shadowEffect);
+    m_shadowAni->setStartValue(m_shadowEffect->color());
+    m_shadowAni->setEndValue(hover ? QColor(0, 0, 0, 20) : QColor(0, 0, 0, 0));
+    m_shadowAni->start();
 }
 
 void ElevatedCardWidget::startElevateAnimation(const QPoint &start, const QPoint &end)
