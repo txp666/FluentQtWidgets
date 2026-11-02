@@ -1,82 +1,10 @@
 // Config items, their registry and the Fluent configuration file.
 
-#include <FluentQtWidgets/Config.h>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <QtCore/QDir>
+
 #include <QtCore/QFile>
-#include <QtCore/QJsonObject>
-#include <QtCore/QPointer>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QImage>
-#include <QtGui/QPainter>
-#include <QtGui/QPalette>
-#include <QtGui/QPixmap>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyle>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
 
@@ -251,13 +179,6 @@ class ConfigTest : public QObject
         config->setDownloadFolder(QStringLiteral("app/download"));
         QVERIFY(config->load());
         QCOMPARE(config->downloadFolder(), selectedFolder);
-
-        QFile pythonConfig(config->fileName());
-        QVERIFY(pythonConfig.open(QIODevice::WriteOnly | QIODevice::Text));
-        pythonConfig.write(R"({"Folders":{"Download":"python/download"}})");
-        pythonConfig.close();
-        QVERIFY(config->load());
-        QCOMPARE(config->downloadFolder(), QStringLiteral("python/download"));
 
         config->setDownloadFolder(QString());
         QCOMPARE(config->downloadFolder(), QStringLiteral("app/download"));

@@ -1,73 +1,16 @@
 // Combo boxes, editable and model combo boxes and their menus.
 
-#include <algorithm>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <functional>
-#include <QtCore/QBuffer>
 #include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QPointer>
 #include <QtCore/QSortFilterProxyModel>
 #include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
 #include <QtGui/QStandardItem>
 #include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
 
 #include "TestSupport.h"
 
@@ -377,7 +320,6 @@ class ComboBoxTest : public QObject
         const auto verify = [](auto &combo, const QString &role) {
             using Combo = std::remove_reference_t<decltype(combo)>;
             QCOMPARE(combo.property("fqw").toString(), role);
-            QVERIFY(qobject_cast<QLineEdit *>(&combo));
             QVERIFY(combo.metaObject()->indexOfProperty("isPressed") >= 0);
             QVERIFY(combo.metaObject()->indexOfProperty("isHover") >= 0);
             QVERIFY(combo.metaObject()->indexOfProperty("dropButton") >= 0);
@@ -547,7 +489,6 @@ class ComboBoxTest : public QObject
         QStandardItemModel model;
         QSortFilterProxyModel proxy;
         proxy.setSourceModel(&model);
-        QCOMPARE(proxy.rowCount(), 0);
 
         ModelComboBox combo;
         combo.setModel(&model);

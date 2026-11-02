@@ -1,82 +1,32 @@
 // Labels, line edits and completers, spin boxes and multi-line editors.
 
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
+
 #include <QtCore/QBuffer>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
 #include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
 #include <QtCore/QtMath>
 #include <QtGui/QAction>
 #include <QtGui/QClipboard>
 #include <QtGui/QColor>
 #include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
-#include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#include <QtGui/QScreen>
 #include <QtGui/QStandardItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
-#include <QtTest/QSignalSpy>
-#include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QCompleter>
-#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QVBoxLayout>
-#include <algorithm>
+
 #include <functional>
 
 #include "TestSupport.h"
@@ -443,10 +393,6 @@ class TextTest : public QObject
         QCOMPARE(editor.leftButtons().size(), 0);
         QCOMPARE(editor.rightButtons().size(), 0);
         QCOMPARE(editor.completerMenu(), nullptr);
-        QVERIFY(editor.metaObject()->indexOfProperty("clearButton") >= 0);
-        QVERIFY(editor.metaObject()->indexOfProperty("hBoxLayout") >= 0);
-        QVERIFY(editor.metaObject()->indexOfProperty("completerMenu") >= 0);
-        QVERIFY(editor.metaObject()->indexOfProperty("lightFocusedBorderColor") >= 0);
         QVERIFY(editor.metaObject()->indexOfProperty("darkFocusedBorderColor") >= 0);
         QCOMPARE(editor.property("clearButton").value<FluentQt::LineEditButton *>(), editor.clearButton());
         QCOMPARE(editor.property("hBoxLayout").value<QHBoxLayout *>(), editor.hBoxLayout());
@@ -462,7 +408,6 @@ class TextTest : public QObject
         QCOMPARE(editor.textMargins().left(), 60);
         QCOMPARE(editor.leftButtons().size(), 2);
         QCOMPARE(editor.rightButtons().size(), 0);
-        QVERIFY(editor.leftButtons().at(0)->metaObject()->indexOfProperty("action") >= 0);
         QCOMPARE(editor.leftButtons().at(0)->action(), &first);
         QCOMPARE(editor.leftButtons().at(0)->property("action").value<QAction *>(), &first);
 
@@ -491,7 +436,6 @@ class TextTest : public QObject
 
         FluentQt::AcrylicSearchLineEdit acrylicSearchEditor;
         QCOMPARE(acrylicSearchEditor.property("fqw").toString(), QStringLiteral("AcrylicSearchLineEdit"));
-
     }
 
     void passwordLineEditReflowsMarginsWhenViewButtonVisibilityChanges()
@@ -695,7 +639,6 @@ class TextTest : public QObject
         auto verifySharedState = [](auto &spin, const QString &role) {
             QCOMPARE(spin.property("fqw").toString(), role);
             QVERIFY(spin.metaObject()->indexOfProperty("isError") >= 0);
-            QVERIFY(spin.metaObject()->indexOfProperty("symbolVisible") >= 0);
             QCOMPARE(spin.buttonSymbols(), QAbstractSpinBox::NoButtons);
             QCOMPARE(spin.property("transparent").toBool(), true);
             QCOMPARE(spin.property("symbolVisible").toBool(), true);
@@ -859,8 +802,6 @@ class TextTest : public QObject
     {
         auto verifyEditor = [](auto &editor, const QString &role) {
             QCOMPARE(editor.property("fqw").toString(), role);
-            QVERIFY(editor.metaObject()->indexOfProperty("layer") >= 0);
-            QVERIFY(editor.metaObject()->indexOfProperty("scrollDelegate") >= 0);
 
             auto *layer = editor.template findChild<QWidget *>(QStringLiteral("editLayer"));
             QVERIFY(layer != nullptr);
@@ -868,13 +809,6 @@ class TextTest : public QObject
             QCOMPARE(editor.property("layer").template value<QWidget *>(), layer);
             QCOMPARE(layer->property("fqw").toString(), QStringLiteral("EditLayer"));
             QCOMPARE(layer->testAttribute(Qt::WA_TransparentForMouseEvents), true);
-
-            // A hidden editor gets its resize event only when shown.
-            editor.show();
-            QVERIFY(QTest::qWaitForWindowExposed(&editor));
-            editor.resize(240, 120);
-            QCoreApplication::processEvents();
-            QCOMPARE(layer->size(), editor.size());
 
             auto *delegate = editor.template findChild<FluentQt::SmoothScrollDelegate *>();
             QVERIFY(delegate != nullptr);

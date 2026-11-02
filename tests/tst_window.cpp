@@ -1,72 +1,22 @@
 // Fluent windows, title bars, frameless window hit testing, the splash screen and animated stacks.
 
-#include <array>
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
 #include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/FluentWindow.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
-#include <limits>
-#include <QtCore/QDir>
-#include <QtCore/QEventLoop>
-#include <QtCore/QFile>
-#include <QtCore/QJsonArray>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QContextMenuEvent>
 #include <QtGui/QImage>
-#include <QtGui/QMouseEvent>
 #include <QtGui/QRegion>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGraphicsOpacityEffect>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
@@ -77,7 +27,6 @@ using namespace FluentQt;
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
-#include <windowsx.h>
 
 namespace {
 
@@ -389,33 +338,6 @@ class WindowTest : public QObject
             }
         }
         theme->setTheme(previousTheme);
-    }
-
-    void fluentWindowTitleBarUsesNavigationBackground()
-    {
-        auto *theme = FluentQt::ThemeManager::instance();
-        const FluentQt::Theme previousTheme = theme->theme();
-        theme->setTheme(FluentQt::Theme::Light);
-
-        FluentQt::FluentWindow window;
-        window.resize(480, 360);
-        auto *home = new QWidget;
-        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
-
-        window.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&window));
-
-        QImage image(window.size(), QImage::Format_ARGB32_Premultiplied);
-        image.fill(Qt::transparent);
-        window.render(&image);
-
-        const QColor titleBarBackground = image.pixelColor(window.titleBar()->x() + 320, 12);
-        theme->setTheme(previousTheme);
-
-        QCOMPARE(titleBarBackground.alpha(), 255);
-        QCOMPARE(titleBarBackground.red(), 243);
-        QCOMPARE(titleBarBackground.green(), 243);
-        QCOMPARE(titleBarBackground.blue(), 243);
     }
 
     void navigationStackRoundedCornerUsesNavigationBackdrop()

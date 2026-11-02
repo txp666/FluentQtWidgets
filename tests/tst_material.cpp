@@ -1,34 +1,14 @@
 // Acrylic labels and brushes.
 
-#include <algorithm>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <functional>
-#include <QtCore/QBuffer>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
 #include <QtCore/QTemporaryDir>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QEnterEvent>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
-#include <QtGui/QPixmap>
-#include <QtGui/QScreen>
-#include <QtGui/QStandardItem>
-#include <QtGui/QStandardItemModel>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
 #include <QtTest/QtTest>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStyleOptionSlider>
+#include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
 

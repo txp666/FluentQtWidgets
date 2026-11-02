@@ -5,39 +5,15 @@
 #include "GalleryWindow.h"
 
 #include <FluentQtWidgets/Config.h>
-#include <FluentQtWidgets/DateTime/CalendarPicker.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
 #include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
-#include <FluentQtWidgets/Widgets/FlipView.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/SpinBox.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>
 #include <QtCore/QPointer>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QFrame>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QTreeWidgetItemIterator>
-#include <QtWidgets/QVBoxLayout>
 
 #include "TestSupport.h"
 

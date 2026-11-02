@@ -5,7 +5,6 @@
 // maximumSize in tests/data/python_sizes.json. This test builds the same widgets the same way and
 // compares. See tools/parity/README.md.
 
-#include <FluentQtWidgets/Config.h>
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
 #include <FluentQtWidgets/DateTime/DatePicker.h>
 #include <FluentQtWidgets/DateTime/TimePicker.h>

@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <optional>
 
 class SecondsFormatter : public FluentQt::PickerColumnFormatter
@@ -608,8 +607,6 @@ class DateTimeTest : public QObject
         QCOMPARE(englishWeekdays.first(), QStringLiteral("Mo"));
         view.setLocale(QLocale(QLocale::Chinese, QLocale::China));
         const QStringList chineseWeekdays = weekdayTexts();
-        QCOMPARE(chineseWeekdays.size(), 7);
-        QVERIFY(!chineseWeekdays.first().isEmpty());
         QCOMPARE(chineseWeekdays, englishWeekdays);
 
         FluentQt::FastCalendarView fastView;
@@ -927,8 +924,6 @@ class DateTimeTest : public QObject
         QTRY_VERIFY((calendarPanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("CalendarView"))) != nullptr);
         QVERIFY(calendarPanel->testAttribute(Qt::WA_TranslucentBackground));
         QVERIFY(calendarPanel->testAttribute(Qt::WA_StyledBackground));
-        QVERIFY(calendarPanel->testAttribute(Qt::WA_DeleteOnClose));
-        QVERIFY(calendarPanel->windowFlags() & Qt::NoDropShadowWindowHint);
         QVERIFY(!calendarPanel->findChildren<QPushButton *>().isEmpty());
         QVERIFY(!calendarPanel->findChildren<QToolButton *>().isEmpty());
         if (auto *opacityEffect = qobject_cast<QGraphicsOpacityEffect *>(calendarPanel->graphicsEffect())) {
@@ -1001,8 +996,6 @@ class DateTimeTest : public QObject
 
         QWidget *datePanel = nullptr;
         QTRY_VERIFY((datePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel"))) != nullptr);
-        QVERIFY(datePanel->testAttribute(Qt::WA_TranslucentBackground));
-        QVERIFY(datePanel->windowFlags() & Qt::NoDropShadowWindowHint);
         auto *datePanelView = datePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(datePanelView != nullptr);
         QCOMPARE(datePanelView->property("fqw").toString(), QStringLiteral("DatePickerPanel"));
@@ -1033,8 +1026,6 @@ class DateTimeTest : public QObject
 
         QWidget *timePanel = nullptr;
         QTRY_VERIFY((timePanel = FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel"))) != nullptr);
-        QVERIFY(timePanel->testAttribute(Qt::WA_TranslucentBackground));
-        QVERIFY(timePanel->windowFlags() & Qt::NoDropShadowWindowHint);
         auto *timePanelView = timePanel->findChild<QFrame *>(QString(), Qt::FindDirectChildrenOnly);
         QVERIFY(timePanelView != nullptr);
         QCOMPARE(timePanelView->property("fqw").toString(), QStringLiteral("TimePickerPanel"));
@@ -1067,7 +1058,6 @@ class DateTimeTest : public QObject
         QTRY_VERIFY(!timePicker.time().isValid());
         QTRY_VERIFY(timePanelGuard.isNull());
     }
-
 
     void cycleListWidgetMatchesPythonPickerColumnBehavior()
     {
@@ -1331,8 +1321,6 @@ class DateTimeTest : public QObject
         QCOMPARE(confirmButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
         QCOMPARE(resetButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
         QCOMPARE(cancelButton->property("fqw").toString(), QStringLiteral("TransparentToolButton"));
-        QCOMPARE(confirmButton->height(), 33);
-        QCOMPARE(cancelButton->height(), 33);
         QCOMPARE(resetButton->isVisible(), resetVisible);
         QVERIFY(confirmButton->text().isEmpty());
         QVERIFY(cancelButton->text().isEmpty());

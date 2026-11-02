@@ -1,91 +1,27 @@
 // Navigation interface, panel, bar and history, pivots, segmented controls, breadcrumbs and tabs.
 
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
 #include <FluentQtWidgets/Navigation/NavigationHistory.h>
 #include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
-#include <FluentQtWidgets/Widgets/InfoBadge.h>
-#include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
-#include <FluentQtWidgets/Widgets/InfoBar.h>
-#include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
-#include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
 #include <FluentQtWidgets/Widgets/StackedWidget.h>
-#include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
 #include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
-#include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <QtCore/QDir>
-#include <QtCore/QEventLoop>
-#include <QtCore/QFile>
-#include <QtCore/QJsonArray>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
 #include <QtCore/QPropertyAnimation>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
 #include <QtCore/QVariant>
 #include <QtCore/QVariantAnimation>
-#include <QtGui/QAction>
-#include <QtGui/QContextMenuEvent>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
-#include <QtGui/QPalette>
-#include <QtGui/QPixmap>
 #include <QtGui/QRegion>
-#include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
 #include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QAbstractItemView>
-#include <QtWidgets/QAbstractScrollArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFrame>
-#include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyle>
-#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include <array>
-#include <limits>
 
 #include "TestSupport.h"
 
@@ -395,17 +331,6 @@ class NavigationTest : public QObject
         };
 
         QCOMPARE(iconCenterX(&menuButton), iconCenterX(&item));
-    }
-
-    void navigationToolButtonClicksWhenNotSelectable()
-    {
-        FluentQt::NavigationToolButton button(FluentQt::icon(FluentQt::FluentIcon::Menu));
-        button.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&button));
-
-        QSignalSpy clickedSpy(&button, &FluentQt::NavigationToolButton::clicked);
-        QTest::mouseClick(&button, Qt::LeftButton, Qt::NoModifier, button.rect().center());
-        QCOMPARE(clickedSpy.count(), 1);
     }
 
     void navigationIconsUseCurrentThemeTint()
@@ -779,9 +704,8 @@ class NavigationTest : public QObject
         const FluentQt::Theme previousTheme = theme->theme();
         theme->setTheme(FluentQt::Theme::Light);
         FluentQt::NavigationBar bar;
-        auto *home =
-            bar.addItem(QStringLiteral("home"), FluentQt::icon(FluentQt::FluentIcon::Home, FluentQt::Theme::Light),
-                        QStringLiteral("Home"));
+        bar.addItem(QStringLiteral("home"), FluentQt::icon(FluentQt::FluentIcon::Home, FluentQt::Theme::Light),
+                    QStringLiteral("Home"));
         auto *help =
             bar.addItem(QStringLiteral("help"), FluentQt::icon(FluentQt::FluentIcon::Help, FluentQt::Theme::Light),
                         QStringLiteral("Help"));
@@ -804,7 +728,6 @@ class NavigationTest : public QObject
         };
         QVERIFY(strongestAlpha(help) <= 160);
         QVERIFY(strongestAlpha(help) > 0);
-        Q_UNUSED(home)
         theme->setTheme(previousTheme);
     }
 

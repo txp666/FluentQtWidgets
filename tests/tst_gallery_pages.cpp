@@ -9,7 +9,6 @@
 #include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/Settings/SettingCard.h>
 #include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/AcrylicLabel.h>
 #include <FluentQtWidgets/Widgets/Button.h>
 #include <FluentQtWidgets/Widgets/FlipView.h>
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
@@ -25,8 +24,6 @@
 #include <FluentQtWidgets/Widgets/ToolTip.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
-#include <QtCore/QLocale>
-#include <QtCore/QPointer>
 #include <QtTest/QtTest>
 #include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QApplication>

@@ -1,10 +1,8 @@
 // The realtime plot, chart and audio waveform widgets.
 
-#include <array>
 #include <FluentQtWidgets/FluentQtWidgets.h>
 #include <limits>
 #include <QtCore/QDir>
-#include <QtCore/QEventLoop>
 #include <QtCore/QFile>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
@@ -14,15 +12,8 @@
 #include <QtCore/QVariant>
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QRegion>
 #include <QtTest/QtTest>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QGraphicsOpacityEffect>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QWidget>
 
 #include "TestSupport.h"
 
@@ -177,7 +168,6 @@ class ChartsTest : public QObject
 
         QTemporaryDir exportDir;
         QVERIFY(exportDir.isValid());
-        const QString previousDownloadFolder = FluentQt::FluentConfig::instance()->downloadFolder();
         FluentQt::FluentConfig::instance()->setDownloadFolder(exportDir.path());
         auto acceptSaveDialog = []() {
             QTimer::singleShot(0, qApp, []() {
@@ -222,7 +212,6 @@ class ChartsTest : public QObject
         QVERIFY(csv.contains("2;3;7\n"));
         QVERIFY(csv.contains("3;4;8\n"));
         QVERIFY(csv.contains("10;;9\n"));
-        FluentQt::FluentConfig::instance()->setDownloadFolder(previousDownloadFolder);
 
         if (imageMenu && imageMenu->isVisible()) {
             imageMenu->close();

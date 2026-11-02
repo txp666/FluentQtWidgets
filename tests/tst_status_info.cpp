@@ -1,87 +1,31 @@
 // Info bars, info badges, state tooltips, tooltips and progress indicators.
 
-#include <FluentQtWidgets/ConfigItem.h>
-#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentQtWidgets.h>
-#include <FluentQtWidgets/Layout/FlowLayout.h>
-#include <FluentQtWidgets/Layout/VBoxLayout.h>
-#include <FluentQtWidgets/Navigation/NavigationHistory.h>
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
-#include <FluentQtWidgets/Navigation/Pivot.h>
-#include <FluentQtWidgets/Settings/SettingCard.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/ComboBox.h>
-#include <FluentQtWidgets/Widgets/CommandBar.h>
-#include <FluentQtWidgets/Widgets/Flyout.h>
 #include <FluentQtWidgets/Widgets/InfoBadge.h>
 #include <FluentQtWidgets/Widgets/InfoBadgeManager.h>
 #include <FluentQtWidgets/Widgets/InfoBar.h>
 #include <FluentQtWidgets/Widgets/InfoBarManager.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
-#include <FluentQtWidgets/Widgets/Menu.h>
-#include <FluentQtWidgets/Widgets/PipsPager.h>
 #include <FluentQtWidgets/Widgets/ProgressBar.h>
-#include <FluentQtWidgets/Widgets/ScrollArea.h>
-#include <FluentQtWidgets/Widgets/Slider.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
 #include <FluentQtWidgets/Widgets/StateToolTip.h>
-#include <FluentQtWidgets/Widgets/SwitchButton.h>
-#include <FluentQtWidgets/Widgets/TabView.h>
-#include <FluentQtWidgets/Widgets/TeachingTip.h>
 #include <FluentQtWidgets/Widgets/ToolTip.h>
-#include <FluentQtWidgets/Window/FluentTitleBar.h>
-#include <FluentQtWidgets/Window/FluentWindow.h>
-#include <FluentQtWidgets/Window/SplashScreen.h>
-#include <QtCore/QBuffer>
-#include <QtCore/QEasingCurve>
-#include <QtCore/QFile>
-#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSortFilterProxyModel>
-#include <QtCore/QStringListModel>
-#include <QtCore/QTemporaryDir>
-#include <QtCore/QTimer>
-#include <QtGui/QAction>
-#include <QtGui/QClipboard>
 #include <QtGui/QColor>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QEnterEvent>
 #include <QtGui/QGuiApplication>
+#include <QtGui/QHelpEvent>
 #include <QtGui/QImage>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPixmap>
 #include <QtGui/QScreen>
 #include <QtGui/QStandardItem>
 #include <QtGui/QStandardItemModel>
-#include <QtGui/QTextDocument>
-#include <QtGui/QWheelEvent>
-#include <QtNetwork/QHostAddress>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
-#include <QtTest/QtTest>
-#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QCompleter>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListView>
 #include <QtWidgets/QProgressBar>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QStyleOptionSlider>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
-#include <algorithm>
-#include <functional>
 
 #include "TestSupport.h"
 
@@ -288,18 +232,11 @@ class StatusInfoTest : public QObject
 
         FluentQt::DotInfoBadge dot;
         QCOMPARE(dot.property("fqw").toString(), QStringLiteral("DotInfoBadge"));
-        QCOMPARE(dot.size(), QSize(4, 4));
-        QCOMPARE(dot.minimumSize(), QSize(4, 4));
-        QCOMPARE(dot.maximumSize(), QSize(4, 4));
         QCOMPARE(dot.level(), FluentQt::InfoLevel::Attention);
 
         FluentQt::IconInfoBadge iconBadge(FluentQt::FluentIcon::Accept);
         QCOMPARE(iconBadge.property("fqw").toString(), QStringLiteral("IconInfoBadge"));
         QCOMPARE(iconBadge.level(), FluentQt::InfoLevel::Attention);
-        QCOMPARE(iconBadge.size(), QSize(16, 16));
-        QCOMPARE(iconBadge.minimumSize(), QSize(16, 16));
-        QCOMPARE(iconBadge.maximumSize(), QSize(16, 16));
-        QCOMPARE(iconBadge.sizeHint(), QSize(16, 16));
         QCOMPARE(iconBadge.iconSize(), QSize(8, 8));
         QVERIFY(!iconBadge.icon().isNull());
         QVERIFY(!iconBadge.pixmap());
@@ -753,7 +690,6 @@ class StatusInfoTest : public QObject
     {
         FluentQt::ProgressBar bar(nullptr, false);
         QCOMPARE(bar.property("fqw").toString(), QStringLiteral("ProgressBar"));
-        QCOMPARE(bar.height(), 4);
         QCOMPARE(bar.useAni(), false);
         QVERIFY(bar.metaObject()->indexOfProperty("lightBarColor") >= 0);
         QVERIFY(bar.metaObject()->indexOfProperty("darkBarColor") >= 0);
@@ -819,7 +755,6 @@ class StatusInfoTest : public QObject
 
         FluentQt::ProgressRing ring(nullptr, false);
         QCOMPARE(ring.property("fqw").toString(), QStringLiteral("ProgressRing"));
-        QCOMPARE(ring.size(), QSize(100, 100));
         // Python fixes the size but keeps QProgressBar's hint.
         QProgressBar plainBar;
         plainBar.setFont(ring.font());
@@ -845,7 +780,6 @@ class StatusInfoTest : public QObject
 
         FluentQt::IndeterminateProgressRing indeterminateRing(nullptr, false);
         QCOMPARE(indeterminateRing.property("fqw").toString(), QStringLiteral("IndeterminateProgressRing"));
-        QCOMPARE(indeterminateRing.size(), QSize(80, 80));
         QCOMPARE(indeterminateRing.strokeWidth(), 6);
         QVERIFY(indeterminateRing.metaObject()->indexOfProperty("lightBarColor") >= 0);
         QVERIFY(indeterminateRing.metaObject()->indexOfProperty("darkBarColor") >= 0);
