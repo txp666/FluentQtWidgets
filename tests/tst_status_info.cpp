@@ -596,22 +596,26 @@ class StatusInfoTest : public QObject
     // Python shows the tooltip without activating it and without a native window shadow. On
     // macOS the port's tooltip became the active window when shown, taking the keyboard focus
     // from the line edit being hovered, and the native shadow doubled the drawn one.
-    void toolTipShowsWithoutActivatingOrNativeShadow()
+    void toolTipShowsWithoutActivationOrNativeShadowFlags()
     {
         ToolTip plainTip(QStringLiteral("Hi"));
         QVERIFY(plainTip.testAttribute(Qt::WA_ShowWithoutActivating));
         QVERIFY(plainTip.windowFlags().testFlag(Qt::NoDropShadowWindowHint));
+    }
 
-        // The offscreen platform activates every window it shows, whatever the attribute says.
+    void toolTipLeavesTheActiveWindowAndFocusAlone()
+    {
         if (QGuiApplication::platformName() == QLatin1String("offscreen")) {
-            return;
+            QSKIP("The offscreen platform activates every window it shows, whatever the attribute says");
         }
         QWidget window;
         auto *edit = new QLineEdit(&window);
         window.resize(400, 300);
         window.show();
         window.activateWindow();
-        QVERIFY(QTest::qWaitForWindowActive(&window));
+        if (!QTest::qWaitForWindowActive(&window)) {
+            QSKIP("The window cannot become active while another application has the focus");
+        }
         edit->setFocus();
         QTRY_COMPARE(QApplication::focusWidget(), edit);
 
