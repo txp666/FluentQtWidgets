@@ -318,6 +318,42 @@ class StatusInfoTest : public QObject
         QCOMPARE(attachedIcon->level(), FluentQt::InfoLevel::Success);
     }
 
+    // Python writes badge text in white on the light theme's dark badges and in black on the
+    // dark theme's light ones; the port used white in both, which is faint on the dark theme's
+    // pale yellow, pink and green badges.
+    void infoBadgeTextFollowsPythonThemeColour()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            InfoBadge badge(QStringLiteral("88"), InfoLevel::Info);
+            badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
+            badge.ensurePolished();
+            badge.adjustSize();
+            QImage image(badge.size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            badge.render(&image);
+            int darkest = 255;
+            int lightest = 0;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (color.alpha() == 255) {
+                        darkest = qMin(darkest, color.value());
+                        lightest = qMax(lightest, color.value());
+                    }
+                }
+            }
+            if (theme == Theme::Dark) {
+                QVERIFY2(darkest < 60, qPrintable(QString::number(darkest)));
+            } else {
+                QVERIFY2(lightest > 200, qPrintable(QString::number(lightest)));
+            }
+        }
+        manager->setTheme(previousTheme);
+    }
+
     void deletedInfoBadgeTakesItsManager()
     {
         QWidget parent;
