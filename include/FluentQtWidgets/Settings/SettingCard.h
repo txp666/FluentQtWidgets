@@ -654,9 +654,10 @@ class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
 
   public:
     CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, const QIcon &icon,
-                           const QString &title, const QString &content = QString(), QWidget *parent = nullptr);
-    CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, FluentIcon icon,
-                           const QString &title, const QString &content = QString(), QWidget *parent = nullptr);
+                           const QString &title, const QString &content = QString(), QWidget *parent = nullptr,
+                           bool enableAlpha = false);
+    CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, FluentIcon icon, const QString &title,
+                           const QString &content = QString(), QWidget *parent = nullptr, bool enableAlpha = false);
 
     QColor color() const;
     QColor defaultColor() const;
@@ -664,9 +665,16 @@ class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
     bool isCustomColorEnabled() const;
     bool isAlphaEnabled() const;
     QLabel *choiceLabel() const;
+    QWidget *radioWidget() const;
+    QVBoxLayout *radioLayout() const;
     RadioButton *defaultRadioButton() const;
     RadioButton *customRadioButton() const;
-    ColorPickerButton *colorPicker() const;
+    QButtonGroup *buttonGroup() const;
+    QWidget *customColorWidget() const;
+    QHBoxLayout *customColorLayout() const;
+    QLabel *customLabel() const;
+    // Python's "Choose color" button: it opens a ColorDialog for the custom colour.
+    QPushButton *chooseColorButton() const;
 
   public slots:
     void setColor(const QColor &color);
@@ -683,15 +691,22 @@ class FQW_API CustomColorSettingCard : public ExpandGroupSettingCard
 
   private:
     void updateColorControls();
+    void showColorDialog();
 
     QColor m_defaultColor;
     QColor m_customColor;
     bool m_customColorEnabled = false;
+    bool m_alphaEnabled = false;
     QLabel *m_choiceLabel = nullptr;
+    QWidget *m_radioWidget = nullptr;
+    QVBoxLayout *m_radioLayout = nullptr;
     RadioButton *m_defaultRadioButton = nullptr;
     RadioButton *m_customRadioButton = nullptr;
-    ColorPickerButton *m_colorPicker = nullptr;
     QButtonGroup *m_buttonGroup = nullptr;
+    QWidget *m_customColorWidget = nullptr;
+    QHBoxLayout *m_customColorLayout = nullptr;
+    QLabel *m_customLabel = nullptr;
+    QPushButton *m_chooseColorButton = nullptr;
 };
 
 } // namespace FluentQt

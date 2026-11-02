@@ -717,14 +717,17 @@ class DialogFlyoutTest : public QObject
         QVERIFY(dialogGuard.isNull() || !dialogGuard->isVisible());
         QCOMPARE(colorSpy.count(), 1);
 
-        FluentQt::CustomColorSettingCard customCard(QColor(QStringLiteral("#005fb8")), QColor(QStringLiteral("#112233")),
-                                                    FluentQt::FluentIcon::Heart, QStringLiteral("Custom accent"));
+        // Python's CustomColorSettingCard opens the dialog from its "Choose color" button, with
+        // enableAlpha from its constructor, and takes the colour the dialog accepts.
+        FluentQt::CustomColorSettingCard customCard(QColor(QStringLiteral("#005fb8")),
+                                                    QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
+                                                    QStringLiteral("Custom accent"), QString(), nullptr, true);
+        QSignalSpy customColorSpy(&customCard, &FluentQt::CustomColorSettingCard::colorChanged);
         customCard.setParent(&cardHost);
-        customCard.setAlphaEnabled(true);
         customCard.move(0, 100);
         customCard.show();
         bool alphaDialogInspected = false;
-        QTimer::singleShot(0, &customCard, [&customCard]() { customCard.colorPicker()->click(); });
+        QTimer::singleShot(0, &customCard, [&customCard]() { customCard.chooseColorButton()->click(); });
         QTimer::singleShot(100, &customCard, [&]() {
             auto *alphaPopup = findVisibleColorDialog();
             auto *alphaPopupDialog = qobject_cast<FluentQt::ColorDialog *>(alphaPopup);
@@ -733,14 +736,20 @@ class DialogFlyoutTest : public QObject
             }
 
             alphaDialogInspected = true;
+            QCOMPARE(alphaPopupDialog->titleLabel()->text(), QStringLiteral("Choose color"));
+            QCOMPARE(alphaPopupDialog->color().name(), QStringLiteral("#112233"));
             QCOMPARE(alphaPopupDialog->widget()->size(), QSize(488, 736));
             QCOMPARE(alphaPopupDialog->scrollWidget()->size(), QSize(440, 600));
             QCOMPARE(alphaPopupDialog->buttonGroup()->size(), QSize(486, 81));
             QCOMPARE(alphaPopupDialog->scrollArea()->verticalScrollBar()->maximum(), 0);
             QVERIFY(!alphaPopupDialog->opacityLineEdit()->isHidden());
-            alphaPopupDialog->cancelButton()->click();
+            alphaPopupDialog->setColor(QColor(QStringLiteral("#80445566")));
+            alphaPopupDialog->yesButton()->click();
         });
         QTRY_VERIFY(alphaDialogInspected);
+        QTRY_COMPARE(customColorSpy.count(), 1);
+        QCOMPARE(customCard.customColor(), QColor(QStringLiteral("#80445566")));
+        QCOMPARE(customCard.color(), QColor(QStringLiteral("#80445566")));
     }
 
     void folderListDialogMatchesPythonLayout_data()
@@ -772,10 +781,10 @@ class DialogFlyoutTest : public QObject
         parent.resize(800, 720);
         parent.show();
         QVERIFY(QTest::qWaitForWindowExposed(&parent));
-        FluentQt::FolderListDialog dialog(QStringList{QStringLiteral("/tmp/KuGou"),
-                                                      QStringLiteral("/Users/shoko/Documents/Music")},
-                                          QStringLiteral("Build your collection from your local music files"),
-                                          QStringLiteral("Right now, we're watching these folders:"), &parent);
+        FluentQt::FolderListDialog dialog(
+            QStringList{QStringLiteral("/tmp/KuGou"), QStringLiteral("/Users/shoko/Documents/Music")},
+            QStringLiteral("Build your collection from your local music files"),
+            QStringLiteral("Right now, we're watching these folders:"), &parent);
         dialog.show();
         QTRY_VERIFY(dialog.isVisible());
         QTest::qWait(20);
@@ -854,13 +863,14 @@ class DialogFlyoutTest : public QObject
         // A folder card asks with a Dialog before it removes the folder; Cancel keeps it.
         const auto answerDeleteDialog = [](bool yes, bool *seen) {
             QTimer::singleShot(100, [yes, seen]() {
-                auto *confirm = qobject_cast<FluentQt::Dialog *>(
-                    FqwTest::findVisibleTopLevelByRole(QStringLiteral("DialogPopup")));
+                auto *confirm =
+                    qobject_cast<FluentQt::Dialog *>(FqwTest::findVisibleTopLevelByRole(QStringLiteral("DialogPopup")));
                 if (!confirm) {
                     return;
                 }
-                *seen = confirm->titleLabel()->text() == QStringLiteral("Are you sure you want to delete the folder?") &&
-                        confirm->contentLabel()->text().contains(QStringLiteral("\"music\""));
+                *seen =
+                    confirm->titleLabel()->text() == QStringLiteral("Are you sure you want to delete the folder?") &&
+                    confirm->contentLabel()->text().contains(QStringLiteral("\"music\""));
                 (yes ? confirm->yesButton() : confirm->cancelButton())->click();
             });
         };

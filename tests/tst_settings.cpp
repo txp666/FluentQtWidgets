@@ -99,8 +99,9 @@ class SettingsTest : public QObject
         QVERIFY(customColorCard->isCustomColorEnabled());
         QCOMPARE(customColorCard->customColor(), QColor(QStringLiteral("#445566")));
         QCOMPARE(customColorCard->color(), QColor(QStringLiteral("#445566")));
+        QVERIFY(!customColorCard->isAlphaEnabled());
         customColorCard->setAlphaEnabled(true);
-        QVERIFY(customColorCard->colorPicker()->isAlphaEnabled());
+        QVERIFY(customColorCard->isAlphaEnabled());
         QCOMPARE(customColorSpy.count(), 2);
 
         QVERIFY(hyperlinkCard->linkButton() != nullptr);
@@ -496,6 +497,49 @@ class SettingsTest : public QObject
         QCOMPARE(lower->height(), lower->card()->height());
         QCOMPARE(lower->y(), lowerTop);
         QCOMPARE(following->y(), lower->y() + lower->height() + layout->spacing());
+    }
+
+    void customColorCardChoosesColorWithAPushButton()
+    {
+        // Python's card ends its custom row with a plain "Choose color" QPushButton, enabled only
+        // while the custom colour is chosen; the port showed a ColorPickerButton swatch there.
+        CustomColorSettingCard card(QColor(QStringLiteral("#005fb8")), QColor(QStringLiteral("#005fb8")),
+                                    FluentIcon::Palette, QStringLiteral("Theme color"), QStringLiteral("Content"),
+                                    nullptr, true);
+        QVERIFY(card.isAlphaEnabled());
+        QPushButton *button = card.chooseColorButton();
+        QVERIFY(button);
+        QCOMPARE(button->metaObject(), &QPushButton::staticMetaObject);
+        QCOMPARE(button->objectName(), QStringLiteral("chooseColorButton"));
+        QCOMPARE(button->text(), QStringLiteral("Choose color"));
+        QCOMPARE(button->parentWidget(), card.customColorWidget());
+        QVERIFY(card.findChildren<ColorPickerButton *>().isEmpty());
+        QCOMPARE(card.customLabel()->text(), QStringLiteral("Custom color"));
+        QCOMPARE(card.customLabel()->objectName(), QStringLiteral("titleLabel"));
+        QCOMPARE(card.customColorLayout()->contentsMargins(), QMargins(48, 18, 44, 18));
+        QCOMPARE(card.radioLayout()->contentsMargins(), QMargins(48, 18, 0, 18));
+        QCOMPARE(card.buttonGroup()->buttons().size(), 2);
+        QCOMPARE(card.groupWidgets(), (QList<QWidget *>{card.radioWidget(), card.customColorWidget()}));
+
+        // Same colours: the default is chosen and the button is disabled.
+        QVERIFY(card.defaultRadioButton()->isChecked());
+        QVERIFY(!button->isEnabled());
+        card.resize(640, card.height());
+        card.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&card));
+        // expand_setting_card.qss gives it Python's 5/17 px padding.
+        QCOMPARE(button->sizeHint().height(), 32);
+        // Measured from Python at 640 px: 244 px expanded, a 123 x 32 button 44 px from the right.
+        card.setExpanded(true);
+        QTRY_COMPARE(card.height(), 244);
+        QCOMPARE(button->geometry(), QRect(471, 18, 123, 32));
+        QCOMPARE(card.radioWidget()->geometry(), QRect(0, 0, 638, 103));
+        QCOMPARE(card.customColorWidget()->geometry(), QRect(0, 106, 638, 68));
+        card.customRadioButton()->click();
+        QVERIFY(button->isEnabled());
+        QCOMPARE(card.choiceLabel()->text(), QStringLiteral("Custom color"));
+        card.defaultRadioButton()->click();
+        QVERIFY(!button->isEnabled());
     }
 
     void expandCardCanReverseFromItsCurrentHeight()

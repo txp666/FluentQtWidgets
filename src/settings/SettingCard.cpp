@@ -1741,70 +1741,65 @@ void FolderListSettingCard::insertFolderItem(const QString &folder)
     refreshExpandedGeometry();
 }
 
-CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor,
-                                               const QIcon &icon, const QString &title, const QString &content,
-                                               QWidget *parent)
+CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, const QIcon &icon,
+                                               const QString &title, const QString &content, QWidget *parent,
+                                               bool enableAlpha)
     : ExpandGroupSettingCard(icon, title, content, parent), m_defaultColor(normalizedColor(defaultColor)),
-      m_customColor(normalizedColor(customColor))
+      m_customColor(normalizedColor(customColor)), m_alphaEnabled(enableAlpha)
 {
     m_customColorEnabled = m_customColor != m_defaultColor;
 
     m_choiceLabel = new QLabel(this);
+
+    m_radioWidget = new QWidget(view());
+    m_radioLayout = new QVBoxLayout(m_radioWidget);
+    m_defaultRadioButton = new RadioButton(tr("Default color"), m_radioWidget);
+    m_customRadioButton = new RadioButton(tr("Custom color"), m_radioWidget);
+    m_buttonGroup = new QButtonGroup(this);
+
+    m_customColorWidget = new QWidget(view());
+    m_customColorLayout = new QHBoxLayout(m_customColorWidget);
+    m_customLabel = new QLabel(tr("Custom color"), m_customColorWidget);
+    m_chooseColorButton = new QPushButton(tr("Choose color"), m_customColorWidget);
+    // Named before the layouts first measure (and so polish) them; Python repolishes the card when
+    // it expands, which picks up names set later.
     m_choiceLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_customLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_chooseColorButton->setObjectName(QStringLiteral("chooseColorButton"));
+
     addWidget(m_choiceLabel);
 
-    m_buttonGroup = new QButtonGroup(this);
-    m_buttonGroup->setExclusive(true);
-
-    m_defaultRadioButton = new RadioButton(tr("Default color"), view());
-    m_customRadioButton = new RadioButton(tr("Custom color"), view());
+    m_radioLayout->setSpacing(19);
+    m_radioLayout->setAlignment(Qt::AlignTop);
+    m_radioLayout->setContentsMargins(48, 18, 0, 18);
     m_buttonGroup->addButton(m_customRadioButton);
     m_buttonGroup->addButton(m_defaultRadioButton);
+    m_radioLayout->addWidget(m_customRadioButton);
+    m_radioLayout->addWidget(m_defaultRadioButton);
+    m_radioLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    auto *radioWidget = new QWidget(view());
-    auto *radioLayout = new QVBoxLayout(radioWidget);
-    radioLayout->setContentsMargins(48, 18, 0, 18);
-    radioLayout->setSpacing(19);
-    radioLayout->setAlignment(Qt::AlignTop);
-    radioLayout->addWidget(m_customRadioButton);
-    radioLayout->addWidget(m_defaultRadioButton);
-    radioLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    m_customColorLayout->setContentsMargins(48, 18, 44, 18);
+    m_customColorLayout->addWidget(m_customLabel, 0, Qt::AlignLeft);
+    m_customColorLayout->addWidget(m_chooseColorButton, 0, Qt::AlignRight);
+    m_customColorLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    auto *customRow = new QWidget(view());
-    auto *customLayout = new QHBoxLayout(customRow);
-    customLayout->setContentsMargins(48, 18, 44, 18);
-    auto *customLabel = new QLabel(tr("Custom color"), customRow);
-    customLabel->setObjectName(QStringLiteral("titleLabel"));
-    customLayout->addWidget(customLabel, 0, Qt::AlignLeft | Qt::AlignVCenter);
-    customLayout->addStretch(1);
+    viewLayout()->setSpacing(0);
+    viewLayout()->setContentsMargins(0, 0, 0, 0);
+    addGroupWidget(m_radioWidget);
+    addGroupWidget(m_customColorWidget);
 
-    m_colorPicker = new ColorPickerButton(m_customColor, customRow);
-    customLayout->addWidget(m_colorPicker, 0, Qt::AlignRight | Qt::AlignVCenter);
-    customLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-    if (viewLayout()) {
-        viewLayout()->setSpacing(0);
-        viewLayout()->setContentsMargins(0, 0, 0, 0);
-    }
-    addGroupWidget(radioWidget);
-    addGroupWidget(customRow);
-
-    connect(m_defaultRadioButton, &QAbstractButton::clicked, this,
-            [this]() { setCustomColorEnabled(false); });
-    connect(m_customRadioButton, &QAbstractButton::clicked, this,
-            [this]() { setCustomColorEnabled(true); });
-    connect(m_colorPicker, &ColorPickerButton::colorChanged, this, [this](const QColor &color) {
-        setCustomColor(color);
-        setCustomColorEnabled(true);
-    });
+    connect(m_defaultRadioButton, &QAbstractButton::clicked, this, [this]() { setCustomColorEnabled(false); });
+    connect(m_customRadioButton, &QAbstractButton::clicked, this, [this]() { setCustomColorEnabled(true); });
+    connect(m_chooseColorButton, &QPushButton::clicked, this, &CustomColorSettingCard::showColorDialog);
 
     updateColorControls();
     FluentStyleSheet::setRole(this, QStringLiteral("CustomColorSettingCard"));
 }
 
 CustomColorSettingCard::CustomColorSettingCard(const QColor &defaultColor, const QColor &customColor, FluentIcon icon,
-                                               const QString &title, const QString &content, QWidget *parent)
-    : CustomColorSettingCard(defaultColor, customColor, FluentQt::icon(icon), title, content, parent)
+                                               const QString &title, const QString &content, QWidget *parent,
+                                               bool enableAlpha)
+    : CustomColorSettingCard(defaultColor, customColor, FluentQt::icon(icon), title, content, parent, enableAlpha)
 {
 }
 
@@ -1816,15 +1811,27 @@ QColor CustomColorSettingCard::customColor() const { return m_customColor; }
 
 bool CustomColorSettingCard::isCustomColorEnabled() const { return m_customColorEnabled; }
 
-bool CustomColorSettingCard::isAlphaEnabled() const { return m_colorPicker && m_colorPicker->isAlphaEnabled(); }
+bool CustomColorSettingCard::isAlphaEnabled() const { return m_alphaEnabled; }
 
 QLabel *CustomColorSettingCard::choiceLabel() const { return m_choiceLabel; }
 
 RadioButton *CustomColorSettingCard::defaultRadioButton() const { return m_defaultRadioButton; }
 
+QWidget *CustomColorSettingCard::radioWidget() const { return m_radioWidget; }
+
+QVBoxLayout *CustomColorSettingCard::radioLayout() const { return m_radioLayout; }
+
 RadioButton *CustomColorSettingCard::customRadioButton() const { return m_customRadioButton; }
 
-ColorPickerButton *CustomColorSettingCard::colorPicker() const { return m_colorPicker; }
+QButtonGroup *CustomColorSettingCard::buttonGroup() const { return m_buttonGroup; }
+
+QWidget *CustomColorSettingCard::customColorWidget() const { return m_customColorWidget; }
+
+QHBoxLayout *CustomColorSettingCard::customColorLayout() const { return m_customColorLayout; }
+
+QLabel *CustomColorSettingCard::customLabel() const { return m_customLabel; }
+
+QPushButton *CustomColorSettingCard::chooseColorButton() const { return m_chooseColorButton; }
 
 void CustomColorSettingCard::setColor(const QColor &color)
 {
@@ -1890,11 +1897,16 @@ void CustomColorSettingCard::setCustomColorEnabled(bool enabled)
     }
 }
 
-void CustomColorSettingCard::setAlphaEnabled(bool enabled)
+void CustomColorSettingCard::setAlphaEnabled(bool enabled) { m_alphaEnabled = enabled; }
+
+void CustomColorSettingCard::showColorDialog()
 {
-    if (m_colorPicker) {
-        m_colorPicker->setAlphaEnabled(enabled);
-    }
+    ColorDialog dialog(color(), tr("Choose color"), window(), m_alphaEnabled);
+    connect(&dialog, &ColorDialog::colorChanged, this, [this](const QColor &color) {
+        setCustomColor(color);
+        setCustomColorEnabled(true);
+    });
+    dialog.exec();
 }
 
 void CustomColorSettingCard::updateColorControls()
@@ -1910,10 +1922,11 @@ void CustomColorSettingCard::updateColorControls()
         const QSignalBlocker blocker(m_customRadioButton);
         m_customRadioButton->setChecked(m_customColorEnabled);
     }
-    if (m_colorPicker) {
-        const QSignalBlocker blocker(m_colorPicker);
-        m_colorPicker->setColor(m_customColor);
-        m_colorPicker->setEnabled(m_customColorEnabled);
+    if (m_choiceLabel) {
+        m_choiceLabel->adjustSize();
+    }
+    if (m_chooseColorButton) {
+        m_chooseColorButton->setEnabled(m_customColorEnabled);
     }
 }
 

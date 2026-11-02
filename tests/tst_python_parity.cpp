@@ -134,7 +134,7 @@ const std::vector<Expectation> kIntended = {
     {"NavigationItemHeader/text", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
     {"NavigationAvatarWidget/text", "sizeHint.w sizeHint.h", "the port's NavigationWidget derives its fixed size from sizeHint() (setCompacted(), NavigationTreeWidget's expanded height); the fixed size matches Python's"},
     {"OptionsSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed (121x70 vs 122x70) and expanded (173 px tall in both) match"},
-    {"CustomColorSettingCard/icon+text", "size.w sizeHint.w sizeHint.h", "27 px narrower collapsed, 247 vs 244 px expanded: its content differs with the port's CustomColorSettingCard API, which the owner is deciding"},
+    {"CustomColorSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed (311x70) and expanded at 640 px (244 px, tst_settings) match"},
     {"ExpandGroupSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed and expanded (both 95x70, no groups) match"},
     {"SimpleExpandGroupSettingCard/icon+text", "sizeHint.h", "hint only: the QScrollArea hint follows the scroll widget, which the port builds differently; measured, collapsed and expanded (both 95x70, no groups) match"},
     // clang-format on
