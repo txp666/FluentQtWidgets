@@ -810,6 +810,14 @@ class StatusInfoTest : public QObject
         QCOMPARE(indeterminateRing.spanAngle(), 0);
     }
 
+    // Python's ProgressRing calls setFont(self), giving its percentage text the 14 px Fluent body
+    // size; the port left the application font (13 pt on macOS).
+    void progressRingTextUsesPythonFontSize()
+    {
+        ProgressRing ring;
+        QCOMPARE(ring.font().pixelSize(), 14);
+    }
+
     void progressBarFillHonoursMinimum()
     {
         ProgressBar bar(nullptr, false);
