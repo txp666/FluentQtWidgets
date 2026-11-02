@@ -9,6 +9,8 @@
 #include <QtGui/QIcon>
 #include <QtWidgets/QLabel>
 
+#include <optional>
+
 class QPaintEvent;
 
 namespace FluentQt {
@@ -194,6 +196,8 @@ class FQW_API IconInfoBadge : public InfoBadge
 
   private:
     QIcon m_icon;
+    // A Fluent icon is drawn in the opposite theme, resolved when painting so it follows theme changes.
+    std::optional<FluentQt::FluentIcon> m_fluentIcon;
     QSize m_iconSize = QSize(8, 8);
 };
 

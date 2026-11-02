@@ -354,6 +354,37 @@ class StatusInfoTest : public QObject
         manager->setTheme(previousTheme);
     }
 
+    // Python renders a Fluent icon badge's icon in the opposite theme each time it paints, so it
+    // turns black when the app switches to the dark theme. The port fixed the colour when the
+    // badge was made, leaving a white icon on the dark theme's pale badge.
+    void iconInfoBadgeIconFollowsThemeChanges()
+    {
+        auto *manager = ThemeManager::instance();
+        const Theme previousTheme = manager->theme();
+        manager->setTheme(Theme::Light);
+        IconInfoBadge badge(FluentIcon::Accept, InfoLevel::Attention);
+        badge.setCustomBackgroundColor(QColor(128, 128, 128), QColor(128, 128, 128));
+        const auto iconExtremes = [&badge]() {
+            QImage image(badge.size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            badge.render(&image);
+            int darkest = 255;
+            int lightest = 0;
+            for (int y = 4; y < 12; ++y) {
+                for (int x = 4; x < 12; ++x) {
+                    darkest = qMin(darkest, image.pixelColor(x, y).value());
+                    lightest = qMax(lightest, image.pixelColor(x, y).value());
+                }
+            }
+            return qMakePair(darkest, lightest);
+        };
+        QVERIFY(iconExtremes().second > 200);
+
+        manager->setTheme(Theme::Dark);
+        QVERIFY2(iconExtremes().first < 60, qPrintable(QString::number(iconExtremes().first)));
+        manager->setTheme(previousTheme);
+    }
+
     void deletedInfoBadgeTakesItsManager()
     {
         QWidget parent;
