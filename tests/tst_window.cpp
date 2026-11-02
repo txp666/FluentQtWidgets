@@ -376,14 +376,14 @@ class WindowTest : public QObject
                 FluentQt::FluentTitleBar *bar = expected.titleBar;
                 QCOMPARE(bar->iconLabel()->mapTo(expected.window, QPoint()).x(), expected.iconX);
                 QCOMPARE(bar->titleLabel()->contentsMargins().left(), expected.padding);
-                QCOMPARE(bar->titleLabel()->x(), bar->iconLabel()->geometry().right() + 1 +
-                                                     (expected.window == &ms ? 2 : 0));
+                QCOMPARE(bar->titleLabel()->x(),
+                         bar->iconLabel()->geometry().right() + 1 + (expected.window == &ms ? 2 : 0));
                 QCOMPARE(bar->titleLabel()->font().pixelSize(), 13);
                 QCOMPARE(bar->titleLabel()->palette().color(QPalette::WindowText),
                          mode == FluentQt::Theme::Dark ? QColor(Qt::white) : QColor(Qt::black));
-                for (QWidget *button : {static_cast<QWidget *>(bar->minimizeButton()),
-                                        static_cast<QWidget *>(bar->maximizeButton()),
-                                        static_cast<QWidget *>(bar->closeButton())}) {
+                for (QWidget *button :
+                     {static_cast<QWidget *>(bar->minimizeButton()), static_cast<QWidget *>(bar->maximizeButton()),
+                      static_cast<QWidget *>(bar->closeButton())}) {
                     QCOMPARE(button->y(), 0);
                 }
             }

@@ -271,9 +271,9 @@ void FluentTitleBar::initLayout()
     // Python's fluent_window.qss sets the title to 13 px black (white) with 4 px of padding on each
     // side; the windows change the padding as Python's MSFluentTitleBar and SplitTitleBar do.
     m_titleLabel->setContentsMargins(4, 0, 4, 0);
-    FluentStyleSheet::setCustomStyleSheet(
-        m_titleLabel, QStringLiteral("QLabel#titleLabel { color: black; font-size: 13px; }"),
-        QStringLiteral("QLabel#titleLabel { color: white; font-size: 13px; }"));
+    FluentStyleSheet::setCustomStyleSheet(m_titleLabel,
+                                          QStringLiteral("QLabel#titleLabel { color: black; font-size: 13px; }"),
+                                          QStringLiteral("QLabel#titleLabel { color: white; font-size: 13px; }"));
 
     m_minButton = new TitleBarToolButton(TitleBarSymbol::Minimize, this);
     m_minButton->setObjectName(QStringLiteral("MinimizeButton"));
