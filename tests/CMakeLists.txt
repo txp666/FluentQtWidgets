@@ -2,23 +2,39 @@ find_package(${FQW_QT_PACKAGE} REQUIRED COMPONENTS Test)
 
 include(${CMAKE_SOURCE_DIR}/cmake/DeployQtTarget.cmake)
 
+# Labels (see README.md): each suite's area, "smoke" for the fast whole-library checks, "native" for the
+# runs that only mean something on a real windowing system.
 function(fqw_add_widget_test name)
     add_executable(${name} ${name}.cpp TestSupport.h)
     target_link_libraries(${name} PRIVATE FluentQtWidgets::Widgets ${FQW_QT_PACKAGE}::Test ${ARGN})
     fqw_deploy_qt_executable(${name})
     add_test(NAME ${name} COMMAND ${name})
+    string(REGEX REPLACE "^tst_" "" area ${name})
+    set_tests_properties(${name} PROPERTIES LABELS ${area})
 endfunction()
 
 # One suite per area of the Gallery.
 foreach(test IN ITEMS
-        tst_theme tst_qss tst_config tst_basic_input tst_combo_box tst_text tst_status_info tst_dialog_flyout
-        tst_menu tst_navigation tst_view tst_scroll tst_icon tst_layout tst_settings tst_window tst_material tst_charts tst_datetime)
+        tst_theme tst_qss tst_config tst_icon tst_basic_input tst_combo_box tst_text tst_status_info
+        tst_dialog_flyout tst_menu tst_navigation tst_view tst_scroll tst_layout tst_settings tst_window
+        tst_material tst_charts tst_datetime)
     fqw_add_widget_test(${test})
 endforeach()
+
+# The tests that need window activation, a movable pointer or Windows itself, once more under their own
+# name: offscreen they skip, so "ctest -L native" on a desktop is the run that exercises them.
+add_test(NAME tst_text_native COMMAND tst_text multilineFocusLineSpansTheBox)
+add_test(NAME tst_status_info_native COMMAND tst_status_info toolTipLeavesTheActiveWindowAndFocusAlone)
+add_test(NAME tst_navigation_native COMMAND tst_navigation navigationTreeParentHoverCoversOnlyItsOwnRow)
+set_tests_properties(tst_text_native PROPERTIES LABELS "text;native")
+set_tests_properties(tst_status_info_native PROPERTIES LABELS "status_info;native")
+set_tests_properties(tst_navigation_native PROPERTIES LABELS "navigation;native")
 
 # Sizes against PyQt-Fluent-Widgets 1.11.3, measured by tools/parity/measure_python.py.
 fqw_add_widget_test(tst_python_parity)
 target_compile_definitions(tst_python_parity PRIVATE FQW_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+set_tests_properties(tst_python_parity PROPERTIES LABELS "python_parity;smoke")
+set_tests_properties(tst_qss PROPERTIES LABELS "qss;smoke")
 
 if(WIN32)
     # The native hit tests once more at 150%, where physical and device-independent pixels differ.
@@ -29,7 +45,7 @@ if(WIN32)
         framelessWindowMaximizeButtonReleaseDoesNotStick
         framelessWindowMaximizeButtonNativeClickTogglesWindow
         fluentWindowCaptionNativeDoubleClickTogglesWindow)
-    set_tests_properties(tst_window_scaled PROPERTIES ENVIRONMENT "QT_SCALE_FACTOR=1.5")
+    set_tests_properties(tst_window_scaled PROPERTIES ENVIRONMENT "QT_SCALE_FACTOR=1.5" LABELS "window;native")
 endif()
 
 # The Gallery's pages, compiled once for the two suites that open them.
@@ -64,3 +80,5 @@ target_link_libraries(fqw_gallery_for_tests PUBLIC FluentQtWidgets::Widgets)
 
 fqw_add_widget_test(tst_gallery_pages fqw_gallery_for_tests)
 fqw_add_widget_test(tst_gallery_translation fqw_gallery_for_tests)
+set_tests_properties(tst_gallery_pages PROPERTIES LABELS "gallery;smoke")
+set_tests_properties(tst_gallery_translation PROPERTIES LABELS "gallery")
