@@ -5,10 +5,11 @@
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 
+#include <QtCore/QPropertyAnimation>
 #include <QtCore/QRectF>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 
@@ -25,6 +26,29 @@ NavigationBarPushButton::NavigationBarPushButton(const QIcon &icon, const QStrin
     f.setPixelSize(11);
     setFont(f);
     setFixedSize(sizeHint());
+
+    m_iconAnimation = new QPropertyAnimation(this, "iconOffset", this);
+    m_iconAnimation->setDuration(100);
+}
+
+qreal NavigationBarPushButton::iconOffset() const { return m_iconOffset; }
+
+void NavigationBarPushButton::setIconOffset(qreal offset)
+{
+    m_iconOffset = offset;
+    update();
+}
+
+void NavigationBarPushButton::setSelected(bool selected)
+{
+    if (selected == m_selected) {
+        return;
+    }
+
+    NavigationWidget::setSelected(selected);
+    m_iconAnimation->stop();
+    m_iconAnimation->setEndValue(selected ? 6.0 : 0.0);
+    m_iconAnimation->start();
 }
 
 QString NavigationBarPushButton::text() const { return m_text; }
@@ -113,12 +137,12 @@ void NavigationBarPushButton::paintEvent(QPaintEvent *event)
     }
 
     QIcon paintIcon = (m_selected && !m_selectedIcon.isNull()) ? m_selectedIcon : m_icon;
-    QRect iconRect(22, 13, 20, 20);
-    if (m_selected && !m_selectedTextVisible) {
-        iconRect.translate(0, 6);
-    }
+    const QRectF iconRect(22, m_selectedTextVisible ? 13 : 13 + m_iconOffset, 20, 20);
     if (!paintIcon.isNull()) {
-        paintIcon.paint(&painter, iconRect);
+        const qreal dpr = painter.device()->devicePixelRatioF();
+        QPixmap pixmap = paintIcon.pixmap(QSize(20, 20) * dpr);
+        pixmap.setDevicePixelRatio(dpr);
+        painter.drawPixmap(iconRect, pixmap, QRectF(QPointF(0, 0), QSizeF(pixmap.size())));
     }
 
     if (m_selected && !m_selectedTextVisible) {

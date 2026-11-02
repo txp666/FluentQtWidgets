@@ -798,6 +798,50 @@ class NavigationTest : public QObject
 
     // Python dims an unselected bar item's icon and text to 0.6 unless the pointer is on it; the
     // port drew them at full strength.
+    // Python's IconSlideAnimation: with the selected text hidden, the selected icon slides 6 px
+    // down in 100 ms and back up when deselected; the port jumped 6 px.
+    void navigationBarIconSlidesWhenSelectedTextIsHidden()
+    {
+        NavigationBar bar;
+        bar.setSelectedTextVisible(false);
+        auto *home =
+            bar.addItem(QStringLiteral("home"), icon(FluentIcon::Home, QColor(Qt::red)), QStringLiteral("Home"));
+        bar.addItem(QStringLiteral("apps"), icon(FluentIcon::Home), QStringLiteral("Apps"));
+        auto *animation = home->findChild<QPropertyAnimation *>();
+        QVERIFY(animation);
+        QCOMPARE(animation->propertyName(), QByteArray("iconOffset"));
+        QCOMPARE(animation->duration(), 100);
+        QCOMPARE(home->iconOffset(), 0.0);
+
+        bar.setCurrentItem(QStringLiteral("home"));
+        QVERIFY(home->iconOffset() < 6.0);
+        QTRY_COMPARE(home->iconOffset(), 6.0);
+
+        // Painted 6 px lower: the red icon's top edge moves from y = 13 to 19 or so.
+        const auto iconTop = [home]() {
+            QImage image(home->size(), QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+            home->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 22; x < 42; ++x) {
+                    const QColor c = image.pixelColor(x, y);
+                    if (c.alpha() > 100 && c.red() > 150 && c.green() < 100) {
+                        return y;
+                    }
+                }
+            }
+            return -1;
+        };
+        const int lowered = iconTop();
+
+        bar.setCurrentItem(QStringLiteral("apps"));
+        QVERIFY(home->iconOffset() > 0.0);
+        QTRY_COMPARE(home->iconOffset(), 0.0);
+        const int raised = iconTop();
+        QVERIFY(raised >= 0);
+        QCOMPARE(lowered - raised, 6);
+    }
+
     void navigationBarDimsUnselectedItemsAsInPython()
     {
         auto *theme = FluentQt::ThemeManager::instance();
