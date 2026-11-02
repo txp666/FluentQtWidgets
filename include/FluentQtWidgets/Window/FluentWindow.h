@@ -17,6 +17,7 @@
 
 #include <memory>
 
+class QHBoxLayout;
 class QStackedWidget;
 class QEvent;
 class QPaintEvent;
@@ -30,6 +31,7 @@ class FluentTitleBar;
 class NavigationBar;
 class NavigationHistory;
 class NavigationInterface;
+class PopUpAniStackedWidget;
 class SplashScreen;
 
 FQW_API bool isMicaEffectAvailable();
@@ -98,7 +100,6 @@ class FQW_API FluentWindow : public QMainWindow
     FluentTitleBar *titleBar() const;
     SplashScreen *splashScreen() const;
 
-    int addPage(QWidget *page, const QString &title, const QIcon &icon = QIcon());
     int addSubInterface(QWidget *widget, const QIcon &icon, const QString &text, const QString &routeKey = QString(),
                         bool isTransparent = false);
     int addSubInterface(QWidget *widget, const QIcon &icon, const QString &text, const QString &routeKey,
@@ -141,8 +142,9 @@ class FQW_API FluentWindow : public QMainWindow
     int contentTopMargin() const;
 
   private:
-    void pushHistory(const QString &routeKey);
-    void onCurrentRouteKeyChanged(const QString &routeKey);
+    void onCurrentInterfaceChanged(int index);
+    // The page added with this route key (its objectName), or nullptr.
+    QWidget *findInterface(const QString &routeKey) const;
     void onReturnRequested();
     void updateTitleBarGeometry();
     void updateStackedBackground();
@@ -150,6 +152,8 @@ class FQW_API FluentWindow : public QMainWindow
 
     QWidget *m_container = nullptr;
     NavigationInterface *m_navigation = nullptr;
+    PopUpAniStackedWidget *m_stackedWidget = nullptr;
+    QHBoxLayout *m_widgetLayout = nullptr;
     NavigationHistory *m_history = nullptr;
     FluentTitleBar *m_titleBar = nullptr;
     std::unique_ptr<FramelessWindowHelper> m_frameless;

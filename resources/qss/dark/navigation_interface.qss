@@ -32,18 +32,6 @@ QWidget[fqw="NavigationBar"] {
     background: transparent;
 }
 
-QWidget[fqw="NavigationSpacer"][fqwTheme="light"] {
-    background-color: rgb(243, 243, 243);
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-}
-
-QWidget[fqw="NavigationSpacer"][fqwTheme="dark"] {
-    background-color: rgb(32, 32, 32);
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-}
-
 QWidget[fqw="NavigationScrollWidget"] {
     background: transparent;
 }

@@ -1,9 +1,11 @@
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QHash>
 #include <QtCore/Qt>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QStackedWidget>
 
 using namespace FluentQt;
 
@@ -34,40 +36,58 @@ class DemoWindow : public QWidget
         resize(900, 600);
 
         m_navigation = new NavigationInterface(this);
+        m_stackedWidget = new QStackedWidget(this);
+
+        initNavigation();
 
         auto *layout = new QHBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(0);
         layout->addWidget(m_navigation);
-
-        initNavigation();
+        layout->addWidget(m_stackedWidget, 1);
     }
 
   private:
     void initNavigation()
     {
-        m_navigation->addPage(createPage(QStringLiteral("Home"), this), QStringLiteral("Home"), icon(FluentIcon::Home),
-                              QStringLiteral("home"), NavigationItemPosition::Top);
+        addInterface(QStringLiteral("home"), icon(FluentIcon::Home), QStringLiteral("Home"),
+                     NavigationItemPosition::Top);
         m_navigation->addSeparator();
 
-        m_navigation->addItemHeader(QStringLiteral("Basic Input"));
-        m_navigation->addPage(createPage(QStringLiteral("Button"), this), QStringLiteral("Button"),
-                              icon(FluentIcon::Accept), QStringLiteral("button"));
-        m_navigation->addPage(createPage(QStringLiteral("Input"), this), QStringLiteral("Input"),
-                              icon(FluentIcon::Edit), QStringLiteral("input"));
+        m_navigation->addItemHeader(QStringLiteral("Basic Input"), NavigationItemPosition::Scroll);
+        addInterface(QStringLiteral("button"), icon(FluentIcon::Checkbox), QStringLiteral("Button"));
+        addInterface(QStringLiteral("input"), icon(FluentIcon::Edit), QStringLiteral("Input"));
 
-        m_navigation->addItemHeader(QStringLiteral("Data"));
-        m_navigation->addPage(createPage(QStringLiteral("Table"), this), QStringLiteral("Table"),
-                              icon(FluentIcon::Scroll), QStringLiteral("table"));
-        m_navigation->addPage(createPage(QStringLiteral("List"), this), QStringLiteral("List"),
-                              icon(FluentIcon::Folder), QStringLiteral("list"));
+        m_navigation->addItemHeader(QStringLiteral("Data"), NavigationItemPosition::Scroll);
+        addInterface(QStringLiteral("table"), icon(FluentIcon::Document), QStringLiteral("Table"));
+        addInterface(QStringLiteral("list"), icon(FluentIcon::Menu), QStringLiteral("List"));
 
-        m_navigation->addPage(createPage(QStringLiteral("Settings"), this), QStringLiteral("Settings"),
-                              icon(FluentIcon::Setting), QStringLiteral("settings"),
-                              NavigationItemPosition::Bottom);
+        addInterface(QStringLiteral("settings"), icon(FluentIcon::Setting), QStringLiteral("Settings"),
+                     NavigationItemPosition::Bottom);
+
+        // The window keeps the pages; the navigation switches them on a click.
+        connect(m_navigation->panel(), &NavigationPanel::itemClicked, this, [this](const QString &routeKey) {
+            if (QWidget *page = m_interfaces.value(routeKey)) {
+                m_stackedWidget->setCurrentWidget(page);
+            }
+        });
+
+        m_stackedWidget->setCurrentIndex(0);
+        m_navigation->setCurrentItem(QStringLiteral("home"));
+    }
+
+    void addInterface(const QString &routeKey, const QIcon &icon, const QString &text,
+                      NavigationItemPosition position = NavigationItemPosition::Scroll)
+    {
+        QWidget *page = createPage(text, this);
+        m_interfaces.insert(routeKey, page);
+        m_stackedWidget->addWidget(page);
+        m_navigation->addItem(routeKey, icon, text, position);
     }
 
     NavigationInterface *m_navigation = nullptr;
+    QStackedWidget *m_stackedWidget = nullptr;
+    QHash<QString, QWidget *> m_interfaces;
 };
 
 } // namespace

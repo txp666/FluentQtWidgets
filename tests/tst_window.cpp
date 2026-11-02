@@ -94,8 +94,7 @@ class WindowTest : public QObject
         QCOMPARE(window.addSubInterface(albumChild, QIcon(), QStringLiteral("Album 1"), QStringLiteral("album1"),
                                         FluentQt::NavigationItemPosition::Scroll, QStringLiteral("albums")),
                  3);
-        QCOMPARE(window.navigationInterface()->navigationPanel()->widget(QStringLiteral("albums"))->childItems().size(),
-                 1);
+        QCOMPARE(window.navigationInterface()->panel()->widget(QStringLiteral("albums"))->childItems().size(), 1);
 
         QPointer<QWidget> settingsPointer(settings);
         QVERIFY(window.removeInterface(QStringLiteral("settings")));
@@ -124,6 +123,41 @@ class WindowTest : public QObject
         QVERIFY(window.goBack());
         QCOMPARE(window.currentRouteKey(), QStringLiteral("home"));
         QVERIFY(!window.canGoBack());
+    }
+
+    // The page stack moved from NavigationInterface to the window, as in Python; it still pops
+    // pages up and keeps the navigation's selection in step.
+    void fluentWindowPopsUpPagesFromItsOwnStack()
+    {
+        FluentQt::FluentWindow window;
+        auto *home = new QWidget;
+        auto *settings = new QWidget;
+        window.addSubInterface(home, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+        window.addSubInterface(settings, QIcon(), QStringLiteral("Settings"), QStringLiteral("settings"));
+        QCOMPARE(settings->objectName(), QStringLiteral("settings"));
+        QCOMPARE(window.navigationInterface()->panel()->currentRouteKey(), QStringLiteral("home"));
+        QCOMPARE(window.navigationInterface()->findChildren<QStackedWidget *>().size(), 0);
+
+        auto *stack = qobject_cast<FluentQt::PopUpAniStackedWidget *>(window.stackedWidget());
+        QVERIFY(stack != nullptr);
+        QSignalSpy startSpy(stack, &FluentQt::PopUpAniStackedWidget::aniStart);
+        QSignalSpy finishedSpy(stack, &FluentQt::PopUpAniStackedWidget::aniFinished);
+
+        QVERIFY(window.switchTo(QStringLiteral("settings")));
+        QCOMPARE(startSpy.count(), 1);
+        QCOMPARE(window.currentInterface(), settings);
+        QCOMPARE(window.navigationInterface()->panel()->currentRouteKey(), QStringLiteral("settings"));
+        QTRY_COMPARE(finishedSpy.count(), 1);
+
+        // A page switched on the stack directly still moves the selection, as Python's
+        // _onCurrentInterfaceChanged does.
+        stack->setCurrentIndex(0);
+        QCOMPARE(window.navigationInterface()->panel()->currentRouteKey(), QStringLiteral("home"));
+        QVERIFY(window.canGoBack());
+
+        QVERIFY(window.removeInterface(home, true));
+        QCOMPARE(window.navigationInterface()->widget(QStringLiteral("home")), nullptr);
+        QCOMPARE(window.currentInterface(), settings);
     }
 
     void msFluentWindowUsesNavigationBar()
@@ -250,20 +284,34 @@ class WindowTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
         auto *navigation = window.navigationInterface();
-        auto *panel = navigation->navigationPanel();
-        const int stackX = navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x();
+        auto *panel = navigation->panel();
+        QStackedWidget *stack = window.stackedWidget();
+        const QPoint stackPos = stack->mapTo(&window, QPoint(0, 0));
 
+        // Python's layout: the 48 px interface beside the stack, which starts below the title bar.
+        QCOMPARE(navigation->width(), FluentQt::NavigationPanel::kCompactWidth);
+        QVERIFY(!navigation->isAncestorOf(stack));
         QCOMPARE(panel->mapTo(&window, QPoint(0, 0)).y(), 0);
-        QCOMPARE(navigation->contentTopMargin(), 48);
-        QCOMPARE(stackX, FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(stackPos, QPoint(FluentQt::NavigationPanel::kCompactWidth, 48));
         QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
 
+        // As a menu the panel moves onto the window, over the stack, which stays put.
         panel->expand(false);
         QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
         QVERIFY(panel->isMenu());
+        QCOMPARE(panel->parentWidget(), &window);
         QVERIFY(panel->width() > FluentQt::NavigationPanel::kCompactWidth);
-        QCOMPARE(navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x(), stackX);
+        QCOMPARE(navigation->width(), FluentQt::NavigationPanel::kCompactWidth);
+        QCOMPARE(stack->mapTo(&window, QPoint(0, 0)), stackPos);
+        QWidget *hit = window.childAt(QPoint(200, 300));
+        QVERIFY(hit == panel || panel->isAncestorOf(hit));
         QCOMPARE(window.titleBar()->x(), FluentQt::NavigationPanel::kCompactWidth);
+
+        // Clicking an item switches the window's page and closes the menu.
+        auto *item = panel->widget(QStringLiteral("settings"));
+        QTest::mouseClick(item, Qt::LeftButton, Qt::NoModifier, item->rect().center());
+        QCOMPARE(window.currentInterface(), settings);
+        QTRY_COMPARE(panel->parentWidget(), navigation);
     }
 
     void fluentWindowNavigationPanelExpandsAtPythonThreshold()
@@ -280,7 +328,7 @@ class WindowTest : public QObject
         QVERIFY(QTest::qWaitForWindowExposed(&window));
 
         auto *navigation = window.navigationInterface();
-        auto *panel = navigation->navigationPanel();
+        auto *panel = navigation->panel();
         // A narrower window opens the panel as a menu instead, as it should.
         if (window.width() < panel->minimumExpandWidth()) {
             QSKIP("The screen is too narrow for the panel to expand beside the content");
@@ -290,8 +338,8 @@ class WindowTest : public QObject
         QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Expand);
         QVERIFY(!panel->isMenu());
         QCOMPARE(panel->width(), FluentQt::NavigationPanel::kExpandWidth);
-        QCOMPARE(navigation->stackedWidget()->mapTo(navigation, QPoint(0, 0)).x(),
-                 FluentQt::NavigationPanel::kExpandWidth);
+        QCOMPARE(navigation->width(), FluentQt::NavigationPanel::kExpandWidth);
+        QTRY_COMPARE(window.stackedWidget()->mapTo(&window, QPoint(0, 0)).x(), FluentQt::NavigationPanel::kExpandWidth);
     }
 
     // Python's title bars: the buttons hang from the top edge; the title is 13 px black (white) with

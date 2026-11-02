@@ -82,11 +82,16 @@ class FQW_API NavigationPanel : public QFrame
                                     const QString &subtitle = QString(),
                                     NavigationItemPosition position = NavigationItemPosition::Scroll);
     QFrame *addSeparator(NavigationItemPosition position = NavigationItemPosition::Scroll);
+    QFrame *insertSeparator(int index, NavigationItemPosition position = NavigationItemPosition::Scroll);
     NavigationTreeWidget *widget(const QString &routeKey) const;
     NavigationWidget *navigationWidget(const QString &routeKey) const;
     bool contains(const QString &routeKey) const;
     QString currentRouteKey() const;
 
+    bool isCollapsible() const;
+    // The height the top and bottom items and the separators need, plus the scroll area's
+    // 36 px minimum; NavigationInterface keeps at least this height.
+    int layoutMinHeight() const;
     bool isMenuButtonVisible() const;
     bool isReturnButtonVisible() const;
     NavigationToolButton *returnButton() const;
@@ -99,6 +104,7 @@ class FQW_API NavigationPanel : public QFrame
     void setMinimumExpandWidth(int width);
     void setMenuButtonVisible(bool visible);
     void setReturnButtonVisible(bool visible);
+    void setCollapsible(bool collapsible);
     void setCurrentItem(const QString &routeKey);
     void removeWidget(const QString &routeKey);
     void expand(bool animated = true);
@@ -141,6 +147,7 @@ class FQW_API NavigationPanel : public QFrame
     void onReturnClicked();
     void onIndicatorAnimationFinished();
     void onExpandAnimationFinished();
+    void restoreParent();
 
     QPropertyAnimation *m_expandAnimation = nullptr;
     QVBoxLayout *m_mainLayout = nullptr;
@@ -158,11 +165,14 @@ class FQW_API NavigationPanel : public QFrame
     QString m_currentRouteKey;
     NavigationDisplayMode m_displayMode = NavigationDisplayMode::Compact;
     QPointer<QWidget> m_filteredWindow;
+    // The parent it was created in; in menu mode the panel moves to the window, over the content.
+    QPointer<QWidget> m_parent;
     bool m_menu = false;
     bool m_acrylicEnabled = false;
     bool m_indicatorAnimationEnabled = true;
     bool m_menuButtonVisible = true;
     bool m_returnButtonVisible = false;
+    bool m_collapsible = true;
     bool m_expandAnimationExpanding = false;
     int m_expandWidth = kExpandWidth;
     int m_minimumExpandWidth = 1008;

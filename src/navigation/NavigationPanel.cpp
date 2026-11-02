@@ -160,7 +160,7 @@ class NavigationSeparator : public QFrame
 
 } // namespace
 
-NavigationPanel::NavigationPanel(QWidget *parent) : QFrame(parent)
+NavigationPanel::NavigationPanel(QWidget *parent) : QFrame(parent), m_parent(parent)
 {
     setAttribute(Qt::WA_StyledBackground, true);
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationPanel"));
@@ -302,7 +302,9 @@ NavigationUserCard *NavigationPanel::addUserCard(const QString &routeKey, const 
     return qobject_cast<NavigationUserCard *>(addWidget(routeKey, card, position));
 }
 
-QFrame *NavigationPanel::addSeparator(NavigationItemPosition position)
+QFrame *NavigationPanel::addSeparator(NavigationItemPosition position) { return insertSeparator(-1, position); }
+
+QFrame *NavigationPanel::insertSeparator(int index, NavigationItemPosition position)
 {
     auto *separator = new NavigationSeparator(this);
     separator->setExpandWidth(m_expandWidth);
@@ -316,7 +318,8 @@ QFrame *NavigationPanel::addSeparator(NavigationItemPosition position)
         layout = m_bottomLayout;
     }
 
-    layout->addWidget(separator, 0, Qt::AlignTop);
+    const int insertIndex = index < 0 ? layout->count() : qBound(0, index, layout->count());
+    layout->insertWidget(insertIndex, separator, 0, Qt::AlignTop);
     return separator;
 }
 
@@ -397,6 +400,32 @@ void NavigationPanel::setExpandWidth(int width)
             separator->setExpandWidth(width);
         }
     }
+}
+
+bool NavigationPanel::isCollapsible() const { return m_collapsible; }
+
+// A panel that cannot collapse stays expanded in place; Python's setCollapsible().
+void NavigationPanel::setCollapsible(bool collapsible)
+{
+    m_collapsible = collapsible;
+    if (!collapsible && m_displayMode != NavigationDisplayMode::Expand) {
+        expand(false);
+    }
+}
+
+int NavigationPanel::layoutMinHeight() const
+{
+    const int th = m_topLayout->minimumSize().height();
+    const int bh = m_bottomLayout->minimumSize().height();
+    int sh = 0;
+    for (QFrame *frame : findChildren<QFrame *>()) {
+        if (dynamic_cast<NavigationSeparator *>(frame)) {
+            sh += frame->height();
+        }
+    }
+    const int spacing =
+        m_topLayout->count() * m_topLayout->spacing() + m_bottomLayout->count() * m_bottomLayout->spacing();
+    return 36 + th + bh + sh + spacing;
 }
 
 // Any width, as in Python: 0 lets the panel expand in place in a window of any size.
@@ -506,12 +535,24 @@ void NavigationPanel::expand(bool animated)
     stopIndicatorAnimation();
 
     const int expandThreshold = m_minimumExpandWidth + m_expandWidth - kExpandWidth;
-    const bool useExpandMode = window() && window()->width() >= expandThreshold;
+    const bool useExpandMode = (window() && window()->width() >= expandThreshold) || !m_collapsible;
 
     setDisplayMode(useExpandMode ? NavigationDisplayMode::Expand : NavigationDisplayMode::Menu);
     setMenu(!useExpandMode);
     setItemsCompacted(false);
     m_expandAnimationExpanding = true;
+
+    // As a menu the panel overlays the content: it leaves its parent (a NavigationInterface,
+    // which keeps its compact width) for the window, as Python's does.
+    if (!useExpandMode) {
+        if (m_parent && !m_parent->isWindow() && parentWidget() == m_parent) {
+            const QPoint pos = m_parent->mapTo(m_parent->window(), QPoint(0, 0));
+            setParent(m_parent->window());
+            move(pos);
+        }
+        show();
+        raise();
+    }
 
     if (animated) {
         emit displayModeChanged(m_displayMode);
@@ -549,6 +590,7 @@ void NavigationPanel::collapse(bool animated)
         setMenu(false);
         setItemsCompacted(true);
         updatePanelWidth(kCompactWidth);
+        restoreParent();
         emit displayModeChanged(m_displayMode);
     }
 
@@ -571,6 +613,7 @@ void NavigationPanel::onExpandAnimationFinished()
         setMenu(false);
         setItemsCompacted(true);
         updatePanelWidth(kCompactWidth);
+        restoreParent();
         emit displayModeChanged(m_displayMode);
     } else {
         updatePanelWidth(m_expandWidth);
@@ -613,10 +656,21 @@ void NavigationPanel::retranslateUi()
                                                                             : tr("Close Navigation"));
 }
 
+void NavigationPanel::restoreParent()
+{
+    if (m_parent && !m_parent->isWindow() && parentWidget() != m_parent) {
+        const int panelHeight = height();
+        setParent(m_parent);
+        move(0, 0);
+        resize(width(), panelHeight);
+        show();
+    }
+}
+
 bool NavigationPanel::eventFilter(QObject *watched, QEvent *event)
 {
     auto *topLevel = qobject_cast<QWidget *>(watched);
-    if (!topLevel || topLevel != window()) {
+    if (!topLevel || topLevel != window() || !m_collapsible) {
         return QFrame::eventFilter(watched, event);
     }
 

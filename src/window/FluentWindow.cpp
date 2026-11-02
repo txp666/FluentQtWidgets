@@ -7,22 +7,25 @@
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
 #include <FluentQtWidgets/Widgets/Label.h>
+#include <FluentQtWidgets/Widgets/StackedWidget.h>
 #include <FluentQtWidgets/Window/FluentTitleBar.h>
 #include <FluentQtWidgets/Window/SplashScreen.h>
 
 #include <QtCore/QEvent>
+#include <QtCore/QOperatingSystemVersion>
 #include <QtCore/QTimer>
 #include <QtCore/QUuid>
-#include <QtCore/QOperatingSystemVersion>
+#include <QtGui/QCursor>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
-#include <QtGui/QPaintEvent>
 #include <QtGui/QResizeEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QCursor>
 #include <QtGui/QWindow>
-#include <QtGui/QGuiApplication>
+#include <QtWidgets/QAbstractScrollArea>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
@@ -329,6 +332,13 @@ QColor windowBackgroundColor()
     return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(32, 32, 32) : QColor(249, 249, 249);
 }
 
+// FluentWindow's surface around the page stack: behind the navigation interface (transparent, as
+// Python's) and the title bar, in the colour of the title bar's navigation background.
+QColor navigationBackgroundColor()
+{
+    return ThemeManager::instance()->effectiveTheme() == Theme::Dark ? QColor(32, 32, 32) : QColor(243, 243, 243);
+}
+
 QColor micaHitTestBackgroundColor()
 {
     return QColor(0, 0, 0, 0);
@@ -371,6 +381,74 @@ void beginThemeRefresh(QWidget *window, bool micaEnabled, QTimer *refresh)
     }
     refresh->start();
 }
+
+// Fills the window colour into the page stack's rounded top-left corner, which the content area
+// behind it would otherwise show through.
+class NavigationCornerBackdrop final : public QWidget
+{
+  public:
+    NavigationCornerBackdrop(QWidget *parent, QStackedWidget *stack) : QWidget(parent), m_stack(stack)
+    {
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        setAutoFillBackground(false);
+        setFixedSize(12, 12);
+        if (m_stack) {
+            m_stack->installEventFilter(this);
+        }
+        connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this, [this](Theme) { update(); });
+        syncGeometry();
+        lower();
+    }
+
+  protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (watched == m_stack && (event->type() == QEvent::Move || event->type() == QEvent::Resize ||
+                                   event->type() == QEvent::Show || event->type() == QEvent::DynamicPropertyChange)) {
+            syncGeometry();
+            update();
+        }
+        return QWidget::eventFilter(watched, event);
+    }
+
+    void paintEvent(QPaintEvent *) override
+    {
+        if (!m_stack || m_stack->property("isTransparent").toBool()) {
+            return;
+        }
+
+        constexpr qreal radius = 10.0;
+        QPainterPath surface;
+        surface.moveTo(0.0, radius);
+        surface.arcTo(QRectF(0.0, 0.0, radius * 2.0, radius * 2.0), 180.0, -90.0);
+        surface.lineTo(width(), 0.0);
+        surface.lineTo(width(), height());
+        surface.lineTo(0.0, height());
+        surface.closeSubpath();
+
+        QPainterPath outside;
+        outside.setFillRule(Qt::OddEvenFill);
+        outside.addRect(QRectF(rect()));
+        outside.addPath(surface);
+
+        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setPen(Qt::NoPen);
+        painter.fillPath(outside, dark ? QColor(32, 32, 32) : QColor(243, 243, 243));
+    }
+
+  private:
+    void syncGeometry()
+    {
+        if (m_stack) {
+            move(m_stack->pos());
+        }
+    }
+
+    QPointer<QStackedWidget> m_stack;
+};
 
 } // namespace
 
@@ -608,22 +686,36 @@ FluentWindow::FluentWindow(QWidget *parent) : QMainWindow(parent)
     m_container = new QWidget(this);
     m_container->setObjectName(QStringLiteral("FluentWindowContent"));
     configureContentBackground(m_container);
-    auto *layout = new QVBoxLayout(m_container);
+    auto *layout = new QHBoxLayout(m_container);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    m_navigation = new NavigationInterface(m_container, true);
-    m_navigation->setContentTopMargin(m_contentTopMargin);
+    // Python's FluentWindow: the navigation interface (48 px, or the expanded panel's width) beside
+    // the page stack, which sits below the title bar.
+    m_navigation = new NavigationInterface(m_container, true, true);
+    m_stackedWidget = new PopUpAniStackedWidget(m_container);
+    m_stackedWidget->setObjectName(QStringLiteral("NavigationStack"));
+    m_stackedWidget->setAttribute(Qt::WA_StyledBackground, true);
+    FluentStyleSheet::setRole(m_stackedWidget, QStringLiteral("NavigationStack"));
+    m_widgetLayout = new QHBoxLayout;
+    m_widgetLayout->setContentsMargins(0, m_contentTopMargin, 0, 0);
+    m_widgetLayout->addWidget(m_stackedWidget);
     layout->addWidget(m_navigation);
+    layout->addLayout(m_widgetLayout, 1);
+    new NavigationCornerBackdrop(m_container, m_stackedWidget);
     setCentralWidget(m_container);
 
-    connect(m_navigation, &NavigationInterface::currentRouteKeyChanged, this,
-            &FluentWindow::onCurrentRouteKeyChanged);
-    connect(m_navigation->navigationPanel(), &NavigationPanel::returnRequested, this, &FluentWindow::onReturnRequested);
-    connect(m_navigation->navigationPanel(), &NavigationPanel::displayModeChanged, this,
+    connect(m_navigation->panel(), &NavigationPanel::itemClicked, this, [this](const QString &routeKey) {
+        if (QWidget *page = findInterface(routeKey)) {
+            switchTo(page);
+        }
+    });
+    connect(m_stackedWidget, &QStackedWidget::currentChanged, this, &FluentWindow::onCurrentInterfaceChanged);
+    connect(m_navigation->panel(), &NavigationPanel::returnRequested, this, &FluentWindow::onReturnRequested);
+    connect(m_navigation, &NavigationInterface::displayModeChanged, this,
             [this](NavigationDisplayMode) { m_titleBar->raise(); });
     connect(m_history, &NavigationHistory::emptyChanged, this, [this](bool isEmpty) {
-        if (NavigationToolButton *button = m_navigation->navigationPanel()->returnButton()) {
+        if (NavigationToolButton *button = m_navigation->panel()->returnButton()) {
             button->setDisabled(isEmpty);
         }
     });
@@ -646,11 +738,6 @@ FluentTitleBar *FluentWindow::titleBar() const { return m_titleBar; }
 
 SplashScreen *FluentWindow::splashScreen() const { return m_splashScreen; }
 
-int FluentWindow::addPage(QWidget *page, const QString &title, const QIcon &icon)
-{
-    return m_navigation->addPage(page, title, icon);
-}
-
 int FluentWindow::addSubInterface(QWidget *widget, const QIcon &icon, const QString &text, const QString &routeKey,
                                   bool isTransparent)
 {
@@ -663,17 +750,33 @@ int FluentWindow::addSubInterface(QWidget *widget, const QIcon &icon, const QStr
     return addSubInterface(widget, icon, text, routeKey, position, QString(), isTransparent);
 }
 
+// Python keys a page by its objectName; a routeKey given here becomes the objectName.
 int FluentWindow::addSubInterface(QWidget *widget, const QIcon &icon, const QString &text, const QString &routeKey,
                                   NavigationItemPosition position, const QString &parentRouteKey, bool isTransparent)
 {
-    if (widget) {
-        widget->setProperty("isStackedTransparent", isTransparent);
+    if (!widget || m_stackedWidget->indexOf(widget) >= 0) {
+        return -1;
     }
 
-    const int index = m_navigation->addPage(widget, text, icon, routeKey, position, parentRouteKey);
-    if (index == 0 && widget) {
-        const QString key = m_navigation->routeKey(index);
-        m_history->setDefaultRouteKey(m_navigation->stackedWidget(), key);
+    QString key = routeKey;
+    if (key.isEmpty()) {
+        key = widget->objectName();
+    }
+    if (key.isEmpty()) {
+        key = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    }
+    if (findInterface(key) || m_navigation->widget(key)) {
+        return -1;
+    }
+
+    widget->setObjectName(key);
+    widget->setProperty("isStackedTransparent", isTransparent);
+    const int index = m_stackedWidget->addWidget(widget);
+    m_navigation->addItem(key, icon, text, position, parentRouteKey);
+
+    if (m_stackedWidget->count() == 1) {
+        m_navigation->setCurrentItem(key);
+        m_history->setDefaultRouteKey(m_stackedWidget, key);
     }
 
     updateStackedBackground();
@@ -682,42 +785,45 @@ int FluentWindow::addSubInterface(QWidget *widget, const QIcon &icon, const QStr
 
 bool FluentWindow::switchTo(QWidget *widget)
 {
-    const int index = m_navigation->indexOf(widget);
+    const int index = m_stackedWidget->indexOf(widget);
     if (index < 0) {
         return false;
     }
 
-    m_navigation->setCurrentIndex(index);
-    return true;
-}
-
-bool FluentWindow::switchTo(const QString &routeKey)
-{
-    if (!m_navigation->contains(routeKey)) {
-        return false;
+    if (index != m_stackedWidget->currentIndex()) {
+        if (auto *scrollArea = qobject_cast<QAbstractScrollArea *>(widget)) {
+            scrollArea->verticalScrollBar()->setValue(0);
+        }
+        m_stackedWidget->setCurrentIndex(index, false, true, 300, QEasingCurve::OutQuad);
     }
-
-    m_navigation->setCurrentRouteKey(routeKey);
     return true;
 }
+
+bool FluentWindow::switchTo(const QString &routeKey) { return switchTo(findInterface(routeKey)); }
 
 bool FluentWindow::removeInterface(QWidget *widget, bool deleteWidget)
 {
-    const QString routeKey = m_navigation->routeKey(m_navigation->indexOf(widget));
-    const bool removed = m_navigation->removePage(m_navigation->indexOf(widget), deleteWidget);
-    if (removed && !routeKey.isEmpty()) {
-        m_history->remove(m_navigation->stackedWidget(), routeKey);
+    const int index = m_stackedWidget->indexOf(widget);
+    if (index < 0) {
+        return false;
     }
-    return removed;
+
+    const QString routeKey = widget->objectName();
+    m_navigation->removeWidget(routeKey);
+    m_stackedWidget->removeWidget(widget);
+    m_history->remove(m_stackedWidget, routeKey);
+    widget->hide();
+    if (deleteWidget) {
+        widget->deleteLater();
+    } else {
+        widget->setParent(nullptr);
+    }
+    return true;
 }
 
 bool FluentWindow::removeInterface(const QString &routeKey, bool deleteWidget)
 {
-    const bool removed = m_navigation->removePage(routeKey, deleteWidget);
-    if (removed) {
-        m_history->remove(m_navigation->stackedWidget(), routeKey);
-    }
-    return removed;
+    return removeInterface(findInterface(routeKey), deleteWidget);
 }
 
 bool FluentWindow::goBack()
@@ -726,25 +832,37 @@ bool FluentWindow::goBack()
         return false;
     }
 
-    // Navigate first, through the interface, so it emits currentIndexChanged() and
-    // currentRouteKeyChanged(); pop() would switch the stack behind its back and leave nothing
-    // to notice.
-    QStackedWidget *stack = m_navigation->stackedWidget();
     m_suppressHistoryPush = true;
-    m_navigation->setCurrentRouteKey(m_history->previousRouteKey(stack));
-    m_history->pop(stack);
+    switchTo(m_history->previousRouteKey(m_stackedWidget));
+    m_history->pop(m_stackedWidget);
     m_suppressHistoryPush = false;
-    updateStackedBackground();
     return true;
 }
 
-bool FluentWindow::canGoBack() const { return m_history->canGoBack(m_navigation->stackedWidget()); }
+bool FluentWindow::canGoBack() const { return m_history->canGoBack(m_stackedWidget); }
 
-QStackedWidget *FluentWindow::stackedWidget() const { return m_navigation->stackedWidget(); }
+QStackedWidget *FluentWindow::stackedWidget() const { return m_stackedWidget; }
 
-QWidget *FluentWindow::currentInterface() const { return m_navigation->currentWidget(); }
+QWidget *FluentWindow::currentInterface() const { return m_stackedWidget->currentWidget(); }
 
-QString FluentWindow::currentRouteKey() const { return m_navigation->currentRouteKey(); }
+QString FluentWindow::currentRouteKey() const
+{
+    QWidget *current = currentInterface();
+    return current ? current->objectName() : QString();
+}
+
+QWidget *FluentWindow::findInterface(const QString &routeKey) const
+{
+    if (routeKey.isEmpty()) {
+        return nullptr;
+    }
+    for (int i = 0; i < m_stackedWidget->count(); ++i) {
+        if (m_stackedWidget->widget(i)->objectName() == routeKey) {
+            return m_stackedWidget->widget(i);
+        }
+    }
+    return nullptr;
+}
 
 bool FluentWindow::isMicaEffectEnabled() const { return m_isMicaEnabled; }
 
@@ -844,12 +962,13 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     const QColor background = m_isMicaEnabled ? micaHitTestBackgroundColor() : windowBackgroundColor();
     painter.setBrush(background);
 
+    QPainterPath path;
 #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    path.addRect(QRectF(rect()));
     painter.drawRect(rect());
 #else
     painter.setRenderHint(QPainter::Antialiasing);
     const QRectF backgroundRect = isMaximized() || isFullScreen() ? QRectF(rect()) : QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
-    QPainterPath path;
     if (isMaximized() || isFullScreen()) {
         path.addRect(backgroundRect);
     } else {
@@ -857,6 +976,13 @@ void FluentWindow::paintEvent(QPaintEvent *event)
     }
     painter.drawPath(path);
 #endif
+
+    // The navigation's strip, left of the page stack, in the title bar's navigation colour.
+    if (!m_isMicaEnabled && m_stackedWidget) {
+        const int stackLeft = m_stackedWidget->mapTo(this, QPoint(0, 0)).x();
+        painter.setClipPath(path);
+        painter.fillRect(QRect(0, 0, stackLeft, height()), navigationBackgroundColor());
+    }
 }
 
 void FluentWindow::resizeEvent(QResizeEvent *event)
@@ -878,34 +1004,26 @@ void FluentWindow::setTitleBarLeftMargin(int margin)
 void FluentWindow::setContentTopMargin(int margin)
 {
     m_contentTopMargin = qMax(0, margin);
-    if (m_navigation) {
-        m_navigation->setContentTopMargin(m_contentTopMargin);
-    }
+    m_widgetLayout->setContentsMargins(0, m_contentTopMargin, 0, 0);
 }
 
 int FluentWindow::titleBarLeftMargin() const { return m_titleBarLeftMargin; }
 
 int FluentWindow::contentTopMargin() const { return m_contentTopMargin; }
 
-void FluentWindow::pushHistory(const QString &routeKey)
+// Python's _onCurrentInterfaceChanged: select the page's item, record it in the history and match
+// the stack's background to the page.
+void FluentWindow::onCurrentInterfaceChanged(int index)
 {
-    if (routeKey.isEmpty()) {
+    QWidget *page = m_stackedWidget->widget(index);
+    if (!page) {
         return;
     }
 
-    m_history->push(m_navigation->stackedWidget(), routeKey);
-}
-
-void FluentWindow::onCurrentRouteKeyChanged(const QString &routeKey)
-{
+    m_navigation->setCurrentItem(page->objectName());
     if (!m_suppressHistoryPush) {
-        pushHistory(routeKey);
+        m_history->push(m_stackedWidget, page->objectName());
     }
-
-    if (m_navigation->navigationPanel()->currentRouteKey() != routeKey) {
-        m_navigation->navigationPanel()->setCurrentItem(routeKey);
-    }
-
     updateStackedBackground();
 }
 
@@ -921,13 +1039,13 @@ void FluentWindow::updateTitleBarGeometry()
 
 void FluentWindow::updateStackedBackground()
 {
-    QWidget *current = m_navigation->currentWidget();
+    QWidget *current = m_stackedWidget->currentWidget();
     if (!current) {
         return;
     }
 
     const bool isTransparent = current->property("isStackedTransparent").toBool();
-    QStackedWidget *stack = m_navigation->stackedWidget();
+    QStackedWidget *stack = m_stackedWidget;
     if (stack->property("isTransparent").toBool() == isTransparent) {
         return;
     }

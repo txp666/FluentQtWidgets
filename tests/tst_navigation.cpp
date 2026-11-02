@@ -42,83 +42,122 @@ class NavigationTest : public QObject
         m_globalState.reset();
     }
 
-    void navigationInterfaceTracksRouteKeys()
+    // Python's NavigationInterface wraps a NavigationPanel and holds no pages; the port's also kept
+    // the page stack, the route keys and the current page.
+    void navigationInterfaceWrapsThePanel()
     {
-        FluentQt::NavigationInterface navigation;
-        auto *home = new QWidget;
-        auto *settings = new QWidget;
-        auto *duplicate = new QWidget;
+        QWidget window;
+        window.resize(1200, 700);
+        auto *navigation = new FluentQt::NavigationInterface(&window);
+        QVERIFY(navigation->findChildren<QStackedWidget *>().isEmpty());
+        QCOMPARE(navigation->panel()->parentWidget(), navigation);
+        QCOMPARE(navigation->width(), 48);
+        QCOMPARE(navigation->minimumWidth(), 48);
+        QVERIFY(navigation->testAttribute(Qt::WA_TranslucentBackground));
+        QVERIFY(navigation->panel()->isMenuButtonVisible());
+        QVERIFY(!navigation->panel()->isReturnButtonVisible());
 
-        QCOMPARE(navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home")), 0);
-        QCOMPARE(navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings")), 1);
-        QCOMPARE(navigation.addPage(duplicate, QStringLiteral("Duplicate"), QIcon(), QStringLiteral("home")), -1);
-        delete duplicate;
+        QSignalSpy clicked(navigation->panel(), &FluentQt::NavigationPanel::itemClicked);
+        auto *home = navigation->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"),
+                                         FluentQt::NavigationItemPosition::Top);
+        const int heightWithHome = navigation->minimumHeight();
+        QCOMPARE(heightWithHome, navigation->panel()->layoutMinHeight());
+        QCOMPARE(heightWithHome, 124); // Python's, measured
+        navigation->addItem(QStringLiteral("settings"), QIcon(), QStringLiteral("Settings"),
+                            FluentQt::NavigationItemPosition::Bottom);
+        QCOMPARE(navigation->minimumHeight(), heightWithHome + 36 + 4);
+        QFrame *separator = navigation->insertSeparator(0, FluentQt::NavigationItemPosition::Top);
+        QVERIFY(separator != nullptr);
+        // Python's layoutMinHeight() counts a separator in its layout and again on its own: +14.
+        QCOMPARE(navigation->minimumHeight(), heightWithHome + 40 + 14);
+        QCOMPARE(navigation->widget(QStringLiteral("home")), home);
 
-        QVERIFY(navigation.addSeparator(FluentQt::NavigationItemPosition::Scroll) != nullptr);
-        QCOMPARE(navigation.count(), 2);
-        QCOMPARE(navigation.currentIndex(), 0);
-        QCOMPARE(navigation.currentRouteKey(), QStringLiteral("home"));
-        QCOMPARE(navigation.navigationPanel()->currentRouteKey(), QStringLiteral("home"));
-        QCOMPARE(navigation.routeKeys(), QList<QString>({QStringLiteral("home"), QStringLiteral("settings")}));
-        QCOMPARE(navigation.widget(QStringLiteral("settings")), settings);
-        QVERIFY(navigation.contains(QStringLiteral("home")));
+        navigation->setCurrentItem(QStringLiteral("settings"));
+        QCOMPARE(navigation->panel()->currentRouteKey(), QStringLiteral("settings"));
 
-        QSignalSpy indexSpy(&navigation, &FluentQt::NavigationInterface::currentIndexChanged);
-        QSignalSpy routeSpy(&navigation, &FluentQt::NavigationInterface::currentRouteKeyChanged);
-        QSignalSpy itemSpy(&navigation, &FluentQt::NavigationInterface::navigationItemClicked);
-        navigation.setCurrentRouteKey(QStringLiteral("settings"));
-        QCOMPARE(navigation.currentIndex(), 1);
-        QCOMPARE(navigation.currentWidget(), settings);
-        QCOMPARE(indexSpy.count(), 1);
-        QCOMPARE(routeSpy.takeFirst().at(0).toString(), QStringLiteral("settings"));
-
-        auto *support = navigation.addItem(QStringLiteral("support"), QIcon(), QStringLiteral("Support"),
-                                           FluentQt::NavigationItemPosition::Bottom, QString(), false);
-        QVERIFY(support != nullptr);
+        auto *support = navigation->addItem(QStringLiteral("support"), QIcon(), QStringLiteral("Support"),
+                                            FluentQt::NavigationItemPosition::Bottom, QString(), false);
         QCOMPARE(support->isSelectable(), false);
         QCOMPARE(support->cursor().shape(), Qt::PointingHandCursor);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
         QTest::mouseClick(support, Qt::LeftButton, Qt::NoModifier, support->rect().center());
-        QCOMPARE(navigation.currentRouteKey(), QStringLiteral("settings"));
-        QCOMPARE(itemSpy.count(), 1);
-        QCOMPARE(itemSpy.takeFirst().at(0).toInt(), -1);
+        QCOMPARE(clicked.size(), 1);
+        QCOMPARE(clicked.takeFirst().at(0).toString(), QStringLiteral("support"));
+        QCOMPARE(navigation->panel()->currentRouteKey(), QStringLiteral("settings"));
 
-        QPointer<QWidget> homePointer(home);
-        QPointer<QWidget> settingsPointer(settings);
-        QVERIFY(navigation.removePage(QStringLiteral("home")));
-        QCOMPARE(navigation.count(), 1);
-        QCOMPARE(navigation.currentIndex(), 0);
-        QCOMPARE(navigation.currentRouteKey(), QStringLiteral("settings"));
-        QCOMPARE(indexSpy.count(), 2);
-        QCOMPARE(routeSpy.count(), 0);
-        QVERIFY(!homePointer.isNull());
-        delete home;
+        navigation->removeWidget(QStringLiteral("support"));
+        QCOMPARE(navigation->widget(QStringLiteral("support")), nullptr);
 
-        QVERIFY(navigation.removePage(QStringLiteral("settings")));
-        QCOMPARE(navigation.count(), 0);
-        QCOMPARE(navigation.currentIndex(), -1);
-        QCOMPARE(navigation.currentRouteKey(), QString());
-        QCOMPARE(routeSpy.takeFirst().at(0).toString(), QString());
-        QVERIFY(!settingsPointer.isNull());
-        delete settings;
+        // The return button and a panel that cannot collapse, as Python's constructor arguments.
+        FluentQt::NavigationInterface fixed(nullptr, true, true, false);
+        QVERIFY(!fixed.panel()->isMenuButtonVisible());
+        QVERIFY(fixed.panel()->isReturnButtonVisible());
+        QVERIFY(!fixed.panel()->isCollapsible());
+        QCOMPARE(fixed.panel()->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+    }
+
+    // The interface is as wide as the panel when compact or expanded in place, so a window layout
+    // gives the rest to the content; as a menu the panel moves onto the window, over the content,
+    // and the interface stays 48 px.
+    void navigationInterfaceFollowsThePanelWidth()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(0);
+        auto *navigation = new FluentQt::NavigationInterface(&window);
+        auto *content = new QWidget(&window);
+        layout->addWidget(navigation);
+        layout->addWidget(content, 1);
+        navigation->addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        window.resize(1200, 700);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCOMPARE(navigation->width(), 48);
+        QCOMPARE(navigation->panel()->height(), navigation->height());
+
+        QSignalSpy modes(navigation, &FluentQt::NavigationInterface::displayModeChanged);
+        navigation->expand(false);
+        QCOMPARE(navigation->panel()->displayMode(), FluentQt::NavigationDisplayMode::Expand);
+        QCOMPARE(modes.size(), 1);
+        QCOMPARE(navigation->width(), 322);
+        QTRY_COMPARE(content->x(), 322);
+
+        navigation->panel()->collapse(false);
+        QCOMPARE(navigation->width(), 48);
+        QTRY_COMPARE(content->x(), 48);
+
+        // Too narrow to expand in place: a menu over the content.
+        window.resize(800, 700);
+        navigation->expand(false);
+        FluentQt::NavigationPanel *panel = navigation->panel();
+        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
+        QCOMPARE(panel->parentWidget(), &window);
+        QCOMPARE(panel->width(), 322);
+        QCOMPARE(navigation->width(), 48);
+        QCOMPARE(window.childAt(QPoint(200, 300)) == panel || panel->isAncestorOf(window.childAt(QPoint(200, 300))),
+                 true);
+
+        panel->collapse(false);
+        QCOMPARE(panel->parentWidget(), navigation);
+        QCOMPARE(panel->pos(), QPoint(0, 0));
+        QVERIFY(panel->isVisible());
+        QCOMPARE(navigation->width(), 48);
     }
 
     void navigationInterfaceSupportsNestedRouteItems()
     {
         FluentQt::NavigationInterface navigation;
-        auto *root = new QWidget;
-        auto *child = new QWidget;
+        navigation.addItem(QStringLiteral("albums"), QIcon(), QStringLiteral("Albums"));
+        navigation.addItem(QStringLiteral("album1"), QIcon(), QStringLiteral("Album 1"),
+                           FluentQt::NavigationItemPosition::Scroll, QStringLiteral("albums"));
+        QVERIFY(navigation.panel()->widget(QStringLiteral("albums")) != nullptr);
+        QVERIFY(navigation.widget(QStringLiteral("album1")) != nullptr);
+        QCOMPARE(navigation.panel()->widget(QStringLiteral("albums"))->childItems().size(), 1);
 
-        QCOMPARE(navigation.addPage(root, QStringLiteral("Albums"), QIcon(), QStringLiteral("albums")), 0);
-        QCOMPARE(navigation.addPage(child, QStringLiteral("Album 1"), QIcon(), QStringLiteral("album1"),
-                                    FluentQt::NavigationItemPosition::Scroll, QStringLiteral("albums")),
-                 1);
-        QVERIFY(navigation.navigationPanel()->widget(QStringLiteral("albums")) != nullptr);
-        QVERIFY(navigation.navigationPanel()->widget(QStringLiteral("album1")) != nullptr);
-        QCOMPARE(navigation.navigationPanel()->widget(QStringLiteral("albums"))->childItems().size(), 1);
-
-        navigation.setCurrentRouteKey(QStringLiteral("album1"));
-        QCOMPARE(navigation.currentWidget(), child);
-        QCOMPARE(navigation.navigationPanel()->currentRouteKey(), QStringLiteral("album1"));
+        navigation.setCurrentItem(QStringLiteral("album1"));
+        QCOMPARE(navigation.panel()->currentRouteKey(), QStringLiteral("album1"));
     }
 
     void navigationInterfaceSupportsCustomWidgetsAndHeaders()
@@ -131,7 +170,7 @@ class NavigationTest : public QObject
         QCOMPARE(header->height(), 0);
 
         // As in Python, the header's height animates even when the panel does not.
-        navigation.navigationPanel()->expand(false);
+        navigation.panel()->expand(false);
         QVERIFY(!header->isCompacted());
         QVERIFY(header->height() < 30);
         QTRY_COMPARE(header->height(), 30);
@@ -139,8 +178,8 @@ class NavigationTest : public QObject
         auto *avatar = new FluentQt::NavigationAvatarWidget(QStringLiteral("zhiyiYo"));
         QCOMPARE(navigation.addWidget(QStringLiteral("avatar"), avatar, FluentQt::NavigationItemPosition::Bottom),
                  avatar);
-        QCOMPARE(navigation.navigationPanel()->navigationWidget(QStringLiteral("avatar")), avatar);
-        QVERIFY(navigation.navigationPanel()->widget(QStringLiteral("avatar")) == nullptr);
+        QCOMPARE(navigation.panel()->navigationWidget(QStringLiteral("avatar")), avatar);
+        QVERIFY(navigation.panel()->widget(QStringLiteral("avatar")) == nullptr);
         QCOMPARE(avatar->name(), QStringLiteral("zhiyiYo"));
 
         auto *userCard = navigation.addUserCard(QStringLiteral("user"), QIcon(), QStringLiteral("User"),
@@ -150,35 +189,17 @@ class NavigationTest : public QObject
         QCOMPARE(userCard->subtitle(), QStringLiteral("user@example.com"));
         QCOMPARE(userCard->size(), QSize(312, 80));
 
-        navigation.navigationPanel()->collapse(false);
+        navigation.panel()->collapse(false);
         QVERIFY(header->isCompacted());
         QTRY_COMPARE(header->height(), 0);
         QTRY_VERIFY(header->isHidden());
         QCOMPARE(userCard->size(), QSize(40, 36));
     }
 
-    void navigationInterfaceUsesPopUpStackAnimation()
-    {
-        FluentQt::NavigationInterface navigation;
-        auto *home = new QWidget;
-        auto *settings = new QWidget;
-
-        QCOMPARE(navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home")), 0);
-        QCOMPARE(navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings")), 1);
-
-        auto *stack = qobject_cast<FluentQt::PopUpAniStackedWidget *>(navigation.stackedWidget());
-        QVERIFY(stack != nullptr);
-        QSignalSpy startSpy(stack, &FluentQt::PopUpAniStackedWidget::aniStart);
-        QSignalSpy finishedSpy(stack, &FluentQt::PopUpAniStackedWidget::aniFinished);
-
-        navigation.setCurrentRouteKey(QStringLiteral("settings"));
-        QCOMPARE(startSpy.count(), 1);
-        QCOMPARE(navigation.currentIndex(), 1);
-        QCOMPARE(navigation.currentWidget(), settings);
-        QTRY_COMPARE(finishedSpy.count(), 1);
-    }
-
-    void navigationInterfaceCompactBackgroundStaysOpaqueWithAcrylicEnabled()
+    // Acrylic is for the menu only; compact, the panel is transparent as Python's
+    // (NavigationPanel[menu=false]) and the window's background shows through. The port's
+    // interface painted its own window-coloured strip behind it.
+    void navigationInterfaceCompactPanelShowsTheWindowWithAcrylicEnabled()
     {
         auto *theme = FluentQt::ThemeManager::instance();
         const FluentQt::Theme previousTheme = theme->theme();
@@ -190,54 +211,14 @@ class NavigationTest : public QObject
         navigation.show();
         QVERIFY(QTest::qWaitForWindowExposed(&navigation));
 
-        QVERIFY(!navigation.navigationPanel()->property("transparent").toBool());
+        QVERIFY(!navigation.panel()->property("transparent").toBool());
 
         QImage image(navigation.size(), QImage::Format_ARGB32_Premultiplied);
         image.fill(Qt::transparent);
-        navigation.render(&image);
-        const QColor background = image.pixelColor(8, 100);
-        QCOMPARE(background.alpha(), 255);
-        QCOMPARE(background.red(), 32);
-        QCOMPARE(background.green(), 32);
-        QCOMPARE(background.blue(), 32);
+        navigation.render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+        QCOMPARE(image.pixelColor(8, 100).alpha(), 0);
 
         theme->setTheme(previousTheme);
-    }
-
-    void navigationInterfacePanelStaysAboveContent()
-    {
-        FluentQt::NavigationInterface navigation;
-        navigation.resize(960, 640);
-
-        auto *home = new QWidget;
-        auto *settings = new QWidget;
-        navigation.addPage(home, QStringLiteral("Home"), QIcon(), QStringLiteral("home"));
-        navigation.addPage(settings, QStringLiteral("Settings"), QIcon(), QStringLiteral("settings"));
-
-        navigation.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&navigation));
-
-        auto *panel = navigation.navigationPanel();
-        panel->expand(false);
-        QCOMPARE(panel->displayMode(), FluentQt::NavigationDisplayMode::Menu);
-        QVERIFY(panel->width() > FluentQt::NavigationPanel::kCompactWidth);
-
-        const QPoint overlayPoint(FluentQt::NavigationPanel::kCompactWidth + 20, 100);
-        auto isPanelHit = [&navigation, panel, overlayPoint]() {
-            QWidget *hit = navigation.childAt(overlayPoint);
-            return hit == panel || (hit && panel->isAncestorOf(hit));
-        };
-        QVERIFY(isPanelHit());
-
-        navigation.stackedWidget()->parentWidget()->raise();
-        QVERIFY(!isPanelHit());
-        navigation.stackedWidget()->setCurrentIndex(1);
-        QTRY_VERIFY(isPanelHit());
-
-        navigation.stackedWidget()->parentWidget()->raise();
-        QVERIFY(!isPanelHit());
-        navigation.setCurrentRouteKey(QStringLiteral("home"));
-        QTRY_VERIFY(isPanelHit());
     }
 
     void navigationPanelMenuButtonTogglesExpansion()

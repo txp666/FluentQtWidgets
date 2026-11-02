@@ -1,204 +1,79 @@
 #include <FluentQtWidgets/Navigation/NavigationInterface.h>
 
-#include <FluentQtWidgets/Navigation/NavigationPanel.h>
 #include <FluentQtWidgets/StyleSheet.h>
-#include <FluentQtWidgets/Theme.h>
-#include <FluentQtWidgets/Widgets/StackedWidget.h>
 
 #include <QtCore/QEvent>
-#include <QtCore/QPointer>
-#include <QtCore/QSignalBlocker>
-#include <QtCore/QUuid>
-#include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
-#include <QtWidgets/QAbstractScrollArea>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QStackedWidget>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QWidget>
+#include <QtGui/QResizeEvent>
 
 namespace FluentQt {
 
-namespace {
-
-class NavigationCornerBackdrop final : public QWidget
+NavigationInterface::NavigationInterface(QWidget *parent, bool showMenuButton, bool showReturnButton, bool collapsible)
+    : QWidget(parent)
 {
-  public:
-    NavigationCornerBackdrop(QWidget *parent, QStackedWidget *stack)
-        : QWidget(parent), m_stack(stack)
-    {
-        setAttribute(Qt::WA_TranslucentBackground, true);
-        setAttribute(Qt::WA_TransparentForMouseEvents, true);
-        setAutoFillBackground(false);
-        setFixedSize(12, 12);
-        if (m_stack) {
-            m_stack->installEventFilter(this);
-        }
-        connect(ThemeManager::instance(), &ThemeManager::effectiveThemeChanged, this,
-                [this](Theme) { update(); });
-        syncGeometry();
-        lower();
-    }
-
-  protected:
-    bool eventFilter(QObject *watched, QEvent *event) override
-    {
-        if (watched == m_stack &&
-            (event->type() == QEvent::Move || event->type() == QEvent::Resize ||
-             event->type() == QEvent::Show || event->type() == QEvent::DynamicPropertyChange)) {
-            syncGeometry();
-            update();
-        }
-        return QWidget::eventFilter(watched, event);
-    }
-
-    void paintEvent(QPaintEvent *) override
-    {
-        if (!m_stack || m_stack->property("isTransparent").toBool()) {
-            return;
-        }
-
-        constexpr qreal radius = 10.0;
-        QPainterPath surface;
-        surface.moveTo(0.0, radius);
-        surface.arcTo(QRectF(0.0, 0.0, radius * 2.0, radius * 2.0), 180.0, -90.0);
-        surface.lineTo(width(), 0.0);
-        surface.lineTo(width(), height());
-        surface.lineTo(0.0, height());
-        surface.closeSubpath();
-
-        QPainterPath outside;
-        outside.setFillRule(Qt::OddEvenFill);
-        outside.addRect(QRectF(rect()));
-        outside.addPath(surface);
-
-        const bool dark = ThemeManager::instance()->effectiveTheme() == Theme::Dark;
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setPen(Qt::NoPen);
-        painter.fillPath(outside, dark ? QColor(32, 32, 32) : QColor(243, 243, 243));
-    }
-
-  private:
-    void syncGeometry()
-    {
-        if (m_stack) {
-            move(m_stack->pos());
-        }
-    }
-
-    QPointer<QStackedWidget> m_stack;
-};
-
-} // namespace
-
-NavigationInterface::NavigationInterface(QWidget *parent, bool showReturnButton)
-    : QFrame(parent)
-{
-    setAttribute(Qt::WA_TranslucentBackground, true);
     FluentStyleSheet::setRole(this, QStringLiteral("NavigationInterface"));
 
-    auto *layout = new QHBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-
-    m_navigationSpacer = new QWidget(this);
-    m_navigationSpacer->setAttribute(Qt::WA_StyledBackground, true);
-    FluentStyleSheet::setRole(m_navigationSpacer, QStringLiteral("NavigationSpacer"));
-    m_navigationSpacer->setFixedWidth(NavigationPanel::kCompactWidth);
-    layout->addWidget(m_navigationSpacer);
-
-    m_contentWidget = new QWidget(this);
-    m_contentWidget->setAttribute(Qt::WA_TranslucentBackground, true);
-    m_contentLayout = new QVBoxLayout(m_contentWidget);
-    m_contentLayout->setContentsMargins(0, 0, 0, 0);
-    m_contentLayout->setSpacing(0);
-
-    m_stackedWidget = new PopUpAniStackedWidget(m_contentWidget);
-    m_stackedWidget->setObjectName(QStringLiteral("NavigationStack"));
-    m_stackedWidget->setAttribute(Qt::WA_StyledBackground, true);
-    FluentStyleSheet::setRole(m_stackedWidget, QStringLiteral("NavigationStack"));
-    m_contentLayout->addWidget(m_stackedWidget);
-    new NavigationCornerBackdrop(m_contentWidget, m_stackedWidget);
-    layout->addWidget(m_contentWidget, 1);
-
     m_panel = new NavigationPanel(this);
+    m_panel->setMenuButtonVisible(showMenuButton && collapsible);
     m_panel->setReturnButtonVisible(showReturnButton);
+    m_panel->setCollapsible(collapsible);
     m_panel->installEventFilter(this);
-    updatePanelGeometry();
-    ensureNavigationPanelOnTop();
+    connect(m_panel, &NavigationPanel::displayModeChanged, this, &NavigationInterface::displayModeChanged);
 
-    connect(m_panel, &NavigationPanel::itemClicked, this, &NavigationInterface::onPanelItemClicked);
-    connect(m_panel, &NavigationPanel::displayModeChanged, this, [this](NavigationDisplayMode) {
-        updateNavigationSpacerWidth();
-        ensureNavigationPanelOnTop();
-    });
-    connect(m_stackedWidget, &PopUpAniStackedWidget::aniStart, this,
-            &NavigationInterface::ensureNavigationPanelOnTop);
-    connect(m_stackedWidget, &QStackedWidget::currentChanged, this,
-            &NavigationInterface::ensureNavigationPanelOnTop);
+    resize(NavigationPanel::kCompactWidth, height());
+    setMinimumWidth(NavigationPanel::kCompactWidth);
+    setAttribute(Qt::WA_TranslucentBackground);
 }
 
-int NavigationInterface::addPage(QWidget *page, const QString &title, const QIcon &icon)
-{
-    return addPage(page, title, icon, QString());
-}
-
-int NavigationInterface::addPage(QWidget *page, const QString &title, const QIcon &icon, const QString &routeKey)
-{
-    return addPage(page, title, icon, routeKey, NavigationItemPosition::Scroll);
-}
-
-int NavigationInterface::addPage(QWidget *page, const QString &title, const QIcon &icon, const QString &routeKey,
-                                 NavigationItemPosition position)
-{
-    return addPage(page, title, icon, routeKey, position, QString());
-}
-
-int NavigationInterface::addPage(QWidget *page, const QString &title, const QIcon &icon, const QString &routeKey,
-                                 NavigationItemPosition position, const QString &parentRouteKey)
-{
-    if (!page) {
-        return -1;
-    }
-
-    const QString key = ensureRouteKey(page, routeKey);
-    if (key.isEmpty() || contains(key)) {
-        return -1;
-    }
-
-    const int index = m_stackedWidget->addWidget(page);
-    page->setProperty("routeKey", key);
-    page->setObjectName(key);
-
-    m_panel->addItem(key, icon, title, position, parentRouteKey);
-    m_routeOrder.append(key);
-
-    if (index == 0) {
-        setCurrentIndex(0);
-    }
-
-    ensureNavigationPanelOnTop();
-    return index;
-}
+NavigationPanel *NavigationInterface::panel() const { return m_panel; }
 
 NavigationTreeWidget *NavigationInterface::addItem(const QString &routeKey, const QIcon &icon, const QString &text,
                                                    NavigationItemPosition position, const QString &parentRouteKey,
                                                    bool selectable)
 {
-    return m_panel->addItem(routeKey, icon, text, position, parentRouteKey, selectable);
+    return insertItem(-1, routeKey, icon, text, position, parentRouteKey, selectable);
+}
+
+NavigationTreeWidget *NavigationInterface::insertItem(int index, const QString &routeKey, const QIcon &icon,
+                                                      const QString &text, NavigationItemPosition position,
+                                                      const QString &parentRouteKey, bool selectable)
+{
+    NavigationTreeWidget *item = m_panel->insertItem(index, routeKey, icon, text, position, parentRouteKey, selectable);
+    updateMinimumHeight();
+    return item;
 }
 
 NavigationWidget *NavigationInterface::addWidget(const QString &routeKey, NavigationWidget *widget,
                                                  NavigationItemPosition position, const QString &parentRouteKey)
 {
-    return m_panel->addWidget(routeKey, widget, position, parentRouteKey);
+    return insertWidget(-1, routeKey, widget, position, parentRouteKey);
+}
+
+NavigationWidget *NavigationInterface::insertWidget(int index, const QString &routeKey, NavigationWidget *widget,
+                                                    NavigationItemPosition position, const QString &parentRouteKey)
+{
+    NavigationWidget *added = m_panel->insertWidget(index, routeKey, widget, position, parentRouteKey);
+    updateMinimumHeight();
+    return added;
+}
+
+QFrame *NavigationInterface::addSeparator(NavigationItemPosition position) { return insertSeparator(-1, position); }
+
+QFrame *NavigationInterface::insertSeparator(int index, NavigationItemPosition position)
+{
+    QFrame *separator = m_panel->insertSeparator(index, position);
+    updateMinimumHeight();
+    return separator;
 }
 
 NavigationItemHeader *NavigationInterface::addItemHeader(const QString &text, NavigationItemPosition position)
 {
     return m_panel->addItemHeader(text, position);
+}
+
+NavigationItemHeader *NavigationInterface::insertItemHeader(int index, const QString &text,
+                                                            NavigationItemPosition position)
+{
+    return m_panel->insertItemHeader(index, text, position);
 }
 
 NavigationUserCard *NavigationInterface::addUserCard(const QString &routeKey, const QIcon &avatar,
@@ -215,233 +90,59 @@ NavigationUserCard *NavigationInterface::addUserCard(const QString &routeKey, co
     return m_panel->addUserCard(routeKey, avatarPath, title, subtitle, position);
 }
 
-QFrame *NavigationInterface::addSeparator(NavigationItemPosition position) { return m_panel->addSeparator(position); }
-
-bool NavigationInterface::removePage(int index, bool deleteWidget)
+NavigationWidget *NavigationInterface::widget(const QString &routeKey) const
 {
-    if (index < 0 || index >= count()) {
-        return false;
-    }
-
-    const int previousIndex = currentIndex();
-    const QString previousRouteKey = currentRouteKey();
-    QWidget *page = widget(index);
-    if (!page) {
-        return false;
-    }
-
-    const QString key = routeKey(index);
-    m_panel->removeWidget(key);
-    m_routeOrder.removeAt(index);
-
-    m_stackedWidget->removeWidget(page);
-    if (deleteWidget) {
-        page->deleteLater();
-    } else {
-        page->setParent(nullptr);
-    }
-
-    if (count() == 0) {
-        if (previousIndex != -1) {
-            emit currentIndexChanged(-1);
-        }
-        if (!previousRouteKey.isEmpty()) {
-            emit currentRouteKeyChanged(QString());
-        }
-        return true;
-    }
-
-    int nextIndex = previousIndex;
-    if (index < previousIndex) {
-        nextIndex = previousIndex - 1;
-    } else if (index == previousIndex) {
-        nextIndex = qMin(index, count() - 1);
-    }
-
-    m_stackedWidget->setCurrentIndex(nextIndex);
-    m_panel->setCurrentItem(routeKey(nextIndex));
-
-    const QString nextRouteKey = routeKey(nextIndex);
-    if (previousIndex != nextIndex) {
-        emit currentIndexChanged(nextIndex);
-    }
-    if (previousRouteKey != nextRouteKey) {
-        emit currentRouteKeyChanged(nextRouteKey);
-    }
-    return true;
+    return m_panel->navigationWidget(routeKey);
 }
 
-bool NavigationInterface::removePage(const QString &routeKey, bool deleteWidget)
-{
-    return removePage(indexOf(routeKey), deleteWidget);
-}
+bool NavigationInterface::isAcrylicEnabled() const { return m_panel->isAcrylicEnabled(); }
 
-int NavigationInterface::count() const { return m_stackedWidget->count(); }
+bool NavigationInterface::isIndicatorAnimationEnabled() const { return m_panel->isIndicatorAnimationEnabled(); }
 
-int NavigationInterface::currentIndex() const { return m_stackedWidget->currentIndex(); }
+void NavigationInterface::removeWidget(const QString &routeKey) { m_panel->removeWidget(routeKey); }
 
-QString NavigationInterface::currentRouteKey() const { return routeKey(currentIndex()); }
+void NavigationInterface::setCurrentItem(const QString &routeKey) { m_panel->setCurrentItem(routeKey); }
 
-QWidget *NavigationInterface::currentWidget() const { return m_stackedWidget->currentWidget(); }
+void NavigationInterface::expand(bool animated) { m_panel->expand(animated); }
 
-QWidget *NavigationInterface::widget(int index) const
-{
-    return index >= 0 && index < count() ? m_stackedWidget->widget(index) : nullptr;
-}
+void NavigationInterface::toggle() { m_panel->toggle(); }
 
-QWidget *NavigationInterface::widget(const QString &routeKey) const { return widget(indexOf(routeKey)); }
+void NavigationInterface::setExpandWidth(int width) { m_panel->setExpandWidth(width); }
 
-int NavigationInterface::indexOf(QWidget *page) const { return m_stackedWidget->indexOf(page); }
+void NavigationInterface::setMinimumExpandWidth(int width) { m_panel->setMinimumExpandWidth(width); }
 
-int NavigationInterface::indexOf(const QString &routeKey) const
-{
-    return static_cast<int>(m_routeOrder.indexOf(routeKey));
-}
+void NavigationInterface::setMenuButtonVisible(bool visible) { m_panel->setMenuButtonVisible(visible); }
 
-QString NavigationInterface::routeKey(int index) const
-{
-    return index >= 0 && index < m_routeOrder.size() ? m_routeOrder.at(index) : QString();
-}
+void NavigationInterface::setReturnButtonVisible(bool visible) { m_panel->setReturnButtonVisible(visible); }
 
-QList<QString> NavigationInterface::routeKeys() const { return m_routeOrder; }
+void NavigationInterface::setCollapsible(bool collapsible) { m_panel->setCollapsible(collapsible); }
 
-bool NavigationInterface::contains(const QString &routeKey) const { return indexOf(routeKey) >= 0; }
+void NavigationInterface::setAcrylicEnabled(bool enabled) { m_panel->setAcrylicEnabled(enabled); }
 
-QStackedWidget *NavigationInterface::stackedWidget() const { return m_stackedWidget; }
+void NavigationInterface::setIndicatorAnimationEnabled(bool enabled) { m_panel->setIndicatorAnimationEnabled(enabled); }
 
-NavigationPanel *NavigationInterface::navigationPanel() const { return m_panel; }
-
-int NavigationInterface::contentTopMargin() const { return m_contentTopMargin; }
-
-bool NavigationInterface::isAcrylicEnabled() const { return m_panel && m_panel->isAcrylicEnabled(); }
-
-void NavigationInterface::setCurrentIndex(int index)
-{
-    if (index < 0 || index >= m_stackedWidget->count()) {
-        return;
-    }
-
-    const bool changed = index != m_stackedWidget->currentIndex();
-    if (changed) {
-        if (auto *scrollArea = qobject_cast<QAbstractScrollArea *>(m_stackedWidget->widget(index))) {
-            scrollArea->verticalScrollBar()->setValue(0);
-        }
-        m_stackedWidget->setCurrentIndex(index, false, true, 300, QEasingCurve::OutQuad);
-    }
-
-    const QString key = routeKey(index);
-    if (m_panel->currentRouteKey() != key) {
-        m_panel->setCurrentItem(key);
-    }
-
-    if (changed) {
-        emit currentIndexChanged(index);
-        emit currentRouteKeyChanged(key);
-    }
-    ensureNavigationPanelOnTop();
-}
-
-void NavigationInterface::setCurrentRouteKey(const QString &routeKey) { setCurrentIndex(indexOf(routeKey)); }
-
-void NavigationInterface::setContentTopMargin(int margin)
-{
-    m_contentTopMargin = qMax(0, margin);
-    if (m_contentLayout) {
-        m_contentLayout->setContentsMargins(0, m_contentTopMargin, 0, 0);
-    }
-}
-
-void NavigationInterface::setAcrylicEnabled(bool enabled)
-{
-    if (m_panel) {
-        m_panel->setAcrylicEnabled(enabled);
-    }
-}
-
-void NavigationInterface::setMinimumExpandWidth(int width)
-{
-    if (m_panel) {
-        m_panel->setMinimumExpandWidth(width);
-    }
-}
-
+// The interface follows the panel's width while it is compact or expanded in place; as a menu the
+// panel sits on the window and the interface keeps its compact width.
 bool NavigationInterface::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == m_panel && event->type() == QEvent::Resize) {
-        updateNavigationSpacerWidth();
+    if (watched == m_panel && event->type() == QEvent::Resize &&
+        m_panel->displayMode() != NavigationDisplayMode::Menu) {
+        auto *resizeEvent = static_cast<QResizeEvent *>(event);
+        if (resizeEvent->oldSize().width() != resizeEvent->size().width()) {
+            setFixedWidth(resizeEvent->size().width());
+        }
     }
-    return QFrame::eventFilter(watched, event);
+    return QWidget::eventFilter(watched, event);
 }
 
 void NavigationInterface::resizeEvent(QResizeEvent *event)
 {
-    QFrame::resizeEvent(event);
-    updatePanelGeometry();
-    updateNavigationSpacerWidth();
-    ensureNavigationPanelOnTop();
-}
-
-QString NavigationInterface::ensureRouteKey(QWidget *page, const QString &routeKey) const
-{
-    if (!routeKey.isEmpty()) {
-        return routeKey;
-    }
-
-    if (page && !page->objectName().isEmpty()) {
-        return page->objectName();
-    }
-
-    return QUuid::createUuid().toString(QUuid::WithoutBraces);
-}
-
-void NavigationInterface::onPanelItemClicked(const QString &routeKey)
-{
-    const int index = indexOf(routeKey);
-    if (index < 0) {
-        emit navigationItemClicked(-1, routeKey);
-        return;
-    }
-
-    setCurrentIndex(index);
-    emit navigationItemClicked(index, routeKey);
-}
-
-void NavigationInterface::ensureNavigationPanelOnTop()
-{
-    if (m_panel) {
-        m_panel->raise();
+    QWidget::resizeEvent(event);
+    if (event->oldSize().height() != height()) {
+        m_panel->setFixedHeight(height());
     }
 }
 
-void NavigationInterface::updatePanelGeometry()
-{
-    if (!m_panel) {
-        return;
-    }
-
-    m_panel->setFixedHeight(height());
-    m_panel->move(0, 0);
-    if (m_panel->width() <= 0) {
-        m_panel->resize(NavigationPanel::kCompactWidth, height());
-    }
-}
-
-void NavigationInterface::updateNavigationSpacerWidth()
-{
-    if (!m_panel || !m_navigationSpacer) {
-        return;
-    }
-
-    const int width = m_panel->displayMode() == NavigationDisplayMode::Expand
-                          ? qMax(m_panel->width(), NavigationPanel::kCompactWidth)
-                          : NavigationPanel::kCompactWidth;
-    if (m_navigationSpacer->width() != width) {
-        m_navigationSpacer->setFixedWidth(width);
-        m_navigationSpacer->updateGeometry();
-        if (layout()) {
-            layout()->activate();
-        }
-    }
-}
+void NavigationInterface::updateMinimumHeight() { setMinimumHeight(m_panel->layoutMinHeight()); }
 
 } // namespace FluentQt

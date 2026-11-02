@@ -63,7 +63,7 @@ class DemoWindow : public FluentWindow
         addSubInterface(settingInterface, icon(FluentIcon::Setting), QStringLiteral("Settings"),
                         QStringLiteral("settings"), NavigationItemPosition::Bottom);
 
-        if (auto *videoItem = navigationInterface()->navigationPanel()->widget(QStringLiteral("video"))) {
+        if (auto *videoItem = navigationInterface()->panel()->widget(QStringLiteral("video"))) {
             InfoBadge::attention(9, nullptr, videoItem, InfoBadgePosition::NavigationItem);
         }
 

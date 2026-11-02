@@ -329,7 +329,6 @@ FluentStyleSheetSource styleSheetSourceForRole(const QString &role)
         {QStringLiteral("NavigationBar"), FluentStyleSheetSource::NavigationInterface},
         {QStringLiteral("NavigationBarPushButton"), FluentStyleSheetSource::NavigationInterface},
         {QStringLiteral("NavigationPanel"), FluentStyleSheetSource::NavigationInterface},
-        {QStringLiteral("NavigationSpacer"), FluentStyleSheetSource::NavigationInterface},
         {QStringLiteral("NavigationScrollWidget"), FluentStyleSheetSource::NavigationInterface},
         {QStringLiteral("NavigationSeparator"), FluentStyleSheetSource::NavigationInterface},
         {QStringLiteral("NavigationStack"), FluentStyleSheetSource::FluentWindow},
