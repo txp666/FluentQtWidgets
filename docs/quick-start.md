@@ -1,196 +1,140 @@
 # Quick Start
 
-## Configure
+How to build FluentQtWidgets, run the Gallery and the examples, and use the library in your own CMake project.
+[Controls](controls.md) gives an overview of the widgets.
 
-Use the preset that matches your local Qt kit. On macOS/Linux the default debug
-preset uses `build/debug`; on Windows MinGW the checked-in preset uses
-`build/mingw`.
+## Requirements
 
-```powershell
-cmake --preset ninja-debug
+- CMake 3.21+ and a C++17 compiler
+- Qt 6.5+ with Core, Gui, Widgets, Svg and Network
+- Optional: Qt Multimedia and MultimediaWidgets (media widgets and their examples), Qt WebEngineWidgets (only the
+  standalone WebEngine example)
+
+## Build
+
+The CMake options are `FQW_BUILD_EXAMPLES` (on by default), `FQW_BUILD_TESTS` (off by default) and
+`FQW_BUILD_SHARED` (on by default). Any generator works:
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=<path-to-qt> -DFQW_BUILD_TESTS=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 ```
 
-On Windows with Qt MinGW, make the matching Qt kit, MinGW compiler, and Ninja
-visible before configuring:
+`CMakePresets.json` has presets with examples and tests on. They don't name a Qt kit, compiler or debugger, so
+make your Qt visible through `CMAKE_PREFIX_PATH` or `Qt6_DIR` first.
+
+```bash
+# macOS / Linux, in build/debug
+cmake --preset ninja-debug
+cmake --build --preset debug --parallel
+ctest --preset debug --output-on-failure
+```
+
+### Windows
+
+The compiler and generator must match the Qt kit: build a MinGW kit with MinGW and an MSVC kit with MSVC. If CMake
+cannot find `Qt6Config.cmake`, point `CMAKE_PREFIX_PATH` at the kit's root or `Qt6_DIR` at the directory that
+holds `Qt6Config.cmake`.
+
+For a Qt MinGW kit, make the kit, the MinGW compiler and Ninja visible in the terminal, then use the
+`mingw-debug` preset, which builds in `build/mingw`:
 
 ```powershell
 $env:CMAKE_PREFIX_PATH = "<path-to-qt-mingw-kit>"
 $env:Path = "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$env:Path"
+
 cmake --preset mingw-debug
-```
-
-## Build
-
-```powershell
-cmake --build --preset debug --parallel
-# Windows MinGW:
 cmake --build --preset mingw-debug --parallel
+ctest --preset mingw-debug --output-on-failure
 ```
 
-## One-Click Demo Entries
+Machine-specific settings belong in environment variables, your IDE's kit selection or a `CMakeUserPresets.json`,
+which git ignores; copy `CMakeUserPresets.json.example` to start one (it has MinGW and MSVC presets). Don't commit
+it.
 
-Regenerate `.vscode/launch.json`, `.vscode/tasks.json`, and `examples/examples.json` after example changes:
+- VS Code tasks inherit the environment VS Code was started with: start it from a terminal set up as above, set
+  the same user environment variables, or use a `CMakeUserPresets.json`. The `Gallery: Debug` launch entry uses
+  `gdb.exe`, so the MinGW `bin` directory must be on `PATH`.
+- Close a running Gallery before rebuilding; the linker cannot replace a running `.exe`.
+- `ninja: error: loading 'build.ninja'` means the build directory isn't configured yet: run
+  `cmake --preset mingw-debug` again.
+- If PowerShell shows both `PATH` and `Path`, start a clean terminal or fix the user environment; otherwise the
+  MinGW tools can fail without a compiler message.
 
-```powershell
-python3 scripts/generate_vscode_examples.py
+Builds on Windows run `windeployqt`, so the Gallery and examples start from the build directory.
+
+## Run the Gallery
+
+```bash
+cmake --build --preset debug --target FluentQtWidgetsGallery --parallel
+./build/debug/examples/gallery/FluentQtWidgetsGallery              # Linux
+open ./build/debug/examples/gallery/FluentQtWidgetsGallery.app     # macOS
 ```
-
-`examples/examples.json` includes a compact manifest with every demo target, platform-specific build/run commands, optional feature flags (`FQW_HAS_MULTIMEDIA`, `FQW_HAS_WEBENGINE_WIDGETS`), and an `enabled` state derived from the current `build/CMakeCache.txt` when present.
-
-Run one entry directly from the manifest:
-
-```powershell
-python3 scripts/run_example.py --list
-python3 scripts/run_example.py --build-only examples/basic_input/button
-python3 scripts/run_example.py --build examples/basic_input/button
-```
-
-## Run Gallery
-
-Gallery builds run `windeployqt` automatically on Windows, so the executable directory already contains the required Qt DLLs.
 
 ```powershell
 cmake --build --preset mingw-debug --target FluentQtWidgetsGallery --parallel
 .\build\mingw\examples\gallery\FluentQtWidgetsGallery.exe
 ```
 
-The Gallery language selector applies immediately in the current process by rebuilding the Gallery window with the selected locale while preserving the current route and window state.
+Changing the language in the Gallery's settings rebuilds the window in the new language and keeps the current
+page. The Gallery checks GitHub Releases for a newer version; see [Release and OTA](release.md).
 
-## Standalone Examples
+## Examples
 
-Standalone examples follow the Python reference categories. Prefer the generated
-manifest when browsing or launching demos:
+`examples/` holds 75 standalone demos in the categories of the Python examples (`basic_input`, `date_time`,
+`dialog_flyout`, `layout`, `material`, `media`, `menu`, `navigation`, `scroll`, `status_info`, `text`, `view`,
+`window`). Each builds as `fqw_<category>_<name>_demo`, for example `fqw_basic_input_button_demo` from
+`examples/basic_input/button`. `fqw_media_media_player_demo` needs Qt Multimedia, and `fqw_window_web_engine_demo`
+Qt WebEngineWidgets.
 
-```powershell
-python3 scripts/run_example.py --list
-python3 scripts/run_example.py --build examples/basic_input/button
-cmake --build --preset mingw-debug --target fqw_basic_input_button_demo --parallel
-```
-
-`fqw_media_media_player_demo` is generated when Qt Multimedia and Qt MultimediaWidgets are available. `fqw_window_web_engine_demo` is generated when Qt WebEngineWidgets is available.
-
-Current standalone demos:
-
-- `examples/basic_input/button`: push, tool, dropdown, split, toggle, hyperlink, and pill button variants
-- `examples/basic_input/check_box`: two-state and three-state Fluent checkbox behavior
-- `examples/basic_input/combo_box`: placeholder and selection behavior for `ComboBox`
-- `examples/basic_input/model_combo_box`: placeholder and selection behavior for `ModelComboBox`
-- `examples/basic_input/radio_button`: grouped Fluent radio buttons
-- `examples/basic_input/slider`: hollow-handle style and Fluent horizontal/vertical sliders
-- `examples/basic_input/switch_button`: Fluent switch with checked-state text
-- `examples/date_time/calendar_picker`: Fluent calendar picker
-- `examples/date_time/fast_calendar_picker`: fast calendar picker variant
-- `examples/date_time/time_picker`: date, zh-date, AM/PM time, 24-hour time, and seconds pickers
-- `examples/dialog_flyout/color_dialog`: Fluent color picker button with alpha support
-- `examples/dialog_flyout/custom_message_box`: subclassed `MessageBoxBase` with URL validation
-- `examples/dialog_flyout/dialog`: frameless dialog and custom message box
-- `examples/dialog_flyout/folder_list_dialog`: Fluent folder list dialog
-- `examples/dialog_flyout/flyout`: simple, image, and custom flyout views
-- `examples/dialog_flyout/message_dialog`: draggable message box API
-- `examples/dialog_flyout/teaching_tip`: image, icon, and popup teaching tips
-- `examples/layout/adaptive_flow_layout`: responsive card-width flow layout
-- `examples/layout/flow_layout`: animated wrapping flow layout
-- `examples/material/acrylic_brush`: acrylic brush with clipped blurred texture
-- `examples/material/acrylic_combo_box`: acrylic combo and editable combo popups
-- `examples/material/acrylic_flyout`: acrylic flyout views and custom acrylic popup content
-- `examples/material/acrylic_label`: acrylic blurred image label with tint overlay
-- `examples/material/acrylic_line_edit`: acrylic search line edit with completer/context menus
-- `examples/material/acrylic_menu`: acrylic round menu with submenu and shortcuts
-- `examples/material/acrylic_tool_tip`: acrylic tooltip filter over Fluent buttons
-- `examples/material/acrylic_widget_menu`: acrylic round menu with embedded profile widget
-- `examples/media/avatar_widget`: circular static and animated avatar widgets
-- `examples/media/media_player`: simple and standard Fluent media play bars plus video widget
-- `examples/menu/command_bar`: command bar actions, overflow menu, and dropdown button
-- `examples/menu/menu`: animated round menu with submenu, shortcuts, and checkable actions
-- `examples/menu/system_tray_menu`: Fluent system tray context menu
-- `examples/menu/widget_menu`: round menu with embedded profile widget
-- `examples/navigation/breadcrumb_bar`: Python-style breadcrumb route stack and page switching
-- `examples/navigation/navigation1`: expanded FluentWindow navigation with nested album routes and avatar item
-- `examples/navigation/navigation2`: SplitFluentWindow navigation with return history and bottom avatar item
-- `examples/navigation/navigation3`: compact top navigation backed by a popup NavigationPanel
-- `examples/navigation/navigation_bar`: Microsoft Store-style vertical navigation bar
-- `examples/navigation/navigation_header`: navigation item headers that collapse in compact mode
-- `examples/navigation/navigation_user_card`: FluentWindow navigation user card with avatar, title, and subtitle
-- `examples/navigation/pivot`: pivot navigation over stacked pages
-- `examples/navigation/segmented_tool_widget`: icon-only segmented toggle navigation
-- `examples/navigation/segmented_widget`: segmented text navigation over stacked pages
-- `examples/navigation/stacked_widget`: entrance and drill-in transition stacked widgets
-- `examples/navigation/tab_view`: low-level `TabBar` with stacked pages
-- `examples/navigation/tab_widget`: `TabWidget` with add, close, and movable tabs
-- `examples/scroll/pips_pager`: horizontal and vertical pips pagers
-- `examples/scroll/scroll_area`: smooth scroll area with image content
-- `examples/status_info/info_badge`: count, dot, icon, custom, and attached info badges
-- `examples/status_info/info_bar`: severity, custom icon, and positioned info bars
-- `examples/status_info/progress_bar`: determinate and indeterminate progress bars
-- `examples/status_info/progress_ring`: determinate and indeterminate progress rings
-- `examples/status_info/state_tool_tip`: state tooltip lifecycle
-- `examples/status_info/tool_tip`: Fluent tooltip filter positions
-- `examples/text/font_icon`: Fluent icon buttons with theme switching
-- `examples/text/image_label`: static and animated image labels with corner radii
-- `examples/text/label`: Fluent text label scale and hyperlink labels
-- `examples/text/line_edit`: search line edit with completer
-- `examples/text/spin_box`: inline and compact spin/date/time editors
-- `examples/text/text_browser`: Fluent text browser with markdown content
-- `examples/view/card_widget`: app, gallery, and emoji card compositions
-- `examples/view/flip_view`: image flip view with pips pager
-- `examples/view/list_view`: Fluent list widget rows
-- `examples/view/table_view`: Fluent table widget with border styling
-- `examples/view/tree_view`: Fluent tree view with file system model
-- `examples/view/tree_widget`: Fluent tree widget hierarchy
-- `examples/window/clock`: SplitFluentWindow clock app with focus and stopwatch pages
-- `examples/window/fluent_widget`: frameless Fluent base widget with title bar and theme toggle
-- `examples/window/fluent_window`: frameless Fluent window with nested navigation, separator, bottom item, and badge
-- `examples/window/login`: Fluent login window with image background and right-side form
-- `examples/window/ms_fluent_window`: Microsoft Store-style Fluent window backed by `NavigationBar`
-- `examples/window/settings`: settings page built from Fluent setting cards
-- `examples/window/split_fluent_window`: split-style Fluent window with full-width title bar
-- `examples/window/splash_screen`: Fluent splash screen attached to a frameless Fluent window
-- `examples/window/web_engine`: SplitFluentWindow hosting a WebEngine page when Qt WebEngineWidgets is available
-
-## Test
-
-```powershell
-ctest --preset debug --output-on-failure
-# Windows MinGW:
-ctest --preset mingw-debug --output-on-failure
-```
-
-## Release Artifacts
-
-Tag builds publish Gallery archives through GitHub Actions. The archives are uploaded to the matching GitHub Release and are used by Gallery update detection.
+`scripts/run_example.py` builds and runs them from the manifest `examples/examples.json`:
 
 ```bash
-git tag v0.1.5
-git push origin main v0.1.5
+python3 scripts/run_example.py --list
+python3 scripts/run_example.py --build examples/basic_input/button
+python3 scripts/run_example.py --build-only fqw_basic_input_check_box_demo
 ```
 
-Release rules, asset names, and OTA behavior are documented in [Release and OTA](release.md).
+After adding or renaming an example, regenerate the manifest and the VS Code `tasks.json` / `launch.json` with
+`python3 scripts/generate_vscode_examples.py`. The manifest lists each target with its build and run commands,
+the optional features it needs (`FQW_HAS_MULTIMEDIA`, `FQW_HAS_WEBENGINE_WIDGETS`) and whether the current build
+enables it.
 
-## Consume
+## Use the library
+
+Install it, then find it from your project:
+
+```bash
+cmake --install build --prefix <install-prefix>
+```
 
 ```cmake
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(FluentQtWidgets CONFIG REQUIRED)
-target_link_libraries(my_app PRIVATE FluentQtWidgets::Widgets)
+target_link_libraries(my_app PRIVATE Qt6::Widgets FluentQtWidgets::Widgets)
 ```
 
-The umbrella header is:
+One header brings in the whole API, in the `FluentQt` namespace:
 
 ```cpp
 #include <FluentQtWidgets/FluentQtWidgets.h>
 ```
 
-Apply the theme once after creating `QApplication`:
+Set the theme after creating the `QApplication`. `FluentConfig` stores the user's theme, accent colour and other
+settings in a JSON file in the application's config folder; its setters apply the theme and accent at once.
 
 ```cpp
-FluentQt::FluentConfig::instance()->load();
-FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Auto);
-FluentQt::ThemeManager::instance()->applyTo(&app);
+auto *config = FluentQt::FluentConfig::instance();
+config->load();
+FluentQt::ThemeManager::instance()->setTheme(config->themeMode());
+FluentQt::ThemeManager::instance()->setAccentColor(config->themeColor());
+
+// later, when the user changes them
+config->setThemeMode(FluentQt::Theme::Dark);
+config->setThemeColor(QColor("#0078d4"));
+config->save();
 ```
 
-Persist user-facing settings through `FluentConfig`:
-
-```cpp
-FluentQt::FluentConfig::instance()->setThemeMode(FluentQt::Theme::Dark);
-FluentQt::FluentConfig::instance()->setThemeColor(QColor("#0078d7"));
-FluentQt::FluentConfig::instance()->save();
-```
+The Gallery (`examples/gallery`) shows how a complete application uses navigation, settings, translations and
+themes.
