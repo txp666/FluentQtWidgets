@@ -13,7 +13,27 @@ Every widget was compared with PyQt-Fluent-Widgets 1.11.3, the reference the por
 - `FluentStyleSheetSource::ProgressBar` and `FluentStyleSheetSource::RadioButton` are removed, along with other style sheet rules and roles that nothing used.
 - `IconWidget` fills its rect and has no size hint, as in Python. Call `setIconSize()` for a fixed size.
 - `NavigationPanel::setMinimumExpandWidth()` accepts any width. With `0`, the panel expands in place at any window width.
-- New `CheckableSystemTrayMenu`, from qfluentwidgets: a checkable menu for tray icons, without the right and bottom shadow margins.
+- New `CheckableSystemTrayMenu`, from Python: a checkable menu for tray icons, without the right and bottom shadow margins.
+- `FolderListDialog` is rewritten as Python's `MaskDialogBase` with `AddFolderCard`, `FolderCard` and `ClickableWindow`: `folders()` → `folderPaths()`, `addFolderButton()` → `addFolderCard()`, `yesButton()` → `completeButton()`, and `setFolders()`, `addFolder()`, `removeFolder()` and `FolderPickerDialog` are removed. It emits `folderChanged(QStringList)` when Done is clicked after a change.
+- `MessageDialog` is Python's Win10-style `MaskDialogBase` with `titleLabel()`, `contentLabel()`, `yesButton()`, `cancelButton()`, `yesSignal` and `cancelSignal`; the `MessageBox` members it inherited are gone.
+- `ComboBoxSettingCard(configItem, icon, title, content, texts, parent)` takes an `OptionsConfigItem` and follows it both ways, as in Python, with `comboBox()`, `configItem()` and `setValue()`. Its forwarding members (`addItem()`, `addItems()`, `setCurrentIndex()`, `currentIndex()`, `currentText()` and their signals) and `bindComboBoxSettingCard()` are removed. New `AcrylicComboBoxSettingCard`.
+- `FolderListSettingCard` emits Python's `folderChanged(QStringList)` in place of `foldersChanged`, `folderAdded` and `folderRemoved`.
+- `CustomColorSettingCard` has Python's "Choose color" button: `colorPicker()` → `chooseColorButton()`, and new `radioWidget()`, `radioLayout()`, `buttonGroup()`, `customColorWidget()`, `customColorLayout()` and `customLabel()`. `ColorSettingCard` and `CustomColorSettingCard` take Python's trailing `enableAlpha`.
+- `BreadcrumbBar` is rewritten as Python's painted items: `BreadcrumbItem` is a widget, with the new `BreadcrumbWidget` and `ElideButton`; `currentItem()`, `item()` and `itemAt()` return a `BreadcrumbItem *`; `setItems()` and `itemClicked` are removed.
+- `NavigationInterface` is Python's thin wrapper around a `NavigationPanel`: `navigationPanel()` → `panel()`, and the page API (`addPage()`, `removePage()`, `currentIndex()`, `currentRouteKey()`, their signals) and `contentTopMargin` are removed. `FluentWindow` owns the page stack and keys pages by object name; its `addPage()` is removed. `NavigationPanel` gains `setCollapsible()`, `insertSeparator()` and `layoutMinHeight()`.
+- Navigation items, separators and headers added without a position, and `FluentWindow::addSubInterface()` pages, go to `NavigationItemPosition::Top`, as in Python, not `Scroll`.
+- `NavigationWidget::setExpandWidth()` and `expandWidth()`: `NavigationPanel::setExpandWidth()` widens its items and separators with it, as Python's `EXPAND_WIDTH` does.
+- `NavigationBar` takes its width from the layout, as in Python; `NavigationBar::kBarWidth` is removed.
+- `Pivot`, `SegmentedWidget` and `SegmentedToggleToolWidget` select nothing until `setCurrentItem()`, as in Python.
+- New `SegmentedToolWidget` and `SegmentedToolItem`, Python's icon-only segmented control.
+- `NavigationUserCard` has Python's `textOpacity` property and `setAnimationDuration()`.
+- `TabBar` and `TabWidget` have Python's `setTabMinimumWidth()`, `tabMinimumWidth()`, `setTabTextColor()` and `setTabSelectedBackgroundColor()`; `TabItem` has `setTextColor()` and `setSelectedBackgroundColor()`.
+- `AcrylicLabel` is rewritten as Python's `QLabel`: `AcrylicLabel(blurRadius, tintColor, luminosityColor, maxBlurSize, parent)`, `setImage(path)`, `imagePath()`, `blurPixmap()`, `acrylicTextureLabel()` and `blurThread()`, with the new `BlurCoverThread`, `AcrylicTextureLabel` and `gaussianBlur()`. The `QWidget *`, `QImage`, `QPixmap` and path constructors, `setImage(QImage)`, `setPixmap()`, `setImagePath()`, `image()`, `isNull()`, `tintColor()`, the aspect ratio mode and the changed signals are removed. `AcrylicBrush::setImagePath()` → `setImage(QString)`.
+- New `AcrylicToolTipContainer` (`AcrylicToolTip::acrylicContainer()`) and a protected `ToolTip(QFrame *container, QWidget *parent)` constructor, Python's `_createContainer()`.
+- New `AcrylicCompleterMenuActionListWidget`, `AcrylicComboMenuActionListWidget` and `AcrylicMenuActionListWidget::clipPath()`, as in Python; `AcrylicSystemTrayMenu::sizeHint()` and `AcrylicFlyoutViewBase::acrylicBorderColor()` are removed.
+- `RoundMenu::adjustPosition()` is public, as in Python.
+- `FluentWidget` and the window classes have Python's `setCustomBackgroundColor(light, dark)`, with `lightBackgroundColor()`, `darkBackgroundColor()` and `backgroundColor()`. The title bar's `navigationBackground` property is removed.
+- The media classes are ported from Python's `multimedia` package: `MediaPlayerBase`, `MediaPlayer` (wrapping a `QMediaPlayer` and its `QAudioOutput`), `MediaPlayBarBase`, `SimpleMediaPlayBar`, `StandardMediaPlayBar`, `MediaPlayBarButton`, `PlayButton`, `VolumeButton`, `VolumeView` and `VideoWidget`, in the new headers `Multimedia/MediaPlayBar.h` and `Multimedia/VideoWidget.h`. The play bars no longer derive from each other and lose `setSource()`, `togglePlay()`, `audioOutput()`, `timeLabel()` and `volumeSlider()` (use `player()->setSource()`, `togglePlayState()`, the player's volume and the volume button); `player()` returns a `MediaPlayerBase *`. `VideoWidget` is a `QGraphicsView`: `videoOutput()` → `videoItem()`, and the audio output is the player's.
 
 ### Size and look
 
@@ -28,7 +48,12 @@ Every widget was compared with PyQt-Fluent-Widgets 1.11.3, the reference the por
 - Views: table and tree headers use the Python section style. List, table and tree items use a 13 px font, Python's text and check box positions, and the Python tree row height. Tables select several rows with Ctrl and Shift. Lists have no extra viewport margins. Bordered tables have square corners. A table's row indicator is hidden while it is scrolled sideways.
 - Cards and scrolling: `HeaderCardWidget` titles use a 15 px font. Card backgrounds fade between states. An elevated card shows its shadow only under the mouse. `SimpleCardWidget` has no layout. Pips pagers and flip views use Python's sizes, buttons and fades, and the transition stacks use Python's easing curves.
 - Settings: setting cards and group titles are drawn as in Python. The switch card puts its On/Off text left of the switch. The combo box card keeps the combo box's own width. Expandable cards use plain labels. Colour pickers are outlined and their dialog has a title. The folder list card asks before removing a folder.
-- Windows: title bars place their buttons, icon and title as in Python.
+- Windows: title bars place their buttons, icon and title as in Python. Without Mica the windows paint Python's rgb(240, 244, 249) or rgb(32, 32, 32) behind a transparent title bar and navigation, instead of rgb(249, 249, 249) with rgb(243, 243, 243) strips.
+- Fonts: every widget that Python gives a font with `setFont()` or `getFont()` builds it from the Fluent families at Python's size, so an application font no longer changes the widgets (push buttons were 30 px tall in the Gallery). The line edit style sheet no longer overrides that font, and tooltips use the Fluent families.
+- Dialogs: the frameless `Dialog` no longer cuts off its button row; it fits its content, at least 240 × 192, with Python's fonts and a painted 1 px frame. With a parent, the mask dialogs are child overlays of the parent's window everywhere, as in Python; `ColorDialog` has a maximum size and scrolls in a short window; `MessageBoxBase` honours a minimum width set on `widget()`; `MessageBox` wraps at 100 characters and is its layout's natural size. The mask dialogs' painted shadow is as soft as Python's drop shadow. `FolderListDialog`'s mask has Python's 1 px border.
+- Setting cards: disabled card and group icons fade to 0.36 opacity instead of the style's grey. Expandable group cards have the same height whatever the order of show, adding groups and expanding.
+- Navigation: long item texts are cut at the item's edge as in Python instead of elided; the tree arrow is 9.6 px. The navigation bar icon slides down as Python's when the selected text is hidden, and the user card animates its avatar and text when it expands or compacts.
+- Material: `AcrylicLabel` blurs with Python's Gaussian filter on a worker thread, and `AcrylicBrush` uses the same blur. Acrylic menus are as tall as plain ones (Python's 6 px margins) and the completer's has square corners towards the line edit. `AcrylicToolTip` blurs what is behind it. The acrylic flyout border uses `borderColor()`. Acrylic tray menus move inside the screen when shown.
 - `HeaderCardWidget` and `GroupHeaderCardWidget` titles follow theme changes.
 - `MessageBox` widens for buttons added to `buttonLayout()`, so a third button such as "Don't save" no longer overlaps the others.
 
@@ -36,15 +61,21 @@ Every widget was compared with PyQt-Fluent-Widgets 1.11.3, the reference the por
 
 - Drop-down and pull-up menus (combo boxes, drop-down buttons, submenus) open without flashing on every platform: the window opens at its end position and the list slides inside it. Pull-up menus rise from their bottom edge. On macOS, menus open where they are placed and no longer settle 32 px low with their last row cut off.
 - The arrow keys move through a line edit's completer menu while typing continues in the edit.
+- Acrylic menus, flyouts and the navigation panel no longer repaint continuously while visible.
+- `RealtimePlotWidget`'s context menu closes before any of its actions runs, also when triggered by a shortcut, so no save dialog opens over it.
+- The library strings added by the rewrites (folder dialogs, Choose color, title bar and navigation tool tips, media bars) are translated to Simplified and Traditional Chinese.
 
 ### Tests and tools
 
 - `tst_python_parity` compares the size, size hint, minimum and maximum size of every widget the port shares with qfluentwidgets 1.11.3 (206 rows) with measurements of the Python original. `tools/parity/measure_python.py` regenerates those measurements. See `tools/parity/README.md`.
+- `tst_media` (built with Qt Multimedia) checks the media classes against geometry measured with `tools/parity/measure_python_media.py`; `tst_fonts` checks the widget fonts under a different application font.
+- `tools/screenshots` renders the README screenshots and the Gallery tour GIF (`-DFQW_BUILD_SCREENSHOTS=ON`).
 
 ### Project
 
 - FluentQtWidgets has its own logo, a small Fluent window, in place of the copy of PyQt-Fluent-Widgets' "W" logo. It is used for the Gallery, its app icons and the login example. The README screenshots show it.
 - The README comes in Chinese (`README.md`) and English (`README_EN.md`), and Gallery packages include both. The guides describe the current API: `docs/controls.md` replaces `docs/controls-basic.md`, the build steps live in `docs/quick-start.md`, and the outdated API roadmap is removed.
+- A Qt Multimedia installed apart from Qt needs its prefix in `QT_ADDITIONAL_PACKAGES_PREFIX_PATH` as well as `CMAKE_PREFIX_PATH`; `docs/quick-start.md` shows the command.
 
 ## 0.1.10
 

@@ -208,8 +208,8 @@ group->addSettingCard(new FluentQt::FolderListSettingCard(
 ```
 
 - Cards: `SettingCard`, `SettingCardGroup`, `PushSettingCard`, `PrimaryPushSettingCard`, `HyperlinkCard`,
-  `SwitchSettingCard`, `RangeSettingCard`, `ComboBoxSettingCard`, `ColorSettingCard`, `OptionsSettingCard`,
-  `FolderListSettingCard`, `CustomColorSettingCard`.
+  `SwitchSettingCard`, `RangeSettingCard`, `ComboBoxSettingCard`, `AcrylicComboBoxSettingCard`,
+  `ColorSettingCard`, `OptionsSettingCard`, `FolderListSettingCard`, `CustomColorSettingCard`.
 - Expandable: `ExpandSettingCard`, `HeaderSettingCard`, `ExpandButton`, `ExpandGroupSettingCard`,
   `SimpleExpandGroupSettingCard`, `GroupWidget`, `GroupSeparator`, `FolderItem`.
 - Colour: `ColorDialog`, `ColorPickerButton`, `HuePanel`, `BrightnessSlider`, `ColorCard`, `HexColorLineEdit`,
@@ -217,9 +217,11 @@ group->addSettingCard(new FluentQt::FolderListSettingCard(
 - Configuration: `FluentConfig`, `ConfigItem`, `RangeConfigItem`, `OptionsConfigItem`, `ColorConfigItem`,
   `ConfigItemRegistry`.
 
-Cards expose their child widgets and Qt signals; binding them to a `ConfigItem` is optional.
+Cards expose their child widgets and Qt signals; binding most of them to a `ConfigItem` is optional.
 `SwitchSettingCard` shows its On/Off text left of the switch. `RangeSettingCard::slider()` is a `Slider`.
-`ComboBoxSettingCard` keeps the combo box as wide as its items. `ColorDialog` edits hue, brightness, RGB, hex and,
+`ComboBoxSettingCard(configItem, icon, title, content, texts)` takes an `OptionsConfigItem`, as Python's does: one
+combo box item per text and option, kept in step with the config item both ways (`comboBox()`, `setValue()`); the
+combo box is as wide as its items. `AcrylicComboBoxSettingCard` is the same with an `AcrylicComboBox`. `ColorDialog` edits hue, brightness, RGB, hex and,
 optionally, opacity; `ColorSettingCard`'s `ColorPickerButton` and `CustomColorSettingCard`'s Choose color
 `chooseColorButton()` open it instead of Qt's colour dialog, with alpha when built with `enableAlpha`.
 
@@ -227,7 +229,8 @@ optionally, opacity; `ColorSettingCard`'s `ColorPickerButton` and `CustomColorSe
 header, content into `viewLayout()`. Expanding animates the visible height of the view. In a resizable outer
 `QScrollArea`, give the content's layout `QLayout::SetMinAndMaxSize` so the scroll range follows the cards' height;
 the library does not set it on your layouts. `FolderListSettingCard` keeps a `QStringList`, puts its Add folder
-button in the header and one 53 px `FolderItem` per folder in the view, and asks before removing a folder.
+button in the header and one 53 px `FolderItem` per folder in the view, asks before removing a folder, and emits
+`folderChanged(QStringList)` after a folder is added or removed.
 
 ## Status and info
 
@@ -275,11 +278,14 @@ FluentQt::Flyout::create("Tip", "Saved to your library.", FluentQt::icon(FluentQ
   `FolderListDialog` (with `ClickableWindow`, `FolderCard`, `AddFolderCard`).
 - Flyouts: `Flyout`, `FlyoutView`, `FlyoutViewBase`, `TeachingTip`, `PopupTeachingTip`, `TeachingTipView`.
 
-`Dialog`, `MessageBox` and `MessageBoxBase` expose `view()`, `widget()`, `viewLayout()`, `titleLabel()`,
-`contentLabel()`, `buttonGroup()`, `yesButton()`, `cancelButton()`, `vBoxLayout()`, `textLayout()`,
-`buttonLayout()`, `yesSignal`, `cancelSignal`, `setContentCopyable()`, `hideYesButton()` and
-`hideCancelButton()`. Return accepts the dialog through the virtual `validate()`. A `MessageBox` is at least as
-wide as its title, message and buttons, including buttons added to `buttonLayout()`.
+`Dialog` and `MessageBoxBase` expose `view()`, `widget()`, `viewLayout()`, `vBoxLayout()`, `buttonGroup()`,
+`yesButton()`, `cancelButton()`, `buttonLayout()`, `yesSignal`, `cancelSignal`, `hideYesButton()` and
+`hideCancelButton()`; `Dialog` and `MessageBox` add `titleLabel()`, `contentLabel()` and `setContentCopyable()`.
+Return accepts the dialog through the virtual `validate()`. `Dialog` is a frameless window at least 240 × 192 that
+fits its content. With a parent, the mask dialogs (`MaskDialogBase` and its subclasses) are child overlays of the
+parent's window, as in Python. A `MessageBox` is its layout's natural size, including buttons added to
+`buttonLayout()`. `MessageDialog` is Python's Win10-style dialog: plain labels and two buttons placed by hand,
+with `titleLabel()`, `contentLabel()`, `yesButton()`, `cancelButton()`, `yesSignal` and `cancelSignal`.
 
 `FolderListDialog(folderPaths, title, content, parent)` is Python's masked folder list: an `AddFolderCard` that
 opens a `QFileDialog`, one 292 x 72 `FolderCard` per folder that asks before removing it, and a Done
@@ -345,15 +351,21 @@ window->switchTo("home");
 - Pages: `OpacityAniStackedWidget`, `PopUpAniStackedWidget`, `TransitionStackedWidget`,
   `EntranceTransitionStackedWidget`, `DrillInTransitionStackedWidget`.
 
-`NavigationInterface` wraps a `NavigationPanel` as in Python: it is 48 px wide when compact, as wide as the panel
-when expanded, and holds no pages. `FluentWindow` keeps the page stack beside it and switches pages on the panel's
-`itemClicked()`; a window of your own does the same with its own stack. Items are identified by route keys. `addSubInterface()` and `addItem()` take a parent key for nested items, and
-`addItem()` takes `selectable = false` for command items that emit their key without changing the page. The panel
+`NavigationInterface` wraps a `NavigationPanel` (`panel()`) as in Python: it is 48 px wide when compact, as wide as
+the panel when it expands in place, stays 48 px while the panel opens as a menu over the content, and holds no
+pages. `FluentWindow` keeps the page stack beside it, keys pages by their object name (a route key given to
+`addSubInterface()` becomes it) and switches pages on the panel's `itemClicked()`; a window of your own does the
+same with its own stack. Items go to `NavigationItemPosition::Top` unless given another position, as in Python.
+`addSubInterface()` and `addItem()` take a parent key for nested items, and `addItem()` takes
+`selectable = false` for command items that emit their key without changing the page.
+`NavigationPanel::setExpandWidth()` widens the items with the panel, and long item texts are cut at the item's
+edge as in Python. The panel
 expands in place when the window is at least `setMinimumExpandWidth()` wide (any width with 0) and opens as a menu
-otherwise. `NavigationBar` buttons are 64 × 58. `BreadcrumbBar` paints text-high `BreadcrumbItem` widgets with
+otherwise. `NavigationBar` buttons are 64 × 58, and the bar takes its width from the layout. `BreadcrumbBar` paints text-high `BreadcrumbItem` widgets with
 the chevron inside each one (20 px for its 14 px font) and hides the leading items behind an ellipsis menu when they
 do not fit; it exposes `currentItem()`, `currentIndex`, `spacing`, `popItem()`, `item()`, `itemAt()` and
-`setItemText()`.
+`setItemText()`. `Pivot`, `SegmentedWidget` and `SegmentedToggleToolWidget` select nothing until
+`setCurrentItem()`. `SegmentedToolWidget` is the icon-only segmented control, with 38 × 33 `SegmentedToolItem`s.
 
 ```cpp
 auto *tabs = new FluentQt::TabWidget;
@@ -364,7 +376,8 @@ tabs->setMovable(true);
 ```
 
 `TabBar` has route keys, add and close signals, drag reordering, scrolling when the tabs overflow, and tab shadows;
-`TabWidget` puts it over a page stack.
+`setTabMinimumWidth()`, `setTabTextColor()` and `setTabSelectedBackgroundColor()` are Python's. `TabWidget` puts
+the bar over a page stack and forwards these.
 
 The stacked widgets animate page changes: fade, pop-up, entrance and drill-in.
 
@@ -417,7 +430,8 @@ splash->show();
 `FramelessWindowHelper`.
 
 The windows are frameless with a `FluentTitleBar`, resize from their edges, and use Mica on Windows 11
-(`setMicaEffectEnabled()`). `FluentWidget` is the base window with custom light and dark backgrounds.
+(`setMicaEffectEnabled()`). Without Mica they paint Python's background, rgb(240, 244, 249) or rgb(32, 32, 32),
+or the colours given to `setCustomBackgroundColor(light, dark)`. `FluentWidget` is the base window.
 `FluentWindow` adds side navigation and back history, `MSFluentWindow` the Microsoft Store navigation bar, and
 `SplitFluentWindow` a full-width title bar over the navigation. `SplashScreen` covers the window while it builds and
 fades out.
@@ -433,10 +447,11 @@ auto *menu = new FluentQt::AcrylicMenu("Actions", parent);
 `AcrylicBrush`, `AcrylicLabel`, `AcrylicLineEdit`, `AcrylicSearchLineEdit`, `AcrylicComboBox`,
 `AcrylicEditableComboBox`, `AcrylicMenu`, `AcrylicCheckableMenu`, `AcrylicSystemTrayMenu`,
 `AcrylicCheckableSystemTrayMenu`, `AcrylicFlyout`, `AcrylicFlyoutView`, `AcrylicFlyoutViewBase`, `AcrylicToolTip`,
-`AcrylicToolTipFilter`.
+`AcrylicToolTipContainer`, `AcrylicToolTipFilter`, `AcrylicComboBoxSettingCard`.
 
 `AcrylicBrush` blurs a screen capture or an image and adds tint, luminosity and noise; the acrylic widgets use it for
-their popups. `AcrylicBrush::setScreenCaptureEnabled()` turns screen capture off for the whole application, and
+their popups, painted inside Python's clip paths, and the tray menus move inside the screen when they are shown
+(`RoundMenu::adjustPosition()`). `AcrylicBrush::setScreenCaptureEnabled()` turns screen capture off for the whole application, and
 where a capture is not available (`isScreenCaptureAvailable()`) the surfaces fall back to an opaque tint.
 
 `AcrylicLabel` is Python's: a `QLabel` that blurs an image file on a background thread (`BlurCoverThread`, a
@@ -450,7 +465,8 @@ label->setImage(":/images/cover.jpg");
 
 ## Media
 
-Built when Qt Multimedia and MultimediaWidgets are found (`FQW_HAS_MULTIMEDIA`).
+Built when Qt Multimedia and MultimediaWidgets are found (`FQW_HAS_MULTIMEDIA`). A Qt Multimedia installed apart
+from Qt also needs `QT_ADDITIONAL_PACKAGES_PREFIX_PATH` (see [Quick start](quick-start.md)).
 
 `MediaPlayerBase`, `MediaPlayer`, `MediaPlayBarBase`, `SimpleMediaPlayBar`, `StandardMediaPlayBar`,
 `MediaPlayBarButton`, `PlayButton`, `VolumeButton`, `VolumeView`, `VideoWidget`.
@@ -463,7 +479,7 @@ volume slider. Each bar creates a `MediaPlayer`, which wraps a `QMediaPlayer` an
 another engine. `VideoWidget` shows a video with a `StandardMediaPlayBar` that fades in on hover.
 
 ```cpp
-auto *bar = new StandardMediaPlayBar(this);
+auto *bar = new FluentQt::StandardMediaPlayBar(this);
 bar->player()->setSource(QUrl::fromLocalFile(path));
 bar->play();
 ```

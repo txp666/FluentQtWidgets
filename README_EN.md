@@ -50,7 +50,7 @@ It is a **C++/Qt Widgets port** of the Python [PyQt-Fluent-Widgets](https://gith
 
 ## Features
 
-- **200+ widgets and components**: buttons of every kind (accent, drop-down, split, toggle, pill, hyperlink), check boxes, radio buttons, switches, sliders, combo boxes, line edits and spin boxes; date and time pickers; navigation panels, pivots, segmented controls, breadcrumbs and tabs; list, table and tree views; dialogs, flyouts, teaching tips, rounded menus and command bars; info bars, badges, progress bars and rings; setting cards.
+- **200+ widgets and components**: buttons of every kind (accent, drop-down, split, toggle, pill, hyperlink), check boxes, radio buttons, switches, sliders, combo boxes, line edits and spin boxes; date and time pickers; navigation panels, pivots, segmented controls, breadcrumbs and tabs; list, table and tree views; dialogs, flyouts, teaching tips, rounded menus and command bars; info bars, badges, progress bars and rings; setting cards; media play bars and a video widget (with Qt Multimedia).
 - **Native charts**: `ChartWidget` draws bar, line, area, donut, scatter, radar, gauge and heatmap charts from an ECharts-style JSON option; `RealtimePlotWidget` handles dense live data streams; `AudioWaveformWidget` shows waveforms.
 - **Theming**: light, dark or follow the system, with a custom accent colour, all switchable at run time. Your own widgets can get one style sheet per theme with `FluentStyleSheet::setCustomStyleSheet()`.
 - **Windows and materials**: frameless `FluentWindow`, `MSFluentWindow` and `SplitFluentWindow`, Mica backgrounds on Windows 11, and acrylic menus, flyouts, line edits and tooltips.
@@ -110,7 +110,7 @@ To try it first, download the Gallery for your platform from [Releases](https://
 
 - CMake 3.21+ and a C++17 compiler
 - Qt 6.5+ (Core, Gui, Widgets, Svg, Network)
-- Optional: Qt Multimedia + MultimediaWidgets for the media widgets; Qt WebEngineWidgets only for the standalone WebEngine example
+- Optional: Qt Multimedia + MultimediaWidgets for the media widgets (a separately installed Qt Multimedia also needs `QT_ADDITIONAL_PACKAGES_PREFIX_PATH`, see [Quick start](docs/quick-start.md)); Qt WebEngineWidgets only for the standalone WebEngine example
 
 ## Building
 

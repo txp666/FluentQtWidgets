@@ -36,6 +36,17 @@ and `LuminaPushButton` buttons, `Chip`, `Tag`, `AdaptiveFlowLayout`, the charts,
   `QListWidget`s, so `currentIndex()` is a plain integer.
 - `RoundMenu::exec()` returns at once, as in Python; use `execAndWait()` where C++ code expects `QMenu::exec()`.
 - Ownership follows Qt's parent-child model: give every widget a parent or a layout.
+- A Python class that is two Qt classes at once becomes one that owns the other: Python's `MediaPlayer` is a
+  `QMediaPlayer`, the port's implements `MediaPlayerBase` and hands out its `QMediaPlayer` and `QAudioOutput`
+  (`mediaPlayer()`, `audioOutput()`).
+- A Python method that subclasses override to supply a part becomes a protected constructor argument: Python's
+  `ToolTip._createContainer()` is the `ToolTip` constructor that takes the container, as `AcrylicToolTip` uses.
+- Python class attributes that set every instance become per-object settings: `NavigationWidget.EXPAND_WIDTH` is
+  `NavigationWidget::setExpandWidth()`, which `NavigationPanel::setExpandWidth()` calls on its items.
+- Worker threads hand back a `QImage`, since a `QPixmap` cannot be made off the GUI thread: `BlurCoverThread`
+  emits one where Python's emits a `QPixmap`.
+- Widgets build their fonts from the Fluent families at Python's pixel sizes, as Python's `setFont()` and
+  `getFont()` do, so an application font doesn't change their size.
 - Resources keep the `:/qfluentwidgets` prefix and the Python file layout.
 - Gallery route keys keep the Python object names (`basicInputInterface`, `dateTimeInterface`,
   `navigationViewInterface`, ...), and the Gallery starts as Python's does: splash screen, pages and navigation,

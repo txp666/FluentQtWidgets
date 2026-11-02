@@ -10,6 +10,14 @@ How to build FluentQtWidgets, run the Gallery and the examples, and use the libr
 - Optional: Qt Multimedia and MultimediaWidgets (media widgets and their examples), Qt WebEngineWidgets (only the
   standalone WebEngine example)
 
+A Qt Multimedia installed apart from Qt (for example built into its own prefix) needs that prefix in both
+`CMAKE_PREFIX_PATH` and `QT_ADDITIONAL_PACKAGES_PREFIX_PATH`, or Qt's own package config does not find it:
+
+```bash
+cmake -S . -B build "-DCMAKE_PREFIX_PATH=<path-to-qt>;<multimedia-prefix>" \
+      "-DQT_ADDITIONAL_PACKAGES_PREFIX_PATH=<multimedia-prefix>"
+```
+
 ## Build
 
 The CMake options are `FQW_BUILD_EXAMPLES` (on by default), `FQW_BUILD_TESTS` (off by default),

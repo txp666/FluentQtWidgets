@@ -50,7 +50,7 @@ FluentQtWidgets 是一个面向 C++/Qt Widgets 的 Fluent Design 风格控件库
 
 ## 功能特性
 
-- **200+ 控件与组件**：各式按钮（主题色、下拉、分裂、切换、药丸、超链接）、复选框、单选框、开关、滑块、下拉框、输入框、数字框，日期与时间选择器，导航栏、Pivot、分段控件、面包屑与标签页，列表、表格和树视图，对话框、Flyout、TeachingTip、圆角菜单与命令栏，InfoBar、徽章、进度条与进度环，以及设置卡片。
+- **200+ 控件与组件**：各式按钮（主题色、下拉、分裂、切换、药丸、超链接）、复选框、单选框、开关、滑块、下拉框、输入框、数字框，日期与时间选择器，导航栏、Pivot、分段控件、面包屑与标签页，列表、表格和树视图，对话框、Flyout、TeachingTip、圆角菜单与命令栏，InfoBar、徽章、进度条与进度环，设置卡片，以及媒体播放栏与视频控件（需 Qt Multimedia）。
 - **原生图表**：`ChartWidget` 使用类 ECharts 的 JSON 配置绘制柱状、折线、面积、环形、散点、雷达、仪表盘与热力图；`RealtimePlotWidget` 适合高密度实时数据流，另有 `AudioWaveformWidget` 波形控件。
 - **主题**：浅色、深色或跟随系统，主题色可自定义，均可在运行时切换。自定义控件可用 `FluentStyleSheet::setCustomStyleSheet()` 为两个主题各提供一份样式。
 - **窗口与材质**：无边框的 `FluentWindow`、`MSFluentWindow` 与 `SplitFluentWindow`，Windows 11 上的 Mica 背景，亚克力材质的菜单、浮层、输入框与提示。
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 
 - CMake 3.21+ 与支持 C++17 的编译器
 - Qt 6.5+（Core、Gui、Widgets、Svg、Network）
-- 可选：Qt Multimedia + MultimediaWidgets，用于媒体控件；Qt WebEngineWidgets，仅独立 WebEngine 示例需要
+- 可选：Qt Multimedia + MultimediaWidgets，用于媒体控件（单独安装的 Qt Multimedia 还需 `QT_ADDITIONAL_PACKAGES_PREFIX_PATH`，见[快速开始](docs/quick-start.md)）；Qt WebEngineWidgets，仅独立 WebEngine 示例需要
 
 ## 构建
 
