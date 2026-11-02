@@ -144,7 +144,9 @@ protected:
         connect(m_positionAni, &QPropertyAnimation::valueChanged, m_menu, qOverload<>(&QWidget::update));
         connect(m_positionAni, &QPropertyAnimation::finished, this, [this]() {
             if (isMenuUsable()) {
+                // Re-enabling alone does not lay the view out again.
                 m_menu->layout()->setEnabled(true);
+                m_menu->layout()->invalidate();
                 m_menu->layout()->activate();
             }
             deleteLater();
@@ -664,6 +666,10 @@ void RoundMenu::init()
 {
     setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
+    // A popup has no title bar or notch to keep clear of. On macOS a menu window created before it
+    // is shown reports a title bar's worth of safe area, which the slide's layout pass took as a
+    // 32 px top margin, so the view came to rest that much too low and lost its bottom.
+    setAttribute(Qt::WA_ContentsMarginsRespectsSafeArea, false);
     setMouseTracking(true);
 
     m_timer = new QTimer(this);

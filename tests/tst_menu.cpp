@@ -155,6 +155,8 @@ class MenuTest : public QObject
     {
         // The view slides inside a window that sits at its end position, without a mask. Moving
         // the window and masking it flashed the whole menu at the start position on Windows.
+        // Run it on the native platform too: on macOS the window's safe area once pushed the
+        // view's resting place 32 px down, which the offscreen platform cannot show.
         QWidget window;
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
