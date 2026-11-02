@@ -9,7 +9,7 @@ QLabel[fqw="SubtitleLabel"],
 QLabel[fqw="TitleLabel"],
 QLabel[fqw="LargeTitleLabel"],
 QLabel[fqw="DisplayLabel"] {
-    color: #f3f3f3;
+    color: white;
     background: transparent;
 }
 

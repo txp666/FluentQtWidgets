@@ -262,6 +262,33 @@ class TextTest : public QObject
         QVERIFY(!label.font().underline());
     }
 
+    // Python colours its labels black in light and white in dark theme.
+    void labelsUsePythonDefaultTextColours()
+    {
+        auto *manager = ThemeManager::instance();
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            manager->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QList<FluentLabelBase *> labels = {new BodyLabel(QStringLiteral("Body"), &window),
+                                                     new StrongBodyLabel(QStringLiteral("Strong"), &window),
+                                                     new SubtitleLabel(QStringLiteral("Subtitle"), &window),
+                                                     new TitleLabel(QStringLiteral("Title"), &window),
+                                                     new LargeTitleLabel(QStringLiteral("Large"), &window),
+                                                     new DisplayLabel(QStringLiteral("Display"), &window)};
+            for (FluentLabelBase *label : labels) {
+                layout->addWidget(label);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+            const QColor expected = theme == Theme::Dark ? QColor(Qt::white) : QColor(Qt::black);
+            for (const FluentLabelBase *label : labels) {
+                QCOMPARE(label->palette().color(QPalette::WindowText), expected);
+                QCOMPARE(theme == Theme::Dark ? label->darkColor() : label->lightColor(), expected);
+            }
+        }
+    }
+
     // setTextColor() has to beat label.qss, which colours the label through its style sheet: set
     // through the palette, the colour was lost on polish and never painted.
     void labelTextColorWinsOverStyleSheet()
