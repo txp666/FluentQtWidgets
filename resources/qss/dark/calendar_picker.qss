@@ -132,18 +132,18 @@ QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"][outOfRange="true"] {
 
 QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"][today="true"] {
     color: white;
-    background-color: @accentColor;
-    border-color: @accentColor;
+    background-color: --ThemeColorPrimary;
+    border-color: --ThemeColorPrimary;
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"][selected="true"] {
-    border-color: @accentColor;
+    border-color: --ThemeColorPrimary;
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"][selected="true"][today="true"] {
     color: white;
-    background-color: @accentColor;
-    border-color: @accentColor;
+    background-color: --ThemeColorPrimary;
+    border-color: --ThemeColorPrimary;
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarReset="true"] {
@@ -257,16 +257,16 @@ QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][outOfRange="
 
 QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][today="true"] {
     color: white;
-    background-color: @accentColor;
-    border-color: @accentColor;
+    background-color: --ThemeColorPrimary;
+    border-color: --ThemeColorPrimary;
 }
 
 QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][selected="true"] {
-    border-color: @accentColor;
+    border-color: --ThemeColorPrimary;
 }
 
 QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"][selected="true"][today="true"] {
     color: white;
-    background-color: @accentColor;
-    border-color: @accentColor;
+    background-color: --ThemeColorPrimary;
+    border-color: --ThemeColorPrimary;
 }

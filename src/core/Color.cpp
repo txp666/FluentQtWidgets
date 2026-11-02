@@ -132,7 +132,10 @@ QColor color(FluentSystemColor color, Theme theme)
     return QColor();
 }
 
-QColor themeColor() { return ThemeManager::instance()->accentColor(); }
+QColor themeColor()
+{
+    return derivedThemeColor(ThemeManager::instance()->accentColor(), ThemeColor::Primary, Theme::Auto);
+}
 
 QColor validColor(const QColor &color, const QColor &defaultColor) { return color.isValid() ? color : defaultColor; }
 
@@ -166,18 +169,13 @@ QColor derivedThemeColor(const QColor &accent, ThemeColor type, Theme theme)
         return accent;
     }
 
-    if (type == ThemeColor::Primary) {
-        return accent;
-    }
-
     const Theme resolved = theme == Theme::Auto ? ThemeManager::instance()->effectiveTheme() : theme;
     const bool isDark = resolved == Theme::Dark;
 
     float h = 0.0f;
     float s = 0.0f;
     float v = 0.0f;
-    float a = 1.0f;
-    accent.getHsvF(&h, &s, &v, &a);
+    accent.getHsvF(&h, &s, &v);
 
     if (isDark) {
         s *= 0.84f;
@@ -235,10 +233,8 @@ QColor derivedThemeColor(const QColor &accent, ThemeColor type, Theme theme)
         }
     }
 
-    s = (s < 0.0f) ? 0.0f : ((s > 1.0f) ? 1.0f : s);
-    v = (v < 0.0f) ? 0.0f : ((v > 1.0f) ? 1.0f : v);
-
-    return QColor::fromHsvF(h, s, v, a);
+    // Python drops the alpha: QColor.fromHsvF(h, min(s, 1), min(v, 1)).
+    return QColor::fromHsvF(h, qMin(s, 1.0f), qMin(v, 1.0f));
 }
 
 } // namespace FluentQt

@@ -13,7 +13,7 @@ QTextBrowser[fqw="TextBrowser"] {
     border-radius: 5px;
     padding: 0px 10px;
     background-color: rgba(255, 255, 255, 0.0605);
-    selection-background-color: @accentColor;
+    selection-background-color: --ThemeColorPrimary;
     selection-color: black;
 }
 
@@ -54,7 +54,7 @@ QLineEdit[fqw="PasswordLineEdit"][transparent="false"]:focus {
 QTextEdit[fqw="TextEdit"]:focus,
 QPlainTextEdit[fqw="PlainTextEdit"]:focus,
 QTextBrowser[fqw="TextBrowser"]:focus {
-    border-bottom: 1px solid @accentColor;
+    border-bottom: 1px solid --ThemeColorPrimary;
     background-color: rgba(30, 30, 30, 0.7);
 }
 

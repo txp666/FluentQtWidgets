@@ -14,7 +14,7 @@ QTimeEdit[fqw="CompactTimeEdit"] {
     border-radius: 5px;
     padding: 0px 80px 0 10px;
     color: white;
-    selection-background-color: @accentColor;
+    selection-background-color: --ThemeColorPrimary;
     selection-color: black;
 }
 

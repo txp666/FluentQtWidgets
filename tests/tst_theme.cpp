@@ -143,6 +143,48 @@ class ThemeTest : public QObject
                  QColor(QStringLiteral("#6ccb5f")));
     }
 
+    void themeColorIsDerivedPerThemeLikePython_data()
+    {
+        QTest::addColumn<QString>("accent");
+        QTest::addColumn<FluentQt::Theme>("theme");
+        QTest::addColumn<QStringList>("expected"); // Primary, Dark1-3, Light1-3
+
+        // Measured with qfluentwidgets 1.11.3: ThemeColor.<X>.color().name() after setThemeColor()/setTheme().
+        QTest::newRow("#009faa light") << QStringLiteral("#009faa") << FluentQt::Theme::Light
+                                       << QStringList{"#009faa", "#007780", "#005055", "#004044",
+                                                      "#00a7b3", "#2daab3", "#3eabb3"};
+        QTest::newRow("#009faa dark") << QStringLiteral("#009faa") << FluentQt::Theme::Dark
+                                      << QStringList{"#29f1ff", "#25d9e6", "#25c6d1", "#24a9b3",
+                                                     "#3af2ff", "#58f4ff", "#74f6ff"};
+        QTest::newRow("#0078d7 dark") << QStringLiteral("#0078d7") << FluentQt::Theme::Dark
+                                      << QStringList{"#29a0ff", "#2590e6", "#2585d1", "#2474b3",
+                                                     "#3aa8ff", "#58b5ff", "#74c1ff"};
+    }
+
+    void themeColorIsDerivedPerThemeLikePython()
+    {
+        QFETCH(QString, accent);
+        QFETCH(FluentQt::Theme, theme);
+        QFETCH(QStringList, expected);
+
+        auto *manager = FluentQt::ThemeManager::instance();
+        manager->setAccentColor(QColor(accent));
+        manager->setTheme(theme);
+
+        const FluentQt::ThemeColor types[] = {FluentQt::ThemeColor::Primary, FluentQt::ThemeColor::Dark1,
+                                              FluentQt::ThemeColor::Dark2,   FluentQt::ThemeColor::Dark3,
+                                              FluentQt::ThemeColor::Light1,  FluentQt::ThemeColor::Light2,
+                                              FluentQt::ThemeColor::Light3};
+        for (int i = 0; i < 7; ++i) {
+            QCOMPARE(FluentQt::derivedThemeColor(QColor(accent), types[i], theme).name(), expected.at(i));
+        }
+        // Python's themeColor() is ThemeColor.PRIMARY.color(): lighter than the accent in dark mode.
+        QCOMPARE(FluentQt::themeColor().name(), expected.at(0));
+
+        // The style sheets substitute the same colour.
+        QCOMPARE(FluentQt::FluentStyleSheet::render(QStringLiteral("--ThemeColorPrimary"), theme), expected.at(0));
+    }
+
     void styleSheetManagerRegistersAndRendersCustomQss()
     {
         QWidget widget;

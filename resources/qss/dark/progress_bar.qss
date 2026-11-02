@@ -8,5 +8,5 @@ QProgressBar[fqw="IndeterminateProgressBar"] {
 QProgressBar[fqw="ProgressBar"]::chunk,
 QProgressBar[fqw="IndeterminateProgressBar"]::chunk {
     border-radius: 3px;
-    background: @accentColor;
+    background: --ThemeColorPrimary;
 }

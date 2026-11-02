@@ -12,7 +12,7 @@ QSlider[fqw="ClickableSlider"]::groove:horizontal {
 
 QSlider[fqw="Slider"]::sub-page:horizontal,
 QSlider[fqw="ClickableSlider"]::sub-page:horizontal {
-    background: @accentColor;
+    background: --ThemeColorPrimary;
     height: 4px;
     border-radius: 2px;
 }
@@ -25,8 +25,8 @@ QSlider[fqw="ClickableSlider"]::handle:horizontal {
     margin: -9px 0;
     border-radius: 11px;
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-        stop:0 @accentColor,
-        stop:0.5 @accentColor,
+        stop:0 --ThemeColorPrimary,
+        stop:0.5 --ThemeColorPrimary,
         stop:0.6 rgb(69, 69, 69),
         stop:1 rgb(69, 69, 69));
 }
@@ -34,8 +34,8 @@ QSlider[fqw="ClickableSlider"]::handle:horizontal {
 QSlider[fqw="Slider"]::handle:horizontal:hover,
 QSlider[fqw="ClickableSlider"]::handle:horizontal:hover {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-        stop:0 @accentColor,
-        stop:0.6 @accentColor,
+        stop:0 --ThemeColorPrimary,
+        stop:0.6 --ThemeColorPrimary,
         stop:0.7 rgb(69, 69, 69),
         stop:1 rgb(69, 69, 69));
 }
@@ -43,8 +43,8 @@ QSlider[fqw="ClickableSlider"]::handle:horizontal:hover {
 QSlider[fqw="Slider"]::handle:horizontal:pressed,
 QSlider[fqw="ClickableSlider"]::handle:horizontal:pressed {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-        stop:0 @accentColor,
-        stop:0.4 @accentColor,
+        stop:0 --ThemeColorPrimary,
+        stop:0.4 --ThemeColorPrimary,
         stop:0.5 rgb(69, 69, 69),
         stop:1 rgb(69, 69, 69));
 }
@@ -63,7 +63,7 @@ QSlider[fqw="ClickableSlider"]::groove:vertical {
 
 QSlider[fqw="Slider"]::add-page:vertical,
 QSlider[fqw="ClickableSlider"]::add-page:vertical {
-    background: @accentColor;
+    background: --ThemeColorPrimary;
     width: 4px;
     border-radius: 2px;
 }
@@ -76,8 +76,8 @@ QSlider[fqw="ClickableSlider"]::handle:vertical {
     margin: 0 -9px;
     border-radius: 11px;
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-        stop:0 @accentColor,
-        stop:0.5 @accentColor,
+        stop:0 --ThemeColorPrimary,
+        stop:0.5 --ThemeColorPrimary,
         stop:0.6 rgb(69, 69, 69),
         stop:1 rgb(69, 69, 69));
 }
@@ -85,8 +85,8 @@ QSlider[fqw="ClickableSlider"]::handle:vertical {
 QSlider[fqw="Slider"]::handle:vertical:hover,
 QSlider[fqw="ClickableSlider"]::handle:vertical:hover {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-        stop:0 @accentColor,
-        stop:0.6 @accentColor,
+        stop:0 --ThemeColorPrimary,
+        stop:0.6 --ThemeColorPrimary,
         stop:0.7 rgb(69, 69, 69),
         stop:1 rgb(69, 69, 69));
 }
@@ -94,8 +94,8 @@ QSlider[fqw="ClickableSlider"]::handle:vertical:hover {
 QSlider[fqw="Slider"]::handle:vertical:pressed,
 QSlider[fqw="ClickableSlider"]::handle:vertical:pressed {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-        stop:0 @accentColor,
-        stop:0.4 @accentColor,
+        stop:0 --ThemeColorPrimary,
+        stop:0.4 --ThemeColorPrimary,
         stop:0.5 rgb(69, 69, 69),
         stop:1 rgb(69, 69, 69));
 }

@@ -170,6 +170,20 @@ class QssTest : public QObject
         QCOMPARE(static_cast<int>(styleSheetSourceForRole(role)), source);
     }
 
+    // Python's sheets use only --ThemeColor* tokens, all derived per theme by ThemeColor.color().
+    void styleSheetsOnlyUseThemeColorTokens()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            for (int i = 0; i <= static_cast<int>(FluentStyleSheetSource::ExpandSettingCard); ++i) {
+                const auto source = static_cast<FluentStyleSheetSource>(i);
+                const QString rendered = FluentStyleSheet::render(FluentStyleSheet::loadSource(source, theme), theme);
+                const QString name = styleSheetSourceName(source);
+                QVERIFY2(!rendered.contains(QLatin1Char('@')), qPrintable(name));
+                QVERIFY2(!rendered.contains(QStringLiteral("--ThemeColor")), qPrintable(name));
+            }
+        }
+    }
+
     void navigationLightQssPinsTextColor()
     {
         const QString qss = FluentStyleSheet::loadSource(FluentStyleSheetSource::Pivot, Theme::Light);

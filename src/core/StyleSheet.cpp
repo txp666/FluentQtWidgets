@@ -581,7 +581,6 @@ QString FluentStyleSheet::render(const QString &qss, Theme theme)
     const QColor accent = ThemeManager::instance()->accentColor();
     const Theme resolved = theme == Theme::Auto ? ThemeManager::instance()->effectiveTheme() : theme;
 
-    rendered.replace(QStringLiteral("@accentColor"), accent.name(QColor::HexRgb));
     rendered.replace(QStringLiteral("--ThemeColorPrimary"), derivedThemeColor(accent, ThemeColor::Primary, resolved).name(QColor::HexRgb));
     rendered.replace(QStringLiteral("--ThemeColorDark1"), derivedThemeColor(accent, ThemeColor::Dark1, resolved).name(QColor::HexRgb));
     rendered.replace(QStringLiteral("--ThemeColorDark2"), derivedThemeColor(accent, ThemeColor::Dark2, resolved).name(QColor::HexRgb));

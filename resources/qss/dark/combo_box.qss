@@ -53,7 +53,7 @@ QLineEdit[fqw="EditableModelComboBox"] {
     border-radius: 5px;
     padding: 0px 10px;
     background-color: rgba(255, 255, 255, 0.0605);
-    selection-background-color: @accentColor;
+    selection-background-color: --ThemeColorPrimary;
     selection-color: black;
 }
 

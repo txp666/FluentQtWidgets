@@ -24,7 +24,7 @@ QLabel[fqw="BreadcrumbSeparator"] {
 }
 
 QPushButton[fqw="HyperlinkLabel"] {
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     border: none;
     background-color: transparent;
     text-align: left;

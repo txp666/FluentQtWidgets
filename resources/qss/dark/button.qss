@@ -156,7 +156,7 @@ QToolButton[fqw="ToggleToolButton"]:checked,
 QToolButton[fqw="TransparentToggleToolButton"]:checked,
 QToolButton[fqw="CommandButton"]:checked {
     color: black;
-    background-color: @accentColor;
+    background-color: --ThemeColorPrimary;
     border: 1px solid --ThemeColorLight1;
     border-bottom: 1px solid --ThemeColorLight2;
     border-radius: 5px;
@@ -241,7 +241,7 @@ QToolButton[fqw="PrimarySplitDropButton"] {
 
 QPushButton[fqw="HyperlinkButton"] {
     padding: 5px 12px 6px 12px;
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     border: none;
     border-radius: 6px;
     background-color: transparent;
@@ -256,7 +256,7 @@ QPushButton[fqw="HyperlinkButton"][hasIcon="true"] {
 }
 
 QPushButton[fqw="HyperlinkButton"]:hover {
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     background-color: rgba(255, 255, 255, 10);
     border: none;
 }
@@ -394,24 +394,24 @@ QRadioButton[fqw="RadioButton"]::indicator:checked {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
             stop:0 rgb(0, 0, 0),
             stop:0.5 rgb(0, 0, 0),
-            stop:0.6 @accentColor,
-            stop:1 @accentColor);
+            stop:0.6 --ThemeColorPrimary,
+            stop:1 --ThemeColorPrimary);
 }
 
 QRadioButton[fqw="RadioButton"]::indicator:checked:hover {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
             stop:0 rgb(0, 0, 0),
             stop:0.6 rgb(0, 0, 0),
-            stop:0.7 @accentColor,
-            stop:1 @accentColor);
+            stop:0.7 --ThemeColorPrimary,
+            stop:1 --ThemeColorPrimary);
 }
 
 QRadioButton[fqw="RadioButton"]::indicator:checked:pressed {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
             stop:0 rgb(0, 0, 0),
             stop:0.5 rgb(0, 0, 0),
-            stop:0.6 @accentColor,
-            stop:1 @accentColor);
+            stop:0.6 --ThemeColorPrimary,
+            stop:1 --ThemeColorPrimary);
 }
 
 QRadioButton[fqw="RadioButton"]:disabled {
@@ -443,7 +443,7 @@ QToolButton[fqw="FolderRemoveButton"] {
 QPushButton[fqw="FilledPushButton"],
 QToolButton[fqw="FilledToolButton"] {
     color: black;
-    background-color: @accentColor;
+    background-color: --ThemeColorPrimary;
     border: 1px solid --ThemeColorLight1;
     border-bottom: 1px solid --ThemeColorLight2;
     border-radius: 5px;
@@ -487,7 +487,7 @@ QPushButton[fqw="LuminaPushButton"][hasIcon="true"] {
 QPushButton[fqw="TextPushButton"],
 QToolButton[fqw="TextToolButton"],
 QToolButton[fqw="HyperlinkToolButton"] {
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     background: transparent;
     border: 1px solid transparent;
     border-radius: 5px;
@@ -522,9 +522,9 @@ QToolButton[fqw="TextToolButton"][severity="error"] {
 QPushButton[fqw="OutlinedPushButton"],
 QPushButton[fqw="Tag"],
 QToolButton[fqw="OutlinedToolButton"] {
-    color: @accentColor;
+    color: --ThemeColorPrimary;
     background: transparent;
-    border: 1px solid @accentColor;
+    border: 1px solid --ThemeColorPrimary;
     border-radius: 5px;
     padding: 5px 12px 6px 12px;
 }

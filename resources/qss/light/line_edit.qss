@@ -45,7 +45,7 @@ QLineEdit[fqw="PasswordLineEdit"]:focus {
 QTextEdit[fqw="TextEdit"]:focus,
 QPlainTextEdit[fqw="PlainTextEdit"]:focus,
 QTextBrowser[fqw="TextBrowser"]:focus {
-    border-bottom: 1px solid @accentColor;
+    border-bottom: 1px solid --ThemeColorPrimary;
     background-color: white;
 }
 
