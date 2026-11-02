@@ -832,9 +832,12 @@ class TextTest : public QObject
             QCOMPARE(layer->property("fqw").toString(), QStringLiteral("EditLayer"));
             QCOMPARE(layer->testAttribute(Qt::WA_TransparentForMouseEvents), true);
 
+            // A hidden editor gets its resize event only when shown.
+            editor.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&editor));
             editor.resize(240, 120);
             QCoreApplication::processEvents();
-            QCOMPARE(layer->size(), editor.viewport()->size());
+            QCOMPARE(layer->size(), editor.size());
 
             auto *delegate = editor.template findChild<FluentQt::SmoothScrollDelegate *>();
             QVERIFY(delegate != nullptr);
@@ -873,18 +876,65 @@ class TextTest : public QObject
             const auto inEditor = [&editor](const QWidget *widget) {
                 return QRect(widget->mapTo(&editor, QPoint()), widget->size());
             };
-            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+            QCOMPARE(inEditor(layer), editor.rect());
 
             // Scrolling moves the viewport's children with the content, so the
             // underline must not be one of them.
             QVERIFY(editor.verticalScrollBar()->maximum() > 0);
             editor.verticalScrollBar()->setValue(editor.verticalScrollBar()->maximum());
             QCoreApplication::processEvents();
-            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+            QCOMPARE(inEditor(layer), editor.rect());
 
             editor.resize(300, 120);
             QCoreApplication::processEvents();
-            QCOMPARE(inEditor(layer), inEditor(editor.viewport()));
+            QCOMPARE(inEditor(layer), editor.rect());
+        };
+
+        FluentQt::TextEdit textEdit;
+        verifyEditor(textEdit);
+
+        FluentQt::PlainTextEdit plainTextEdit;
+        verifyEditor(plainTextEdit);
+
+        FluentQt::TextBrowser textBrowser;
+        verifyEditor(textBrowser);
+    }
+
+    // As in Python, the multi-line editors draw their 2 px focus line along the bottom of the whole
+    // box. Kept over the viewport, it sat 3 px higher and was inset by the padding.
+    void multilineFocusLineSpansTheBox()
+    {
+        auto verifyEditor = [](auto &editor) {
+            editor.resize(240, 90);
+            editor.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&editor));
+            editor.activateWindow();
+            editor.setFocus();
+            QTRY_VERIFY(editor.hasFocus());
+            QCOMPARE(QRect(editor.layer()->mapTo(&editor, QPoint()), editor.layer()->size()), editor.rect());
+
+            const QColor accent = themeColor();
+            const QImage image = editor.grab().toImage();
+            int top = image.height();
+            int bottom = -1;
+            int left = image.width();
+            int right = -1;
+            for (int y = 0; y < image.height(); ++y) {
+                for (int x = 0; x < image.width(); ++x) {
+                    const QColor color = image.pixelColor(x, y);
+                    if (qAbs(color.red() - accent.red()) < 30 && qAbs(color.green() - accent.green()) < 30 &&
+                        qAbs(color.blue() - accent.blue()) < 30) {
+                        top = qMin(top, y);
+                        bottom = qMax(bottom, y);
+                        left = qMin(left, x);
+                        right = qMax(right, x);
+                    }
+                }
+            }
+            QCOMPARE(top, 88);
+            QCOMPARE(bottom, 89);
+            QVERIFY2(left <= 3, qPrintable(QString::number(left)));
+            QVERIFY2(right >= 236, qPrintable(QString::number(right)));
         };
 
         FluentQt::TextEdit textEdit;
