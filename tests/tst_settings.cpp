@@ -382,10 +382,30 @@ class SettingsTest : public QObject
         card.setDialogDirectory(nextDirectory);
         QCOMPARE(card.dialogDirectory(), nextDirectory);
 
-        // Each folder row removes its folder.
+        // Each folder row removes its folder once the user confirms it, as in Python. The old port
+        // removed the folder on the first click.
         QVERIFY(card.addFolder(nextDirectory));
         QCOMPARE(card.folderItems().size(), 2);
         QSignalSpy folderRemovedSpy(&card, &FluentQt::FolderListSettingCard::folderRemoved);
+        const auto answerConfirmDialog = [](bool confirm) {
+            QTimer::singleShot(0, [confirm]() {
+                for (QWidget *widget : QApplication::topLevelWidgets()) {
+                    auto *dialog = qobject_cast<FluentQt::Dialog *>(widget);
+                    if (dialog && dialog->isVisible()) {
+                        QCOMPARE(dialog->titleLabel()->text(),
+                                 QStringLiteral("Are you sure you want to delete the folder?"));
+                        (confirm ? dialog->yesButton() : dialog->cancelButton())->click();
+                        return;
+                    }
+                }
+                QFAIL("no confirmation dialog");
+            });
+        };
+        answerConfirmDialog(false);
+        card.folderItems().first()->removeButton()->click();
+        QCOMPARE(card.folderItems().size(), 2);
+        QCOMPARE(folderRemovedSpy.count(), 0);
+        answerConfirmDialog(true);
         card.folderItems().first()->removeButton()->click();
         QCOMPARE(card.folders(), QStringList({QDir::cleanPath(nextDirectory)}));
         QCOMPARE(card.folderItems().size(), 1);

@@ -1,6 +1,7 @@
 #include <FluentQtWidgets/Settings/SettingCard.h>
 
 #include <FluentQtWidgets/Dialogs/ColorDialog.h>
+#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/Dialogs/FolderListDialog.h>
 #include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/StyleSheet.h>
@@ -20,6 +21,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QEasingCurve>
 #include <QtCore/QEvent>
+#include <QtCore/QFileInfo>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QSignalBlocker>
 #include <QtCore/QVariantAnimation>
@@ -1696,8 +1698,16 @@ void FolderListSettingCard::insertFolderItem(const QString &folder)
 {
     auto *item = new FolderItem(folder, view());
 
+    // As in Python, a folder leaves the list only once the user confirms it.
     connect(item, &FolderItem::removeRequested, this, [this](const QString &path) {
-        removeFolder(path);
+        const QString name = QFileInfo(path).fileName();
+        Dialog dialog(tr("Are you sure you want to delete the folder?"),
+                      tr("If you delete the ") + QStringLiteral("\"%1\"").arg(name) +
+                          tr(" folder and remove it from the list, the folder will no longer appear in the list, "
+                             "but will not be deleted."),
+                      window());
+        connect(&dialog, &Dialog::yesSignal, this, [this, path]() { removeFolder(path); });
+        dialog.exec();
     });
 
     m_folderItems.append(item);
