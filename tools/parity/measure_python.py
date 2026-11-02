@@ -279,6 +279,11 @@ profile("NavigationTreeWidget", "icon+text",
 profile("NavigationItemHeader", "text", lambda t: qfw.NavigationItemHeader(t))
 profile("NavigationAvatarWidget", "text", lambda t: qfw.NavigationAvatarWidget(t))
 
+# Mask dialogs: child overlays of the container, laid out like any other widget
+profile("MessageBox", "text", lambda t: qfw.MessageBox(t, "Content", CURRENT_CONTAINER[0]))
+profile("MessageDialog", "text", lambda t: qfw.MessageDialog(t, "Content", CURRENT_CONTAINER[0]))
+profile("MessageBoxBase", "default", lambda t: qfw.MessageBoxBase(CURRENT_CONTAINER[0]))
+
 # Flyout contents (embeddable views; the Flyout/TeachingTip windows themselves are skipped)
 profile("FlyoutView", "text", lambda t: qfw.FlyoutView(t, "Content"))
 profile("TeachingTipView", "text", lambda t: qfw.TeachingTipView(t, "Content"))
@@ -334,8 +339,7 @@ SKIPPED = {
     "SplitFluentWindow": "top-level window", "FluentWidget": "top-level window",
     "FluentTitleBar": "part of a frameless window, needs one as its parent",
     "SplashScreen": "top-level splash screen",
-    "Dialog": "top-level dialog", "MessageBox": "top-level dialog", "MessageDialog": "top-level dialog",
-    "MessageBoxBase": "top-level dialog", "MaskDialogBase": "top-level dialog base",
+    "Dialog": "top-level dialog", "MaskDialogBase": "base class of the mask dialogs",
     "ColorDialog": "top-level dialog", "FolderListDialog": "top-level dialog",
     # Pop-ups.
     "RoundMenu": "pop-up menu", "CheckableMenu": "pop-up menu", "SystemTrayMenu": "pop-up menu",

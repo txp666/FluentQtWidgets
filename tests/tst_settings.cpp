@@ -427,16 +427,12 @@ class SettingsTest : public QObject
         QCOMPARE(card.folderItems().size(), 2);
         const auto answerConfirmDialog = [](bool confirm) {
             QTimer::singleShot(0, [confirm]() {
-                for (QWidget *widget : QApplication::topLevelWidgets()) {
-                    auto *dialog = qobject_cast<FluentQt::Dialog *>(widget);
-                    if (dialog && dialog->isVisible()) {
-                        QCOMPARE(dialog->titleLabel()->text(),
-                                 QStringLiteral("Are you sure you want to delete the folder?"));
-                        (confirm ? dialog->yesButton() : dialog->cancelButton())->click();
-                        return;
-                    }
+                auto *dialog = FqwTest::findVisibleTopLevel<FluentQt::Dialog>();
+                if (!dialog) {
+                    QFAIL("no confirmation dialog");
                 }
-                QFAIL("no confirmation dialog");
+                QCOMPARE(dialog->titleLabel()->text(), QStringLiteral("Are you sure you want to delete the folder?"));
+                (confirm ? dialog->yesButton() : dialog->cancelButton())->click();
             });
         };
         answerConfirmDialog(false);

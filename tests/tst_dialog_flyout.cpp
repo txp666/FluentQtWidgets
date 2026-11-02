@@ -666,14 +666,6 @@ class DialogFlyoutTest : public QObject
         QVERIFY(picker.isAlphaEnabled());
         QCOMPARE(picker.toolTip(), QStringLiteral("Choose Background Color"));
 
-        const auto findVisibleColorDialog = []() -> QWidget * {
-            for (QWidget *widget : QApplication::allWidgets()) {
-                if (widget->isVisible() && qobject_cast<FluentQt::ColorDialog *>(widget)) {
-                    return widget;
-                }
-            }
-            return nullptr;
-        };
         cardHost.show();
         QVERIFY(QTest::qWaitForWindowExposed(&cardHost));
 
@@ -682,8 +674,7 @@ class DialogFlyoutTest : public QObject
         QPointer<FluentQt::ColorDialog> dialogGuard;
         QTimer::singleShot(0, &card, [&card]() { card.colorPicker()->click(); });
         QTimer::singleShot(100, &card, [&]() {
-            auto *popup = findVisibleColorDialog();
-            auto *dialog = qobject_cast<FluentQt::ColorDialog *>(popup);
+            auto *dialog = FqwTest::findVisibleWidget<FluentQt::ColorDialog>();
             if (!dialog) {
                 return;
             }
@@ -725,8 +716,7 @@ class DialogFlyoutTest : public QObject
         bool alphaDialogInspected = false;
         QTimer::singleShot(0, &customCard, [&customCard]() { customCard.chooseColorButton()->click(); });
         QTimer::singleShot(100, &customCard, [&]() {
-            auto *alphaPopup = findVisibleColorDialog();
-            auto *alphaPopupDialog = qobject_cast<FluentQt::ColorDialog *>(alphaPopup);
+            auto *alphaPopupDialog = FqwTest::findVisibleWidget<FluentQt::ColorDialog>();
             if (!alphaPopupDialog) {
                 return;
             }

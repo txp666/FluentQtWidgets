@@ -1,4816 +1,4876 @@
 {
- "controls": {
-  "QLabel/50/12/Button": [
-   38,
-   17
-  ],
-  "QLabel/50/12/ButtonLonger": [
-   76,
-   17
-  ],
-  "QLabel/50/12/Label": [
-   31,
-   17
-  ],
-  "QLabel/50/12/Option": [
-   38,
-   17
-  ],
-  "QLabel/50/12/Settings and preferences": [
-   141,
-   17
-  ],
-  "QLabel/50/12/Title": [
-   25,
-   17
-  ],
-  "QLabel/50/14/Button": [
-   44,
-   20
-  ],
-  "QLabel/50/14/ButtonLonger": [
-   89,
-   20
-  ],
-  "QLabel/50/14/Label": [
-   36,
-   20
-  ],
-  "QLabel/50/14/Option": [
-   44,
-   20
-  ],
-  "QLabel/50/14/Settings and preferences": [
-   164,
-   20
-  ],
-  "QLabel/50/14/Title": [
-   29,
-   20
-  ],
-  "QLabel/50/20/Button": [
-   62,
-   28
-  ],
-  "QLabel/50/20/ButtonLonger": [
-   127,
-   28
-  ],
-  "QLabel/50/20/Label": [
-   51,
-   28
-  ],
-  "QLabel/50/20/Option": [
-   63,
-   28
-  ],
-  "QLabel/50/20/Settings and preferences": [
-   234,
-   28
-  ],
-  "QLabel/50/20/Title": [
-   41,
-   28
-  ],
-  "QLabel/50/28/Button": [
-   87,
-   40
-  ],
-  "QLabel/50/28/ButtonLonger": [
-   178,
-   40
-  ],
-  "QLabel/50/28/Label": [
-   71,
-   40
-  ],
-  "QLabel/50/28/Option": [
-   88,
-   40
-  ],
-  "QLabel/50/28/Settings and preferences": [
-   328,
-   40
-  ],
-  "QLabel/50/28/Title": [
-   57,
-   40
-  ],
-  "QLabel/50/40/Button": [
-   124,
-   56
-  ],
-  "QLabel/50/40/ButtonLonger": [
-   254,
-   56
-  ],
-  "QLabel/50/40/Label": [
-   101,
-   56
-  ],
-  "QLabel/50/40/Option": [
-   125,
-   56
-  ],
-  "QLabel/50/40/Settings and preferences": [
-   468,
-   56
-  ],
-  "QLabel/50/40/Title": [
-   81,
-   56
-  ],
-  "QLabel/50/68/Button": [
-   211,
-   96
-  ],
-  "QLabel/50/68/ButtonLonger": [
-   431,
-   96
-  ],
-  "QLabel/50/68/Label": [
-   172,
-   96
-  ],
-  "QLabel/50/68/Option": [
-   212,
-   96
-  ],
-  "QLabel/50/68/Settings and preferences": [
-   796,
-   96
-  ],
-  "QLabel/50/68/Title": [
-   138,
-   96
-  ],
-  "QLabel/63/12/Button": [
-   39,
-   17
-  ],
-  "QLabel/63/12/ButtonLonger": [
-   78,
-   17
-  ],
-  "QLabel/63/12/Label": [
-   32,
-   17
-  ],
-  "QLabel/63/12/Option": [
-   39,
-   17
-  ],
-  "QLabel/63/12/Settings and preferences": [
-   144,
-   17
-  ],
-  "QLabel/63/12/Title": [
-   25,
-   17
-  ],
-  "QLabel/63/14/Button": [
-   45,
-   20
-  ],
-  "QLabel/63/14/ButtonLonger": [
-   91,
-   20
-  ],
-  "QLabel/63/14/Label": [
-   37,
-   20
-  ],
-  "QLabel/63/14/Option": [
-   45,
-   20
-  ],
-  "QLabel/63/14/Settings and preferences": [
-   168,
-   20
-  ],
-  "QLabel/63/14/Title": [
-   29,
-   20
-  ],
-  "QLabel/63/20/Button": [
-   64,
-   28
-  ],
-  "QLabel/63/20/ButtonLonger": [
-   130,
-   28
-  ],
-  "QLabel/63/20/Label": [
-   52,
-   28
-  ],
-  "QLabel/63/20/Option": [
-   64,
-   28
-  ],
-  "QLabel/63/20/Settings and preferences": [
-   240,
-   28
-  ],
-  "QLabel/63/20/Title": [
-   42,
-   28
-  ],
-  "QLabel/63/28/Button": [
-   89,
-   40
-  ],
-  "QLabel/63/28/ButtonLonger": [
-   182,
-   40
-  ],
-  "QLabel/63/28/Label": [
-   73,
-   40
-  ],
-  "QLabel/63/28/Option": [
-   90,
-   40
-  ],
-  "QLabel/63/28/Settings and preferences": [
-   337,
-   40
-  ],
-  "QLabel/63/28/Title": [
-   59,
-   40
-  ],
-  "QLabel/63/40/Button": [
-   128,
-   56
-  ],
-  "QLabel/63/40/ButtonLonger": [
-   260,
-   56
-  ],
-  "QLabel/63/40/Label": [
-   104,
-   56
-  ],
-  "QLabel/63/40/Option": [
-   128,
-   56
-  ],
-  "QLabel/63/40/Settings and preferences": [
-   481,
-   56
-  ],
-  "QLabel/63/40/Title": [
-   83,
-   56
-  ],
-  "QLabel/63/68/Button": [
-   216,
-   96
-  ],
-  "QLabel/63/68/ButtonLonger": [
-   442,
-   96
-  ],
-  "QLabel/63/68/Label": [
-   176,
-   96
-  ],
-  "QLabel/63/68/Option": [
-   218,
-   96
-  ],
-  "QLabel/63/68/Settings and preferences": [
-   817,
-   96
-  ],
-  "QLabel/63/68/Title": [
-   141,
-   96
-  ]
- },
- "meta": {
-  "appFont": {
-   "families": [
-    "Segoe UI",
-    "Microsoft YaHei",
-    "PingFang SC"
-   ],
-   "pixelSize": 14,
-   "resolvedFamily": "PingFang SC"
-  },
-  "fluentFontResolvedFamily": "PingFang SC",
-  "logicalDpi": 100,
-  "longerTextSuffix": "Longer",
-  "platform": "darwin",
-  "pyqt": "5.15.11",
-  "qfluentwidgets": "1.11.3",
-  "qpa": "offscreen",
-  "qt": "5.15.19",
-  "style": "Fusion",
-  "theme": "light"
- },
- "qtBaseline": {
-  "QCheckBox": [
-   76,
-   26
-  ],
-  "QDateEdit": [
-   112,
-   31
-  ],
-  "QDateTimeEdit": [
-   154,
-   31
-  ],
-  "QDoubleSpinBox": [
-   74,
-   31
-  ],
-  "QLineEdit": [
-   125,
-   28
-  ],
-  "QListWidget": [
-   256,
-   192
-  ],
-  "QProgressBar": [
-   95,
-   28
-  ],
-  "QPushButton": [
-   80,
-   30
-  ],
-  "QRadioButton": [
-   76,
-   26
-  ],
-  "QScrollArea": [
-   242,
-   162
-  ],
-  "QSlider": [
-   20,
-   84
-  ],
-  "QSpinBox": [
-   53,
-   31
-  ],
-  "QTimeEdit": [
-   74,
-   31
-  ],
-  "QToolButton": [
-   24,
-   23
-  ]
- },
- "rows": {
-  "AMTimePicker/default": {
-   "maximumSize": [
-    240,
-    30
-   ],
-   "minimumSize": [
-    240,
-    30
-   ],
-   "size": [
-    240,
-    30
-   ],
-   "sizeHint": [
-    38,
-    22
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "AvatarWidget/default": {
-   "maximumSize": [
-    96,
-    96
-   ],
-   "minimumSize": [
-    96,
-    96
-   ],
-   "size": [
-    96,
-    96
-   ],
-   "sizeHint": [
-    96,
-    96
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "BodyLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    7,
-    20
-   ],
-   "sizeHint": [
-    7,
-    20
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "BodyLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    20
-   ],
-   "sizeHint": [
-    36,
-    20
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "BreadcrumbBar/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "BreadcrumbBar/items": {
-   "maximumSize": [
-    "max",
-    20
-   ],
-   "minimumSize": [
-    0,
-    20
-   ],
-   "size": [
-    0,
-    20
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "BreadcrumbItem/text": {
-   "maximumSize": [
-    54,
-    20
-   ],
-   "minimumSize": [
-    54,
-    20
-   ],
-   "size": [
-    54,
-    20
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "CalendarPicker/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    120,
-    33
-   ],
-   "sizeHint": [
-    120,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CaptionLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    6,
-    17
-   ],
-   "sizeHint": [
-    6,
-    17
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CaptionLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    31,
-    17
-   ],
-   "sizeHint": [
-    31,
-    17
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "CardGroupWidget/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    128,
-    57
-   ],
-   "sizeHint": [
-    128,
-    57
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "CardWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CheckBox/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    29,
-    22
-   ],
-   "size": [
-    57,
-    22
-   ],
-   "sizeHint": [
-    57,
-    22
-   ],
-   "text": "Option",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CheckBox/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    29,
-    22
-   ],
-   "size": [
-    74,
-    22
-   ],
-   "sizeHint": [
-    74,
-    22
-   ],
-   "text": "Option",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ClickableSlider/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    20,
-    84
-   ],
-   "sizeHint": [
-    20,
-    84
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ColorPickerButton/default": {
-   "maximumSize": [
-    96,
-    32
-   ],
-   "minimumSize": [
-    96,
-    32
-   ],
-   "size": [
-    96,
-    32
-   ],
-   "sizeHint": [
-    24,
-    23
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ColorSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    217,
-    70
-   ],
-   "sizeHint": [
-    217,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ComboBox/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    80,
-    33
-   ],
-   "sizeHint": [
-    80,
-    33
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ComboBox/items": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    81,
-    33
-   ],
-   "sizeHint": [
-    81,
-    33
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ComboBoxSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    202,
-    70
-   ],
-   "sizeHint": [
-    202,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "CommandBar/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    100,
-    30
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Mail",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CommandBar/items": {
-   "maximumSize": [
-    "max",
-    34
-   ],
-   "minimumSize": [
-    0,
-    34
-   ],
-   "size": [
-    100,
-    34
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Mail",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CommandBarView/default": {
-   "maximumSize": [
-    524287,
-    524287
-   ],
-   "minimumSize": [
-    112,
-    42
-   ],
-   "size": [
-    112,
-    42
-   ],
-   "sizeHint": [
-    112,
-    42
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CommandButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    48,
-    34
-   ],
-   "sizeHint": [
-    48,
-    34
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CommandButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    48,
-    34
-   ],
-   "sizeHint": [
-    48,
-    34
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CompactDateEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    120,
-    33
-   ],
-   "sizeHint": [
-    120,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CompactDateTimeEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    162,
-    33
-   ],
-   "sizeHint": [
-    162,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CompactDoubleSpinBox/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    82,
-    33
-   ],
-   "sizeHint": [
-    82,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CompactSpinBox/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    61,
-    33
-   ],
-   "sizeHint": [
-    61,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CompactTimeEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    82,
-    33
-   ],
-   "sizeHint": [
-    82,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CustomColorSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    311,
-    70
-   ],
-   "sizeHint": [
-    311,
-    353
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "CycleListWidget/items": {
-   "maximumSize": [
-    88,
-    333
-   ],
-   "minimumSize": [
-    88,
-    333
-   ],
-   "size": [
-    88,
-    333
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DateEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    174,
-    33
-   ],
-   "sizeHint": [
-    174,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DatePicker/default": {
-   "maximumSize": [
-    300,
-    30
-   ],
-   "minimumSize": [
-    300,
-    30
-   ],
-   "size": [
-    300,
-    30
-   ],
-   "sizeHint": [
-    38,
-    22
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DateTimeEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    216,
-    33
-   ],
-   "sizeHint": [
-    216,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DisplayLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    33,
-    95
-   ],
-   "sizeHint": [
-    33,
-    95
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DisplayLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    176,
-    96
-   ],
-   "sizeHint": [
-    176,
-    96
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "DotInfoBadge/default": {
-   "maximumSize": [
-    4,
-    4
-   ],
-   "minimumSize": [
-    4,
-    4
-   ],
-   "size": [
-    4,
-    4
-   ],
-   "sizeHint": [
-    11,
-    18
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DoubleSpinBox/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    136,
-    33
-   ],
-   "sizeHint": [
-    136,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DrillInTransitionStackedWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DropDownPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    81,
-    33
-   ],
-   "sizeHint": [
-    81,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DropDownPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    113,
-    33
-   ],
-   "sizeHint": [
-    113,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "DropDownPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    89,
-    33
-   ],
-   "sizeHint": [
-    89,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "DropDownToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    32
-   ],
-   "sizeHint": [
-    60,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "DropDownToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    32
-   ],
-   "sizeHint": [
-    60,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "EditableComboBox/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    174,
-    33
-   ],
-   "sizeHint": [
-    174,
-    24
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "EditableComboBox/items": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    174,
-    33
-   ],
-   "sizeHint": [
-    174,
-    24
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "EditableModelComboBox/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    174,
-    33
-   ],
-   "sizeHint": [
-    174,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ElevatedCardWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "EntranceTransitionStackedWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ExpandGroupSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    95,
-    70
-   ],
-   "sizeHint": [
-    2,
-    3
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ExpandSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    95,
-    70
-   ],
-   "sizeHint": [
-    20,
-    21
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "FastCalendarPicker/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    120,
-    33
-   ],
-   "sizeHint": [
-    120,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "FlipView/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    480,
-    270
-   ],
-   "size": [
-    480,
-    270
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "FlyoutView/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    94,
-    68
-   ],
-   "sizeHint": [
-    94,
-    68
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "FolderListSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    95,
-    70
-   ],
-   "sizeHint": [
-    2,
-    20
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "GroupHeaderCardWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    47,
-    51
-   ],
-   "sizeHint": [
-    47,
-    51
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HeaderCardWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    48,
-    99
-   ],
-   "sizeHint": [
-    48,
-    99
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HeaderCardWidget/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    72,
-    99
-   ],
-   "sizeHint": [
-    72,
-    99
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "HorizontalFlipView/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    480,
-    270
-   ],
-   "size": [
-    480,
-    270
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HorizontalPipsPager/default": {
-   "maximumSize": [
-    "max",
-    12
-   ],
-   "minimumSize": [
-    0,
-    12
-   ],
-   "size": [
-    256,
-    12
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HorizontalPipsPager/items": {
-   "maximumSize": [
-    90,
-    12
-   ],
-   "minimumSize": [
-    90,
-    12
-   ],
-   "size": [
-    90,
-    12
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HorizontalSeparator/default": {
-   "maximumSize": [
-    "max",
-    3
-   ],
-   "minimumSize": [
-    0,
-    3
-   ],
-   "size": [
-    0,
-    3
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HyperlinkButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    32
-   ],
-   "sizeHint": [
-    60,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HyperlinkButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    92,
-    32
-   ],
-   "sizeHint": [
-    92,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "HyperlinkButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    68,
-    32
-   ],
-   "sizeHint": [
-    68,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "HyperlinkCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    189,
-    70
-   ],
-   "sizeHint": [
-    189,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "HyperlinkLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    20
-   ],
-   "sizeHint": [
-    36,
-    20
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "HyperlinkLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    20
-   ],
-   "sizeHint": [
-    36,
-    20
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "IconInfoBadge/default": {
-   "maximumSize": [
-    16,
-    16
-   ],
-   "minimumSize": [
-    16,
-    16
-   ],
-   "size": [
-    16,
-    16
-   ],
-   "sizeHint": [
-    16,
-    18
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "IconInfoBadge/icon": {
-   "maximumSize": [
-    16,
-    16
-   ],
-   "minimumSize": [
-    16,
-    16
-   ],
-   "size": [
-    16,
-    16
-   ],
-   "sizeHint": [
-    16,
-    18
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "IconWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "IconWidget/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ImageLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    7,
-    20
-   ],
-   "sizeHint": [
-    7,
-    20
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "IndeterminateProgressBar/default": {
-   "maximumSize": [
-    "max",
-    4
-   ],
-   "minimumSize": [
-    0,
-    4
-   ],
-   "size": [
-    95,
-    4
-   ],
-   "sizeHint": [
-    95,
-    28
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "IndeterminateProgressRing/default": {
-   "maximumSize": [
-    80,
-    80
-   ],
-   "minimumSize": [
-    80,
-    80
-   ],
-   "size": [
-    80,
-    80
-   ],
-   "sizeHint": [
-    95,
-    28
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "InfoBadge/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    11,
-    18
-   ],
-   "sizeHint": [
-    11,
-    18
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "InfoBadge/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    19,
-    18
-   ],
-   "sizeHint": [
-    19,
-    18
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "LargeTitleLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    19,
-    56
-   ],
-   "sizeHint": [
-    19,
-    56
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "LargeTitleLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    104,
-    56
-   ],
-   "sizeHint": [
-    104,
-    56
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "LineEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    145,
-    33
-   ],
-   "sizeHint": [
-    145,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "LineEditButton/icon": {
-   "maximumSize": [
-    31,
-    23
-   ],
-   "minimumSize": [
-    31,
-    23
-   ],
-   "size": [
-    31,
-    23
-   ],
-   "sizeHint": [
-    13,
-    13
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ListView/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ListWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ModelComboBox/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    80,
-    33
-   ],
-   "sizeHint": [
-    80,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationAvatarWidget/text": {
-   "maximumSize": [
-    40,
-    36
-   ],
-   "minimumSize": [
-    40,
-    36
-   ],
-   "size": [
-    40,
-    36
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Ada",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationBar/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    93,
-    103
-   ],
-   "sizeHint": [
-    93,
-    103
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationBarPushButton/icon+text": {
-   "maximumSize": [
-    64,
-    58
-   ],
-   "minimumSize": [
-    64,
-    58
-   ],
-   "size": [
-    64,
-    58
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Home",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationInterface/default": {
-   "maximumSize": [
-    48,
-    "max"
-   ],
-   "minimumSize": [
-    48,
-    0
-   ],
-   "size": [
-    48,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationItemHeader/text": {
-   "maximumSize": [
-    40,
-    0
-   ],
-   "minimumSize": [
-    40,
-    0
-   ],
-   "size": [
-    40,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Header",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationPanel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    95,
-    145
-   ],
-   "sizeHint": [
-    95,
-    145
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationToolButton/icon": {
-   "maximumSize": [
-    40,
-    36
-   ],
-   "minimumSize": [
-    40,
-    36
-   ],
-   "size": [
-    40,
-    36
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationTreeWidget/icon+text": {
-   "maximumSize": [
-    40,
-    36
-   ],
-   "minimumSize": [
-    40,
-    36
-   ],
-   "size": [
-    40,
-    36
-   ],
-   "sizeHint": [
-    40,
-    36
-   ],
-   "text": "Home",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "NavigationUserCard/default": {
-   "maximumSize": [
-    40,
-    36
-   ],
-   "minimumSize": [
-    40,
-    36
-   ],
-   "size": [
-    40,
-    36
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "OpacityAniStackedWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "OptionsSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    122,
-    70
-   ],
-   "sizeHint": [
-    122,
-    208
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PasswordLineEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    175,
-    33
-   ],
-   "sizeHint": [
-    175,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PillPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    31
-   ],
-   "sizeHint": [
-    60,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PillPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    92,
-    31
-   ],
-   "sizeHint": [
-    92,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PillPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    68,
-    31
-   ],
-   "sizeHint": [
-    68,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PillToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    30
-   ],
-   "sizeHint": [
-    36,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PillToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    30
-   ],
-   "sizeHint": [
-    36,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PipsPager/default": {
-   "maximumSize": [
-    "max",
-    12
-   ],
-   "minimumSize": [
-    0,
-    12
-   ],
-   "size": [
-    256,
-    12
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "Pivot/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "Pivot/items": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    153,
-    46
-   ],
-   "size": [
-    153,
-    46
-   ],
-   "sizeHint": [
-    153,
-    46
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PivotItem/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    46
-   ],
-   "sizeHint": [
-    60,
-    46
-   ],
-   "text": "Item",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PixmapLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    7,
-    20
-   ],
-   "sizeHint": [
-    7,
-    20
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PlainTextEdit/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PopUpAniStackedWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryDropDownPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    81,
-    33
-   ],
-   "sizeHint": [
-    81,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryDropDownPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    113,
-    33
-   ],
-   "sizeHint": [
-    113,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimaryDropDownPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    89,
-    33
-   ],
-   "sizeHint": [
-    89,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimaryDropDownToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    32
-   ],
-   "sizeHint": [
-    60,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryDropDownToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    32
-   ],
-   "sizeHint": [
-    60,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    62,
-    33
-   ],
-   "sizeHint": [
-    62,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    94,
-    33
-   ],
-   "sizeHint": [
-    94,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimaryPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    70,
-    33
-   ],
-   "sizeHint": [
-    70,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimaryPushSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    191,
-    70
-   ],
-   "sizeHint": [
-    191,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimarySplitPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    93,
-    33
-   ],
-   "sizeHint": [
-    93,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimarySplitPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    125,
-    33
-   ],
-   "sizeHint": [
-    125,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimarySplitPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    101,
-    33
-   ],
-   "sizeHint": [
-    101,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PrimarySplitToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    69,
-    32
-   ],
-   "sizeHint": [
-    69,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimarySplitToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    69,
-    32
-   ],
-   "sizeHint": [
-    69,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    38,
-    32
-   ],
-   "sizeHint": [
-    38,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PrimaryToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    38,
-    32
-   ],
-   "sizeHint": [
-    38,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ProgressBar/default": {
-   "maximumSize": [
-    "max",
-    4
-   ],
-   "minimumSize": [
-    0,
-    4
-   ],
-   "size": [
-    95,
-    4
-   ],
-   "sizeHint": [
-    95,
-    28
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ProgressRing/default": {
-   "maximumSize": [
-    100,
-    100
-   ],
-   "minimumSize": [
-    100,
-    100
-   ],
-   "size": [
-    100,
-    100
-   ],
-   "sizeHint": [
-    95,
-    28
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    62,
-    33
-   ],
-   "sizeHint": [
-    62,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "PushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    94,
-    33
-   ],
-   "sizeHint": [
-    94,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    70,
-    33
-   ],
-   "sizeHint": [
-    70,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "PushSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    239,
-    70
-   ],
-   "sizeHint": [
-    239,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "RadioButton/default": {
-   "maximumSize": [
-    "max",
-    24
-   ],
-   "minimumSize": [
-    0,
-    24
-   ],
-   "size": [
-    34,
-    24
-   ],
-   "sizeHint": [
-    34,
-    24
-   ],
-   "text": "Option",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "RadioButton/text": {
-   "maximumSize": [
-    "max",
-    24
-   ],
-   "minimumSize": [
-    0,
-    24
-   ],
-   "size": [
-    79,
-    24
-   ],
-   "sizeHint": [
-    79,
-    24
-   ],
-   "text": "Option",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "RangeSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    412,
-    70
-   ],
-   "sizeHint": [
-    412,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ScrollArea/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    242,
-    162
-   ],
-   "sizeHint": [
-    242,
-    162
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SearchLineEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    204,
-    33
-   ],
-   "sizeHint": [
-    204,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedItem/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    53,
-    32
-   ],
-   "sizeHint": [
-    53,
-    32
-   ],
-   "text": "Item",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SegmentedToggleToolWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedToggleToolWidget/items": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    100,
-    32
-   ],
-   "size": [
-    100,
-    32
-   ],
-   "sizeHint": [
-    100,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedToolItem/icon": {
-   "maximumSize": [
-    38,
-    33
-   ],
-   "minimumSize": [
-    38,
-    33
-   ],
-   "size": [
-    38,
-    33
-   ],
-   "sizeHint": [
-    36,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedToolWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedToolWidget/items": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    76,
-    33
-   ],
-   "size": [
-    76,
-    33
-   ],
-   "sizeHint": [
-    76,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    0,
-    0
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SegmentedWidget/items": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    130,
-    32
-   ],
-   "size": [
-    130,
-    32
-   ],
-   "sizeHint": [
-    130,
-    32
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    105,
-    70
-   ],
-   "sizeHint": [
-    105,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SettingCardGroup/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    41,
-    40
-   ],
-   "sizeHint": [
-    41,
-    40
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SimpleCardWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    0,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SimpleExpandGroupSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    95,
-    70
-   ],
-   "sizeHint": [
-    2,
-    3
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SingleDirectionScrollArea/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    242,
-    162
-   ],
-   "sizeHint": [
-    242,
-    162
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "Slider/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    22,
-    0
-   ],
-   "size": [
-    22,
-    84
-   ],
-   "sizeHint": [
-    20,
-    84
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "Slider/horizontal": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    22
-   ],
-   "size": [
-    84,
-    22
-   ],
-   "sizeHint": [
-    84,
-    20
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SmoothScrollArea/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    242,
-    162
-   ],
-   "sizeHint": [
-    242,
-    162
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SpinBox/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    115,
-    33
-   ],
-   "sizeHint": [
-    115,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SplitPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    93,
-    33
-   ],
-   "sizeHint": [
-    93,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SplitPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    125,
-    33
-   ],
-   "sizeHint": [
-    125,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SplitPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    101,
-    33
-   ],
-   "sizeHint": [
-    101,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SplitToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    69,
-    32
-   ],
-   "sizeHint": [
-    69,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SplitToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    69,
-    32
-   ],
-   "sizeHint": [
-    69,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "StrongBodyLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    7,
-    20
-   ],
-   "sizeHint": [
-    7,
-    20
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "StrongBodyLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    37,
-    20
-   ],
-   "sizeHint": [
-    37,
-    20
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SubtitleLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    10,
-    28
-   ],
-   "sizeHint": [
-    10,
-    28
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SubtitleLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    52,
-    28
-   ],
-   "sizeHint": [
-    52,
-    28
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SwitchButton/default": {
-   "maximumSize": [
-    "max",
-    22
-   ],
-   "minimumSize": [
-    0,
-    22
-   ],
-   "size": [
-    77,
-    22
-   ],
-   "sizeHint": [
-    77,
-    22
-   ],
-   "text": "On",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "SwitchButton/text": {
-   "maximumSize": [
-    "max",
-    22
-   ],
-   "minimumSize": [
-    0,
-    22
-   ],
-   "size": [
-    75,
-    22
-   ],
-   "sizeHint": [
-    75,
-    22
-   ],
-   "text": "On",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "SwitchSettingCard/icon+text": {
-   "maximumSize": [
-    "max",
-    70
-   ],
-   "minimumSize": [
-    0,
-    70
-   ],
-   "size": [
-    198,
-    70
-   ],
-   "sizeHint": [
-    198,
-    36
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TabBar/default": {
-   "maximumSize": [
-    "max",
-    46
-   ],
-   "minimumSize": [
-    0,
-    46
-   ],
-   "size": [
-    93,
-    46
-   ],
-   "sizeHint": [
-    45,
-    24
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TabBar/items": {
-   "maximumSize": [
-    "max",
-    46
-   ],
-   "minimumSize": [
-    0,
-    46
-   ],
-   "size": [
-    525,
-    46
-   ],
-   "sizeHint": [
-    525,
-    46
-   ],
-   "text": "Alpha",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TabItem/text": {
-   "maximumSize": [
-    240,
-    36
-   ],
-   "minimumSize": [
-    64,
-    36
-   ],
-   "size": [
-    240,
-    36
-   ],
-   "sizeHint": [
-    240,
-    36
-   ],
-   "text": "Tab",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TabWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    93,
-    47
-   ],
-   "sizeHint": [
-    93,
-    47
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TableView/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TableWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TeachingTipView/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    116,
-    68
-   ],
-   "sizeHint": [
-    116,
-    68
-   ],
-   "text": "Title",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TextBrowser/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TextEdit/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TimeEdit/default": {
-   "maximumSize": [
-    "max",
-    33
-   ],
-   "minimumSize": [
-    0,
-    33
-   ],
-   "size": [
-    136,
-    33
-   ],
-   "sizeHint": [
-    136,
-    24
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TimePicker/default": {
-   "maximumSize": [
-    240,
-    30
-   ],
-   "minimumSize": [
-    240,
-    30
-   ],
-   "size": [
-    240,
-    30
-   ],
-   "sizeHint": [
-    38,
-    22
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TitleLabel/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    13,
-    40
-   ],
-   "sizeHint": [
-    13,
-    40
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TitleLabel/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    73,
-    40
-   ],
-   "sizeHint": [
-    73,
-    40
-   ],
-   "text": "Label",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ToggleButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    62,
-    33
-   ],
-   "sizeHint": [
-    62,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ToggleButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    94,
-    33
-   ],
-   "sizeHint": [
-    94,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ToggleButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    70,
-    33
-   ],
-   "sizeHint": [
-    70,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TogglePushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    62,
-    33
-   ],
-   "sizeHint": [
-    62,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TogglePushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    94,
-    33
-   ],
-   "sizeHint": [
-    94,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TogglePushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    70,
-    33
-   ],
-   "sizeHint": [
-    70,
-    33
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "ToggleToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    38,
-    32
-   ],
-   "sizeHint": [
-    38,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ToggleToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    38,
-    32
-   ],
-   "sizeHint": [
-    38,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    38,
-    32
-   ],
-   "sizeHint": [
-    38,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    38,
-    32
-   ],
-   "sizeHint": [
-    38,
-    32
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentDropDownPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    79,
-    31
-   ],
-   "sizeHint": [
-    79,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentDropDownPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    111,
-    31
-   ],
-   "sizeHint": [
-    111,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TransparentDropDownPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    87,
-    31
-   ],
-   "sizeHint": [
-    87,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TransparentDropDownToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    58,
-    30
-   ],
-   "sizeHint": [
-    58,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentDropDownToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    58,
-    30
-   ],
-   "sizeHint": [
-    58,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentPushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    31
-   ],
-   "sizeHint": [
-    60,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentPushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    92,
-    31
-   ],
-   "sizeHint": [
-    92,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TransparentPushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    68,
-    31
-   ],
-   "sizeHint": [
-    68,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TransparentTogglePushButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    60,
-    31
-   ],
-   "sizeHint": [
-    60,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentTogglePushButton/icon+text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    92,
-    31
-   ],
-   "sizeHint": [
-    92,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TransparentTogglePushButton/text": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    68,
-    31
-   ],
-   "sizeHint": [
-    68,
-    31
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": true
-  },
-  "TransparentToggleToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    30
-   ],
-   "sizeHint": [
-    36,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentToggleToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    30
-   ],
-   "sizeHint": [
-    36,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentToolButton/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    30
-   ],
-   "sizeHint": [
-    36,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TransparentToolButton/icon": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    36,
-    30
-   ],
-   "sizeHint": [
-    36,
-    30
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TreeView/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "TreeWidget/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    0,
-    0
-   ],
-   "size": [
-    256,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "VerticalFlipView/default": {
-   "maximumSize": [
-    "max",
-    "max"
-   ],
-   "minimumSize": [
-    480,
-    270
-   ],
-   "size": [
-    480,
-    270
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "VerticalPipsPager/default": {
-   "maximumSize": [
-    12,
-    "max"
-   ],
-   "minimumSize": [
-    12,
-    0
-   ],
-   "size": [
-    12,
-    192
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "VerticalPipsPager/items": {
-   "maximumSize": [
-    12,
-    90
-   ],
-   "minimumSize": [
-    12,
-    90
-   ],
-   "size": [
-    12,
-    90
-   ],
-   "sizeHint": [
-    256,
-    192
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "VerticalSeparator/default": {
-   "maximumSize": [
-    3,
-    "max"
-   ],
-   "minimumSize": [
-    3,
-    0
-   ],
-   "size": [
-    3,
-    0
-   ],
-   "sizeHint": [
-    -1,
-    -1
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  },
-  "ZhDatePicker/default": {
-   "maximumSize": [
-    240,
-    30
-   ],
-   "minimumSize": [
-    240,
-    30
-   ],
-   "size": [
-    240,
-    30
-   ],
-   "sizeHint": [
-    38,
-    22
-   ],
-   "text": "Button",
-   "textDependentHeight": false,
-   "textDependentWidth": false
-  }
- },
- "skipped": {
-  "CheckableMenu": "pop-up menu",
-  "ColorDialog": "top-level dialog",
-  "Dialog": "top-level dialog",
-  "FluentLabelBase": "base class of the labels",
-  "FluentTitleBar": "part of a frameless window, needs one as its parent",
-  "FluentWidget": "top-level window",
-  "FluentWindow": "top-level window",
-  "Flyout": "pop-up flyout",
-  "FlyoutViewBase": "base class of the flyout views",
-  "FolderListDialog": "top-level dialog",
-  "InfoBar": "floating info bar, placed by its manager",
-  "LineEditMenu": "pop-up menu",
-  "MSFluentWindow": "top-level window",
-  "MaskDialogBase": "top-level dialog base",
-  "MessageBox": "top-level dialog",
-  "MessageBoxBase": "top-level dialog",
-  "MessageDialog": "top-level dialog",
-  "NavigationWidget": "base class, paints nothing",
-  "PickerPanel": "the pop-up panel of the pickers",
-  "PopupTeachingTip": "pop-up flyout",
-  "RoundMenu": "pop-up menu",
-  "ScrollBar": "attached to a scroll area, sized by it",
-  "SmoothScrollBar": "attached to a scroll area, sized by it",
-  "SplashScreen": "top-level splash screen",
-  "SplitFluentWindow": "top-level window",
-  "SplitWidgetBase": "base class of the split buttons",
-  "StateToolTip": "floating tool tip, placed by its parent",
-  "SystemTrayMenu": "pop-up menu",
-  "TeachingTip": "pop-up flyout",
-  "ToolTip": "pop-up tool tip",
-  "TransitionStackedWidget": "base class of the transition stacked widgets"
- }
+    "controls": {
+        "QLabel/50/12/Button": [
+            38,
+            17
+        ],
+        "QLabel/50/12/ButtonLonger": [
+            76,
+            17
+        ],
+        "QLabel/50/12/Label": [
+            31,
+            17
+        ],
+        "QLabel/50/12/Option": [
+            38,
+            17
+        ],
+        "QLabel/50/12/Settings and preferences": [
+            141,
+            17
+        ],
+        "QLabel/50/12/Title": [
+            25,
+            17
+        ],
+        "QLabel/50/14/Button": [
+            44,
+            20
+        ],
+        "QLabel/50/14/ButtonLonger": [
+            89,
+            20
+        ],
+        "QLabel/50/14/Label": [
+            36,
+            20
+        ],
+        "QLabel/50/14/Option": [
+            44,
+            20
+        ],
+        "QLabel/50/14/Settings and preferences": [
+            164,
+            20
+        ],
+        "QLabel/50/14/Title": [
+            29,
+            20
+        ],
+        "QLabel/50/20/Button": [
+            62,
+            28
+        ],
+        "QLabel/50/20/ButtonLonger": [
+            127,
+            28
+        ],
+        "QLabel/50/20/Label": [
+            51,
+            28
+        ],
+        "QLabel/50/20/Option": [
+            63,
+            28
+        ],
+        "QLabel/50/20/Settings and preferences": [
+            234,
+            28
+        ],
+        "QLabel/50/20/Title": [
+            41,
+            28
+        ],
+        "QLabel/50/28/Button": [
+            87,
+            40
+        ],
+        "QLabel/50/28/ButtonLonger": [
+            178,
+            40
+        ],
+        "QLabel/50/28/Label": [
+            71,
+            40
+        ],
+        "QLabel/50/28/Option": [
+            88,
+            40
+        ],
+        "QLabel/50/28/Settings and preferences": [
+            328,
+            40
+        ],
+        "QLabel/50/28/Title": [
+            57,
+            40
+        ],
+        "QLabel/50/40/Button": [
+            124,
+            56
+        ],
+        "QLabel/50/40/ButtonLonger": [
+            254,
+            56
+        ],
+        "QLabel/50/40/Label": [
+            101,
+            56
+        ],
+        "QLabel/50/40/Option": [
+            125,
+            56
+        ],
+        "QLabel/50/40/Settings and preferences": [
+            468,
+            56
+        ],
+        "QLabel/50/40/Title": [
+            81,
+            56
+        ],
+        "QLabel/50/68/Button": [
+            211,
+            96
+        ],
+        "QLabel/50/68/ButtonLonger": [
+            431,
+            96
+        ],
+        "QLabel/50/68/Label": [
+            172,
+            96
+        ],
+        "QLabel/50/68/Option": [
+            212,
+            96
+        ],
+        "QLabel/50/68/Settings and preferences": [
+            796,
+            96
+        ],
+        "QLabel/50/68/Title": [
+            138,
+            96
+        ],
+        "QLabel/63/12/Button": [
+            39,
+            17
+        ],
+        "QLabel/63/12/ButtonLonger": [
+            78,
+            17
+        ],
+        "QLabel/63/12/Label": [
+            32,
+            17
+        ],
+        "QLabel/63/12/Option": [
+            39,
+            17
+        ],
+        "QLabel/63/12/Settings and preferences": [
+            144,
+            17
+        ],
+        "QLabel/63/12/Title": [
+            25,
+            17
+        ],
+        "QLabel/63/14/Button": [
+            45,
+            20
+        ],
+        "QLabel/63/14/ButtonLonger": [
+            91,
+            20
+        ],
+        "QLabel/63/14/Label": [
+            37,
+            20
+        ],
+        "QLabel/63/14/Option": [
+            45,
+            20
+        ],
+        "QLabel/63/14/Settings and preferences": [
+            168,
+            20
+        ],
+        "QLabel/63/14/Title": [
+            29,
+            20
+        ],
+        "QLabel/63/20/Button": [
+            64,
+            28
+        ],
+        "QLabel/63/20/ButtonLonger": [
+            130,
+            28
+        ],
+        "QLabel/63/20/Label": [
+            52,
+            28
+        ],
+        "QLabel/63/20/Option": [
+            64,
+            28
+        ],
+        "QLabel/63/20/Settings and preferences": [
+            240,
+            28
+        ],
+        "QLabel/63/20/Title": [
+            42,
+            28
+        ],
+        "QLabel/63/28/Button": [
+            89,
+            40
+        ],
+        "QLabel/63/28/ButtonLonger": [
+            182,
+            40
+        ],
+        "QLabel/63/28/Label": [
+            73,
+            40
+        ],
+        "QLabel/63/28/Option": [
+            90,
+            40
+        ],
+        "QLabel/63/28/Settings and preferences": [
+            337,
+            40
+        ],
+        "QLabel/63/28/Title": [
+            59,
+            40
+        ],
+        "QLabel/63/40/Button": [
+            128,
+            56
+        ],
+        "QLabel/63/40/ButtonLonger": [
+            260,
+            56
+        ],
+        "QLabel/63/40/Label": [
+            104,
+            56
+        ],
+        "QLabel/63/40/Option": [
+            128,
+            56
+        ],
+        "QLabel/63/40/Settings and preferences": [
+            481,
+            56
+        ],
+        "QLabel/63/40/Title": [
+            83,
+            56
+        ],
+        "QLabel/63/68/Button": [
+            216,
+            96
+        ],
+        "QLabel/63/68/ButtonLonger": [
+            442,
+            96
+        ],
+        "QLabel/63/68/Label": [
+            176,
+            96
+        ],
+        "QLabel/63/68/Option": [
+            218,
+            96
+        ],
+        "QLabel/63/68/Settings and preferences": [
+            817,
+            96
+        ],
+        "QLabel/63/68/Title": [
+            141,
+            96
+        ]
+    },
+    "meta": {
+        "appFont": {
+            "families": [
+                "Segoe UI",
+                "Microsoft YaHei",
+                "PingFang SC"
+            ],
+            "pixelSize": 14,
+            "resolvedFamily": "PingFang SC"
+        },
+        "fluentFontResolvedFamily": "PingFang SC",
+        "logicalDpi": 100,
+        "longerTextSuffix": "Longer",
+        "platform": "darwin",
+        "pyqt": "5.15.11",
+        "qfluentwidgets": "1.11.3",
+        "qpa": "offscreen",
+        "qt": "5.15.19",
+        "style": "Fusion",
+        "theme": "light"
+    },
+    "qtBaseline": {
+        "QCheckBox": [
+            76,
+            26
+        ],
+        "QDateEdit": [
+            112,
+            31
+        ],
+        "QDateTimeEdit": [
+            154,
+            31
+        ],
+        "QDoubleSpinBox": [
+            74,
+            31
+        ],
+        "QLineEdit": [
+            125,
+            28
+        ],
+        "QListWidget": [
+            256,
+            192
+        ],
+        "QProgressBar": [
+            95,
+            28
+        ],
+        "QPushButton": [
+            80,
+            30
+        ],
+        "QRadioButton": [
+            76,
+            26
+        ],
+        "QScrollArea": [
+            242,
+            162
+        ],
+        "QSlider": [
+            20,
+            84
+        ],
+        "QSpinBox": [
+            53,
+            31
+        ],
+        "QTimeEdit": [
+            74,
+            31
+        ],
+        "QToolButton": [
+            24,
+            23
+        ]
+    },
+    "rows": {
+        "AMTimePicker/default": {
+            "maximumSize": [
+                240,
+                30
+            ],
+            "minimumSize": [
+                240,
+                30
+            ],
+            "size": [
+                240,
+                30
+            ],
+            "sizeHint": [
+                38,
+                22
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "AvatarWidget/default": {
+            "maximumSize": [
+                96,
+                96
+            ],
+            "minimumSize": [
+                96,
+                96
+            ],
+            "size": [
+                96,
+                96
+            ],
+            "sizeHint": [
+                96,
+                96
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "BodyLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                7,
+                20
+            ],
+            "sizeHint": [
+                7,
+                20
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "BodyLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                20
+            ],
+            "sizeHint": [
+                36,
+                20
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "BreadcrumbBar/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "BreadcrumbBar/items": {
+            "maximumSize": [
+                "max",
+                20
+            ],
+            "minimumSize": [
+                0,
+                20
+            ],
+            "size": [
+                0,
+                20
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "BreadcrumbItem/text": {
+            "maximumSize": [
+                54,
+                20
+            ],
+            "minimumSize": [
+                54,
+                20
+            ],
+            "size": [
+                54,
+                20
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "CalendarPicker/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                120,
+                33
+            ],
+            "sizeHint": [
+                120,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CaptionLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                6,
+                17
+            ],
+            "sizeHint": [
+                6,
+                17
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CaptionLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                31,
+                17
+            ],
+            "sizeHint": [
+                31,
+                17
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "CardGroupWidget/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                128,
+                57
+            ],
+            "sizeHint": [
+                128,
+                57
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "CardWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CheckBox/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                29,
+                22
+            ],
+            "size": [
+                57,
+                22
+            ],
+            "sizeHint": [
+                57,
+                22
+            ],
+            "text": "Option",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CheckBox/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                29,
+                22
+            ],
+            "size": [
+                74,
+                22
+            ],
+            "sizeHint": [
+                74,
+                22
+            ],
+            "text": "Option",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ClickableSlider/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                20,
+                84
+            ],
+            "sizeHint": [
+                20,
+                84
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ColorPickerButton/default": {
+            "maximumSize": [
+                96,
+                32
+            ],
+            "minimumSize": [
+                96,
+                32
+            ],
+            "size": [
+                96,
+                32
+            ],
+            "sizeHint": [
+                24,
+                23
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ColorSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                217,
+                70
+            ],
+            "sizeHint": [
+                217,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ComboBox/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                80,
+                33
+            ],
+            "sizeHint": [
+                80,
+                33
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ComboBox/items": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                81,
+                33
+            ],
+            "sizeHint": [
+                81,
+                33
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ComboBoxSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                202,
+                70
+            ],
+            "sizeHint": [
+                202,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "CommandBar/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                100,
+                30
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Mail",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CommandBar/items": {
+            "maximumSize": [
+                "max",
+                34
+            ],
+            "minimumSize": [
+                0,
+                34
+            ],
+            "size": [
+                100,
+                34
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Mail",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CommandBarView/default": {
+            "maximumSize": [
+                524287,
+                524287
+            ],
+            "minimumSize": [
+                112,
+                42
+            ],
+            "size": [
+                112,
+                42
+            ],
+            "sizeHint": [
+                112,
+                42
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CommandButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                48,
+                34
+            ],
+            "sizeHint": [
+                48,
+                34
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CommandButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                48,
+                34
+            ],
+            "sizeHint": [
+                48,
+                34
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CompactDateEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                120,
+                33
+            ],
+            "sizeHint": [
+                120,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CompactDateTimeEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                162,
+                33
+            ],
+            "sizeHint": [
+                162,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CompactDoubleSpinBox/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                82,
+                33
+            ],
+            "sizeHint": [
+                82,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CompactSpinBox/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                61,
+                33
+            ],
+            "sizeHint": [
+                61,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CompactTimeEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                82,
+                33
+            ],
+            "sizeHint": [
+                82,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CustomColorSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                311,
+                70
+            ],
+            "sizeHint": [
+                311,
+                353
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "CycleListWidget/items": {
+            "maximumSize": [
+                88,
+                333
+            ],
+            "minimumSize": [
+                88,
+                333
+            ],
+            "size": [
+                88,
+                333
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DateEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                174,
+                33
+            ],
+            "sizeHint": [
+                174,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DatePicker/default": {
+            "maximumSize": [
+                300,
+                30
+            ],
+            "minimumSize": [
+                300,
+                30
+            ],
+            "size": [
+                300,
+                30
+            ],
+            "sizeHint": [
+                38,
+                22
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DateTimeEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                216,
+                33
+            ],
+            "sizeHint": [
+                216,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DisplayLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                33,
+                95
+            ],
+            "sizeHint": [
+                33,
+                95
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DisplayLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                176,
+                96
+            ],
+            "sizeHint": [
+                176,
+                96
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "DotInfoBadge/default": {
+            "maximumSize": [
+                4,
+                4
+            ],
+            "minimumSize": [
+                4,
+                4
+            ],
+            "size": [
+                4,
+                4
+            ],
+            "sizeHint": [
+                11,
+                18
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DoubleSpinBox/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                136,
+                33
+            ],
+            "sizeHint": [
+                136,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DrillInTransitionStackedWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DropDownPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                81,
+                33
+            ],
+            "sizeHint": [
+                81,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DropDownPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                113,
+                33
+            ],
+            "sizeHint": [
+                113,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "DropDownPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                89,
+                33
+            ],
+            "sizeHint": [
+                89,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "DropDownToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                32
+            ],
+            "sizeHint": [
+                60,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "DropDownToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                32
+            ],
+            "sizeHint": [
+                60,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "EditableComboBox/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                174,
+                33
+            ],
+            "sizeHint": [
+                174,
+                24
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "EditableComboBox/items": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                174,
+                33
+            ],
+            "sizeHint": [
+                174,
+                24
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "EditableModelComboBox/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                174,
+                33
+            ],
+            "sizeHint": [
+                174,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ElevatedCardWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "EntranceTransitionStackedWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ExpandGroupSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                95,
+                70
+            ],
+            "sizeHint": [
+                2,
+                3
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ExpandSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                95,
+                70
+            ],
+            "sizeHint": [
+                20,
+                21
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "FastCalendarPicker/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                120,
+                33
+            ],
+            "sizeHint": [
+                120,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "FlipView/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                480,
+                270
+            ],
+            "size": [
+                480,
+                270
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "FlyoutView/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                94,
+                68
+            ],
+            "sizeHint": [
+                94,
+                68
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "FolderListSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                95,
+                70
+            ],
+            "sizeHint": [
+                2,
+                20
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "GroupHeaderCardWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                47,
+                51
+            ],
+            "sizeHint": [
+                47,
+                51
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HeaderCardWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                48,
+                99
+            ],
+            "sizeHint": [
+                48,
+                99
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HeaderCardWidget/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                72,
+                99
+            ],
+            "sizeHint": [
+                72,
+                99
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "HorizontalFlipView/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                480,
+                270
+            ],
+            "size": [
+                480,
+                270
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HorizontalPipsPager/default": {
+            "maximumSize": [
+                "max",
+                12
+            ],
+            "minimumSize": [
+                0,
+                12
+            ],
+            "size": [
+                256,
+                12
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HorizontalPipsPager/items": {
+            "maximumSize": [
+                90,
+                12
+            ],
+            "minimumSize": [
+                90,
+                12
+            ],
+            "size": [
+                90,
+                12
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HorizontalSeparator/default": {
+            "maximumSize": [
+                "max",
+                3
+            ],
+            "minimumSize": [
+                0,
+                3
+            ],
+            "size": [
+                0,
+                3
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HyperlinkButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                32
+            ],
+            "sizeHint": [
+                60,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HyperlinkButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                92,
+                32
+            ],
+            "sizeHint": [
+                92,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "HyperlinkButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                68,
+                32
+            ],
+            "sizeHint": [
+                68,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "HyperlinkCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                189,
+                70
+            ],
+            "sizeHint": [
+                189,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "HyperlinkLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                20
+            ],
+            "sizeHint": [
+                36,
+                20
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "HyperlinkLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                20
+            ],
+            "sizeHint": [
+                36,
+                20
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "IconInfoBadge/default": {
+            "maximumSize": [
+                16,
+                16
+            ],
+            "minimumSize": [
+                16,
+                16
+            ],
+            "size": [
+                16,
+                16
+            ],
+            "sizeHint": [
+                16,
+                18
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "IconInfoBadge/icon": {
+            "maximumSize": [
+                16,
+                16
+            ],
+            "minimumSize": [
+                16,
+                16
+            ],
+            "size": [
+                16,
+                16
+            ],
+            "sizeHint": [
+                16,
+                18
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "IconWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "IconWidget/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ImageLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                7,
+                20
+            ],
+            "sizeHint": [
+                7,
+                20
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "IndeterminateProgressBar/default": {
+            "maximumSize": [
+                "max",
+                4
+            ],
+            "minimumSize": [
+                0,
+                4
+            ],
+            "size": [
+                95,
+                4
+            ],
+            "sizeHint": [
+                95,
+                28
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "IndeterminateProgressRing/default": {
+            "maximumSize": [
+                80,
+                80
+            ],
+            "minimumSize": [
+                80,
+                80
+            ],
+            "size": [
+                80,
+                80
+            ],
+            "sizeHint": [
+                95,
+                28
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "InfoBadge/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                11,
+                18
+            ],
+            "sizeHint": [
+                11,
+                18
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "InfoBadge/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                19,
+                18
+            ],
+            "sizeHint": [
+                19,
+                18
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "LargeTitleLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                19,
+                56
+            ],
+            "sizeHint": [
+                19,
+                56
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "LargeTitleLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                104,
+                56
+            ],
+            "sizeHint": [
+                104,
+                56
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "LineEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                145,
+                33
+            ],
+            "sizeHint": [
+                145,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "LineEditButton/icon": {
+            "maximumSize": [
+                31,
+                23
+            ],
+            "minimumSize": [
+                31,
+                23
+            ],
+            "size": [
+                31,
+                23
+            ],
+            "sizeHint": [
+                13,
+                13
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ListView/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ListWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "MessageBox/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                300,
+                209
+            ],
+            "sizeHint": [
+                300,
+                209
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "MessageBoxBase/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                192,
+                149
+            ],
+            "sizeHint": [
+                192,
+                149
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "MessageDialog/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                118,
+                186
+            ],
+            "sizeHint": [
+                118,
+                186
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ModelComboBox/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                80,
+                33
+            ],
+            "sizeHint": [
+                80,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationAvatarWidget/text": {
+            "maximumSize": [
+                40,
+                36
+            ],
+            "minimumSize": [
+                40,
+                36
+            ],
+            "size": [
+                40,
+                36
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Ada",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationBar/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                93,
+                103
+            ],
+            "sizeHint": [
+                93,
+                103
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationBarPushButton/icon+text": {
+            "maximumSize": [
+                64,
+                58
+            ],
+            "minimumSize": [
+                64,
+                58
+            ],
+            "size": [
+                64,
+                58
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Home",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationInterface/default": {
+            "maximumSize": [
+                48,
+                "max"
+            ],
+            "minimumSize": [
+                48,
+                0
+            ],
+            "size": [
+                48,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationItemHeader/text": {
+            "maximumSize": [
+                40,
+                0
+            ],
+            "minimumSize": [
+                40,
+                0
+            ],
+            "size": [
+                40,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Header",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationPanel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                95,
+                145
+            ],
+            "sizeHint": [
+                95,
+                145
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationToolButton/icon": {
+            "maximumSize": [
+                40,
+                36
+            ],
+            "minimumSize": [
+                40,
+                36
+            ],
+            "size": [
+                40,
+                36
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationTreeWidget/icon+text": {
+            "maximumSize": [
+                40,
+                36
+            ],
+            "minimumSize": [
+                40,
+                36
+            ],
+            "size": [
+                40,
+                36
+            ],
+            "sizeHint": [
+                40,
+                36
+            ],
+            "text": "Home",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "NavigationUserCard/default": {
+            "maximumSize": [
+                40,
+                36
+            ],
+            "minimumSize": [
+                40,
+                36
+            ],
+            "size": [
+                40,
+                36
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "OpacityAniStackedWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "OptionsSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                122,
+                70
+            ],
+            "sizeHint": [
+                122,
+                208
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PasswordLineEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                175,
+                33
+            ],
+            "sizeHint": [
+                175,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PillPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                31
+            ],
+            "sizeHint": [
+                60,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PillPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                92,
+                31
+            ],
+            "sizeHint": [
+                92,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PillPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                68,
+                31
+            ],
+            "sizeHint": [
+                68,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PillToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                30
+            ],
+            "sizeHint": [
+                36,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PillToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                30
+            ],
+            "sizeHint": [
+                36,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PipsPager/default": {
+            "maximumSize": [
+                "max",
+                12
+            ],
+            "minimumSize": [
+                0,
+                12
+            ],
+            "size": [
+                256,
+                12
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "Pivot/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "Pivot/items": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                153,
+                46
+            ],
+            "size": [
+                153,
+                46
+            ],
+            "sizeHint": [
+                153,
+                46
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PivotItem/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                46
+            ],
+            "sizeHint": [
+                60,
+                46
+            ],
+            "text": "Item",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PixmapLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                7,
+                20
+            ],
+            "sizeHint": [
+                7,
+                20
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PlainTextEdit/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PopUpAniStackedWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryDropDownPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                81,
+                33
+            ],
+            "sizeHint": [
+                81,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryDropDownPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                113,
+                33
+            ],
+            "sizeHint": [
+                113,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimaryDropDownPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                89,
+                33
+            ],
+            "sizeHint": [
+                89,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimaryDropDownToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                32
+            ],
+            "sizeHint": [
+                60,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryDropDownToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                32
+            ],
+            "sizeHint": [
+                60,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                62,
+                33
+            ],
+            "sizeHint": [
+                62,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                94,
+                33
+            ],
+            "sizeHint": [
+                94,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimaryPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                70,
+                33
+            ],
+            "sizeHint": [
+                70,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimaryPushSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                191,
+                70
+            ],
+            "sizeHint": [
+                191,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimarySplitPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                93,
+                33
+            ],
+            "sizeHint": [
+                93,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimarySplitPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                125,
+                33
+            ],
+            "sizeHint": [
+                125,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimarySplitPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                101,
+                33
+            ],
+            "sizeHint": [
+                101,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PrimarySplitToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                69,
+                32
+            ],
+            "sizeHint": [
+                69,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimarySplitToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                69,
+                32
+            ],
+            "sizeHint": [
+                69,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                38,
+                32
+            ],
+            "sizeHint": [
+                38,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PrimaryToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                38,
+                32
+            ],
+            "sizeHint": [
+                38,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ProgressBar/default": {
+            "maximumSize": [
+                "max",
+                4
+            ],
+            "minimumSize": [
+                0,
+                4
+            ],
+            "size": [
+                95,
+                4
+            ],
+            "sizeHint": [
+                95,
+                28
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ProgressRing/default": {
+            "maximumSize": [
+                100,
+                100
+            ],
+            "minimumSize": [
+                100,
+                100
+            ],
+            "size": [
+                100,
+                100
+            ],
+            "sizeHint": [
+                95,
+                28
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                62,
+                33
+            ],
+            "sizeHint": [
+                62,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "PushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                94,
+                33
+            ],
+            "sizeHint": [
+                94,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                70,
+                33
+            ],
+            "sizeHint": [
+                70,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "PushSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                239,
+                70
+            ],
+            "sizeHint": [
+                239,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "RadioButton/default": {
+            "maximumSize": [
+                "max",
+                24
+            ],
+            "minimumSize": [
+                0,
+                24
+            ],
+            "size": [
+                34,
+                24
+            ],
+            "sizeHint": [
+                34,
+                24
+            ],
+            "text": "Option",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "RadioButton/text": {
+            "maximumSize": [
+                "max",
+                24
+            ],
+            "minimumSize": [
+                0,
+                24
+            ],
+            "size": [
+                79,
+                24
+            ],
+            "sizeHint": [
+                79,
+                24
+            ],
+            "text": "Option",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "RangeSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                412,
+                70
+            ],
+            "sizeHint": [
+                412,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ScrollArea/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                242,
+                162
+            ],
+            "sizeHint": [
+                242,
+                162
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SearchLineEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                204,
+                33
+            ],
+            "sizeHint": [
+                204,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedItem/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                53,
+                32
+            ],
+            "sizeHint": [
+                53,
+                32
+            ],
+            "text": "Item",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SegmentedToggleToolWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedToggleToolWidget/items": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                100,
+                32
+            ],
+            "size": [
+                100,
+                32
+            ],
+            "sizeHint": [
+                100,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedToolItem/icon": {
+            "maximumSize": [
+                38,
+                33
+            ],
+            "minimumSize": [
+                38,
+                33
+            ],
+            "size": [
+                38,
+                33
+            ],
+            "sizeHint": [
+                36,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedToolWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedToolWidget/items": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                76,
+                33
+            ],
+            "size": [
+                76,
+                33
+            ],
+            "sizeHint": [
+                76,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                0,
+                0
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SegmentedWidget/items": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                130,
+                32
+            ],
+            "size": [
+                130,
+                32
+            ],
+            "sizeHint": [
+                130,
+                32
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                105,
+                70
+            ],
+            "sizeHint": [
+                105,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SettingCardGroup/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                41,
+                40
+            ],
+            "sizeHint": [
+                41,
+                40
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SimpleCardWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                0,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SimpleExpandGroupSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                95,
+                70
+            ],
+            "sizeHint": [
+                2,
+                3
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SingleDirectionScrollArea/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                242,
+                162
+            ],
+            "sizeHint": [
+                242,
+                162
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "Slider/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                22,
+                0
+            ],
+            "size": [
+                22,
+                84
+            ],
+            "sizeHint": [
+                20,
+                84
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "Slider/horizontal": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                22
+            ],
+            "size": [
+                84,
+                22
+            ],
+            "sizeHint": [
+                84,
+                20
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SmoothScrollArea/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                242,
+                162
+            ],
+            "sizeHint": [
+                242,
+                162
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SpinBox/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                115,
+                33
+            ],
+            "sizeHint": [
+                115,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SplitPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                93,
+                33
+            ],
+            "sizeHint": [
+                93,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SplitPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                125,
+                33
+            ],
+            "sizeHint": [
+                125,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SplitPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                101,
+                33
+            ],
+            "sizeHint": [
+                101,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SplitToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                69,
+                32
+            ],
+            "sizeHint": [
+                69,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SplitToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                69,
+                32
+            ],
+            "sizeHint": [
+                69,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "StrongBodyLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                7,
+                20
+            ],
+            "sizeHint": [
+                7,
+                20
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "StrongBodyLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                37,
+                20
+            ],
+            "sizeHint": [
+                37,
+                20
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SubtitleLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                10,
+                28
+            ],
+            "sizeHint": [
+                10,
+                28
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SubtitleLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                52,
+                28
+            ],
+            "sizeHint": [
+                52,
+                28
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SwitchButton/default": {
+            "maximumSize": [
+                "max",
+                22
+            ],
+            "minimumSize": [
+                0,
+                22
+            ],
+            "size": [
+                77,
+                22
+            ],
+            "sizeHint": [
+                77,
+                22
+            ],
+            "text": "On",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "SwitchButton/text": {
+            "maximumSize": [
+                "max",
+                22
+            ],
+            "minimumSize": [
+                0,
+                22
+            ],
+            "size": [
+                75,
+                22
+            ],
+            "sizeHint": [
+                75,
+                22
+            ],
+            "text": "On",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "SwitchSettingCard/icon+text": {
+            "maximumSize": [
+                "max",
+                70
+            ],
+            "minimumSize": [
+                0,
+                70
+            ],
+            "size": [
+                198,
+                70
+            ],
+            "sizeHint": [
+                198,
+                36
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TabBar/default": {
+            "maximumSize": [
+                "max",
+                46
+            ],
+            "minimumSize": [
+                0,
+                46
+            ],
+            "size": [
+                93,
+                46
+            ],
+            "sizeHint": [
+                45,
+                24
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TabBar/items": {
+            "maximumSize": [
+                "max",
+                46
+            ],
+            "minimumSize": [
+                0,
+                46
+            ],
+            "size": [
+                525,
+                46
+            ],
+            "sizeHint": [
+                525,
+                46
+            ],
+            "text": "Alpha",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TabItem/text": {
+            "maximumSize": [
+                240,
+                36
+            ],
+            "minimumSize": [
+                64,
+                36
+            ],
+            "size": [
+                240,
+                36
+            ],
+            "sizeHint": [
+                240,
+                36
+            ],
+            "text": "Tab",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TabWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                93,
+                47
+            ],
+            "sizeHint": [
+                93,
+                47
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TableView/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TableWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TeachingTipView/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                116,
+                68
+            ],
+            "sizeHint": [
+                116,
+                68
+            ],
+            "text": "Title",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TextBrowser/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TextEdit/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TimeEdit/default": {
+            "maximumSize": [
+                "max",
+                33
+            ],
+            "minimumSize": [
+                0,
+                33
+            ],
+            "size": [
+                136,
+                33
+            ],
+            "sizeHint": [
+                136,
+                24
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TimePicker/default": {
+            "maximumSize": [
+                240,
+                30
+            ],
+            "minimumSize": [
+                240,
+                30
+            ],
+            "size": [
+                240,
+                30
+            ],
+            "sizeHint": [
+                38,
+                22
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TitleLabel/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                13,
+                40
+            ],
+            "sizeHint": [
+                13,
+                40
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TitleLabel/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                73,
+                40
+            ],
+            "sizeHint": [
+                73,
+                40
+            ],
+            "text": "Label",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ToggleButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                62,
+                33
+            ],
+            "sizeHint": [
+                62,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ToggleButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                94,
+                33
+            ],
+            "sizeHint": [
+                94,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ToggleButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                70,
+                33
+            ],
+            "sizeHint": [
+                70,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TogglePushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                62,
+                33
+            ],
+            "sizeHint": [
+                62,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TogglePushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                94,
+                33
+            ],
+            "sizeHint": [
+                94,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TogglePushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                70,
+                33
+            ],
+            "sizeHint": [
+                70,
+                33
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "ToggleToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                38,
+                32
+            ],
+            "sizeHint": [
+                38,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ToggleToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                38,
+                32
+            ],
+            "sizeHint": [
+                38,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                38,
+                32
+            ],
+            "sizeHint": [
+                38,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                38,
+                32
+            ],
+            "sizeHint": [
+                38,
+                32
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentDropDownPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                79,
+                31
+            ],
+            "sizeHint": [
+                79,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentDropDownPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                111,
+                31
+            ],
+            "sizeHint": [
+                111,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TransparentDropDownPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                87,
+                31
+            ],
+            "sizeHint": [
+                87,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TransparentDropDownToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                58,
+                30
+            ],
+            "sizeHint": [
+                58,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentDropDownToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                58,
+                30
+            ],
+            "sizeHint": [
+                58,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentPushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                31
+            ],
+            "sizeHint": [
+                60,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentPushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                92,
+                31
+            ],
+            "sizeHint": [
+                92,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TransparentPushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                68,
+                31
+            ],
+            "sizeHint": [
+                68,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TransparentTogglePushButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                60,
+                31
+            ],
+            "sizeHint": [
+                60,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentTogglePushButton/icon+text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                92,
+                31
+            ],
+            "sizeHint": [
+                92,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TransparentTogglePushButton/text": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                68,
+                31
+            ],
+            "sizeHint": [
+                68,
+                31
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": true
+        },
+        "TransparentToggleToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                30
+            ],
+            "sizeHint": [
+                36,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentToggleToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                30
+            ],
+            "sizeHint": [
+                36,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentToolButton/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                30
+            ],
+            "sizeHint": [
+                36,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TransparentToolButton/icon": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                36,
+                30
+            ],
+            "sizeHint": [
+                36,
+                30
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TreeView/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "TreeWidget/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                0,
+                0
+            ],
+            "size": [
+                256,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "VerticalFlipView/default": {
+            "maximumSize": [
+                "max",
+                "max"
+            ],
+            "minimumSize": [
+                480,
+                270
+            ],
+            "size": [
+                480,
+                270
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "VerticalPipsPager/default": {
+            "maximumSize": [
+                12,
+                "max"
+            ],
+            "minimumSize": [
+                12,
+                0
+            ],
+            "size": [
+                12,
+                192
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "VerticalPipsPager/items": {
+            "maximumSize": [
+                12,
+                90
+            ],
+            "minimumSize": [
+                12,
+                90
+            ],
+            "size": [
+                12,
+                90
+            ],
+            "sizeHint": [
+                256,
+                192
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "VerticalSeparator/default": {
+            "maximumSize": [
+                3,
+                "max"
+            ],
+            "minimumSize": [
+                3,
+                0
+            ],
+            "size": [
+                3,
+                0
+            ],
+            "sizeHint": [
+                -1,
+                -1
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        },
+        "ZhDatePicker/default": {
+            "maximumSize": [
+                240,
+                30
+            ],
+            "minimumSize": [
+                240,
+                30
+            ],
+            "size": [
+                240,
+                30
+            ],
+            "sizeHint": [
+                38,
+                22
+            ],
+            "text": "Button",
+            "textDependentHeight": false,
+            "textDependentWidth": false
+        }
+    },
+    "skipped": {
+        "CheckableMenu": "pop-up menu",
+        "ColorDialog": "top-level dialog",
+        "Dialog": "top-level dialog",
+        "FluentLabelBase": "base class of the labels",
+        "FluentTitleBar": "part of a frameless window, needs one as its parent",
+        "FluentWidget": "top-level window",
+        "FluentWindow": "top-level window",
+        "Flyout": "pop-up flyout",
+        "FlyoutViewBase": "base class of the flyout views",
+        "FolderListDialog": "top-level dialog",
+        "InfoBar": "floating info bar, placed by its manager",
+        "LineEditMenu": "pop-up menu",
+        "MSFluentWindow": "top-level window",
+        "MaskDialogBase": "base class of the mask dialogs",
+        "NavigationWidget": "base class, paints nothing",
+        "PickerPanel": "the pop-up panel of the pickers",
+        "PopupTeachingTip": "pop-up flyout",
+        "RoundMenu": "pop-up menu",
+        "ScrollBar": "attached to a scroll area, sized by it",
+        "SmoothScrollBar": "attached to a scroll area, sized by it",
+        "SplashScreen": "top-level splash screen",
+        "SplitFluentWindow": "top-level window",
+        "SplitWidgetBase": "base class of the split buttons",
+        "StateToolTip": "floating tool tip, placed by its parent",
+        "SystemTrayMenu": "pop-up menu",
+        "TeachingTip": "pop-up flyout",
+        "ToolTip": "pop-up tool tip",
+        "TransitionStackedWidget": "base class of the transition stacked widgets"
+    }
 }

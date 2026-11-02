@@ -9,6 +9,7 @@
 #include <FluentQtWidgets/DateTime/CalendarPicker.h>
 #include <FluentQtWidgets/DateTime/DatePicker.h>
 #include <FluentQtWidgets/DateTime/TimePicker.h>
+#include <FluentQtWidgets/Dialogs/Dialog.h>
 #include <FluentQtWidgets/FluentIcon.h>
 #include <FluentQtWidgets/Navigation/BreadcrumbBar.h>
 #include <FluentQtWidgets/Navigation/NavigationBar.h>
@@ -142,6 +143,9 @@ const std::vector<Expectation> kIntended = {
 // Differences that look like port bugs, not fixed yet. Expected to fail (QEXPECT_FAIL, Continue): when
 // a fix makes the metric match, the row reports XPASS and fails, and the entry must go.
 const std::vector<Expectation> kPending = {
+    // clang-format off
+    {"MessageBoxBase/default", "size.w sizeHint.w", "Python's cancel button is a plain QPushButton styled by message_dialog.qss (65 px wide for \"Cancel\"); the port's is a PushButton (71 px), and the two equal-stretch buttons make the box 6 px wider"},
+    // clang-format on
 };
 
 // Plain Qt classes whose size hint Qt 6 changed (qtBaseline). Not a table of the port's differences: a
@@ -455,6 +459,15 @@ const Factories &factories()
         };
         f["NavigationItemHeader/text"] = [](const QString &t, QWidget *) { return new NavigationItemHeader(t); };
         f["NavigationAvatarWidget/text"] = [](const QString &t, QWidget *) { return new NavigationAvatarWidget(t); };
+
+        // Mask dialogs: child overlays of the container, laid out like any other widget
+        f["MessageBox/text"] = [=](const QString &t, QWidget *container) {
+            return new MessageBox(t, content, container);
+        };
+        f["MessageDialog/text"] = [=](const QString &t, QWidget *container) {
+            return new MessageDialog(t, content, container);
+        };
+        f["MessageBoxBase/default"] = [](const QString &, QWidget *container) { return new MessageBoxBase(container); };
 
         // Flyout contents
         f["FlyoutView/text"] = [=](const QString &t, QWidget *) { return new FlyoutView(t, content); };
