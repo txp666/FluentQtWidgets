@@ -2,7 +2,6 @@
 
 #include <FluentQtWidgets/Dialogs/ColorDialog.h>
 #include <FluentQtWidgets/Dialogs/Dialog.h>
-#include <FluentQtWidgets/Dialogs/FolderListDialog.h>
 #include <FluentQtWidgets/Layout/FlowLayout.h>
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>

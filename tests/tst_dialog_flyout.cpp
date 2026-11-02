@@ -10,7 +10,9 @@
 #include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 #include <FluentQtWidgets/Widgets/TeachingTip.h>
+#include <QtCore/QDir>
 #include <QtCore/QPointer>
+#include <QtCore/QScopeGuard>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTimer>
 #include <QtGui/QColor>
@@ -23,6 +25,7 @@
 #include <QtTest/QTest>
 #include <QtWidgets/QColorDialog>
 #include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtWidgets/QGraphicsOpacityEffect>
@@ -740,23 +743,166 @@ class DialogFlyoutTest : public QObject
         QTRY_VERIFY(alphaDialogInspected);
     }
 
-    void folderListDialogEditsItsFolders()
+    void folderListDialogMatchesPythonLayout_data()
     {
-        FluentQt::FolderListDialog listDialog(QStringList{QStringLiteral("/tmp/music")},
-                                              QStringLiteral("Build your collection"),
-                                              QStringLiteral("Right now, we're watching these folders:"));
-        QCOMPARE(listDialog.folders(), QStringList{QStringLiteral("/tmp/music")});
-        QVERIFY(listDialog.scrollArea() != nullptr);
-        QVERIFY(listDialog.scrollWidget() != nullptr);
-        QVERIFY(listDialog.addFolderButton() != nullptr);
-        QVERIFY(listDialog.addFolder(QStringLiteral("/tmp/podcasts")));
-        QVERIFY(!listDialog.addFolder(QStringLiteral("/tmp/podcasts")));
-        QVERIFY(listDialog.removeFolder(QStringLiteral("/tmp/music")));
-        QCOMPARE(listDialog.folders(), QStringList{QStringLiteral("/tmp/podcasts")});
-        QSignalSpy changedSpy(&listDialog, &FluentQt::FolderListDialog::folderChanged);
-        listDialog.yesButton()->click();
+        QTest::addColumn<bool>("dark");
+        QTest::addColumn<QSize>("boxSize");
+        QTest::addColumn<QRect>("titleGeometry");
+        QTest::addColumn<QRect>("contentGeometry");
+        QTest::addColumn<QRect>("scrollGeometry");
+        QTest::addColumn<QRect>("buttonGeometry");
+        // Measured from qfluentwidgets 1.11.3's FolderListDialog with the same texts and two folders.
+        QTest::newRow("light") << false << QSize(492, 411) << QRect(25, 25, 442, 28) << QRect(25, 59, 442, 20)
+                               << QRect(99, 91, 294, 232) << QRect(328, 347, 139, 39);
+        QTest::newRow("dark") << true << QSize(602, 427) << QRect(25, 25, 552, 35) << QRect(25, 66, 552, 26)
+                              << QRect(154, 104, 294, 232) << QRect(394, 360, 183, 42);
+    }
+
+    void folderListDialogMatchesPythonLayout()
+    {
+        QFETCH(bool, dark);
+        QFETCH(QSize, boxSize);
+        QFETCH(QRect, titleGeometry);
+        QFETCH(QRect, contentGeometry);
+        QFETCH(QRect, scrollGeometry);
+        QFETCH(QRect, buttonGeometry);
+        FluentQt::ThemeManager::instance()->setTheme(dark ? FluentQt::Theme::Dark : FluentQt::Theme::Light);
+
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        FluentQt::FolderListDialog dialog(QStringList{QStringLiteral("/tmp/KuGou"),
+                                                      QStringLiteral("/Users/shoko/Documents/Music")},
+                                          QStringLiteral("Build your collection from your local music files"),
+                                          QStringLiteral("Right now, we're watching these folders:"), &parent);
+        dialog.show();
+        QTRY_VERIFY(dialog.isVisible());
+        QTest::qWait(20);
+
+        QCOMPARE(dialog.property("fqw").toString(), QStringLiteral("FolderListDialog"));
+        QCOMPARE(dialog.widget()->size(), boxSize);
+        QCOMPARE(dialog.titleLabel()->geometry(), titleGeometry);
+        QCOMPARE(dialog.contentLabel()->geometry(), contentGeometry);
+        QCOMPARE(dialog.scrollArea()->geometry(), scrollGeometry);
+        QCOMPARE(dialog.scrollWidget()->size(), QSize(292, 232));
+        QCOMPARE(dialog.completeButton()->objectName(), QStringLiteral("completeButton"));
+        QCOMPARE(dialog.completeButton()->geometry(), buttonGeometry);
+        QCOMPARE(dialog.completeButton()->text(), QStringLiteral("Done"));
+        QCOMPARE(dialog.addFolderCard()->geometry(), QRect(0, 0, 292, 72));
+        QCOMPARE(dialog.folderCards().size(), 2);
+        QCOMPARE(dialog.folderCards().at(0)->geometry(), QRect(0, 80, 292, 72));
+        QCOMPARE(dialog.folderCards().at(1)->geometry(), QRect(0, 160, 292, 72));
+        QCOMPARE(dialog.folderCards().at(1)->folderName(), QStringLiteral("Music"));
+        QVERIFY(dialog.findChildren<QPushButton *>().size() == 1);
+
+        // The cards paint Python's grey fill, darker in the dark theme.
+        const QImage card = FqwTest::render(*dialog.addFolderCard());
+        QCOMPARE(card.pixelColor(20, 36), dark ? QColor(51, 51, 51) : QColor(204, 204, 204));
+        // And the style sheet gives the box Python's background.
+        const QImage box = dialog.widget()->grab().toImage();
+        QCOMPARE(box.pixelColor(box.width() / 2, 10), dark ? QColor(23, 23, 23) : QColor(Qt::white));
+        dialog.reject();
+        QTRY_VERIFY(!dialog.isVisible());
+    }
+
+    void folderListDialogAddsAndRemovesFolders()
+    {
+        QTemporaryDir temp;
+        QVERIFY(temp.isValid());
+        QVERIFY(QDir(temp.path()).mkdir(QStringLiteral("podcasts")));
+        const bool nativeDialogs = !QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);
+        QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, true);
+        const auto restore = qScopeGuard(
+            [nativeDialogs]() { QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, !nativeDialogs); });
+
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        const QStringList original{QStringLiteral("/tmp/music"), QStringLiteral("/tmp/video")};
+        FluentQt::FolderListDialog dialog(original, QStringLiteral("Build your collection"),
+                                          QStringLiteral("Right now, we're watching these folders:"), &parent);
+        QSignalSpy changedSpy(&dialog, &FluentQt::FolderListDialog::folderChanged);
+        dialog.show();
+        QTRY_VERIFY(dialog.isVisible());
+        QCOMPARE(dialog.folderPaths(), original);
+        QCOMPARE(dialog.scrollArea()->height(), 232);
+
+        // The add card opens a QFileDialog, like Python's, and appends the chosen folder.
+        bool fileDialogSeen = false;
+        QTimer::singleShot(100, &dialog, [&]() {
+            auto *fileDialog = FqwTest::findVisibleTopLevel<QFileDialog>();
+            if (!fileDialog) {
+                return;
+            }
+            fileDialogSeen = true;
+            QCOMPARE(fileDialog->fileMode(), QFileDialog::Directory);
+            QCOMPARE(fileDialog->windowTitle(), QStringLiteral("Choose folder"));
+            fileDialog->setDirectory(temp.filePath(QStringLiteral("podcasts")));
+            QMetaObject::invokeMethod(fileDialog, "accept");
+        });
+        QTest::mouseClick(dialog.addFolderCard(), Qt::LeftButton, {}, QPoint(20, 20));
+        QVERIFY(fileDialogSeen);
+        QCOMPARE(dialog.folderPaths().size(), 3);
+        QVERIFY2(dialog.folderPaths().last().endsWith(QStringLiteral("/podcasts")),
+                 qPrintable(dialog.folderPaths().last()));
+        QCOMPARE(dialog.folderCards().size(), 3);
+        QCOMPARE(dialog.folderCards().last()->folderName(), QStringLiteral("podcasts"));
+        QCOMPARE(dialog.scrollArea()->height(), 312);
+
+        // A folder card asks with a Dialog before it removes the folder; Cancel keeps it.
+        const auto answerDeleteDialog = [](bool yes, bool *seen) {
+            QTimer::singleShot(100, [yes, seen]() {
+                auto *confirm = qobject_cast<FluentQt::Dialog *>(
+                    FqwTest::findVisibleTopLevelByRole(QStringLiteral("DialogPopup")));
+                if (!confirm) {
+                    return;
+                }
+                *seen = confirm->titleLabel()->text() == QStringLiteral("Are you sure you want to delete the folder?") &&
+                        confirm->contentLabel()->text().contains(QStringLiteral("\"music\""));
+                (yes ? confirm->yesButton() : confirm->cancelButton())->click();
+            });
+        };
+        bool confirmSeen = false;
+        answerDeleteDialog(false, &confirmSeen);
+        QTest::mouseClick(dialog.folderCards().first(), Qt::LeftButton, {}, QPoint(20, 20));
+        QVERIFY(confirmSeen);
+        QCOMPARE(dialog.folderCards().size(), 3);
+
+        confirmSeen = false;
+        answerDeleteDialog(true, &confirmSeen);
+        QTest::mouseClick(dialog.folderCards().first(), Qt::LeftButton, {}, QPoint(20, 20));
+        QVERIFY(confirmSeen);
+        QTRY_COMPARE(dialog.folderCards().size(), 2);
+        QCOMPARE(dialog.folderPaths().first(), QStringLiteral("/tmp/video"));
+        QCOMPARE(dialog.scrollArea()->height(), 232);
+        QCOMPARE(changedSpy.count(), 0);
+
+        // Done emits the new list once, then closes.
+        dialog.completeButton()->click();
         QCOMPARE(changedSpy.count(), 1);
-        QCOMPARE(changedSpy.takeFirst().at(0).toStringList(), QStringList{QStringLiteral("/tmp/podcasts")});
+        QCOMPARE(changedSpy.takeFirst().at(0).toStringList(), dialog.folderPaths());
+        QTRY_VERIFY(!dialog.isVisible());
+    }
+
+    void folderListDialogDoneWithoutChangesEmitsNothing()
+    {
+        QWidget parent;
+        parent.resize(800, 720);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        // Python compares sorted lists, so the same folders in another order are no change.
+        FluentQt::FolderListDialog dialog(QStringList{QStringLiteral("/b"), QStringLiteral("/a")},
+                                          QStringLiteral("Title"), QStringLiteral("Content"), &parent);
+        QSignalSpy changedSpy(&dialog, &FluentQt::FolderListDialog::folderChanged);
+        dialog.show();
+        QTRY_VERIFY(dialog.isVisible());
+        dialog.completeButton()->click();
+        QTRY_VERIFY(!dialog.isVisible());
+        QCOMPARE(changedSpy.count(), 0);
+        QCOMPARE(dialog.scrollArea()->height(), 232);
+        QCOMPARE(dialog.widget()->width(), 352);
     }
 
     void flyoutFactoriesSetPopupModeAndCloseOnOutsideClick()

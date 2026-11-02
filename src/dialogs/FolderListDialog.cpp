@@ -2,296 +2,369 @@
 
 #include <FluentQtWidgets/StyleSheet.h>
 #include <FluentQtWidgets/Theme.h>
-#include <FluentQtWidgets/Views/ItemViews.h>
-#include <FluentQtWidgets/Widgets/Button.h>
-#include <FluentQtWidgets/Widgets/Label.h>
-#include <FluentQtWidgets/Widgets/LineEdit.h>
 #include <FluentQtWidgets/Widgets/ScrollArea.h>
 
-#include "DialogShadow_p.h"
-
-#include <QtCore/QDir>
 #include <QtCore/QFileInfo>
-#include <QtCore/QStandardPaths>
-#include <QFileSystemModel>
+#include <QtGui/QFont>
+#include <QtGui/QFontMetrics>
+#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QApplication>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QTreeView>
+#include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
+
+#include <algorithm>
 
 namespace FluentQt {
 
-FolderPickerDialog::FolderPickerDialog(const QString &directory, QWidget *parent)
-    : QDialog(parent, Qt::Dialog | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint)
+namespace {
+
+bool isDark() { return ThemeManager::instance()->effectiveTheme() == Theme::Dark; }
+
+// Python's getIconColor(): the images come in a black and a white variant.
+QString iconColor() { return isDark() ? QStringLiteral("white") : QStringLiteral("black"); }
+
+QPixmap folderListImage(const QString &name, int size)
 {
-    setModal(true);
-    FluentStyleSheet::setRole(this, QStringLiteral("FolderListDialog"));
-    setProperty("fqw", QStringLiteral("FolderPickerDialogPopup"));
+    return QPixmap(QStringLiteral(":/qfluentwidgets/images/folder_list_dialog/%1_%2.png").arg(name, iconColor()))
+        .scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
+
+} // namespace
+
+ClickableWindow::ClickableWindow(QWidget *parent) : QWidget(parent)
+{
     setAttribute(Qt::WA_TranslucentBackground);
-
-    auto *outerLayout = new QVBoxLayout(this);
-    outerLayout->setContentsMargins(12, 8, 12, 20);
-    outerLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-    m_view = new QFrame(this);
-    FluentStyleSheet::setRole(m_view, QStringLiteral("FolderPickerDialog"));
-    outerLayout->addWidget(m_view);
-
-    auto *layout = new QVBoxLayout(m_view);
-    layout->setContentsMargins(22, 20, 22, 18);
-    layout->setSpacing(12);
-
-    auto *titleLabel = new SubtitleLabel(tr("Choose folder"), m_view);
-    layout->addWidget(titleLabel);
-
-    m_pathEdit = new LineEdit(m_view);
-    m_pathEdit->setClearButtonEnabled(true);
-    layout->addWidget(m_pathEdit);
-
-    m_model = new QFileSystemModel(this);
-    m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Drives);
-    m_model->setRootPath(QString());
-
-    m_treeView = new TreeView(m_view);
-    m_treeView->setModel(m_model);
-    m_treeView->setHeaderHidden(true);
-    m_treeView->setMinimumSize(420, 260);
-    m_treeView->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    for (int column = 1; column < m_model->columnCount(); ++column) {
-        m_treeView->hideColumn(column);
-    }
-    layout->addWidget(m_treeView);
-
-    auto *buttonLayout = new QHBoxLayout;
-    buttonLayout->setContentsMargins(0, 8, 0, 0);
-    buttonLayout->setSpacing(8);
-    buttonLayout->addStretch(1);
-
-    m_cancelButton = new PushButton(tr("Cancel"), m_view);
-    m_acceptButton = new PrimaryPushButton(tr("Select folder"), m_view);
-    m_cancelButton->setMinimumWidth(96);
-    m_acceptButton->setMinimumWidth(128);
-    buttonLayout->addWidget(m_cancelButton);
-    buttonLayout->addWidget(m_acceptButton);
-    layout->addLayout(buttonLayout);
-
-    connect(m_treeView->selectionModel(), &QItemSelectionModel::currentChanged, this,
-            [this](const QModelIndex &current) {
-                const QString path = m_model->filePath(current);
-                if (!path.isEmpty()) {
-                    m_pathEdit->setText(path);
-                }
-            });
-    connect(m_treeView, &QTreeView::doubleClicked, this, [this](const QModelIndex &index) {
-        if (index.isValid() && m_model->isDir(index)) {
-            m_pathEdit->setText(m_model->filePath(index));
-            accept();
-        }
-    });
-    connect(m_acceptButton, &QPushButton::clicked, this, &QDialog::accept);
-    connect(m_cancelButton, &QPushButton::clicked, this, &QDialog::reject);
-
-    setInitialDirectory(directory);
+    setWindowFlags(Qt::FramelessWindowHint);
+    setFixedSize(292, 72);
 }
 
-QString FolderPickerDialog::selectedFolder() const
+bool ClickableWindow::isPressed() const { return m_isPressed; }
+
+bool ClickableWindow::isEnter() const { return m_isEnter; }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+void ClickableWindow::enterEvent(QEnterEvent *)
+#else
+void ClickableWindow::enterEvent(QEvent *)
+#endif
 {
-    return QDir::cleanPath(m_pathEdit ? m_pathEdit->text() : QString());
+    m_isEnter = true;
+    update();
 }
 
-TreeView *FolderPickerDialog::treeView() const { return m_treeView; }
-
-LineEdit *FolderPickerDialog::pathEdit() const { return m_pathEdit; }
-
-QPushButton *FolderPickerDialog::acceptButton() const { return m_acceptButton; }
-
-QPushButton *FolderPickerDialog::cancelButton() const { return m_cancelButton; }
-
-void FolderPickerDialog::paintEvent(QPaintEvent *event)
+void ClickableWindow::leaveEvent(QEvent *)
 {
-    QDialog::paintEvent(event);
-    if (!m_view) {
-        return;
-    }
+    m_isEnter = false;
+    update();
+}
 
+void ClickableWindow::mousePressEvent(QMouseEvent *)
+{
+    m_isPressed = true;
+    update();
+}
+
+void ClickableWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_isPressed = false;
+    update();
+    if (event->button() == Qt::LeftButton) {
+        emit clicked();
+    }
+}
+
+void ClickableWindow::paintEvent(QPaintEvent *)
+{
     QPainter painter(this);
-    Private::paintFluentWindowShadow(&painter, QRectF(m_view->geometry()), 30, QPoint(0, 8),
-                                     QColor(0, 0, 0, 30));
+    painter.setRenderHints(QPainter::Antialiasing);
+
+    const bool dark = isDark();
+    int bg = dark ? 51 : 204;
+    QBrush brush(QColor(bg, bg, bg));
+    painter.setPen(Qt::NoPen);
+
+    if (!m_isEnter) {
+        painter.setBrush(brush);
+        painter.drawRoundedRect(rect(), 4, 4);
+    } else {
+        painter.setPen(QPen(QColor(bg, bg, bg), 2));
+        painter.drawRect(1, 1, width() - 2, height() - 2);
+        painter.setPen(Qt::NoPen);
+        if (!m_isPressed) {
+            bg = dark ? 24 : 230;
+            brush.setColor(QColor(bg, bg, bg));
+            painter.setBrush(brush);
+            painter.drawRect(2, 2, width() - 4, height() - 4);
+        } else {
+            brush.setColor(QColor(153, 153, 153));
+            painter.setBrush(brush);
+            painter.drawRoundedRect(5, 1, width() - 10, height() - 2, 2, 2);
+        }
+    }
 }
 
-void FolderPickerDialog::setInitialDirectory(const QString &directory)
+FolderCard::FolderCard(const QString &folderPath, QWidget *parent)
+    : ClickableWindow(parent), m_folderPath(folderPath), m_folderName(QFileInfo(folderPath).fileName()),
+      m_closeIcon(folderListImage(QStringLiteral("Close"), 12))
 {
-    QString initialPath = directory;
-    if (initialPath.isEmpty() || !QDir(initialPath).exists()) {
-        initialPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    }
-    if (initialPath.isEmpty()) {
-        initialPath = QDir::rootPath();
-    }
+}
 
-    initialPath = QDir::cleanPath(initialPath);
-    m_pathEdit->setText(initialPath);
-    const QModelIndex index = m_model->index(initialPath);
-    if (index.isValid()) {
-        m_treeView->setRootIndex(m_model->index(QDir::rootPath()));
-        m_treeView->setCurrentIndex(index);
-        m_treeView->scrollTo(index, QAbstractItemView::PositionAtCenter);
+QString FolderCard::folderPath() const { return m_folderPath; }
+
+QString FolderCard::folderName() const { return m_folderName; }
+
+void FolderCard::paintEvent(QPaintEvent *event)
+{
+    ClickableWindow::paintEvent(event);
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform | QPainter::Antialiasing);
+
+    painter.setPen(isDark() ? Qt::white : Qt::black);
+    if (m_isPressed) {
+        drawText(&painter, 12, 8, 12, 7);
+        painter.drawPixmap(width() - 26, 18, m_closeIcon);
+    } else {
+        drawText(&painter, 10, 9, 10, 8);
+        painter.drawPixmap(width() - 24, 20, m_closeIcon);
+    }
+}
+
+void FolderCard::drawText(QPainter *painter, int x1, int fontSize1, int x2, int fontSize2)
+{
+    // The folder name.
+    QFont font(QStringLiteral("Microsoft YaHei"), fontSize1, QFont::Bold);
+    painter->setFont(font);
+    const QString name = QFontMetrics(font).elidedText(m_folderName, Qt::ElideRight, width() - 48);
+    painter->drawText(x1, 30, name);
+
+    // The folder path.
+    font = QFont(QStringLiteral("Microsoft YaHei"), fontSize2);
+    painter->setFont(font);
+    const QString path = QFontMetrics(font).elidedText(m_folderPath, Qt::ElideRight, width() - 24);
+    painter->drawText(x2, 37, width() - 16, 18, Qt::AlignLeft, path);
+}
+
+AddFolderCard::AddFolderCard(QWidget *parent)
+    : ClickableWindow(parent), m_iconPix(folderListImage(QStringLiteral("Add"), 22))
+{
+}
+
+void AddFolderCard::paintEvent(QPaintEvent *event)
+{
+    ClickableWindow::paintEvent(event);
+    QPainter painter(this);
+    const int w = width();
+    const int h = height();
+    const int pw = m_iconPix.width();
+    const int ph = m_iconPix.height();
+    if (!m_isPressed) {
+        painter.drawPixmap(int(w / 2.0 - pw / 2.0), int(h / 2.0 - ph / 2.0), m_iconPix);
+    } else {
+        painter.drawPixmap(int(w / 2.0 - (pw - 4) / 2.0), int(h / 2.0 - (ph - 4) / 2.0), pw - 4, ph - 4, m_iconPix);
     }
 }
 
 FolderListDialog::FolderListDialog(const QStringList &folderPaths, const QString &title, const QString &content,
                                    QWidget *parent)
-    : Dialog(title, content, parent), m_originalFolders(folderPaths)
+    : MaskDialogBase(parent), m_title(title), m_content(content), m_originalPaths(folderPaths),
+      m_folderPaths(folderPaths)
 {
-    FluentStyleSheet::setRole(this, QStringLiteral("FolderListDialog"));
-
-    yesButton()->setText(tr("Done"));
-    hideCancelButton();
-
-    m_scrollArea = new ScrollArea(widget());
-    m_scrollArea->enableTransparentBackground();
-    m_scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    m_scrollArea->setFixedWidth(320);
-    m_scrollArea->setMaximumHeight(400);
-
+    m_vBoxLayout = new QVBoxLayout(widget());
+    m_titleLabel = new QLabel(title, widget());
+    m_contentLabel = new QLabel(content, widget());
+    m_scrollArea = new SingleDirectionScrollArea(widget());
     m_scrollWidget = new QWidget(m_scrollArea);
-    m_scrollWidget->setObjectName(QStringLiteral("scrollWidget"));
-    m_scrollWidget->setFixedWidth(300);
-    m_folderLayout = new QVBoxLayout(m_scrollWidget);
-    m_folderLayout->setContentsMargins(0, 0, 0, 0);
-    m_folderLayout->setSpacing(8);
-
-    m_addFolderButton = new PushButton(FluentQt::icon(FluentIcon::Folder), tr("Add folder"), m_scrollWidget);
-    m_addFolderButton->setFixedHeight(42);
-    m_addFolderButton->setMinimumWidth(292);
-    m_folderLayout->addWidget(m_addFolderButton, 0, Qt::AlignTop);
-    connect(m_addFolderButton, &QPushButton::clicked, this, &FolderListDialog::chooseFolder);
-
-    m_scrollArea->setWidgetResizable(true);
-    m_scrollArea->setWidget(m_scrollWidget);
-    viewLayout()->addSpacing(4);
-    viewLayout()->addWidget(m_scrollArea, 0, Qt::AlignHCenter);
-
-    setFolders(folderPaths);
-    connect(this, &Dialog::yesSignal, this, &FolderListDialog::finishDialog);
+    m_completeButton = new QPushButton(tr("Done"), widget());
+    m_addFolderCard = new AddFolderCard(m_scrollWidget);
+    for (const QString &folderPath : folderPaths) {
+        m_folderCards.append(createFolderCard(folderPath));
+    }
+    initWidget();
 }
 
-QStringList FolderListDialog::folders() const { return m_folders; }
+QString FolderListDialog::title() const { return m_title; }
 
-QPushButton *FolderListDialog::addFolderButton() const { return m_addFolderButton; }
+QString FolderListDialog::content() const { return m_content; }
 
-ScrollArea *FolderListDialog::scrollArea() const { return m_scrollArea; }
+QStringList FolderListDialog::folderPaths() const { return m_folderPaths; }
+
+QLabel *FolderListDialog::titleLabel() const { return m_titleLabel; }
+
+QLabel *FolderListDialog::contentLabel() const { return m_contentLabel; }
+
+SingleDirectionScrollArea *FolderListDialog::scrollArea() const { return m_scrollArea; }
 
 QWidget *FolderListDialog::scrollWidget() const { return m_scrollWidget; }
 
-void FolderListDialog::setFolders(const QStringList &folders)
-{
-    QStringList uniqueFolders;
-    for (const QString &folder : folders) {
-        const QString cleanFolder = QDir::cleanPath(folder);
-        if (!cleanFolder.isEmpty() && !uniqueFolders.contains(cleanFolder)) {
-            uniqueFolders.append(cleanFolder);
-        }
-    }
+QPushButton *FolderListDialog::completeButton() const { return m_completeButton; }
 
-    m_folders = uniqueFolders;
-    rebuildFolderButtons();
+AddFolderCard *FolderListDialog::addFolderCard() const { return m_addFolderCard; }
+
+QList<FolderCard *> FolderListDialog::folderCards() const { return m_folderCards; }
+
+QVBoxLayout *FolderListDialog::vBoxLayout() const { return m_vBoxLayout; }
+
+QVBoxLayout *FolderListDialog::scrollLayout() const { return m_scrollLayout; }
+
+void FolderListDialog::initWidget()
+{
+    setQss();
+
+    const int w = std::max({m_titleLabel->width() + 48, m_contentLabel->width() + 48, 352});
+    widget()->setFixedWidth(w);
+    m_scrollArea->resize(294, 72);
+    m_scrollWidget->resize(292, 72);
+    m_scrollArea->setFixedWidth(294);
+    m_scrollWidget->setFixedWidth(292);
+    m_scrollArea->setMaximumHeight(400);
+    m_scrollArea->setViewportMargins(0, 0, 0, 0);
+    m_scrollArea->setWidgetResizable(true);
+    m_scrollArea->setWidget(m_scrollWidget);
+    m_scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_scrollArea->hScrollBar()->setForceHidden(true);
+    initLayout();
+
+    connect(m_addFolderCard, &ClickableWindow::clicked, this, &FolderListDialog::showFileDialog);
+    connect(m_completeButton, &QPushButton::clicked, this, &FolderListDialog::onButtonClicked);
 }
 
-bool FolderListDialog::addFolder(const QString &folder)
+void FolderListDialog::initLayout()
 {
-    const QString cleanFolder = QDir::cleanPath(folder);
-    if (cleanFolder.isEmpty() || m_folders.contains(cleanFolder)) {
-        return false;
+    m_vBoxLayout->setContentsMargins(24, 24, 24, 24);
+    m_vBoxLayout->setSizeConstraint(QLayout::SetFixedSize);
+    m_vBoxLayout->setAlignment(Qt::AlignTop);
+    m_vBoxLayout->setSpacing(0);
+
+    // labels
+    auto *layout1 = new QVBoxLayout;
+    layout1->setContentsMargins(0, 0, 0, 0);
+    layout1->setSpacing(6);
+    layout1->addWidget(m_titleLabel, 0, Qt::AlignTop);
+    layout1->addWidget(m_contentLabel, 0, Qt::AlignTop);
+    m_vBoxLayout->addLayout(layout1, 0);
+    m_vBoxLayout->addSpacing(12);
+
+    // cards
+    auto *layout2 = new QHBoxLayout;
+    layout2->setAlignment(Qt::AlignCenter);
+    layout2->setContentsMargins(4, 0, 4, 0);
+    layout2->addWidget(m_scrollArea, 0, Qt::AlignCenter);
+    m_vBoxLayout->addLayout(layout2, 1);
+    m_vBoxLayout->addSpacing(24);
+
+    m_scrollLayout = new QVBoxLayout(m_scrollWidget);
+    m_scrollLayout->setAlignment(Qt::AlignTop);
+    m_scrollLayout->setContentsMargins(0, 0, 0, 0);
+    m_scrollLayout->setSpacing(8);
+    m_scrollLayout->addWidget(m_addFolderCard, 0, Qt::AlignTop);
+    for (FolderCard *card : std::as_const(m_folderCards)) {
+        m_scrollLayout->addWidget(card, 0, Qt::AlignTop);
     }
 
-    m_folders.append(cleanFolder);
-    addFolderButtonRow(cleanFolder);
-    return true;
+    // buttons
+    auto *layout3 = new QHBoxLayout;
+    layout3->setContentsMargins(0, 0, 0, 0);
+    layout3->addStretch(1);
+    layout3->addWidget(m_completeButton);
+    m_vBoxLayout->addLayout(layout3, 0);
+
+    adjustWidgetSize();
 }
 
-bool FolderListDialog::removeFolder(const QString &folder)
+void FolderListDialog::setQss()
 {
-    const QString cleanFolder = QDir::cleanPath(folder);
-    const int index = static_cast<int>(m_folders.indexOf(cleanFolder));
-    if (index < 0) {
-        return false;
+    m_titleLabel->setObjectName(QStringLiteral("titleLabel"));
+    m_contentLabel->setObjectName(QStringLiteral("contentLabel"));
+    m_completeButton->setObjectName(QStringLiteral("completeButton"));
+    m_scrollWidget->setObjectName(QStringLiteral("scrollWidget"));
+
+    // As in Python, folder_list_dialog.qss styles the whole dialog, mask included.
+    FluentStyleSheet::setRole(this, QStringLiteral("FolderListDialog"));
+    ensurePolished();
+    for (QWidget *child : findChildren<QWidget *>()) {
+        child->ensurePolished();
     }
 
-    m_folders.removeAt(index);
-    if (index < m_folderButtons.size()) {
-        auto *button = m_folderButtons.takeAt(index);
-        m_folderLayout->removeWidget(button);
-        button->deleteLater();
-    }
-    return true;
+    m_titleLabel->adjustSize();
+    m_contentLabel->adjustSize();
+    m_completeButton->adjustSize();
 }
 
-void FolderListDialog::chooseFolder()
+FolderCard *FolderListDialog::createFolderCard(const QString &folderPath)
+{
+    auto *card = new FolderCard(folderPath, m_scrollWidget);
+    connect(card, &ClickableWindow::clicked, this, [this, card]() { showDeleteFolderCardDialog(card); });
+    return card;
+}
+
+void FolderListDialog::showFileDialog()
 {
     const QString path = QFileDialog::getExistingDirectory(this, tr("Choose folder"), QStringLiteral("./"));
-    if (!path.isEmpty()) {
-        addFolder(path);
-    }
-}
-
-void FolderListDialog::rebuildFolderButtons()
-{
-    if (!m_folderLayout) {
+    if (path.isEmpty() || m_folderPaths.contains(path)) {
         return;
     }
 
-    for (auto *button : std::as_const(m_folderButtons)) {
-        m_folderLayout->removeWidget(button);
-        button->deleteLater();
-    }
-    m_folderButtons.clear();
+    FolderCard *card = createFolderCard(path);
+    m_scrollLayout->addWidget(card, 0, Qt::AlignTop);
+    card->show();
 
-    for (const QString &folder : std::as_const(m_folders)) {
-        addFolderButtonRow(folder);
-    }
+    m_folderPaths.append(path);
+    m_folderCards.append(card);
+
+    adjustWidgetSize();
 }
 
-void FolderListDialog::addFolderButtonRow(const QString &folder)
+void FolderListDialog::showDeleteFolderCardDialog(FolderCard *card)
 {
-    if (!m_folderLayout) {
+    const QString title = tr("Are you sure you want to delete the folder?");
+    const QString content = tr("If you delete the ") + QStringLiteral("\"%1\"").arg(card->folderName()) +
+                            tr(" folder and remove it from the list, the folder will no longer appear in the list, "
+                               "but will not be deleted.");
+    Dialog dialog(title, content, window());
+    connect(&dialog, &Dialog::yesSignal, this, [this, card]() { deleteFolderCard(card); });
+    dialog.exec();
+}
+
+void FolderListDialog::deleteFolderCard(FolderCard *card)
+{
+    const auto index = m_folderCards.indexOf(card);
+    if (index < 0) {
         return;
     }
 
-    auto *button = new PushButton(FluentQt::icon(FluentIcon::Folder), folder, m_scrollWidget);
-    button->setFixedHeight(42);
-    button->setMinimumWidth(292);
-    button->setToolTip(folder);
-    m_folderButtons.append(button);
-    m_folderLayout->addWidget(button, 0, Qt::AlignTop);
+    m_scrollLayout->removeWidget(card);
+    m_folderCards.removeAt(index);
+    m_folderPaths.removeAt(index);
+    card->deleteLater();
 
-    connect(button, &QPushButton::clicked, this, [this, folder]() {
-        const QString folderName = QFileInfo(folder).fileName().isEmpty() ? folder : QFileInfo(folder).fileName();
-        Dialog dialog(tr("Are you sure you want to delete the folder?"),
-                      tr("If you delete the \"%1\" folder and remove it from the list, the folder will no longer "
-                         "appear in the list, but will not be deleted.")
-                          .arg(folderName),
-                      window());
-        connect(&dialog, &Dialog::yesSignal, this, [this, folder]() { removeFolder(folder); });
-        dialog.exec();
-    });
+    adjustWidgetSize();
 }
 
-void FolderListDialog::finishDialog()
+void FolderListDialog::onButtonClicked()
 {
-    QStringList original = m_originalFolders;
-    QStringList current = m_folders;
+    QStringList original = m_originalPaths;
+    QStringList current = m_folderPaths;
     original.sort();
     current.sort();
     if (original != current) {
-        emit folderChanged(m_folders);
+        setEnabled(false);
+        QApplication::processEvents();
+        emit folderChanged(m_folderPaths);
     }
+
+    close();
+}
+
+void FolderListDialog::adjustWidgetSize()
+{
+    const int n = static_cast<int>(m_folderCards.size());
+    const int h = 72 * (n + 1) + 8 * n;
+    m_scrollArea->setFixedHeight(std::min(h, 400));
 }
 
 } // namespace FluentQt

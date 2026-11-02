@@ -271,7 +271,7 @@ FluentQt::Flyout::create("Tip", "Saved to your library.", FluentQt::icon(FluentQ
 ```
 
 - Dialogs: `Dialog`, `MessageBox`, `MessageBoxBase`, `MessageDialog`, `MaskDialogBase`, `ColorDialog`,
-  `FolderListDialog`.
+  `FolderListDialog` (with `ClickableWindow`, `FolderCard`, `AddFolderCard`).
 - Flyouts: `Flyout`, `FlyoutView`, `FlyoutViewBase`, `TeachingTip`, `PopupTeachingTip`, `TeachingTipView`.
 
 `Dialog`, `MessageBox` and `MessageBoxBase` expose `view()`, `widget()`, `viewLayout()`, `titleLabel()`,
@@ -279,6 +279,11 @@ FluentQt::Flyout::create("Tip", "Saved to your library.", FluentQt::icon(FluentQ
 `buttonLayout()`, `yesSignal`, `cancelSignal`, `setContentCopyable()`, `hideYesButton()` and
 `hideCancelButton()`. Return accepts the dialog through the virtual `validate()`. A `MessageBox` is at least as
 wide as its title, message and buttons, including buttons added to `buttonLayout()`.
+
+`FolderListDialog(folderPaths, title, content, parent)` is Python's masked folder list: an `AddFolderCard` that
+opens a `QFileDialog`, one 292 x 72 `FolderCard` per folder that asks before removing it, and a Done
+`completeButton()` that emits `folderChanged(QStringList)` when the folders changed, styled by
+`folder_list_dialog.qss`.
 
 `Flyout` has `make()` and `create()` factories for a point or a target widget, `FlyoutAnimationType` animations
 (pull-up, drop-down, slide left/right, fade-in, none), and closes on an outside click; `FlyoutView` takes an icon,

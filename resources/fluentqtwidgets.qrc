@@ -85,6 +85,10 @@
         <file>images/color_dialog/Clear_black.svg</file>
         <file>images/color_dialog/Clear_white.svg</file>
         <file>images/color_dialog/HuePanel.png</file>
+        <file>images/folder_list_dialog/Add_black.png</file>
+        <file>images/folder_list_dialog/Add_white.png</file>
+        <file>images/folder_list_dialog/Close_black.png</file>
+        <file>images/folder_list_dialog/Close_white.png</file>
         <file>images/tree_view/TreeViewClose_black.svg</file>
         <file>images/tree_view/TreeViewClose_white.svg</file>
         <file>images/tree_view/TreeViewOpen_black.svg</file>
