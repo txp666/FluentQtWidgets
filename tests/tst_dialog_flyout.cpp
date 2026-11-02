@@ -331,6 +331,29 @@ class DialogFlyoutTest : public QObject
         QTRY_COMPARE(dialogAccepted.count(), 1);
     }
 
+    void messageBoxBaseButtonsHaveNoMinimumWidth()
+    {
+        // qfluentwidgets sets no minimum width on the OK and Cancel buttons: in an empty
+        // MessageBoxBase with one-letter labels they come out about 36 and 31 px wide.
+        QWidget parent;
+        parent.resize(600, 400);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        FluentQt::MessageBoxBase box(&parent);
+        box.yesButton()->setText(QStringLiteral("Y"));
+        box.cancelButton()->setText(QStringLiteral("N"));
+        box.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&box));
+        QCOMPARE(box.yesButton()->minimumWidth(), 0);
+        QCOMPARE(box.cancelButton()->minimumWidth(), 0);
+        QVERIFY(box.yesButton()->width() < 60);
+        QVERIFY(box.widget()->width() < 160);
+
+        FluentQt::Dialog dialog(QStringLiteral("T"), QStringLiteral("M"), &parent);
+        QCOMPARE(dialog.yesButton()->minimumWidth(), 0);
+        QCOMPARE(dialog.cancelButton()->minimumWidth(), 0);
+    }
+
     void galleryDialogKeepsItsContentOnOneLineAndCentred()
     {
         QWidget dialogParent;

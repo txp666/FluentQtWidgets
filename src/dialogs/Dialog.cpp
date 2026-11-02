@@ -126,8 +126,6 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
     m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
     m_acceptButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
-    m_cancelButton->setMinimumWidth(96);
-    m_acceptButton->setMinimumWidth(96);
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
@@ -527,8 +525,6 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_acceptButton = new PrimaryPushButton(tr("OK"), m_buttonGroup);
     m_cancelButton = new PushButton(tr("Cancel"), m_buttonGroup);
     m_cancelButton->setObjectName(QStringLiteral("cancelButton"));
-    m_acceptButton->setMinimumWidth(96);
-    m_cancelButton->setMinimumWidth(96);
     m_acceptButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_cancelButton->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
