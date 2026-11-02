@@ -436,6 +436,7 @@ class FQW_API ExpandSettingCard : public QScrollArea
   protected:
     void resizeEvent(QResizeEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void refreshExpandedGeometry();
     virtual int expandedContentHeight() const;
 
@@ -453,6 +454,7 @@ class FQW_API ExpandSettingCard : public QScrollArea
     ExpandButton *m_expandButton = nullptr;
     QVariantAnimation *m_expandAnimation = nullptr;
     bool m_expanded = false;
+    bool m_adjustingViewSize = false;
 };
 
 class FQW_API GroupSeparator : public QWidget
@@ -525,9 +527,6 @@ class FQW_API ExpandGroupSettingCard : public ExpandSettingCard
     void addGroupWidget(QWidget *widget);
     void removeGroupWidget(QWidget *widget);
 
-  protected:
-    virtual int expandedContentHeight() const;
-
   private:
     void rebuildGroupSeparators();
     QList<QWidget *> m_groupWidgets;
@@ -542,9 +541,6 @@ class FQW_API SimpleExpandGroupSettingCard : public ExpandGroupSettingCard
                                  QWidget *parent = nullptr);
     SimpleExpandGroupSettingCard(FluentIcon icon, const QString &title, const QString &content = QString(),
                                  QWidget *parent = nullptr);
-
-  protected:
-    int expandedContentHeight() const override;
 };
 
 class FQW_API OptionsSettingCard : public ExpandSettingCard

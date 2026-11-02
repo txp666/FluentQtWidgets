@@ -22,6 +22,7 @@
 #include <QtCore/QEvent>
 #include <QtCore/QFileInfo>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QScopedValueRollback>
 #include <QtCore/QSignalBlocker>
 #include <QtCore/QVariantAnimation>
 #include <QtGui/QEnterEvent>
@@ -1012,6 +1013,7 @@ ExpandSettingCard::ExpandSettingCard(const QIcon &icon, const QString &title, co
 
     m_viewLayout = new QVBoxLayout(m_view);
     m_viewLayout->setContentsMargins(9, 9, 9, 9);
+    m_view->installEventFilter(this);
 
     setWidget(m_scrollWidget);
     setViewportMargins(0, m_card->height(), 0, 0);
@@ -1144,6 +1146,18 @@ void ExpandSettingCard::wheelEvent(QWheelEvent *event)
     event->ignore();
 }
 
+bool ExpandSettingCard::eventFilter(QObject *watched, QEvent *event)
+{
+    // The view's layout asks for a new layout whenever its content changes: a widget is added,
+    // shown or hidden, or its size hint changes once a style sheet polishes it. Python only
+    // measures when a widget is added or the card expands, so its height depends on the order
+    // of those calls; measuring on every request keeps it right in any order.
+    if (watched == m_view && event->type() == QEvent::LayoutRequest && !m_adjustingViewSize) {
+        adjustViewSize();
+    }
+    return QScrollArea::eventFilter(watched, event);
+}
+
 void ExpandSettingCard::refreshExpandedGeometry()
 {
     adjustViewSize();
@@ -1160,6 +1174,7 @@ void ExpandSettingCard::adjustViewSize(bool updateHeight)
         return;
     }
 
+    const QScopedValueRollback<bool> adjusting(m_adjustingViewSize, true);
     m_viewLayout->activate();
     const int headerHeight = m_card->height();
     const int viewHeight = qMax(0, expandedContentHeight());
@@ -1370,9 +1385,13 @@ void ExpandGroupSettingCard::addGroupWidget(QWidget *widget)
         return;
     }
 
+    // Show it now rather than at Qt's queued show, so the view's layout counts it at once. A
+    // widget the caller hid stays hidden.
+    const bool hiddenByCaller = widget->testAttribute(Qt::WA_WState_ExplicitShowHide) && widget->isHidden();
     widget->setParent(view());
     m_groupWidgets.append(widget);
     viewLayout()->addWidget(widget);
+    widget->setVisible(!hiddenByCaller);
     rebuildGroupSeparators();
     refreshExpandedGeometry();
 }
@@ -1388,17 +1407,6 @@ void ExpandGroupSettingCard::removeGroupWidget(QWidget *widget)
     widget->setParent(nullptr);
     rebuildGroupSeparators();
     refreshExpandedGeometry();
-}
-
-int ExpandGroupSettingCard::expandedContentHeight() const
-{
-    int height = 0;
-    for (QWidget *widget : m_groupWidgets) {
-        if (widget) {
-            height += widget->sizeHint().height() + 3;
-        }
-    }
-    return height;
 }
 
 void ExpandGroupSettingCard::rebuildGroupSeparators()
@@ -1422,7 +1430,9 @@ void ExpandGroupSettingCard::rebuildGroupSeparators()
     for (int i = 1; i < m_groupWidgets.size(); ++i) {
         const int index = layout->indexOf(m_groupWidgets.at(i));
         if (index >= 0) {
-            layout->insertWidget(index, new GroupSeparator(view()));
+            auto *separator = new GroupSeparator(view());
+            layout->insertWidget(index, separator);
+            separator->show();
         }
     }
 }
@@ -1438,11 +1448,6 @@ SimpleExpandGroupSettingCard::SimpleExpandGroupSettingCard(FluentIcon icon, cons
                                                            const QString &content, QWidget *parent)
     : SimpleExpandGroupSettingCard(FluentQt::icon(icon), title, content, parent)
 {
-}
-
-int SimpleExpandGroupSettingCard::expandedContentHeight() const
-{
-    return viewLayout() ? viewLayout()->sizeHint().height() : 0;
 }
 
 OptionsSettingCard::OptionsSettingCard(const QIcon &icon, const QString &title, const QString &content, QWidget *parent)

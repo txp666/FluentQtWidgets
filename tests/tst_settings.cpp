@@ -538,6 +538,76 @@ class SettingsTest : public QObject
         QCOMPARE(card.height(), headerHeight);
     }
 
+    void expandGroupCardsSizeInAnyOrder_data()
+    {
+        QTest::addColumn<bool>("simpleGroup");
+        QTest::addColumn<QString>("order");
+        for (const bool simple : {false, true}) {
+            const char *name = simple ? "simple-expand-group" : "expand-group";
+            for (const char *order : {"add-show-expand", "add-expand-show", "show-add-expand", "show-expand-add"}) {
+                QTest::newRow(qPrintable(QStringLiteral("%1/%2").arg(QLatin1String(name), QLatin1String(order))))
+                    << simple << QString::fromLatin1(order);
+            }
+        }
+    }
+
+    void expandGroupCardsSizeInAnyOrder()
+    {
+        // Python's cards are 193 px tall at 640 px with these two groups when they are added before
+        // the card is shown; added later, Python's never grow. The port must be 193 px in any order.
+        QFETCH(bool, simpleGroup);
+        QFETCH(QString, order);
+        QScopedPointer<ExpandGroupSettingCard> card(
+            simpleGroup
+                ? new SimpleExpandGroupSettingCard(FluentIcon::Setting, QStringLiteral("Group"),
+                                                   QStringLiteral("Content"))
+                : new ExpandGroupSettingCard(FluentIcon::Setting, QStringLiteral("Group"), QStringLiteral("Content")));
+        card->resize(640, card->height());
+        QList<GroupWidget *> groups;
+        const auto addGroups = [&]() {
+            groups << card->addGroup(FluentIcon::Setting, QStringLiteral("A"), QStringLiteral("a content"),
+                                     new PushButton(QStringLiteral("Btn")));
+            groups << card->addGroup(FluentIcon::Setting, QStringLiteral("B"), QString(), new ComboBox);
+        };
+        const auto show = [&]() {
+            card->show();
+            QVERIFY(QTest::qWaitForWindowExposed(card.data()));
+        };
+        const auto expand = [&]() {
+            card->setExpanded(true);
+            QTest::qWait(250);
+        };
+
+        if (order == QLatin1String("add-show-expand")) {
+            addGroups();
+            show();
+            expand();
+        } else if (order == QLatin1String("add-expand-show")) {
+            addGroups();
+            card->setExpanded(true);
+            show();
+            QTest::qWait(250);
+        } else if (order == QLatin1String("show-add-expand")) {
+            show();
+            addGroups();
+            expand();
+        } else {
+            show();
+            expand();
+            addGroups();
+            // Already open: the card grows as the groups arrive, without waiting for an event.
+            QCOMPARE(card->height(), 193);
+        }
+
+        QTRY_COMPARE(card->height(), 193);
+        QCOMPARE(groups.at(0)->geometry(), QRect(0, 0, 638, 60));
+        QCOMPARE(groups.at(1)->geometry(), QRect(0, 63, 638, 60));
+        QCOMPARE(card->view()->height(), 123);
+        QVERIFY(groups.at(1)->isVisible());
+        card->setExpanded(false);
+        QTRY_COMPARE(card->height(), 70);
+    }
+
     void expandedGroupContentTracksChangesAndWidth_data()
     {
         QTest::addColumn<bool>("simpleGroup");
@@ -572,17 +642,8 @@ class SettingsTest : public QObject
         QVERIFY(first->geometry().bottom() < card->view()->height());
 
         auto *second = createRow(card->view());
-        // The caller exposes dynamic content before requesting the synchronous height refresh.
-        second->show();
         card->addGroupWidget(second);
         QTest::qWait(30);
-        if (simpleGroup) {
-            // This variant measures the layout after its deferred separator becomes visible.
-            card->setExpanded(false);
-            QTest::qWait(250);
-            card->setExpanded(true);
-            QTest::qWait(250);
-        }
         QCOMPARE(card->groupCount(), 2);
         QVERIFY(card->height() > firstHeight);
         QVERIFY(second->geometry().bottom() < card->view()->height());
@@ -612,7 +673,6 @@ class SettingsTest : public QObject
         card->removeGroupWidget(second);
         delete second;
         auto *replacement = createRow(card->view());
-        replacement->show();
         card->addGroupWidget(replacement);
         card->setExpanded(true);
         QTest::qWait(250);
