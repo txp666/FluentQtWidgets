@@ -40,13 +40,9 @@ QWidget *dialogOverlayTarget(QWidget *parent)
     return parent ? parent->window() : nullptr;
 }
 
-// Wayland does not let clients place top-level windows, so an overlay window sized like the
-// parent would not line up with it. There the dialog becomes a child overlay of the parent
-// window instead, as in qfluentwidgets.
-bool overlaysAsChild(QWidget *target)
-{
-    return target && QGuiApplication::platformName().startsWith(QLatin1String("wayland"));
-}
+// As in qfluentwidgets, a dialog with a parent is a child overlay of the parent's window, so its
+// mask and centre widget always line up with the window and stay inside it.
+bool overlaysAsChild(QWidget *target) { return target != nullptr; }
 
 // qfluentwidgets resizes its Dialog to 240 x 192; the layout's minimum size only ever grows it.
 constexpr QSize kDialogMinimumSize(240, 192);
@@ -320,14 +316,14 @@ MaskDialogBase::MaskDialogBase(QWidget *parent)
     m_windowMask->installEventFilter(this);
     updateMaskStyle();
 
+    // The layout keeps the style's margins, as qfluentwidgets' does: a centre widget that only
+    // has a maximum size (ColorDialog) shrinks to the window less those margins.
     m_hBoxLayout = new QHBoxLayout(this);
-    m_hBoxLayout->setContentsMargins(0, 0, 0, 0);
-    m_hBoxLayout->setSpacing(0);
 
     m_widget = new QFrame(this);
     m_widget->setObjectName(QStringLiteral("centerWidget"));
     m_widget->installEventFilter(this);
-    m_hBoxLayout->addWidget(m_widget, 1, Qt::AlignCenter);
+    m_hBoxLayout->addWidget(m_widget);
 
     setShadowEffect();
     syncGeometryToParent();
@@ -569,10 +565,14 @@ MessageBoxBase::MessageBoxBase(QWidget *parent)
     m_acceptButton->setAttribute(Qt::WA_MacShowFocusRect, false);
     m_acceptButton->setFocus();
 
+    // The centre widget takes its content's size, centred in the mask; a minimum size set on
+    // widget() holds, as in qfluentwidgets (no SetMinimumSize constraint overriding it).
+    m_hBoxLayout->removeWidget(m_widget);
+    m_hBoxLayout->addWidget(m_widget, 1, Qt::AlignCenter);
+
     m_vBoxLayout = new QVBoxLayout(m_widget);
     m_vBoxLayout->setContentsMargins(0, 0, 0, 0);
     m_vBoxLayout->setSpacing(0);
-    m_vBoxLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     m_viewLayout = new QVBoxLayout;
     m_viewLayout->setContentsMargins(24, 24, 24, 24);
@@ -723,18 +723,15 @@ void MessageBox::adjustMessageSize()
     }
 
     m_messageLabel->setText(Private::wrapText(m_content, messageWrapCharacterCount(this, m_titleLabel)));
-    m_titleLabel->adjustSize();
-    m_messageLabel->adjustSize();
-    if (m_widget->layout()) {
-        m_widget->layout()->activate();
-    }
-    const int contentWidth = qMax(m_titleLabel->sizeHint().width(), m_messageLabel->sizeHint().width());
-    // Buttons added to buttonLayout() widen the box instead of overlapping.
-    const int buttonsWidth =
-        m_buttonGroup ? qMax(m_buttonGroup->minimumWidth(), m_buttonGroup->minimumSizeHint().width()) : 0;
-    const int width = qMax(buttonsWidth, contentWidth + 48);
-    const int height = m_messageLabel->y() + m_messageLabel->height() + 105;
-    m_widget->setFixedSize(width, height);
+    // The style sheet sets the labels' fonts and the frame's border, so polish before measuring.
+    // The box is then the natural size of its layout, frame included: qfluentwidgets measures the
+    // laid-out labels (contentLabel.y() + height + 105), which comes to the same. Buttons added to
+    // buttonLayout() widen it instead of overlapping.
+    m_widget->ensurePolished();
+    m_titleLabel->ensurePolished();
+    m_messageLabel->ensurePolished();
+    m_vBoxLayout->invalidate();
+    m_widget->setFixedSize(m_widget->minimumSizeHint());
 }
 
 MessageDialog::MessageDialog(const QString &title, const QString &message, QWidget *parent)

@@ -30,6 +30,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollBar>
+#include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -200,15 +201,17 @@ class DialogFlyoutTest : public QObject
         FluentQt::MessageBox maskedBox(QStringLiteral("Mask"), QStringLiteral("Parent overlay"), &maskParent);
         maskedBox.setClosableOnMaskClicked(true);
         maskedBox.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&maskedBox));
-        QCOMPARE(maskedBox.geometry(), maskParent.geometry());
+        QVERIFY(maskedBox.isVisible());
+        // A child overlay covering the parent's window, as in qfluentwidgets.
+        QVERIFY(!maskedBox.isWindow());
+        QCOMPARE(maskedBox.geometry(), maskParent.rect());
         QCOMPARE(maskedBox.windowMask()->size(), maskedBox.size());
         QVERIFY(maskedBox.widget()->geometry().center().x() > 0);
         QVERIFY(maskedBox.widget()->geometry().center().y() > 0);
 
         maskParent.resize(640, 420);
         QCoreApplication::processEvents();
-        QTRY_COMPARE(maskedBox.geometry(), maskParent.geometry());
+        QTRY_COMPARE(maskedBox.geometry(), maskParent.rect());
         QCOMPARE(maskedBox.windowMask()->size(), maskedBox.size());
 
         QSignalSpy maskRejectedSpy(&maskedBox, &QDialog::rejected);
@@ -395,6 +398,76 @@ class DialogFlyoutTest : public QObject
         }
     }
 
+    void maskDialogsFitTheirWindowLikePython()
+    {
+        // qfluentwidgets' mask dialogs are child overlays of the parent's window. The port's were
+        // separate windows: the colour dialog's fixed 488 x 696 centre widget made its window taller
+        // than a 640 px parent, the message box wrapped text to a window's 140 characters instead
+        // of an overlay's 100, and a SetMinimumSize constraint undid widget()->setMinimumWidth().
+        QWidget parent;
+        parent.resize(1000, 640);
+        parent.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&parent));
+        if (parent.size() != QSize(1000, 640)) {
+            QSKIP("The screen is too small for a 1000 x 640 window");
+        }
+        const QString content =
+            QStringLiteral("If the content of the message box is veeeeeeeeeeeeeeeeeeeeeeeeeery long, it will "
+                           "automatically wrap like this.");
+        const int margin = parent.style()->pixelMetric(QStyle::PM_LayoutTopMargin);
+
+        for (const bool dark : {false, true}) {
+            FluentQt::ThemeManager::instance()->setTheme(dark ? Theme::Dark : Theme::Light);
+
+            FluentQt::ColorDialog colorDialog(Qt::cyan, QStringLiteral("Choose color"), &parent);
+            colorDialog.show();
+            QVERIFY(!colorDialog.isWindow());
+            QTRY_COMPARE(colorDialog.geometry(), parent.rect());
+            // Python (macOS style, 12 px margins): 488 x 616 at (256, 12), its content scrolling.
+            QCOMPARE(colorDialog.widget()->width(), 488);
+            QCOMPARE(colorDialog.widget()->geometry().top(), margin);
+            QCOMPARE(colorDialog.widget()->height(), 640 - 2 * margin);
+            QCOMPARE(colorDialog.widget()->geometry().center().x(), parent.rect().center().x());
+            QVERIFY(colorDialog.rect().contains(colorDialog.widget()->geometry()));
+            QCOMPARE(colorDialog.buttonGroup()->geometry().bottom(), colorDialog.widget()->height() - 2);
+            colorDialog.close();
+
+            FluentQt::MessageBox box(QStringLiteral("This is a message dialog with mask"), content, &parent);
+            box.show();
+            QVERIFY(!box.isWindow());
+            QTRY_COMPARE(box.geometry(), parent.rect());
+            // Python wraps at 100 characters: "...wrap\nlike this.".
+            QCOMPARE(box.contentLabel()->text().count(QLatin1Char('\n')), 1);
+            QVERIFY(box.rect().contains(box.widget()->geometry()));
+            QCOMPARE(box.titleLabel()->geometry().topLeft(), QPoint(25, 25));
+            QCOMPARE(box.buttonGroup()->geometry(),
+                     QRect(1, box.widget()->height() - 82, box.widget()->width() - 2, 81));
+            if (QFontInfo(box.contentLabel()->font()).family() == QLatin1String("PingFang SC")) {
+                // Measured natively from qfluentwidgets 1.11.3 on macOS.
+                QCOMPARE(box.widget()->size(), QSize(714, 211));
+            }
+            box.close();
+
+            // The Gallery's custom message box.
+            FluentQt::MessageBoxBase custom(&parent);
+            custom.widget()->setMinimumWidth(360);
+            auto *urlEdit = new LineEdit(custom.view());
+            urlEdit->setPlaceholderText(QStringLiteral("Enter the URL of a file, stream, or playlist"));
+            custom.viewLayout()->addWidget(new SubtitleLabel(QStringLiteral("Open URL"), custom.view()));
+            custom.viewLayout()->addWidget(urlEdit);
+            custom.show();
+            QTRY_COMPARE(custom.geometry(), parent.rect());
+            // Python: 360 x 204, centred, the line edit 310 px wide at (25, 65).
+            QCOMPARE(custom.widget()->width(), 360);
+            QCOMPARE(custom.widget()->geometry().center(), parent.rect().center());
+            QCOMPARE(urlEdit->geometry().left(), 25);
+            QCOMPARE(urlEdit->width(), 310);
+            QVERIFY(custom.widget()->rect().contains(custom.buttonGroup()->geometry()));
+            QVERIFY(custom.widget()->height() >= custom.widget()->minimumSizeHint().height());
+            custom.close();
+        }
+    }
+
     void dialogFadeInDropsOpacityEffectBeforeButtonHover()
     {
         auto *manager = FluentQt::ThemeManager::instance();
@@ -500,8 +573,8 @@ class DialogFlyoutTest : public QObject
         QVERIFY(alphaDialog.windowFlags() & Qt::NoDropShadowWindowHint);
         QVERIFY(alphaDialog.widget() != nullptr);
         QCOMPARE(alphaDialog.widget()->property("fqw").toString(), QStringLiteral("ColorDialog"));
+        // qfluentwidgets gives the centre widget a maximum size, not a fixed one.
         QCOMPARE(alphaDialog.widget()->size(), QSize(488, 736));
-        QCOMPARE(alphaDialog.widget()->minimumSize(), QSize(488, 736));
         QCOMPARE(alphaDialog.widget()->maximumSize(), QSize(488, 736));
         QCOMPARE(alphaDialog.scrollWidget()->size(), QSize(440, 600));
         QCOMPARE(alphaDialog.huePanel()->size(), QSize(256, 256));
@@ -523,28 +596,39 @@ class DialogFlyoutTest : public QObject
         QCOMPARE(acceptSpy.count(), 1);
         QCOMPARE(acceptSpy.takeFirst().at(0).value<QColor>(), QColor(QStringLiteral("#445566")));
         QCOMPARE(acceptDialog.widget()->size(), QSize(488, 696));
-        QCOMPARE(acceptDialog.widget()->minimumSize(), QSize(488, 696));
         QCOMPARE(acceptDialog.widget()->maximumSize(), QSize(488, 696));
         QCOMPARE(acceptDialog.scrollWidget()->size(), QSize(440, 560));
         QVERIFY(acceptDialog.opacityLineEdit()->isHidden());
 
+        // The colour dialogs overlay the cards' window, as in qfluentwidgets, so give them room.
+        QWidget cardHost;
+        cardHost.resize(800, 800);
         FluentQt::ColorSettingCard card(QColor(QStringLiteral("#112233")), FluentQt::FluentIcon::Heart,
                                         QStringLiteral("Accent"));
+        card.setParent(&cardHost);
         FluentQt::ColorPickerButton picker(QColor(QStringLiteral("#5012aaa2")),
                                            QStringLiteral("Background Color"), nullptr, true);
         QCOMPARE(picker.title(), QStringLiteral("Background Color"));
         QVERIFY(picker.isAlphaEnabled());
         QCOMPARE(picker.toolTip(), QStringLiteral("Choose Background Color"));
 
-        card.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&card));
+        const auto findVisibleColorDialog = []() -> QWidget * {
+            for (QWidget *widget : QApplication::allWidgets()) {
+                if (widget->isVisible() && qobject_cast<FluentQt::ColorDialog *>(widget)) {
+                    return widget;
+                }
+            }
+            return nullptr;
+        };
+        cardHost.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&cardHost));
 
         QSignalSpy colorSpy(&card, &FluentQt::ColorSettingCard::colorChanged);
         bool dialogInspected = false;
         QPointer<FluentQt::ColorDialog> dialogGuard;
         QTimer::singleShot(0, &card, [&card]() { card.colorPicker()->click(); });
         QTimer::singleShot(100, &card, [&]() {
-            auto *popup = FqwTest::findVisibleTopLevelByRole(QStringLiteral("ColorDialogPopup"));
+            auto *popup = findVisibleColorDialog();
             auto *dialog = qobject_cast<FluentQt::ColorDialog *>(popup);
             if (!dialog) {
                 return;
@@ -553,7 +637,7 @@ class DialogFlyoutTest : public QObject
             dialogInspected = true;
             dialogGuard = dialog;
             QVERIFY(dialog->testAttribute(Qt::WA_TranslucentBackground));
-            QVERIFY(dialog->windowFlags() & Qt::NoDropShadowWindowHint);
+            QVERIFY(!dialog->isWindow());
             QCOMPARE(dialog->widget()->property("fqw").toString(), QStringLiteral("ColorDialog"));
             QCOMPARE(dialog->widget()->size(), QSize(488, 696));
             QCOMPARE(dialog->scrollWidget()->size(), QSize(440, 560));
@@ -577,13 +661,14 @@ class DialogFlyoutTest : public QObject
 
         FluentQt::CustomColorSettingCard customCard(QColor(QStringLiteral("#005fb8")), QColor(QStringLiteral("#112233")),
                                                     FluentQt::FluentIcon::Heart, QStringLiteral("Custom accent"));
+        customCard.setParent(&cardHost);
         customCard.setAlphaEnabled(true);
+        customCard.move(0, 100);
         customCard.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&customCard));
         bool alphaDialogInspected = false;
         QTimer::singleShot(0, &customCard, [&customCard]() { customCard.colorPicker()->click(); });
         QTimer::singleShot(100, &customCard, [&]() {
-            auto *alphaPopup = FqwTest::findVisibleTopLevelByRole(QStringLiteral("ColorDialogPopup"));
+            auto *alphaPopup = findVisibleColorDialog();
             auto *alphaPopupDialog = qobject_cast<FluentQt::ColorDialog *>(alphaPopup);
             if (!alphaPopupDialog) {
                 return;
