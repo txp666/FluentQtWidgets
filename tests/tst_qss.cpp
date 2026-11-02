@@ -165,6 +165,19 @@ class QssTest : public QObject
         addRow("RadioButton", FluentStyleSheetSource::Button);
         addRow("CommandButton", FluentStyleSheetSource::Button);
         addRow("MoreActionsButton", FluentStyleSheetSource::Button);
+        // Port-only variants paint themselves but take the shared Fluent button box.
+        addRow("FilledPushButton", FluentStyleSheetSource::Button);
+        addRow("FilledToolButton", FluentStyleSheetSource::Button);
+        addRow("OutlinedPushButton", FluentStyleSheetSource::Button);
+        addRow("OutlinedToolButton", FluentStyleSheetSource::Button);
+        addRow("TextPushButton", FluentStyleSheetSource::Button);
+        addRow("TextToolButton", FluentStyleSheetSource::Button);
+        addRow("LuminaPushButton", FluentStyleSheetSource::Button);
+        addRow("RoundPushButton", FluentStyleSheetSource::Button);
+        addRow("RoundToolButton", FluentStyleSheetSource::Button);
+        addRow("HyperlinkToolButton", FluentStyleSheetSource::Button);
+        addRow("Chip", FluentStyleSheetSource::Button);
+        addRow("Tag", FluentStyleSheetSource::Button);
         // These paint themselves, and Python gives them no style sheet; progress_bar.qss is gone.
         addRow("ProgressBar", FluentStyleSheetSource::Global);
         addRow("IndeterminateProgressRing", FluentStyleSheetSource::Global);

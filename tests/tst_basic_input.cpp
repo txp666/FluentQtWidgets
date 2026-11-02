@@ -622,15 +622,14 @@ class BasicInputTest : public QObject
         OutlinedToolButton outlinedTool(icon(FluentIcon::Flag));
         QVERIFY(outlined.isCheckable());
         QVERIFY(outlinedTool.isCheckable());
-        QVERIFY(outlinedTool.minimumSize().width() >= 48);
-        QVERIFY(outlinedTool.minimumSize().height() >= 48);
+        // Sized like every tool button (see portOnlyButtonsShareTheFluentButtonBox).
+        QCOMPARE(outlinedTool.minimumSize(), ToolButton(icon(FluentIcon::Flag)).minimumSize());
         QCOMPARE(outlined.property("fqw").toString(), QStringLiteral("OutlinedPushButton"));
         QCOMPARE(outlinedTool.property("fqw").toString(), QStringLiteral("OutlinedToolButton"));
 
         RoundPushButton round(icon(FluentIcon::Tag), QStringLiteral("Round"));
         RoundToolButton roundTool(icon(FluentIcon::Basketball));
-        QVERIFY(roundTool.minimumSize().width() >= 48);
-        QVERIFY(roundTool.minimumSize().height() >= 48);
+        QCOMPARE(roundTool.size(), QSize(32, 32));
         QCOMPARE(round.property("fqw").toString(), QStringLiteral("RoundPushButton"));
         QCOMPARE(roundTool.property("fqw").toString(), QStringLiteral("RoundToolButton"));
 
@@ -1429,6 +1428,60 @@ class BasicInputTest : public QObject
         RangeSettingCard card(0, 100, 50, FluentIcon::Home, QStringLiteral("Title"));
         QCOMPARE(card.slider()->metaObject(), &Slider::staticMetaObject);
         QCOMPARE(card.slider()->orientation(), Qt::Horizontal);
+    }
+
+    // The port-only variants paint themselves but share the Fluent button box, so they line up
+    // with PushButton and ToolButton. Without their sheet they were 36 px tall and cut their own
+    // text short ("Fill..."), and the outlined and round tool buttons were 48x48.
+    void portOnlyButtonsShareTheFluentButtonBox()
+    {
+        for (const Theme theme : {Theme::Light, Theme::Dark}) {
+            ThemeManager::instance()->setTheme(theme);
+            QWidget window;
+            auto *layout = new QHBoxLayout(&window);
+            const QIcon mail = icon(FluentIcon::Mail);
+            auto *push = new PushButton(mail, QStringLiteral("Push"), &window);
+            auto *tool = new ToolButton(mail, &window);
+            const QList<QPushButton *> pushes = {
+                new FilledPushButton(mail, QStringLiteral("Filled"), &window),
+                new OutlinedPushButton(mail, QStringLiteral("Outlined"), &window),
+                new TextPushButton(mail, QStringLiteral("Text"), &window),
+                new LuminaPushButton(mail, QStringLiteral("Lumina"), &window),
+                new RoundPushButton(mail, QStringLiteral("Round"), &window),
+                new Chip(QStringLiteral("Chip"), &window),
+                new Tag(QStringLiteral("Tag"), &window),
+            };
+            const QList<QToolButton *> tools = {
+                new FilledToolButton(mail, &window),
+                new OutlinedToolButton(mail, &window),
+                new TextToolButton(mail, &window),
+                new HyperlinkToolButton(mail, QStringLiteral("https://example.com"), &window),
+            };
+            auto *round = new RoundToolButton(mail, &window);
+            for (QWidget *widget :
+                 {static_cast<QWidget *>(push), static_cast<QWidget *>(tool), static_cast<QWidget *>(round)}) {
+                layout->addWidget(widget, 0, Qt::AlignTop);
+            }
+            for (QPushButton *button : pushes) {
+                layout->addWidget(button, 0, Qt::AlignTop);
+            }
+            for (QToolButton *button : tools) {
+                layout->addWidget(button, 0, Qt::AlignTop);
+            }
+            window.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+            for (const QPushButton *button : pushes) {
+                const QString name = QString::fromLatin1(button->metaObject()->className());
+                QVERIFY2(button->height() == push->height(), qPrintable(name));
+                QVERIFY2(button->width() >= button->fontMetrics().horizontalAdvance(button->text()) + 24,
+                         qPrintable(name));
+            }
+            for (const QToolButton *button : tools) {
+                QVERIFY2(button->size() == tool->size(), button->metaObject()->className());
+            }
+            QCOMPARE(round->size(), QSize(32, 32));
+        }
     }
 
     // As in Python, the slider sheet is public and styles any QSlider it is applied to: 24 px thick.

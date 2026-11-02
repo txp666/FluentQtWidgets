@@ -1804,7 +1804,6 @@ OutlinedToolButton::OutlinedToolButton(QWidget *parent) : ToolButton(parent)
 {
     setCheckable(true);
     initFluentToolButton(QStringLiteral("OutlinedToolButton"));
-    setMinimumSize(QSize(48, 48));
     setStatus(ButtonStatus::Attention);
 }
 
@@ -1812,7 +1811,6 @@ OutlinedToolButton::OutlinedToolButton(const QIcon &icon, QWidget *parent) : Too
 {
     setCheckable(true);
     initFluentToolButton(QStringLiteral("OutlinedToolButton"));
-    setMinimumSize(QSize(48, 48));
     setStatus(ButtonStatus::Attention);
 }
 
@@ -1909,13 +1907,15 @@ void RoundPushButton::paintEvent(QPaintEvent *event)
 RoundToolButton::RoundToolButton(QWidget *parent) : ToolButton(parent)
 {
     initFluentToolButton(QStringLiteral("RoundToolButton"));
-    setMinimumSize(QSize(48, 48));
+    // Square, so the round frame is a circle at the standard tool-button height.
+    setFixedSize(32, 32);
 }
 
 RoundToolButton::RoundToolButton(const QIcon &icon, QWidget *parent) : ToolButton(icon, parent)
 {
     initFluentToolButton(QStringLiteral("RoundToolButton"));
-    setMinimumSize(QSize(48, 48));
+    // Square, so the round frame is a circle at the standard tool-button height.
+    setFixedSize(32, 32);
 }
 
 RoundToolButton::RoundToolButton(const QString &iconPath, QWidget *parent)
