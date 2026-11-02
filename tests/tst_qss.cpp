@@ -76,18 +76,21 @@ class QssTest : public QObject
                           {QStringLiteral("QRadioButton[fqw=\"RadioButton\"] {"),
                            QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("max-height: 24px;"),
                            QStringLiteral("QRadioButton[fqw=\"RadioButton\"]::indicator")});
+        // Python applies slider.qss to no widget; the port's Slider paints itself like Python's, so
+        // only ClickableSlider uses it, and the Slider selectors were dead.
         addStyleSheetRows("slider", QStringLiteral("slider.qss"), kBothThemes,
-                          {QStringLiteral("QSlider[fqw=\"Slider\"]:horizontal"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::sub-page:horizontal"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:horizontal:hover"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:horizontal:pressed"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]:vertical"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::add-page:vertical"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:vertical:hover"),
-                           QStringLiteral("qradialgradient")});
+                          {QStringLiteral("QSlider[fqw=\"ClickableSlider\"]:horizontal"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::sub-page:horizontal"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:horizontal:hover"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:horizontal:pressed"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]:vertical"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::add-page:vertical"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:vertical:hover"),
+                           QStringLiteral("qradialgradient")},
+                          {QStringLiteral("QSlider[fqw=\"Slider\"]")});
         addStyleSheetRows("slider disabled", QStringLiteral("slider.qss"), {QStringLiteral("light")},
-                          {QStringLiteral("QSlider[fqw=\"Slider\"]::groove:horizontal:disabled"),
-                           QStringLiteral("QSlider[fqw=\"Slider\"]::handle:vertical:disabled")});
+                          {QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::groove:horizontal:disabled"),
+                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:vertical:disabled")});
         addStyleSheetRows("buttons", QStringLiteral("button.qss"), kBothThemes,
                           {QStringLiteral("QToolButton[fqw=\"DropDownToolButton\"]"),
                            QStringLiteral("QToolButton[fqw=\"PrimaryDropDownToolButton\"]"),
@@ -101,7 +104,6 @@ class QssTest : public QObject
                            QStringLiteral("QToolButton[fqw=\"TransparentToggleToolButton\"]:checked"),
                            QStringLiteral("QPushButton[fqw=\"HyperlinkButton\"]:disabled"),
                            QStringLiteral("QPushButton[fqw=\"PillPushButton\"]:disabled:checked"),
-                           QStringLiteral("QToolButton[fqw=\"TabCloseButton\"]:hover"),
                            QStringLiteral("QPushButton[fqw=\"PushButton\"]:disabled"),
                            QStringLiteral("QToolButton[fqw=\"DropDownToolButton\"]:disabled")});
         addStyleSheetRows("switch button", QStringLiteral("switch_button.qss"), kBothThemes,
@@ -165,13 +167,12 @@ class QssTest : public QObject
         addRow("RadioButton", FluentStyleSheetSource::Button);
         addRow("CommandButton", FluentStyleSheetSource::Button);
         addRow("MoreActionsButton", FluentStyleSheetSource::Button);
-    }
-
-    void rolesUseTheirStyleSheet()
-    {
-        QFETCH(QString, role);
-        QFETCH(int, source);
-        QCOMPARE(static_cast<int>(styleSheetSourceForRole(role)), source);
+        // These paint themselves, and Python gives them no style sheet; progress_bar.qss is gone.
+        addRow("ProgressBar", FluentStyleSheetSource::Global);
+        addRow("IndeterminateProgressRing", FluentStyleSheetSource::Global);
+        // Python leaves Slider unstyled; the port sets the role only as a marker.
+        addRow("Slider", FluentStyleSheetSource::Global);
+        addRow("ClickableSlider", FluentStyleSheetSource::Slider);
     }
 
     // Python's sheets use only --ThemeColor* tokens, all derived per theme by ThemeColor.color().

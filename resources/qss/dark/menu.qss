@@ -1,17 +1,3 @@
-RoundMenu,
-ComboBoxMenu,
-AcrylicMenu,
-AcrylicCheckableMenu,
-AcrylicSystemTrayMenu,
-AcrylicCheckableSystemTrayMenu,
-AcrylicLineEditMenu,
-AcrylicCompleterMenu,
-AcrylicComboBoxMenu {
-    background-color: transparent;
-    border: none;
-}
-
-MenuActionListWidget,
 QListWidget[fqw="MenuActionListWidget"] {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 9px;
@@ -20,12 +6,10 @@ QListWidget[fqw="MenuActionListWidget"] {
     font: 14px --FontFamilies;
 }
 
-MenuActionListWidget[transparent=true],
 QListWidget[fqw="MenuActionListWidget"][transparent=true] {
     background-color: transparent;
 }
 
-MenuActionListWidget::item,
 QListWidget[fqw="MenuActionListWidget"]::item {
     padding-left: 10px;
     padding-right: 10px;
@@ -36,7 +20,6 @@ QListWidget[fqw="MenuActionListWidget"]::item {
     color: white;
 }
 
-MenuActionListWidget::item:disabled,
 QListWidget[fqw="MenuActionListWidget"]::item:disabled {
     padding-left: 10px;
     padding-right: 10px;
@@ -45,18 +28,15 @@ QListWidget[fqw="MenuActionListWidget"]::item:disabled {
     color: rgba(255, 255, 255, 0.4);
 }
 
-MenuActionListWidget::item:hover,
 QListWidget[fqw="MenuActionListWidget"]::item:hover {
     background-color: rgba(255, 255, 255, 0.08);
 }
 
-MenuActionListWidget::item:selected,
 QListWidget[fqw="MenuActionListWidget"]::item:selected {
     background-color: rgba(255, 255, 255, 0.08);
     color: white;
 }
 
-MenuActionListWidget::item:selected:active,
 QListWidget[fqw="MenuActionListWidget"]::item:selected:active {
     background-color: rgba(255, 255, 255, 0.06);
     color: rgba(255, 255, 255, 0.7);

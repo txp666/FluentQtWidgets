@@ -18,7 +18,6 @@ enum class FluentStyleSheetSource
 {
     Global,
     Button,
-    RadioButton,
     Label,
     LineEdit,
     CardWidget,
@@ -49,7 +48,6 @@ enum class FluentStyleSheetSource
     NavigationInterface,
     FluentWindow,
     Pivot,
-    ProgressBar,
     IconWidget,
     CalendarPicker,
     DatePicker,

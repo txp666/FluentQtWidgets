@@ -148,10 +148,6 @@ QString styleSheetSourceName(FluentStyleSheetSource source)
         return QStringLiteral("fluent_window");
     case FluentStyleSheetSource::Pivot:
         return QStringLiteral("pivot");
-    case FluentStyleSheetSource::RadioButton:
-        return QStringLiteral("radio_button");
-    case FluentStyleSheetSource::ProgressBar:
-        return QStringLiteral("progress_bar");
     case FluentStyleSheetSource::IconWidget:
         return QStringLiteral("icon_widget");
     case FluentStyleSheetSource::CalendarPicker:
@@ -247,7 +243,6 @@ FluentStyleSheetSource styleSheetSourceForRole(const QString &role)
         {QStringLiteral("EditableModelComboBox"), FluentStyleSheetSource::LineEdit},
         {QStringLiteral("CheckBox"), FluentStyleSheetSource::CheckBox},
         {QStringLiteral("RadioButton"), FluentStyleSheetSource::Button},
-        {QStringLiteral("Slider"), FluentStyleSheetSource::Slider},
         {QStringLiteral("ClickableSlider"), FluentStyleSheetSource::Slider},
         {QStringLiteral("SpinBox"), FluentStyleSheetSource::SpinBox},
         {QStringLiteral("DoubleSpinBox"), FluentStyleSheetSource::SpinBox},
@@ -270,11 +265,7 @@ FluentStyleSheetSource styleSheetSourceForRole(const QString &role)
         {QStringLiteral("TabBar"), FluentStyleSheetSource::TabView},
         {QStringLiteral("TabWidget"), FluentStyleSheetSource::TabView},
         {QStringLiteral("TabItem"), FluentStyleSheetSource::TabView},
-        {QStringLiteral("TabCloseButton"), FluentStyleSheetSource::TabView},
-        {QStringLiteral("TabAddButton"), FluentStyleSheetSource::TabView},
         {QStringLiteral("PipsPager"), FluentStyleSheetSource::PipsPager},
-        {QStringLiteral("HorizontalPipsPager"), FluentStyleSheetSource::PipsPager},
-        {QStringLiteral("VerticalPipsPager"), FluentStyleSheetSource::PipsPager},
         {QStringLiteral("PipsPagerScrollButton"), FluentStyleSheetSource::PipsPager},
         {QStringLiteral("PipsPagerDot"), FluentStyleSheetSource::PipsPager},
         {QStringLiteral("ListView"), FluentStyleSheetSource::ListView},
@@ -351,14 +342,8 @@ FluentStyleSheetSource styleSheetSourceForRole(const QString &role)
         {QStringLiteral("FlipView"), FluentStyleSheetSource::FlipView},
         {QStringLiteral("FluentTitleBar"), FluentStyleSheetSource::FluentWindow},
         {QStringLiteral("ColorPickerButton"), FluentStyleSheetSource::SettingCard},
-        {QStringLiteral("ProgressBar"), FluentStyleSheetSource::ProgressBar},
-        {QStringLiteral("IndeterminateProgressBar"), FluentStyleSheetSource::ProgressBar},
-        {QStringLiteral("ProgressRing"), FluentStyleSheetSource::ProgressBar},
-        {QStringLiteral("IndeterminateProgressRing"), FluentStyleSheetSource::ProgressBar},
         {QStringLiteral("IconWidget"), FluentStyleSheetSource::IconWidget},
         {QStringLiteral("CalendarPicker"), FluentStyleSheetSource::CalendarPicker},
-        {QStringLiteral("CalendarPickerPopup"), FluentStyleSheetSource::CalendarPicker},
-        {QStringLiteral("CalendarPickerCalendar"), FluentStyleSheetSource::CalendarPicker},
         {QStringLiteral("CalendarView"), FluentStyleSheetSource::CalendarPicker},
         {QStringLiteral("FastCalendarView"), FluentStyleSheetSource::CalendarPicker},
         {QStringLiteral("FastCalendarPage"), FluentStyleSheetSource::CalendarPicker},

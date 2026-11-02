@@ -146,20 +146,6 @@ QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"][selected="true"][tod
     border-color: --ThemeColorPrimary;
 }
 
-QFrame[fqw="CalendarView"] QPushButton[calendarReset="true"] {
-    min-height: 30px;
-    color: white;
-    background: rgba(255, 255, 255, 0.0605);
-    border: 1px solid rgba(255, 255, 255, 0.053);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
-    font: 14px --FontFamilies;
-}
-
-QFrame[fqw="CalendarView"] QPushButton[calendarReset="true"]:hover {
-    background: rgba(255, 255, 255, 0.0837);
-}
-
 QFrame[fqw="FastCalendarView"] {
     background: transparent;
     border: none;
