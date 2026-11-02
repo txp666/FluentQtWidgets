@@ -671,6 +671,21 @@ class NavigationTest : public QObject
         QCOMPARE(pivot.indicatorGeometry().width(), 16);
     }
 
+    // The first selection, made before the pivot is shown, must still leave a 16 px indicator.
+    void pivotIndicatorShowsForASelectionMadeWhileHidden()
+    {
+        FluentQt::Pivot pivot;
+        pivot.addItem(QStringLiteral("first"), QStringLiteral("First"));
+        pivot.addItem(QStringLiteral("second"), QStringLiteral("Second"));
+        pivot.setCurrentItem(QStringLiteral("second"));
+        pivot.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&pivot));
+        QTRY_COMPARE(pivot.indicatorGeometry().width(), 16);
+        QTest::qWait(700);
+        QCOMPARE(pivot.indicatorGeometry().width(), 16);
+        QCOMPARE(pivot.indicatorGeometry().center().x(), pivot.item(QStringLiteral("second"))->geometry().center().x());
+    }
+
     // Python's segmented widgets slide point to point: 187 ms on a (0.55, 0.55, 0, 1) bezier,
     // where the port used 100 ms of OutQuad.
     void segmentedIndicatorsSlidePointToPointAsInPython()

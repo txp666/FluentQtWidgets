@@ -173,9 +173,16 @@ void Pivot::setCurrentItem(const QString &routeKey)
     if (m_slideAnimation) {
         const QRect targetGeometry = computeIndicatorGeometry();
         m_slideAnimation->stop();
-        m_slideStart = m_indicatorGeometry;
-        m_slideEnd = targetGeometry;
-        m_slideAnimation->start();
+        // The squash and stretch keeps the start's length, so with nothing shown yet (Python
+        // would start from a 16x3 rect) the indicator goes straight to its place.
+        if (m_indicatorGeometry.isEmpty() || !isVisible()) {
+            setIndicatorGeometry(targetGeometry);
+            update();
+        } else {
+            m_slideStart = m_indicatorGeometry;
+            m_slideEnd = targetGeometry;
+            m_slideAnimation->start();
+        }
     }
 
     emit currentItemChanged(m_currentItem);
