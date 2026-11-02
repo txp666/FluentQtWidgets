@@ -276,6 +276,44 @@ class ThemeTest : public QObject
         style.active = false;
     }
 
+    // The strings round three added (folder list dialog, colour card, title bar buttons, navigation
+    // buttons, media bars, switch button, dialog buttons) were missing from the library's .ts files.
+    void fluentTranslatorCoversTheLibrarysStrings_data()
+    {
+        QTest::addColumn<QString>("locale");
+        QTest::addColumn<QByteArray>("context");
+        QTest::addColumn<QByteArray>("source");
+        QTest::addColumn<QString>("translation");
+        const auto row = [](const char *locale, const char *context, const char *source, const char *translation) {
+            QTest::addRow("%s %s %s", locale, context, source) << QString::fromLatin1(locale) << QByteArray(context)
+                                                               << QByteArray(source) << QString::fromUtf8(translation);
+        };
+        row("zh_CN", "FluentQt::FolderListDialog", "Choose folder", "选择文件夹");
+        row("zh_CN", "FluentQt::FolderListSettingCard", "Are you sure you want to delete the folder?",
+            "确定要删除此文件夹吗？");
+        row("zh_CN", "FluentQt::CustomColorSettingCard", "Choose color", "选择颜色");
+        row("zh_CN", "FluentQt::FluentTitleBar", "Maximize", "最大化");
+        row("zh_CN", "FluentQt::NavigationPanel", "Open Navigation", "打开导航");
+        row("zh_CN", "FluentQt::PlayButton", "Pause", "暂停");
+        row("zh_CN", "FluentQt::VolumeView", "Mute", "静音");
+        row("zh_CN", "FluentQt::SwitchButton", "Off", "关");
+        row("zh_CN", "FluentQt::MessageBoxBase", "Cancel", "取消");
+        row("zh_HK", "FluentQt::FolderListDialog", "Choose folder", "選擇資料夾");
+        row("zh_HK", "FluentQt::FluentTitleBar", "Close", "關閉");
+        row("zh_HK", "FluentQt::VolumeView", "Unmute", "取消靜音");
+        row("zh_HK", "FluentQt::MessageDialog", "OK", "確定");
+    }
+
+    void fluentTranslatorCoversTheLibrarysStrings()
+    {
+        QFETCH(QString, locale);
+        QFETCH(QByteArray, context);
+        QFETCH(QByteArray, source);
+        QFETCH(QString, translation);
+        FluentQt::FluentTranslator translator{QLocale(locale)};
+        QCOMPARE(translator.translate(context.constData(), source.constData()), translation);
+    }
+
     void fluentTranslatorOnlyLoadsMatchingLanguages()
     {
         FluentQt::FluentTranslator english(QLocale(QStringLiteral("en")));
