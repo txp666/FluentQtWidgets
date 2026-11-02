@@ -27,29 +27,29 @@ class FQW_API NavigationInterface : public QWidget
     NavigationPanel *panel() const;
 
     NavigationTreeWidget *addItem(const QString &routeKey, const QIcon &icon, const QString &text,
-                                  NavigationItemPosition position = NavigationItemPosition::Scroll,
+                                  NavigationItemPosition position = NavigationItemPosition::Top,
                                   const QString &parentRouteKey = QString(), bool selectable = true);
     NavigationTreeWidget *insertItem(int index, const QString &routeKey, const QIcon &icon, const QString &text,
-                                     NavigationItemPosition position = NavigationItemPosition::Scroll,
+                                     NavigationItemPosition position = NavigationItemPosition::Top,
                                      const QString &parentRouteKey = QString(), bool selectable = true);
     NavigationWidget *addWidget(const QString &routeKey, NavigationWidget *widget,
-                                NavigationItemPosition position = NavigationItemPosition::Scroll,
+                                NavigationItemPosition position = NavigationItemPosition::Top,
                                 const QString &parentRouteKey = QString());
     NavigationWidget *insertWidget(int index, const QString &routeKey, NavigationWidget *widget,
-                                   NavigationItemPosition position = NavigationItemPosition::Scroll,
+                                   NavigationItemPosition position = NavigationItemPosition::Top,
                                    const QString &parentRouteKey = QString());
-    QFrame *addSeparator(NavigationItemPosition position = NavigationItemPosition::Scroll);
-    QFrame *insertSeparator(int index, NavigationItemPosition position = NavigationItemPosition::Scroll);
+    QFrame *addSeparator(NavigationItemPosition position = NavigationItemPosition::Top);
+    QFrame *insertSeparator(int index, NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationItemHeader *addItemHeader(const QString &text,
-                                        NavigationItemPosition position = NavigationItemPosition::Scroll);
+                                        NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationItemHeader *insertItemHeader(int index, const QString &text,
-                                           NavigationItemPosition position = NavigationItemPosition::Scroll);
+                                           NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationUserCard *addUserCard(const QString &routeKey, const QIcon &avatar, const QString &title,
                                     const QString &subtitle = QString(),
-                                    NavigationItemPosition position = NavigationItemPosition::Scroll);
+                                    NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationUserCard *addUserCard(const QString &routeKey, const QString &avatarPath, const QString &title,
                                     const QString &subtitle = QString(),
-                                    NavigationItemPosition position = NavigationItemPosition::Scroll);
+                                    NavigationItemPosition position = NavigationItemPosition::Top);
     NavigationWidget *widget(const QString &routeKey) const;
 
     bool isAcrylicEnabled() const;

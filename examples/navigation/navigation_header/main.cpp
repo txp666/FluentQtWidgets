@@ -50,17 +50,20 @@ class DemoWindow : public QWidget
   private:
     void initNavigation()
     {
-        addInterface(QStringLiteral("home"), icon(FluentIcon::Home), QStringLiteral("Home"),
-                     NavigationItemPosition::Top);
+        addInterface(QStringLiteral("home"), icon(FluentIcon::Home), QStringLiteral("Home"));
         m_navigation->addSeparator();
 
         m_navigation->addItemHeader(QStringLiteral("Basic Input"), NavigationItemPosition::Scroll);
-        addInterface(QStringLiteral("button"), icon(FluentIcon::Checkbox), QStringLiteral("Button"));
-        addInterface(QStringLiteral("input"), icon(FluentIcon::Edit), QStringLiteral("Input"));
+        addInterface(QStringLiteral("button"), icon(FluentIcon::Checkbox), QStringLiteral("Button"),
+                     NavigationItemPosition::Scroll);
+        addInterface(QStringLiteral("input"), icon(FluentIcon::Edit), QStringLiteral("Input"),
+                     NavigationItemPosition::Scroll);
 
         m_navigation->addItemHeader(QStringLiteral("Data"), NavigationItemPosition::Scroll);
-        addInterface(QStringLiteral("table"), icon(FluentIcon::Document), QStringLiteral("Table"));
-        addInterface(QStringLiteral("list"), icon(FluentIcon::Menu), QStringLiteral("List"));
+        addInterface(QStringLiteral("table"), icon(FluentIcon::Document), QStringLiteral("Table"),
+                     NavigationItemPosition::Scroll);
+        addInterface(QStringLiteral("list"), icon(FluentIcon::Menu), QStringLiteral("List"),
+                     NavigationItemPosition::Scroll);
 
         addInterface(QStringLiteral("settings"), icon(FluentIcon::Setting), QStringLiteral("Settings"),
                      NavigationItemPosition::Bottom);
@@ -77,7 +80,7 @@ class DemoWindow : public QWidget
     }
 
     void addInterface(const QString &routeKey, const QIcon &icon, const QString &text,
-                      NavigationItemPosition position = NavigationItemPosition::Scroll)
+                      NavigationItemPosition position = NavigationItemPosition::Top)
     {
         QWidget *page = createPage(text, this);
         m_interfaces.insert(routeKey, page);

@@ -100,6 +100,36 @@ class NavigationTest : public QObject
     // The interface is as wide as the panel when compact or expanded in place, so a window layout
     // gives the rest to the content; as a menu the panel moves onto the window, over the content,
     // and the interface stays 48 px.
+    // Python's addItem(), addWidget(), addSeparator() and addItemHeader() and FluentWindow's
+    // addSubInterface() default to NavigationItemPosition.TOP: the items stay put above the
+    // scroll area unless asked for SCROLL.
+    void navigationItemsDefaultToTheTop()
+    {
+        NavigationInterface navigation;
+        auto *scrollArea = navigation.panel()->findChild<FluentQt::ScrollArea *>();
+        QVERIFY(scrollArea);
+        NavigationTreeWidget *item = navigation.addItem(QStringLiteral("home"), QIcon(), QStringLiteral("Home"));
+        QFrame *separator = navigation.addSeparator();
+        QWidget *header = navigation.addItemHeader(QStringLiteral("Header"));
+        auto *widget = new NavigationAvatarWidget(QStringLiteral("zhiyiYo"));
+        navigation.addWidget(QStringLiteral("avatar"), widget);
+        for (QWidget *added : std::initializer_list<QWidget *>{item, separator, header, widget}) {
+            QVERIFY(added);
+            QVERIFY(!scrollArea->isAncestorOf(added));
+        }
+        NavigationTreeWidget *scrolled = navigation.addItem(QStringLiteral("music"), QIcon(), QStringLiteral("Music"),
+                                                            NavigationItemPosition::Scroll);
+        QVERIFY(scrollArea->isAncestorOf(scrolled));
+
+        FluentWindow window;
+        window.addSubInterface(new QWidget, QIcon(), QStringLiteral("Page"), QStringLiteral("page"));
+        auto *windowScrollArea = window.navigationInterface()->panel()->findChild<FluentQt::ScrollArea *>();
+        QVERIFY(windowScrollArea);
+        QWidget *pageItem = window.navigationInterface()->panel()->widget(QStringLiteral("page"));
+        QVERIFY(pageItem);
+        QVERIFY(!windowScrollArea->isAncestorOf(pageItem));
+    }
+
     void navigationInterfaceFollowsThePanelWidth()
     {
         QWidget window;

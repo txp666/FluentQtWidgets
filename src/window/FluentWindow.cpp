@@ -741,7 +741,7 @@ SplashScreen *FluentWindow::splashScreen() const { return m_splashScreen; }
 int FluentWindow::addSubInterface(QWidget *widget, const QIcon &icon, const QString &text, const QString &routeKey,
                                   bool isTransparent)
 {
-    return addSubInterface(widget, icon, text, routeKey, NavigationItemPosition::Scroll, isTransparent);
+    return addSubInterface(widget, icon, text, routeKey, NavigationItemPosition::Top, isTransparent);
 }
 
 int FluentWindow::addSubInterface(QWidget *widget, const QIcon &icon, const QString &text, const QString &routeKey,
