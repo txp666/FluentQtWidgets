@@ -19,6 +19,7 @@
 #include "TestSupport.h"
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <optional>
 
@@ -244,6 +245,60 @@ class DateTimeTest : public QObject
             QVERIFY(picker->findChildren<FluentQt::PickerPanel *>().isEmpty());
             QVERIFY(!FqwTest::findVisibleTopLevelByRole(QStringLiteral("TimePickerPanel")));
             QVERIFY(!FqwTest::findVisibleTopLevelByRole(QStringLiteral("DatePickerPanel")));
+        }
+    }
+
+    // Python insets the item circles from their cells (3 px for days, 8 px for months and years),
+    // so today's day is a 38 px disc in a 44 px cell and a month or year a 60 px one in 76 px.
+    void calendarItemCirclesKeepPythonInsets()
+    {
+        const auto discWidth = [](QPushButton *button) {
+            // Grabbed from the window: rendering the button alone loses its rounded corners.
+            QWidget *window = button->window();
+            QImage image = window->grab(QRect(button->mapTo(window, QPoint()), button->size())).toImage();
+            image = image.scaled(button->size());
+            const QColor accent = FluentQt::ThemeManager::instance()->accentColor();
+            int width = 0;
+            for (int x = 0; x < image.width(); ++x) {
+                const QColor pixel = image.pixelColor(x, image.height() / 4);
+                width += pixel.alpha() > 128 && qAbs(pixel.hue() - accent.hue()) <= 10 ? 1 : 0;
+            }
+            // Measured a quarter of the way down: the chord of a circle of the expected diameter.
+            return width;
+        };
+        const auto todayButton = [](const QList<QPushButton *> &buttons) -> QPushButton * {
+            for (QPushButton *button : buttons) {
+                if (button->property("today").toBool()) {
+                    return button;
+                }
+            }
+            return nullptr;
+        };
+        const auto chord = [](int diameter, int cell) {
+            const double r = diameter / 2.0;
+            const double dy = r - (cell / 4.0 - (cell - diameter) / 2.0);
+            return 2.0 * std::sqrt(r * r - dy * dy);
+        };
+
+        FluentQt::CalendarView view(nullptr, false);
+        view.show();
+        FluentQt::FastCalendarView fastView;
+        fastView.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&view));
+        QVERIFY(QTest::qWaitForWindowExposed(&fastView));
+        for (const QList<QPushButton *> &days : {view.dayButtons(), fastView.dayButtons()}) {
+            QPushButton *today = todayButton(days);
+            QVERIFY(today != nullptr);
+            QVERIFY2(qAbs(discWidth(today) - chord(38, 44)) <= 2, qPrintable(QString::number(discWidth(today))));
+        }
+        view.titleButton()->click();
+        fastView.dayView()->findChild<QPushButton *>(QStringLiteral("titleButton"))->click();
+        QCoreApplication::processEvents();
+        for (const QList<QPushButton *> &months : {view.monthButtons(), fastView.monthButtons()}) {
+            QPushButton *thisMonth = todayButton(months);
+            QVERIFY(thisMonth != nullptr);
+            QVERIFY2(qAbs(discWidth(thisMonth) - chord(60, 76)) <= 2,
+                     qPrintable(QString::number(discWidth(thisMonth))));
         }
     }
 

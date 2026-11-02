@@ -80,12 +80,14 @@ QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"] {
 }
 
 QFrame[fqw="CalendarView"] QPushButton#dayButton[calendarItem="true"] {
-    border-radius: 22px;
+    margin: 3px;
+    border-radius: 19px;
 }
 
 QFrame[fqw="CalendarView"] QPushButton#monthButton[calendarItem="true"],
 QFrame[fqw="CalendarView"] QPushButton#yearButton[calendarItem="true"] {
-    border-radius: 38px;
+    margin: 8px;
+    border-radius: 30px;
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"]:hover {
@@ -94,7 +96,7 @@ QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"]:hover {
 
 QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"]:pressed {
     color: rgba(255, 255, 255, 0.6);
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(255, 255, 255, 0.027);
 }
 
 QFrame[fqw="CalendarView"] QPushButton[calendarItem="true"][outOfMonth="true"],
@@ -203,12 +205,14 @@ QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"] {
 }
 
 QFrame[fqw="FastCalendarPage"] QPushButton#dayButton[fastCalendarItem="true"] {
-    border-radius: 22px;
+    margin: 3px;
+    border-radius: 19px;
 }
 
 QFrame[fqw="FastCalendarPage"] QPushButton#monthButton[fastCalendarItem="true"],
 QFrame[fqw="FastCalendarPage"] QPushButton#yearButton[fastCalendarItem="true"] {
-    border-radius: 38px;
+    margin: 8px;
+    border-radius: 30px;
 }
 
 QFrame[fqw="FastCalendarPage"] QPushButton[fastCalendarItem="true"]:hover {
