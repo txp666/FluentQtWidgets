@@ -77,21 +77,18 @@ class QssTest : public QObject
                           {QStringLiteral("QRadioButton[fqw=\"RadioButton\"] {"),
                            QStringLiteral("font: 14px --FontFamilies;"), QStringLiteral("max-height: 24px;"),
                            QStringLiteral("QRadioButton[fqw=\"RadioButton\"]::indicator")});
-        // Python applies slider.qss to no widget; the port's Slider paints itself like Python's, so
-        // only ClickableSlider uses it, and the Slider selectors were dead.
+        // As in Python, slider.qss styles plain QSliders: no widget applies it on its own, but
+        // FluentStyleSheet::apply(slider, FluentStyleSheetSource::Slider) gives any QSlider the look.
         addStyleSheetRows("slider", QStringLiteral("slider.qss"), kBothThemes,
-                          {QStringLiteral("QSlider[fqw=\"ClickableSlider\"]:horizontal"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::sub-page:horizontal"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:horizontal:hover"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:horizontal:pressed"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]:vertical"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::add-page:vertical"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:vertical:hover"),
-                           QStringLiteral("qradialgradient")},
-                          {QStringLiteral("QSlider[fqw=\"Slider\"]")});
+                          {QStringLiteral("QSlider:horizontal"), QStringLiteral("QSlider::sub-page:horizontal"),
+                           QStringLiteral("QSlider::handle:horizontal:hover"),
+                           QStringLiteral("QSlider::handle:horizontal:pressed"), QStringLiteral("QSlider:vertical"),
+                           QStringLiteral("QSlider::add-page:vertical"),
+                           QStringLiteral("QSlider::handle:vertical:hover"), QStringLiteral("qradialgradient")},
+                          {QStringLiteral("fqw=")});
         addStyleSheetRows("slider disabled", QStringLiteral("slider.qss"), {QStringLiteral("light")},
-                          {QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::groove:horizontal:disabled"),
-                           QStringLiteral("QSlider[fqw=\"ClickableSlider\"]::handle:vertical:disabled")});
+                          {QStringLiteral("QSlider::groove:horizontal:disabled"),
+                           QStringLiteral("QSlider::handle:vertical:disabled")});
         addStyleSheetRows("buttons", QStringLiteral("button.qss"), kBothThemes,
                           {QStringLiteral("QToolButton[fqw=\"DropDownToolButton\"]"),
                            QStringLiteral("QToolButton[fqw=\"PrimaryDropDownToolButton\"]"),
@@ -171,9 +168,9 @@ class QssTest : public QObject
         // These paint themselves, and Python gives them no style sheet; progress_bar.qss is gone.
         addRow("ProgressBar", FluentStyleSheetSource::Global);
         addRow("IndeterminateProgressRing", FluentStyleSheetSource::Global);
-        // Python leaves Slider unstyled; the port sets the role only as a marker.
+        // Python leaves both sliders unstyled; Slider sets its role only as a marker.
         addRow("Slider", FluentStyleSheetSource::Global);
-        addRow("ClickableSlider", FluentStyleSheetSource::Slider);
+        addRow("ClickableSlider", FluentStyleSheetSource::Global);
     }
 
     // Python's class-name selectors (`RoundMenu`, `FlipView`) never match the port's classes, which

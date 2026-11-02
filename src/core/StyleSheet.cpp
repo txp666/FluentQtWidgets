@@ -243,7 +243,6 @@ FluentStyleSheetSource styleSheetSourceForRole(const QString &role)
         {QStringLiteral("EditableModelComboBox"), FluentStyleSheetSource::LineEdit},
         {QStringLiteral("CheckBox"), FluentStyleSheetSource::CheckBox},
         {QStringLiteral("RadioButton"), FluentStyleSheetSource::Button},
-        {QStringLiteral("ClickableSlider"), FluentStyleSheetSource::Slider},
         {QStringLiteral("SpinBox"), FluentStyleSheetSource::SpinBox},
         {QStringLiteral("DoubleSpinBox"), FluentStyleSheetSource::SpinBox},
         {QStringLiteral("TimeEdit"), FluentStyleSheetSource::SpinBox},

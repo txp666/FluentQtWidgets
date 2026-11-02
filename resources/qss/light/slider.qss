@@ -1,20 +1,20 @@
-QSlider[fqw="ClickableSlider"]:horizontal {
+QSlider:horizontal {
     min-height: 24px;
 }
 
-QSlider[fqw="ClickableSlider"]::groove:horizontal {
+QSlider::groove:horizontal {
     height: 4px;
     background-color: rgba(0, 0, 0, 100);
     border-radius: 2px;
 }
 
-QSlider[fqw="ClickableSlider"]::sub-page:horizontal {
+QSlider::sub-page:horizontal {
     background: --ThemeColorPrimary;
     height: 4px;
     border-radius: 2px;
 }
 
-QSlider[fqw="ClickableSlider"]::handle:horizontal {
+QSlider::handle:horizontal {
     border: 1px solid rgb(222, 222, 222);
     width: 20px;
     min-height: 24px;
@@ -27,7 +27,7 @@ QSlider[fqw="ClickableSlider"]::handle:horizontal {
         stop:1 rgb(255, 255, 255));
 }
 
-QSlider[fqw="ClickableSlider"]::handle:horizontal:hover {
+QSlider::handle:horizontal:hover {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
         stop:0 --ThemeColorPrimary,
         stop:0.55 --ThemeColorPrimary,
@@ -35,7 +35,7 @@ QSlider[fqw="ClickableSlider"]::handle:horizontal:hover {
         stop:1 rgb(255, 255, 255));
 }
 
-QSlider[fqw="ClickableSlider"]::handle:horizontal:pressed {
+QSlider::handle:horizontal:pressed {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
         stop:0 --ThemeColorPrimary,
         stop:0.4 --ThemeColorPrimary,
@@ -43,32 +43,32 @@ QSlider[fqw="ClickableSlider"]::handle:horizontal:pressed {
         stop:1 rgb(255, 255, 255));
 }
 
-QSlider[fqw="ClickableSlider"]::groove:horizontal:disabled {
+QSlider::groove:horizontal:disabled {
     background-color: rgba(0, 0, 0, 75);
 }
 
-QSlider[fqw="ClickableSlider"]::handle:horizontal:disabled {
+QSlider::handle:horizontal:disabled {
     background-color: #808080;
     border: 5px solid #cccccc;
 }
 
-QSlider[fqw="ClickableSlider"]:vertical {
+QSlider:vertical {
     min-width: 24px;
 }
 
-QSlider[fqw="ClickableSlider"]::groove:vertical {
+QSlider::groove:vertical {
     width: 4px;
     background-color: rgba(0, 0, 0, 100);
     border-radius: 2px;
 }
 
-QSlider[fqw="ClickableSlider"]::add-page:vertical {
+QSlider::add-page:vertical {
     background: --ThemeColorPrimary;
     width: 4px;
     border-radius: 2px;
 }
 
-QSlider[fqw="ClickableSlider"]::handle:vertical {
+QSlider::handle:vertical {
     border: 1px solid rgb(222, 222, 222);
     height: 20px;
     min-width: 24px;
@@ -81,7 +81,7 @@ QSlider[fqw="ClickableSlider"]::handle:vertical {
         stop:1 rgb(255, 255, 255));
 }
 
-QSlider[fqw="ClickableSlider"]::handle:vertical:hover {
+QSlider::handle:vertical:hover {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
         stop:0 --ThemeColorPrimary,
         stop:0.55 --ThemeColorPrimary,
@@ -89,7 +89,7 @@ QSlider[fqw="ClickableSlider"]::handle:vertical:hover {
         stop:1 rgb(255, 255, 255));
 }
 
-QSlider[fqw="ClickableSlider"]::handle:vertical:pressed {
+QSlider::handle:vertical:pressed {
     background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
         stop:0 --ThemeColorPrimary,
         stop:0.4 --ThemeColorPrimary,
@@ -97,11 +97,11 @@ QSlider[fqw="ClickableSlider"]::handle:vertical:pressed {
         stop:1 rgb(255, 255, 255));
 }
 
-QSlider[fqw="ClickableSlider"]::groove:vertical:disabled {
+QSlider::groove:vertical:disabled {
     background-color: rgba(0, 0, 0, 75);
 }
 
-QSlider[fqw="ClickableSlider"]::handle:vertical:disabled {
+QSlider::handle:vertical:disabled {
     background-color: #808080;
     border: 5px solid #cccccc;
 }

@@ -1431,6 +1431,23 @@ class BasicInputTest : public QObject
         QCOMPARE(card.slider()->orientation(), Qt::Horizontal);
     }
 
+    // As in Python, the slider sheet is public and styles any QSlider it is applied to: 24 px thick.
+    void sliderStyleSheetStylesAPlainQSlider()
+    {
+        QWidget window;
+        auto *layout = new QHBoxLayout(&window);
+        auto *horizontal = new QSlider(Qt::Horizontal, &window);
+        auto *vertical = new QSlider(Qt::Vertical, &window);
+        FluentStyleSheet::apply(horizontal, FluentStyleSheetSource::Slider);
+        FluentStyleSheet::apply(vertical, FluentStyleSheetSource::Slider);
+        layout->addWidget(horizontal, 0, Qt::AlignTop);
+        layout->addWidget(vertical, 0, Qt::AlignTop);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QCOMPARE(horizontal->height(), 24);
+        QCOMPARE(vertical->width(), 24);
+    }
+
     // The hint's thickness is the style's, capped at the 22 px handle: Python's QSlider hint is 22
     // in Qt 5's macOS style and 20 in Fusion at 100 DPI, but Qt 6's macOS style hints 25.
     void sliderHintIsNoThickerThanItsHandle()
