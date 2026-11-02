@@ -367,14 +367,14 @@ HeaderCardWidget::HeaderCardWidget(QWidget *parent) : SimpleCardWidget(parent)
     m_titleLabel = new QLabel(m_headerView);
     m_titleLabel->setObjectName(QStringLiteral("headerLabel"));
     QFont titleFont = m_titleLabel->font();
-    titleFont.setPointSize(15);
+    titleFont.setPixelSize(15);
     titleFont.setWeight(QFont::DemiBold);
     m_titleLabel->setFont(titleFont);
     // A plain label under the card's style sheet takes its colour from the palette when it is polished,
     // and that sheet is the same in both themes, so a theme change never repolished the title: it kept
     // the colour of the theme it was created in. Its own sheet follows the theme.
-    FluentStyleSheet::setCustomStyleSheet(m_titleLabel, QStringLiteral("QLabel{color:#202020;}"),
-                                          QStringLiteral("QLabel{color:#f3f3f3;}"));
+    FluentStyleSheet::setCustomStyleSheet(m_titleLabel, QStringLiteral("QLabel{color:black;}"),
+                                          QStringLiteral("QLabel{color:white;}"));
     m_headerLayout->addWidget(m_titleLabel);
 
     m_separator = new CardSeparator(this);

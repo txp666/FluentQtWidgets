@@ -1051,23 +1051,24 @@ class ViewTest : public QObject
             }
             return std::make_pair(darkest, lightest);
         };
-        QCOMPARE(titleColor(card), QColor(32, 32, 32));
+        QCOMPARE(titleColor(card), QColor(Qt::black));
         QVERIFY(titleLightness(card).first < 80);
-        QCOMPARE(card.titleLabel()->font().pointSize(), 15);
+        // As in Python: setFont(headerLabel, 15, QFont.DemiBold), black in light mode and white in dark.
+        QCOMPARE(card.titleLabel()->font().pixelSize(), 15);
         QCOMPARE(card.titleLabel()->font().weight(), QFont::DemiBold);
 
         manager->setTheme(FluentQt::Theme::Dark);
-        QCOMPARE(titleColor(card), QColor(243, 243, 243));
+        QCOMPARE(titleColor(card), QColor(Qt::white));
         QVERIFY(titleLightness(card).second > 200);
         hiddenCard.resize(320, 160);
         hiddenCard.show();
         QVERIFY(QTest::qWaitForWindowExposed(&hiddenCard));
-        QCOMPARE(titleColor(hiddenCard), QColor(243, 243, 243));
+        QCOMPARE(titleColor(hiddenCard), QColor(Qt::white));
 
         manager->setTheme(FluentQt::Theme::Light);
-        QCOMPARE(titleColor(card), QColor(32, 32, 32));
+        QCOMPARE(titleColor(card), QColor(Qt::black));
         QVERIFY(titleLightness(card).first < 80);
-        QCOMPARE(titleColor(hiddenCard), QColor(32, 32, 32));
+        QCOMPARE(titleColor(hiddenCard), QColor(Qt::black));
     }
 
     void pagerTracksCurrentPageAndButtons()
