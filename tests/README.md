@@ -23,8 +23,17 @@ Qt Test suites, one executable per area of the Gallery, built with `-DFQW_BUILD_
 | `tst_gallery_pages`, `tst_gallery_translation` | whole Gallery pages, and their translations |
 | `tst_python_parity` | sizes of every shared widget against PyQt-Fluent-Widgets |
 
-Helpers shared by the suites live in `TestSupport.h`; the widget suites restore the theme and the configuration
-after each test with `FqwTest::GlobalState`.
+Helpers shared by the suites live in `TestSupport.h`: rendering a widget (`FqwTest::render`), sampling its
+pixels (`countPixels`, `averageGray`), finding pop-ups (`findVisibleTopLevel`) and mask dialogs, which are child
+overlays (`findVisibleWidget`, `findVisibleWidgetByRole`), and waiting for animations (`waitForAnimations`). The
+widget suites restore the theme and the configuration after each test with `FqwTest::GlobalState`, so a test
+sets what it needs and leaves the restore to it; the Gallery suites also point the configuration at a temporary
+file, since the Gallery saves it.
+
+A test that needs something the platform may not give skips with a message: `FQW_REQUIRE_PLATFORM("windows")`
+for native APIs, `FQW_REQUIRE_MAXIMIZE()` for a real maximize, `FQW_REQUIRE_SCREEN_ROOM(w, h)` for placement.
+Wait on the condition (`QTRY_*`, `waitForAnimations`) rather than a fixed time; a fixed `qWait` is only for
+checking that nothing happens later.
 
 ## Running
 

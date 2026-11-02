@@ -1363,7 +1363,7 @@ class NavigationTest : public QObject
         QSignalSpy currentSpy(&tabs, &TabWidget::currentChanged);
 
         // What a drop on the bar reports after moving the tab: the pages follow, and the page that
-        // was current stays current (it used to be replaced by the dragged one).
+        // was current stays current instead of the dragged one.
         emit tabs.tabBar()->tabMoved(2, 0);
         QCOMPARE(tabs.currentWidget(), first);
         QCOMPARE(currentSpy.count(), 0);

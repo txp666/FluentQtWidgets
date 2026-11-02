@@ -1,3 +1,5 @@
+// Date, time and calendar pickers, their panels and the calendar views.
+
 #include <FluentQtWidgets/FluentQtWidgets.h>
 
 #include <QtCore/QPointer>

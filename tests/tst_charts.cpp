@@ -109,9 +109,7 @@ class ChartsTest : public QObject
         QVERIFY(!crosshairSpy.isEmpty());
         QVERIFY(crosshairSpy.constLast().constFirst().toPointF().x() > 4.0);
 
-        QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
-        rendered.fill(Qt::transparent);
-        plot.render(&rendered);
+        const QImage rendered = FqwTest::render(plot);
 
         QVERIFY(FqwTest::countPixels(rendered, [](const QColor &pixel) {
                     return pixel.green() > 110 && pixel.red() < 120 && pixel.blue() < 150;
@@ -364,9 +362,7 @@ class ChartsTest : public QObject
         plot.show();
         QVERIFY(QTest::qWaitForWindowExposed(&plot));
 
-        QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
-        rendered.fill(Qt::transparent);
-        plot.render(&rendered);
+        const QImage rendered = FqwTest::render(plot);
 
         QVERIFY(FqwTest::countPixels(rendered, [](const QColor &pixel) {
                     const bool tealPixel = pixel.red() < 90 && pixel.green() > 95 && pixel.blue() > 95;
@@ -402,9 +398,7 @@ class ChartsTest : public QObject
         plot.show();
         QVERIFY(QTest::qWaitForWindowExposed(&plot));
 
-        QImage rendered(plot.size(), QImage::Format_ARGB32_Premultiplied);
-        rendered.fill(Qt::transparent);
-        plot.render(&rendered);
+        const QImage rendered = FqwTest::render(plot);
 
         QVERIFY(FqwTest::countPixels(rendered, [](const QColor &pixel) {
                     return pixel.alpha() > 0 && pixel.red() < 90 && pixel.green() > 95 && pixel.blue() > 95;

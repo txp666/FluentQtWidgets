@@ -291,7 +291,7 @@ class MenuTest : public QObject
         QVERIFY(!sub->parentMenu());
         QCOMPARE(parent.view()->count(), 0);
 
-        // Used to select the parent's deleted list item.
+        // A removed submenu must not reach back into its old parent's list, whose item is deleted.
         sub->exec(QPoint(100, 100), false);
         sub->close();
     }

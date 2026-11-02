@@ -272,8 +272,8 @@ class ThemeTest : public QObject
         style.active = false;
     }
 
-    // The strings round three added (folder list dialog, colour card, title bar buttons, navigation
-    // buttons, media bars, switch button, dialog buttons) were missing from the library's .ts files.
+    // The strings of the folder list dialog, colour card, title bar and navigation buttons, media
+    // bars, switch button and dialog buttons must be in the library's .ts files; they once were not.
     void fluentTranslatorCoversTheLibrarysStrings_data()
     {
         QTest::addColumn<QString>("locale");
