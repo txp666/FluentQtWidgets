@@ -157,6 +157,9 @@ class QssTest : public QObject
         const auto addRow = [](const char *role, FluentStyleSheetSource source) {
             QTest::newRow(role) << QString::fromLatin1(role) << static_cast<int>(source);
         };
+        // No widget takes these roles: AcrylicLabel paints itself and the folder picker dialog is gone.
+        addRow("AcrylicLabel", FluentStyleSheetSource::Global);
+        addRow("FolderPickerDialog", FluentStyleSheetSource::Global);
         addRow("ComboBox", FluentStyleSheetSource::ComboBox);
         addRow("EditableComboBox", FluentStyleSheetSource::LineEdit);
         addRow("AcrylicEditableComboBox", FluentStyleSheetSource::LineEdit);
