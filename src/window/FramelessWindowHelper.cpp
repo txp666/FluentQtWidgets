@@ -331,6 +331,14 @@ bool FramelessWindowHelper::handleNativeEvent(const QByteArray &eventType, void 
     }
 #endif
 
+    // Qt 6.10 consumes WM_NCACTIVATE for frameless windows (QTBUG-127116) without passing it on, so
+    // DWM kept drawing the window as inactive: Mica showed its grey inactive colour instead of the
+    // wallpaper's tint. With lParam -1 the default handling tells DWM the new state and paints no frame.
+    if (msg->message == WM_NCACTIVATE) {
+        *result = DefWindowProcW(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
+        return true;
+    }
+
     // Only these messages carry a screen position in lParam.
     const bool hasScreenPos = msg->message == WM_NCHITTEST || msg->message == WM_NCLBUTTONDOWN ||
                               msg->message == WM_NCLBUTTONDBLCLK || msg->message == WM_NCLBUTTONUP ||

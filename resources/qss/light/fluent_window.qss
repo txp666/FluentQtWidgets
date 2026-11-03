@@ -1,7 +1,8 @@
 /* The same in both themes: the window and the page stack hold every page, and a style sheet that
    changed with the theme would restyle all of them. Rules for one theme select [fqwTheme]. */
 
-QMainWindow[fqw="FluentWindow"] {
+QMainWindow[fqw="FluentWindow"],
+QMainWindow[fqw="MSFluentWindow"] {
     background: transparent;
 }
 

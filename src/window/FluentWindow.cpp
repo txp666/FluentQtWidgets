@@ -1092,8 +1092,11 @@ MSFluentWindow::MSFluentWindow(QWidget *parent) : QMainWindow(parent)
     layout->setSpacing(0);
 
     m_navigationBar = new NavigationBar(m_container);
+    // FluentWindow's page stack, as in Python: a translucent layer with a rounded top-left corner.
     m_stackedWidget = new QStackedWidget(m_container);
     m_stackedWidget->setObjectName(QStringLiteral("NavigationStack"));
+    m_stackedWidget->setAttribute(Qt::WA_StyledBackground, true);
+    FluentStyleSheet::setRole(m_stackedWidget, QStringLiteral("NavigationStack"));
     layout->addWidget(m_navigationBar);
     layout->addWidget(m_stackedWidget, 1);
     setCentralWidget(m_container);

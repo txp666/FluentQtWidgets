@@ -303,6 +303,22 @@ class WindowTest : public QObject
         QCOMPARE(sample(&ms, QPoint(ms.width() / 2, 4)), QColor(10, 20, 30));
     }
 
+    // Python's style sheet makes every FluentWindowBase transparent, so Windows fills the window with
+    // nothing and Mica shows through. The port's rule selected FluentWindow only: an MSFluentWindow
+    // kept the palette's opaque window colour over its Mica.
+    void fluentWindowsHaveATransparentStyleSheetBackground()
+    {
+        FluentQt::FluentWidget widget;
+        FluentQt::FluentWindow fluent;
+        FluentQt::SplitFluentWindow split;
+        FluentQt::MSFluentWindow ms;
+        for (QWidget *window : QList<QWidget *>{&widget, &fluent, &split, &ms}) {
+            window->ensurePolished();
+            QVERIFY2(window->palette().color(QPalette::Window).alpha() == 0,
+                     window->metaObject()->className());
+        }
+    }
+
     void fluentWindowMicaFollowsPlatformAvailability()
     {
         FluentQt::FluentWindow window;
@@ -329,6 +345,33 @@ class WindowTest : public QObject
         QVERIFY(style & WS_THICKFRAME);
 #else
         QSKIP("Windows native animation styles only apply on Windows");
+#endif
+    }
+
+    // Qt 6.10 consumes WM_NCACTIVATE for frameless windows (QTBUG-127116), so Windows, and with it
+    // DWM, kept the window inactive: Mica stayed grey. The frameless windows pass the state on.
+    void framelessWindowsPassActivationToWindows()
+    {
+#if defined(Q_OS_WIN)
+        FluentQt::FluentWidget widget;
+        FluentQt::FluentWindow fluent;
+        FluentQt::MSFluentWindow ms;
+        for (QWidget *window : QList<QWidget *>{&widget, &fluent, &ms}) {
+            window->resize(360, 240);
+            window->show();
+            const HWND hwnd = reinterpret_cast<HWND>(window->winId());
+            const auto activeCaption = [hwnd]() {
+                WINDOWINFO info{};
+                info.cbSize = sizeof(info);
+                return GetWindowInfo(hwnd, &info) && (info.dwWindowStatus & WS_ACTIVECAPTION);
+            };
+            SendMessageW(hwnd, WM_NCACTIVATE, FALSE, 0);
+            QVERIFY2(!activeCaption(), window->metaObject()->className());
+            SendMessageW(hwnd, WM_NCACTIVATE, TRUE, 0);
+            QVERIFY2(activeCaption(), window->metaObject()->className());
+        }
+#else
+        QSKIP("WM_NCACTIVATE only exists on Windows");
 #endif
     }
 
@@ -478,6 +521,35 @@ class WindowTest : public QObject
         rendered.fill(Qt::transparent);
         window.render(&rendered);
         QCOMPARE(rendered.pixelColor(stackOrigin), navigationSurface);
+    }
+
+    // Python's MSFluentWindow has FluentWindow's page stack: a translucent white layer with a rounded
+    // top-left corner over the window's colour (or Mica). The port's MSFluentWindow stack painted
+    // nothing, so its pages sat straight on the window colour.
+    void fluentWindowsLayTheirPagesOnPythonsStackLayer()
+    {
+        FluentQt::ThemeManager::instance()->setTheme(FluentQt::Theme::Light);
+        FluentQt::FluentWindow fluent;
+        fluent.addSubInterface(new QWidget, QIcon(), QStringLiteral("Home"), QStringLiteral("home"));
+        FluentQt::MSFluentWindow ms;
+        auto *msPage = new QWidget;
+        msPage->setObjectName(QStringLiteral("home"));
+        ms.addSubInterface(msPage, QIcon(), QStringLiteral("Home"));
+        for (QMainWindow *window : QList<QMainWindow *>{&fluent, &ms}) {
+            window->resize(640, 480);
+            window->show();
+            QVERIFY(QTest::qWaitForWindowExposed(window));
+            auto *stack = window->findChild<QStackedWidget *>(QStringLiteral("NavigationStack"));
+            QVERIFY(stack != nullptr);
+            const QImage image = FqwTest::render(*window);
+            const QPoint origin = stack->mapTo(window, QPoint(0, 0));
+            // rgba(255, 255, 255, 128) over rgb(240, 244, 249).
+            const QColor body = image.pixelColor(origin + QPoint(40, 40));
+            QVERIFY2(qAbs(body.red() - 248) <= 1 && qAbs(body.green() - 250) <= 1 && qAbs(body.blue() - 252) <= 1,
+                     qPrintable(QStringLiteral("%1: %2").arg(QLatin1String(window->metaObject()->className()),
+                                                             body.name())));
+            QCOMPARE(image.pixelColor(origin + QPoint(1, 1)), QColor(240, 244, 249));
+        }
     }
 
     void fluentWindowNavigationStackUsesRoundedTopLeftCorner()
