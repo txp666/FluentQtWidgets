@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Behaviour fixes
+
+- Spin boxes, date edits and time edits show their text on Qt 6.12.0. That release narrows the edit field of a styled spin box without native buttons to one pixel (QTBUG-151308, fixed in Qt 6.12.1), which hid every value. The field now stays in the style sheet's contents rect, where other Qt versions put it.
+- Hiding a spin box's buttons (`setSymbolVisible(false)`, or `setReadOnly(true)`) gives the text the room they had, as in Python. The text kept to the left of the hidden buttons.
+
 ## 0.3.0
 
 ### Behaviour fixes

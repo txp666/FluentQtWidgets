@@ -20,6 +20,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QStyle>
+#include <QtWidgets/QStyleOption>
 
 namespace FluentQt {
 
@@ -49,6 +50,43 @@ static void paintSpinIcon(QPainter *painter, const QString &name, const QRectF &
         renderer->render(painter, rect);
     }
 }
+
+// Keeps a spin box's edit field in the style sheet's contents rect, where Qt puts it when there are
+// no native buttons. Qt 6.12.0 instead narrows that field to one pixel, which hides the text
+// (QTBUG-151308, fixed in 6.12.1); on other versions this changes nothing.
+class EditFieldKeeper final : public QObject
+{
+public:
+    EditFieldKeeper(QAbstractSpinBox *spinBox, QLineEdit *edit) : QObject(spinBox), m_spinBox(spinBox), m_edit(edit)
+    {
+        m_edit->installEventFilter(this);
+    }
+
+    void apply()
+    {
+        QStyleOptionFrame option;
+        option.initFrom(m_spinBox);
+        // subElementRect mirrors the rect for right-to-left, and a spin box's edit field is not mirrored.
+        const QRect contents = m_spinBox->style()->subElementRect(QStyle::SE_LineEditContents, &option, m_spinBox);
+        const QRect field = QStyle::visualRect(option.direction, option.rect, contents);
+        if (field.isValid() && m_edit->geometry() != field) {
+            m_edit->setGeometry(field);
+        }
+    }
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (watched == m_edit && (event->type() == QEvent::Move || event->type() == QEvent::Resize)) {
+            apply();
+        }
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    QAbstractSpinBox *m_spinBox;
+    QLineEdit *m_edit;
+};
 
 class SpinFlyoutButton final : public TransparentToolButton
 {
@@ -230,6 +268,9 @@ void SpinBoxHelper::init(QAbstractSpinBox *spinBox, Mode mode)
     m_spinBox->setFont(Private::fluentFont(14));
     FluentStyleSheet::apply(m_spinBox, FluentStyleSheetSource::SpinBox);
     m_spinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    if (auto *edit = m_spinBox->findChild<QLineEdit *>(QString(), Qt::FindDirectChildrenOnly)) {
+        m_editFieldKeeper = new EditFieldKeeper(m_spinBox, edit);
+    }
 
     m_layout = new QHBoxLayout(m_spinBox);
 
@@ -315,6 +356,10 @@ void SpinBoxHelper::setSymbolVisible(bool visible)
     m_spinBox->setProperty("symbolVisible", visible);
     m_spinBox->style()->unpolish(m_spinBox);
     m_spinBox->style()->polish(m_spinBox);
+    // The padding on the right changes with the buttons, and polishing leaves the edit field as it was.
+    if (m_editFieldKeeper) {
+        m_editFieldKeeper->apply();
+    }
     m_spinBox->update();
 
     if (m_mode == Inline) {
