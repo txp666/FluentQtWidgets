@@ -54,6 +54,31 @@ ThemeManager::ThemeManager(QObject *parent) : QObject(parent)
     m_systemThemeListener->start();
 }
 
+namespace {
+
+// Native window frames and dialogs (title bars on Windows, the window appearance on macOS) follow the color scheme Qt
+// reports, not the style sheets: request the chosen theme's scheme, and the system's again for Theme::Auto.
+void requestColorScheme(Theme theme, SystemThemeListener *listener)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    if (!qApp || !qApp->styleHints()) {
+        return;
+    }
+    if (theme == Theme::Auto) {
+        qApp->styleHints()->unsetColorScheme();
+        listener->setColorSchemeRequested(false);
+        return;
+    }
+    listener->setColorSchemeRequested(true);
+    qApp->styleHints()->setColorScheme(theme == Theme::Dark ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light);
+#else
+    Q_UNUSED(theme)
+    Q_UNUSED(listener)
+#endif
+}
+
+} // namespace
+
 Theme ThemeManager::theme() const { return m_theme; }
 
 Theme ThemeManager::effectiveTheme() const
@@ -81,6 +106,7 @@ SystemThemeListener *ThemeManager::systemThemeListener() const { return m_system
 
 void ThemeManager::setTheme(Theme theme)
 {
+    requestColorScheme(theme, m_systemThemeListener);
     if (m_theme == theme) {
         if (qApp) {
             applyTo(qApp);

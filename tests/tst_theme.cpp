@@ -7,6 +7,7 @@
 #include <QtGui/QPalette>
 #include <QtGui/QPixmap>
 #include <QtGui/QScreen>
+#include <QtGui/QStyleHints>
 #include <QtTest/QtTest>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QProxyStyle>
@@ -121,6 +122,36 @@ class ThemeTest : public QObject
 
         app->setPalette(previousPalette);
         manager->systemThemeListener()->refresh();
+    }
+
+    // Native window frames and dialogs follow Qt's color scheme, not the style sheets, so pop-up windows with a native
+    // title bar kept the system's colors. A chosen theme requests its scheme, and Auto the system's again.
+    void themeRequestsQtsColorScheme()
+    {
+        auto *manager = FluentQt::ThemeManager::instance();
+        auto *listener = manager->systemThemeListener();
+        manager->setTheme(FluentQt::Theme::Auto);
+        const FluentQt::Theme system = listener->systemTheme();
+        const FluentQt::Theme other = system == FluentQt::Theme::Dark ? FluentQt::Theme::Light : FluentQt::Theme::Dark;
+        const auto scheme = [](FluentQt::Theme theme) {
+            return theme == FluentQt::Theme::Dark ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light;
+        };
+        // The offscreen platform has no color schemes to grant.
+        const bool granted = QGuiApplication::platformName() != QLatin1String("offscreen");
+
+        manager->setTheme(other);
+        if (granted) {
+            QTRY_COMPARE(QGuiApplication::styleHints()->colorScheme(), scheme(other));
+        }
+        // Qt now reports the request, not the system: the listener keeps the system theme.
+        listener->refresh();
+        QCOMPARE(listener->systemTheme(), system);
+
+        manager->setTheme(FluentQt::Theme::Auto);
+        QCOMPARE(manager->effectiveTheme(), system);
+        if (granted) {
+            QTRY_COMPARE(QGuiApplication::styleHints()->colorScheme(), scheme(system));
+        }
     }
 
     void themeColorPaletteMatchesReference()

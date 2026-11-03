@@ -1,6 +1,7 @@
 #include <FluentQtWidgets/ThemeListener.h>
 
 #include <QtCore/QEvent>
+#include <QtCore/QTimer>
 #include <QtGui/QPalette>
 #include <QtWidgets/QApplication>
 
@@ -61,7 +62,25 @@ void SystemThemeListener::stop()
     setRunning(false);
 }
 
-void SystemThemeListener::refresh() { setSystemTheme(detectSystemTheme()); }
+void SystemThemeListener::refresh()
+{
+    if (!m_colorSchemeRequested) {
+        setSystemTheme(detectSystemTheme());
+    }
+}
+
+void SystemThemeListener::setColorSchemeRequested(bool requested)
+{
+    if (m_colorSchemeRequested == requested) {
+        return;
+    }
+    m_colorSchemeRequested = requested;
+    if (!requested) {
+        // Once the platform drops the request, Qt reports the system's scheme again, usually with colorSchemeChanged.
+        // A system change made meanwhile to the requested scheme comes without one: look again once it has settled.
+        QTimer::singleShot(500, this, &SystemThemeListener::refresh);
+    }
+}
 
 Theme SystemThemeListener::detectSystemTheme() const
 {

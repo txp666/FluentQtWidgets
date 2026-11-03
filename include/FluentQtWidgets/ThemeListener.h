@@ -21,6 +21,10 @@ class FQW_API SystemThemeListener : public QObject
     bool isRunning() const;
     Theme systemTheme() const;
 
+    // While the application requests a color scheme of its own (ThemeManager does for Theme::Light and Theme::Dark),
+    // Qt reports that scheme instead of the system's, so the listener keeps the system theme it last saw.
+    void setColorSchemeRequested(bool requested);
+
   public slots:
     void start();
     void stop();
@@ -39,6 +43,7 @@ class FQW_API SystemThemeListener : public QObject
     void setSystemTheme(Theme theme);
 
     bool m_running = false;
+    bool m_colorSchemeRequested = false;
     Theme m_systemTheme = Theme::Light;
 };
 
