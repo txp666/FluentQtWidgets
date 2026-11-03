@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Behaviour fixes
+
+- `ThemeManager::setTheme()` requests Qt's color scheme: the chosen one for `Theme::Light` and `Theme::Dark`, the system's again for `Theme::Auto`. Native window frames and dialogs follow it, so a plain `QWidget` window's title bar on Windows, and the application's appearance on macOS, follow the theme instead of the system. New `SystemThemeListener::setColorSchemeRequested()` keeps the system theme while such a request is in effect.
+- The frameless windows (`FluentWidget`, `FluentWindow`, `MSFluentWindow`) pass `WM_NCACTIVATE` on to Windows. Qt 6.10 consumes it for frameless windows (QTBUG-127116), so Windows kept them inactive and Mica stayed grey on Windows 11.
+- `MSFluentWindow`'s window background is transparent, as every Python `FluentWindowBase`'s is, so Mica shows through it on Windows 11. It kept the palette's opaque window colour over the Mica.
+- `MSFluentWindow`'s pages lie on `FluentWindow`'s page stack layer, as in Python: translucent white with a 1 px border and a rounded top-left corner. Its stack painted nothing, so the pages sat straight on the window colour or the Mica.
+
+### Project
+
+- Qt 6.12 is required and is the version CI builds with (it was 6.5 or later, with CI on 6.8.0). CI installs Qt with aqtinstall from GitHub, as the PyPI release can't read the Windows x64 repository layout of Qt 6.11 and later.
+- CMake finds a Qt that the Qt installer or aqtinstall put in `~/Qt` or `C:/Qt` by itself, the newest 6.12 or later for the compiler, so a fresh clone configures without `CMAKE_PREFIX_PATH`. Projects that add FluentQtWidgets as a subdirectory can use the same lookup through `cmake/FqwLocateQt.cmake`.
+
 ## 0.2.0
 
 Every widget was compared with PyQt-Fluent-Widgets 1.11.3, the reference the port follows, and the differences were fixed. A new test now keeps the sizes in line.

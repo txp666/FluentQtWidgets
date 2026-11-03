@@ -6,7 +6,7 @@ How to build FluentQtWidgets, run the Gallery and the examples, and use the libr
 ## Requirements
 
 - CMake 3.21+ and a C++17 compiler
-- Qt 6.5+ with Core, Gui, Widgets, Svg and Network
+- Qt 6.12 with Core, Gui, Widgets, Svg and Network
 - Optional: Qt Multimedia and MultimediaWidgets (media widgets and their examples), Qt WebEngineWidgets (only the
   standalone WebEngine example)
 
@@ -25,13 +25,18 @@ The CMake options are `FQW_BUILD_EXAMPLES` (on by default), `FQW_BUILD_TESTS` (o
 `tools/screenshots`). Any generator works:
 
 ```bash
-cmake -S . -B build -DCMAKE_PREFIX_PATH=<path-to-qt> -DFQW_BUILD_TESTS=ON
+cmake -S . -B build -DFQW_BUILD_TESTS=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-`CMakePresets.json` has presets with examples and tests on. They don't name a Qt kit, compiler or debugger, so
-make your Qt visible through `CMAKE_PREFIX_PATH` or `Qt6_DIR` first.
+CMake finds a Qt that the Qt installer or aqtinstall put in its default folder (`~/Qt` on macOS and Linux, `C:/Qt` on
+Windows) by itself: the newest Qt 6.12 or later built for your compiler (`cmake/FqwLocateQt.cmake`). A Qt that CMake
+already finds, such as Homebrew's or a Linux distribution's, is used as before. For one anywhere else, add
+`-DCMAKE_PREFIX_PATH=<path-to-qt>`.
+
+`CMakePresets.json` has presets with examples and tests on. They don't name a Qt kit, compiler or debugger; Qt is
+found as above.
 
 ```bash
 # macOS / Linux, in build/debug
@@ -42,15 +47,13 @@ ctest --preset debug --output-on-failure
 
 ### Windows
 
-The compiler and generator must match the Qt kit: build a MinGW kit with MinGW and an MSVC kit with MSVC. If CMake
-cannot find `Qt6Config.cmake`, point `CMAKE_PREFIX_PATH` at the kit's root or `Qt6_DIR` at the directory that
-holds `Qt6Config.cmake`.
+The compiler and generator must match the Qt kit: build a MinGW kit with MinGW and an MSVC kit with MSVC. A kit in
+`C:/Qt` that matches the compiler is found by itself; for a kit elsewhere, point `CMAKE_PREFIX_PATH` at its root.
 
-For a Qt MinGW kit, make the kit, the MinGW compiler and Ninja visible in the terminal, then use the
+For a Qt MinGW kit, make the MinGW compiler, Ninja and the kit's `bin` visible in the terminal, then use the
 `mingw-debug` preset, which builds in `build/mingw`:
 
 ```powershell
-$env:CMAKE_PREFIX_PATH = "<path-to-qt-mingw-kit>"
 $env:Path = "<path-to-mingw-bin>;<path-to-ninja-dir>;<path-to-qt-bin>;$env:Path"
 
 cmake --preset mingw-debug
@@ -123,6 +126,9 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(FluentQtWidgets CONFIG REQUIRED)
 target_link_libraries(my_app PRIVATE Qt6::Widgets FluentQtWidgets::Widgets)
 ```
+
+A project that adds the FluentQtWidgets sources as a subdirectory can find Qt the same way as this one: include its
+`cmake/FqwLocateQt.cmake` and call `fqw_locate_qt(6.12)` before `find_package(Qt6)`.
 
 One header brings in the whole API, in the `FluentQt` namespace:
 
