@@ -5,7 +5,7 @@
 namespace FluentQt {
 
 #ifndef FQW_VERSION
-#define FQW_VERSION "0.2.0"
+#define FQW_VERSION "0.3.0"
 #endif
 
 inline QString libraryVersion()
