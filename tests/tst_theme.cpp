@@ -136,8 +136,8 @@ class ThemeTest : public QObject
         const auto scheme = [](FluentQt::Theme theme) {
             return theme == FluentQt::Theme::Dark ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light;
         };
-        // The offscreen platform has no color schemes to grant.
-        const bool granted = QGuiApplication::platformName() != QLatin1String("offscreen");
+        // A platform that reports no color scheme (offscreen, X11 without a desktop) has none to grant either.
+        const bool granted = QGuiApplication::styleHints()->colorScheme() != Qt::ColorScheme::Unknown;
 
         manager->setTheme(other);
         if (granted) {
