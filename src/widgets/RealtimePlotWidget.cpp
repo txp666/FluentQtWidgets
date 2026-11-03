@@ -1775,6 +1775,13 @@ void RealtimePlotWidget::visibleYRange(qreal xMinimum, qreal xMaximum, qreal *mi
     const qreal padding = qMax<qreal>(0.2, range * 0.12);
     *minimum = yMin - padding;
     *maximum = yMax + padding;
+    // The padding never takes the axis across zero when the data does not cross it: a reading
+    // that is never negative gets no negative axis.
+    if (yMin >= 0) {
+        *minimum = qMax<qreal>(0, *minimum);
+    } else if (yMax <= 0) {
+        *maximum = qMin<qreal>(0, *maximum);
+    }
 }
 
 QPointF RealtimePlotWidget::mapToPlot(const QPointF &point, const QRectF &plot, qreal xMinimum, qreal xMaximum,

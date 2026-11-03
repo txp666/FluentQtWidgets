@@ -57,6 +57,42 @@ QString tickText(qreal value, qreal step)
     return text;
 }
 
+// A round tick step for `span` shown in about `count` steps: 1, 2 or 5 times a power of ten, the
+// one nearest span / count on a log scale.
+qreal niceTickStep(qreal span, int count)
+{
+    const qreal raw = span / qMax(1, count);
+    if (!std::isfinite(raw) || raw <= 0) {
+        return 0;
+    }
+    const qreal magnitude = std::pow(10.0, std::floor(std::log10(raw)));
+    const qreal fraction = raw / magnitude;
+    // The boundaries are the geometric means of neighbouring steps: sqrt(1*2), sqrt(2*5), sqrt(5*10).
+    const qreal nice = fraction < 1.4142 ? 1 : fraction < 3.1623 ? 2 : fraction < 7.0711 ? 5 : 10;
+    return nice * magnitude;
+}
+
+// The multiples of `step` between `minimum` and `maximum`, the ends included; none for a step
+// too small to draw.
+QVector<qreal> tickValues(qreal minimum, qreal maximum, qreal step)
+{
+    QVector<qreal> values;
+    if (!(step > 0) || !std::isfinite(minimum) || !std::isfinite(maximum) || maximum < minimum) {
+        return values;
+    }
+    constexpr qreal kSlack = 1.0e-9; // an end that is a multiple up to rounding still gets its tick
+    const qreal first = std::ceil(minimum / step - kSlack);
+    const qreal last = std::floor(maximum / step + kSlack);
+    if (last - first > 100) {
+        return values;
+    }
+    for (qreal k = first; k <= last; ++k) {
+        const qreal value = k * step;
+        values.append(qAbs(value) < step * kSlack ? 0.0 : value); // never "-0"
+    }
+    return values;
+}
+
 void appendUniqueIndex(QVector<int> *indices, int index)
 {
     if (!indices || (!indices->isEmpty() && indices->constLast() == index)) {
@@ -340,34 +376,32 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
         painter.setClipRect(plot.adjusted(1, 1, -1, -1));
         painter.setPen(QPen(gridColor(), 1));
 
-        constexpr int xTicks = 6;
-        constexpr int yTicks = 5;
-        const qreal xTickStep = (xMax - xMin) / xTicks;
-        const qreal yTickStep = (yMax - yMin) / yTicks;
-        for (int i = 0; i <= xTicks; ++i) {
-            const qreal ratio = static_cast<qreal>(i) / xTicks;
-            const qreal x = plot.left() + ratio * plot.width();
+        // Ticks and grid lines on round values (1, 2 or 5 times a power of ten), wherever they fall
+        // in the view; about 6 steps across and 5 up.
+        const qreal xTickStep = niceTickStep(xMax - xMin, 6);
+        const qreal yTickStep = niceTickStep(yMax - yMin, 5);
+        const QVector<qreal> xTicks = tickValues(xMin, xMax, xTickStep);
+        const QVector<qreal> yTicks = tickValues(yMin, yMax, yTickStep);
+        const auto xAt = [&](qreal value) { return mapToPlot(QPointF(value, yMin), plot, xMin, xMax, yMin, yMax).x(); };
+        const auto yAt = [&](qreal value) { return mapToPlot(QPointF(xMin, value), plot, xMin, xMax, yMin, yMax).y(); };
+        for (const qreal value : xTicks) {
+            const qreal x = xAt(value);
             painter.drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()));
         }
-        for (int i = 0; i <= yTicks; ++i) {
-            const qreal ratio = static_cast<qreal>(i) / yTicks;
-            const qreal y = plot.bottom() - ratio * plot.height();
+        for (const qreal value : yTicks) {
+            const qreal y = yAt(value);
             painter.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y));
         }
         painter.restore();
 
         painter.setPen(withAlpha(textColor(), 190));
-        for (int i = 0; i <= yTicks; ++i) {
-            const qreal ratio = static_cast<qreal>(i) / yTicks;
-            const qreal value = yMin + ratio * (yMax - yMin);
-            const qreal y = plot.bottom() - ratio * plot.height();
+        for (const qreal value : yTicks) {
+            const qreal y = yAt(value);
             painter.drawText(QRectF(4, y - metrics.height() / 2.0, plot.left() - 10, metrics.height()),
                              Qt::AlignRight | Qt::AlignVCenter, tickText(value, yTickStep));
         }
-        for (int i = 0; i <= xTicks; ++i) {
-            const qreal ratio = static_cast<qreal>(i) / xTicks;
-            const qreal value = xMin + ratio * (xMax - xMin);
-            const qreal x = plot.left() + ratio * plot.width();
+        for (const qreal value : xTicks) {
+            const qreal x = xAt(value);
             painter.drawText(QRectF(x - 36, plot.bottom() + 7, 72, metrics.height()),
                              Qt::AlignHCenter | Qt::AlignVCenter,
                              m_xAxisValueFormatter ? m_xAxisValueFormatter(value) : tickText(value, xTickStep));
