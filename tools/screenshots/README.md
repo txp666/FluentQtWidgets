@@ -16,7 +16,7 @@ cmake -S . -B build/shots -G Ninja -DCMAKE_BUILD_TYPE=Release -DFQW_BUILD_EXAMPL
 cmake --build build/shots --target galleryshots showcase
 ```
 
-Add `-DCMAKE_PREFIX_PATH=...` as for any other build when Qt is not on the default path.
+Qt is found as for any other build ([quick start](../../docs/quick-start.md#build)).
 
 ## Render
 

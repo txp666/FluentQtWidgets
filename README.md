@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 ## 环境要求
 
 - CMake 3.21+ 与支持 C++17 的编译器
-- Qt 6.5+（Core、Gui、Widgets、Svg、Network）
+- Qt 6.12（Core、Gui、Widgets、Svg、Network）
 - 可选：Qt Multimedia + MultimediaWidgets，用于媒体控件（单独安装的 Qt Multimedia 还需 `QT_ADDITIONAL_PACKAGES_PREFIX_PATH`，见[快速开始](docs/quick-start.md)）；Qt WebEngineWidgets，仅独立 WebEngine 示例需要
 
 ## 构建

@@ -16,7 +16,7 @@ Keep `include/FluentQtWidgets/Version.h` and `vcpkg.json` on the same release nu
 
 ## Release Tags
 
-Release tags use the `vX.Y.Z` format. The current release line is `v0.2.0`.
+Release tags use the `vX.Y.Z` format. The current release line is `v0.3.0`.
 
 Create a matching release-notes file before tagging:
 
@@ -25,8 +25,8 @@ docs/release-notes/vX.Y.Z.md
 ```
 
 ```bash
-git tag -a v0.2.0 -m "FluentQtWidgets v0.2.0"
-git push origin main v0.2.0
+git tag -a v0.3.0 -m "FluentQtWidgets v0.3.0"
+git push origin main v0.3.0
 ```
 
 Pushing a `v*` tag runs the GitHub Actions release job after the CI build matrix passes.

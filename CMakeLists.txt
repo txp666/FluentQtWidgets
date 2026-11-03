@@ -31,7 +31,7 @@ endif()
 
 project(
     FluentQtWidgets
-    VERSION 0.2.0
+    VERSION 0.3.0
     DESCRIPTION "A Fluent Design inspired QWidget library for C++/Qt"
     HOMEPAGE_URL "${FQW_REPOSITORY_URL}"
     LANGUAGES CXX
@@ -59,8 +59,10 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 if(FQW_QT_MAJOR_VERSION STREQUAL "6")
-    find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Svg Network)
-    find_package(Qt6 6.5 QUIET COMPONENTS Multimedia MultimediaWidgets WebEngineWidgets)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FqwLocateQt.cmake)
+    fqw_locate_qt(6.12)
+    find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Widgets Svg Network)
+    find_package(Qt6 6.12 QUIET COMPONENTS Multimedia MultimediaWidgets WebEngineWidgets)
     set(FQW_QT_PACKAGE Qt6)
 elseif(FQW_QT_MAJOR_VERSION STREQUAL "5")
     find_package(Qt5 5.15 REQUIRED COMPONENTS Core Gui Widgets Svg Network)

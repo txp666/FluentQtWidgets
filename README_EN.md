@@ -109,7 +109,7 @@ To try it first, download the Gallery for your platform from [Releases](https://
 ## Requirements
 
 - CMake 3.21+ and a C++17 compiler
-- Qt 6.5+ (Core, Gui, Widgets, Svg, Network)
+- Qt 6.12 (Core, Gui, Widgets, Svg, Network)
 - Optional: Qt Multimedia + MultimediaWidgets for the media widgets (a separately installed Qt Multimedia also needs `QT_ADDITIONAL_PACKAGES_PREFIX_PATH`, see [Quick start](docs/quick-start.md)); Qt WebEngineWidgets only for the standalone WebEngine example
 
 ## Building

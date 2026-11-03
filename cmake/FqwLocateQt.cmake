@@ -1,0 +1,66 @@
+# Lets find_package(Qt6) find a Qt that the Qt installer or aqtinstall put in its default folder, ~/Qt or C:/Qt, so that a
+# fresh clone configures without CMAKE_PREFIX_PATH. A Qt that CMake finds by itself (CMAKE_PREFIX_PATH, Qt6_DIR,
+# Homebrew, a Linux distribution, the Qt of install-qt-action) is used as before.
+#
+#   fqw_locate_qt(<minimum version>)
+#
+# Call it after project() and before find_package(Qt6). Of the Qt versions installed for this compiler, it adds the
+# newest that is at least <minimum version> to CMAKE_PREFIX_PATH.
+
+function(_fqw_qt_install_prefix minimum_version out_var)
+    if(WIN32)
+        set(roots "C:/Qt" "$ENV{USERPROFILE}/Qt")
+        if(MSVC AND CMAKE_CXX_COMPILER_ARCHITECTURE_ID STREQUAL "ARM64")
+            set(kits msvc2022_arm64)
+        elseif(MSVC)
+            set(kits msvc2022_64)
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            set(kits llvm-mingw_64)
+        else()
+            set(kits mingw_64)
+        endif()
+    elseif(APPLE)
+        set(roots "$ENV{HOME}/Qt")
+        set(kits macos)
+    else()
+        set(roots "$ENV{HOME}/Qt" "/opt/Qt")
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+            set(kits gcc_arm64)
+        else()
+            set(kits gcc_64)
+        endif()
+    endif()
+
+    set(best_version "")
+    set(best_prefix "")
+    foreach(root IN LISTS roots)
+        foreach(kit IN LISTS kits)
+            file(GLOB prefixes LIST_DIRECTORIES true "${root}/6.*/${kit}")
+            foreach(prefix IN LISTS prefixes)
+                get_filename_component(version_dir "${prefix}" DIRECTORY)
+                get_filename_component(version "${version_dir}" NAME)
+                if(EXISTS "${prefix}/lib/cmake/Qt6/Qt6Config.cmake" AND version VERSION_GREATER_EQUAL
+                                                                         "${minimum_version}")
+                    if(best_version STREQUAL "" OR version VERSION_GREATER best_version)
+                        set(best_version "${version}")
+                        set(best_prefix "${prefix}")
+                    endif()
+                endif()
+            endforeach()
+        endforeach()
+    endforeach()
+    set(${out_var} "${best_prefix}" PARENT_SCOPE)
+endfunction()
+
+# A macro, so that CMAKE_PREFIX_PATH changes in the caller's scope.
+macro(fqw_locate_qt minimum_version)
+    find_package(Qt6 ${minimum_version} QUIET CONFIG)
+    if(NOT Qt6_FOUND)
+        _fqw_qt_install_prefix(${minimum_version} _fqw_qt_prefix)
+        if(_fqw_qt_prefix)
+            message(STATUS "Using Qt from ${_fqw_qt_prefix}")
+            list(APPEND CMAKE_PREFIX_PATH "${_fqw_qt_prefix}")
+        endif()
+        unset(_fqw_qt_prefix)
+    endif()
+endmacro()

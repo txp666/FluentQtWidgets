@@ -55,7 +55,7 @@ the accent themselves call `themeColor()`; style sheets use the tokens `--ThemeC
 … `--ThemeColorDark3` and `--ThemeColorLight1` … `--ThemeColorLight3`, which the manager replaces when it renders a
 sheet.
 
-Qt 6.5 or later is the supported toolchain. The sources also build against Qt 5.15 (`-DFQW_QT_MAJOR_VERSION=5`,
+Qt 6.12, the version CI builds with, is the supported toolchain. The sources also build against Qt 5.15 (`-DFQW_QT_MAJOR_VERSION=5`,
 without the media widgets), but CI does not test that.
 
 ## Style Management
