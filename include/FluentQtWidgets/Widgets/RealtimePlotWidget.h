@@ -42,6 +42,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     Q_PROPERTY(bool pointsVisible READ arePointsVisible WRITE setPointsVisible NOTIFY appearanceChanged)
     Q_PROPERTY(bool crosshairVisible READ isCrosshairVisible WRITE setCrosshairVisible NOTIFY appearanceChanged)
     Q_PROPERTY(bool legendVisible READ isLegendVisible WRITE setLegendVisible NOTIFY appearanceChanged)
+    Q_PROPERTY(bool valueTagsVisible READ areValueTagsVisible WRITE setValueTagsVisible NOTIFY appearanceChanged)
     Q_PROPERTY(QColor curveColor READ curveColor WRITE setCurveColor NOTIFY appearanceChanged)
     Q_PROPERTY(int refreshRate READ refreshRate WRITE setRefreshRate NOTIFY refreshRateChanged)
 
@@ -69,6 +70,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool arePointsVisible() const;
     bool isCrosshairVisible() const;
     bool isLegendVisible() const;
+    bool areValueTagsVisible() const;
     QColor curveColor() const;
     int refreshRate() const;
     QString seriesName(int seriesIndex) const;
@@ -103,6 +105,8 @@ class FQW_API RealtimePlotWidget : public QWidget
     void setPointsVisible(bool visible);
     void setCrosshairVisible(bool visible);
     void setLegendVisible(bool visible);
+    // The tags at the right edge showing each series' latest value; hiding them gives their margin to the plot.
+    void setValueTagsVisible(bool visible);
     void setCurveColor(const QColor &color);
     void setRefreshRate(int framesPerSecond);
     void appendSample(qreal y);
@@ -238,6 +242,7 @@ class FQW_API RealtimePlotWidget : public QWidget
     bool m_pointsVisible = false;
     bool m_crosshairVisible = true;
     bool m_legendVisible = true;
+    bool m_valueTagsVisible = true;
     bool m_dataUpdatePending = false;
     QColor m_curveColor;
     std::function<QString(qreal)> m_crosshairXValueFormatter;

@@ -537,6 +537,9 @@ void RealtimePlotWidget::paintEvent(QPaintEvent *)
 
     painter.restore();
 
+    if (!m_valueTagsVisible) {
+        latestSamples.clear();
+    }
     for (const auto &sample : latestSamples) {
         const int seriesIndex = sample.first;
         const QPointF plotPoint = sample.second;
