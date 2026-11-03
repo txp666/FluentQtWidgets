@@ -783,6 +783,36 @@ class TextTest : public QObject
         verifyCompact(compactDateTimeEdit, QStringLiteral("CompactDateTimeEdit"));
     }
 
+    // As in Python, the text sits between the left padding and the buttons' room on the right.
+    // Qt 6.12.0 narrowed the edit field of a styled spin box without native buttons to one pixel.
+    void spinBoxesShowTheirTextBetweenPaddingAndButtons()
+    {
+        auto verify = [](auto &spin, int buttonsRoom) {
+            auto *edit = spin.template findChild<QLineEdit *>(QString(), Qt::FindDirectChildrenOnly);
+            QVERIFY(edit != nullptr);
+            // A one-pixel border all round, 10 pixels of padding on the left.
+            const auto field = [](int width, int right) { return QRect(11, 1, width - 2 - 10 - right, 31); };
+            spin.setFixedWidth(225);
+            spin.show();
+            QVERIFY(QTest::qWaitForWindowExposed(&spin));
+            QCOMPARE(edit->geometry(), field(225, buttonsRoom));
+
+            spin.setFixedWidth(300);
+            QTRY_COMPARE(edit->geometry(), field(300, buttonsRoom));
+
+            spin.setSymbolVisible(false);
+            QTRY_COMPARE(edit->geometry(), field(300, 10));
+            spin.setSymbolVisible(true);
+            QTRY_COMPARE(edit->geometry(), field(300, buttonsRoom));
+        };
+
+        // Every spin box, date and time edit shares the helper behind these two.
+        FluentQt::SpinBox spin;
+        verify(spin, 80);
+        FluentQt::CompactSpinBox compactSpin;
+        verify(compactSpin, 26);
+    }
+
     void multilineTextEditorsUseFluentChromeAndSmoothScroll()
     {
         auto verifyEditor = [](auto &editor, const QString &role) {
