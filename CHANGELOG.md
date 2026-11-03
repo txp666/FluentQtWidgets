@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.2
+
+### API additions
+
+- `RealtimePlotWidget::setValueTagsVisible()` (property `valueTagsVisible`, on by default) shows or hides the tags at the right edge with each series' latest value. Hidden, their 58 px margin shrinks to 18 px and goes to the plot, for charts that show the readings elsewhere.
+
+### Behaviour fixes
+
+- `RealtimePlotWidget`'s ticks step by 1, 2 or 5 × 10^n on both axes (0/0.1/0.2… rather than 0.13/0.29/0.44…).
+- The automatic y range stops its padding at zero when the data doesn't cross it, so data that never goes below zero no longer gets a negative axis (and likewise above).
+
 ## 0.3.1
 
 ### Behaviour fixes

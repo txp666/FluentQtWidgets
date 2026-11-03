@@ -173,6 +173,8 @@ bool RealtimePlotWidget::isCrosshairVisible() const { return m_crosshairVisible;
 
 bool RealtimePlotWidget::isLegendVisible() const { return m_legendVisible; }
 
+bool RealtimePlotWidget::areValueTagsVisible() const { return m_valueTagsVisible; }
+
 QColor RealtimePlotWidget::curveColor() const { return effectiveSeriesColor(0); }
 
 int RealtimePlotWidget::refreshRate() const { return m_refreshRate; }
@@ -512,6 +514,17 @@ void RealtimePlotWidget::setLegendVisible(bool visible)
     }
 
     m_legendVisible = visible;
+    update();
+    emit appearanceChanged();
+}
+
+void RealtimePlotWidget::setValueTagsVisible(bool visible)
+{
+    if (m_valueTagsVisible == visible) {
+        return;
+    }
+
+    m_valueTagsVisible = visible;
     update();
     emit appearanceChanged();
 }
@@ -1678,7 +1691,8 @@ void RealtimePlotWidget::visibleIndexRange(int seriesIndex, qreal xMinimum, qrea
 
 QRectF RealtimePlotWidget::plotRect() const
 {
-    return QRectF(rect()).adjusted(58, 18, -58, -42);
+    // The right margin holds the value tags; without them it only has to fit half of the last x label.
+    return QRectF(rect()).adjusted(58, 18, m_valueTagsVisible ? -58 : -18, -42);
 }
 
 // While auto-scrolling, the view ends at the newest sample and starts no earlier than the oldest
@@ -1761,6 +1775,13 @@ void RealtimePlotWidget::visibleYRange(qreal xMinimum, qreal xMaximum, qreal *mi
     const qreal padding = qMax<qreal>(0.2, range * 0.12);
     *minimum = yMin - padding;
     *maximum = yMax + padding;
+    // The padding never takes the axis across zero when the data does not cross it: a reading
+    // that is never negative gets no negative axis.
+    if (yMin >= 0) {
+        *minimum = qMax<qreal>(0, *minimum);
+    } else if (yMax <= 0) {
+        *maximum = qMin<qreal>(0, *maximum);
+    }
 }
 
 QPointF RealtimePlotWidget::mapToPlot(const QPointF &point, const QRectF &plot, qreal xMinimum, qreal xMaximum,
