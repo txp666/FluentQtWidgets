@@ -16,6 +16,8 @@ class QMouseEvent;
 
 namespace FluentQt {
 
+class EditFieldKeeper;
+
 enum class SpinIconType
 {
     Up,
@@ -118,6 +120,7 @@ private:
     QColor m_lightFocusedBorderColor;
     QColor m_darkFocusedBorderColor;
     QHBoxLayout *m_layout = nullptr;
+    EditFieldKeeper *m_editFieldKeeper = nullptr;
     SpinButton *m_upButton = nullptr;
     SpinButton *m_downButton = nullptr;
     CompactSpinButton *m_compactButton = nullptr;
