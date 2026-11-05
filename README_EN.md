@@ -10,6 +10,7 @@
   </p>
   <p>
     English · <a href="README.md">简体中文</a> ·
+    <a href="https://fluentqt.modusignal.cn/?lang=en">Website</a> ·
     <a href="https://github.com/txp666/FluentQtWidgets/releases/latest">Download the Gallery</a> ·
     <a href="docs/quick-start.md">Quick start</a> ·
     <a href="CHANGELOG.md">Changelog</a> ·
