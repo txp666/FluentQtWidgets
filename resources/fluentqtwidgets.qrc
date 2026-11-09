@@ -93,6 +93,10 @@
         <file>images/tree_view/TreeViewClose_white.svg</file>
         <file>images/tree_view/TreeViewOpen_black.svg</file>
         <file>images/tree_view/TreeViewOpen_white.svg</file>
+        <file>images/table_view/Down_black.svg</file>
+        <file>images/table_view/Down_white.svg</file>
+        <file>images/table_view/Up_black.svg</file>
+        <file>images/table_view/Up_white.svg</file>
         <file>images/acrylic/noise.png</file>
         <file>images/icons/Cancel_black.svg</file>
         <file>images/icons/Cancel_white.svg</file>
