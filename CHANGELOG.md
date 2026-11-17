@@ -4,6 +4,7 @@
 
 ### Behaviour fixes
 
+- `SpinBox` and `DoubleSpinBox` restore their editable text geometry after a narrow parent layout expands on Qt 6.12.0, including compact controls.
 - Sorted `TableView`, `TableWidget`, `TreeView` and `TreeWidget` headers show the Fluent chevron as the sort indicator, black in the light theme and white in the dark. The style sheets pointed at `images/table_view/Down_*.svg` and `Up_*.svg`, which the resources lacked, so every sortable view logged `qt.svg: Cannot open file ':/qfluentwidgets/images/table_view/Down_black.svg'` and drew no chevron. The four icons come from PyQt-Fluent-Widgets.
 
 ## 0.3.2
