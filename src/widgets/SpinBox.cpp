@@ -59,6 +59,7 @@ class EditFieldKeeper final : public QObject
 public:
     EditFieldKeeper(QAbstractSpinBox *spinBox, QLineEdit *edit) : QObject(spinBox), m_spinBox(spinBox), m_edit(edit)
     {
+        m_spinBox->installEventFilter(this);
         m_edit->installEventFilter(this);
     }
 
@@ -77,7 +78,10 @@ public:
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override
     {
-        if (watched == m_edit && (event->type() == QEvent::Move || event->type() == QEvent::Resize)) {
+        // Qt can keep returning the same one-pixel edit rect after a narrow layout,
+        // so widening the spin box need not produce an event on the edit itself.
+        if ((watched == m_edit && (event->type() == QEvent::Move || event->type() == QEvent::Resize)) ||
+            (watched == m_spinBox && (event->type() == QEvent::Resize || event->type() == QEvent::Show))) {
             apply();
         }
         return QObject::eventFilter(watched, event);

@@ -792,10 +792,13 @@ class TextTest : public QObject
             QVERIFY(edit != nullptr);
             // A one-pixel border all round, 10 pixels of padding on the left.
             const auto field = [](int width, int right) { return QRect(11, 1, width - 2 - 10 - right, 31); };
-            spin.setFixedWidth(225);
+            // A narrow parent can leave Qt's edit rect at one pixel. Growing the
+            // spin box must repair it even when the edit's own rect does not change.
+            spin.setFixedWidth(50);
             spin.show();
             QVERIFY(QTest::qWaitForWindowExposed(&spin));
-            QCOMPARE(edit->geometry(), field(225, buttonsRoom));
+            spin.setFixedWidth(225);
+            QTRY_COMPARE(edit->geometry(), field(225, buttonsRoom));
 
             spin.setFixedWidth(300);
             QTRY_COMPARE(edit->geometry(), field(300, buttonsRoom));
